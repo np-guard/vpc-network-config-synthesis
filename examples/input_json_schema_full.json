@@ -1,0 +1,86 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "github.com/np-guard/vpc-network-synthesis/v0.1",
+    "type": "object",
+    "properties": {
+        "sections": {
+            "description": "Sections are a way for users to create aggregations. These can later be used in src/dst fields.",
+            "type": "array",
+            "items": {
+                "description": "A section is a named collection of subnets",
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "subnet",
+                            "instance",
+                            "nif",
+                            "tag"
+                        ]
+                    },
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "description": "All items are of the type specified in the type property",
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "name",
+                    "type",
+                    "items"
+                ]
+            }
+        },
+        "externals": {
+            "type": "array",
+            "description": "Externals are a way for users to name IP addresses or ranges external to the VPC. These are later used in src/dst definitions.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "cidr": {
+                        "description": "Acceptable format is standard CIDR notation, e.g. \"192.0.0.0/16\" or a single IP Address, e.g. \"192.168.32.35\"",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name",
+                    "cidr"
+                ]
+            }
+        },
+        "required-connections": {
+            "type": "array",
+            "description": "A list of required connections",
+            "items": {
+                "anyOf": [
+                    {
+                        "type": "object",
+                        "properties": {
+                            "src": {
+                                "type": "string"
+                            },
+                            "dst": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    {
+                        "$ref": "definitions.json#/definitions/schemas/protocol"
+                    }
+                ]
+            }
+        }
+    },
+    "required": [
+        "required-connections"
+    ]
+}

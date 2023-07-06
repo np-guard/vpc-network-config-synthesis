@@ -1,0 +1,71 @@
+{
+    "definitions": {
+        "schemas": {
+            "tcp": {
+                "type": "object",
+                "properties": {
+                    "protocol": {
+                        "type": "string",
+                        "enum": ["TCP"]
+                    },
+                    "min_port": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 65535
+                    },
+                    "max_port": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 65535
+                    } 
+                }
+            },
+            "udp": {
+                "type": "object",
+                "properties": {
+                    "protocol": {
+                        "type": "string",
+                        "enum": ["UDP"]
+                    },
+                    "min_port": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 65535
+                    },
+                    "max_port": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 65535
+                    } 
+                }
+            },
+            "icmp": {
+                "type": "object",
+                "properties": {
+                    "protocol": {
+                        "type": "string",
+                        "enum": ["ICMP"]
+                    },
+                    "type": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 255
+                    },
+                    "code": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 254
+                    } 
+                }
+            },
+            "protocol": {
+                "oneOf": [
+                    {"$ref": "#/definitions/schemas/tcp"},
+                    {"$ref": "#/definitions/schemas/udp"},
+                    {"$ref": "#/definitions/schemas/icmp"}
+                ]
+            }
+        }
+        
+    }
+}

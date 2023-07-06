@@ -1,0 +1,35 @@
+{
+    "sections": [
+        {
+            "name": "edge-section",
+            "items": [
+                "edge-subnet-1",
+                "edge-subnet-2",
+                "edge-subnet-3"
+            ]
+        }
+    ],
+    "externals": [
+        {
+            "name": "on-prem",
+            "cidr": "192.0.0.0/16"
+        },
+        {
+          "name": "weather.com",
+          "cidr": "104.106.98.205"
+        }
+    ],
+    "required-connections": [
+        {
+            "src": "edge-subnet-1",
+            "dst": "edge-section",
+            "protocol": "TCP",
+            "min_port": 443,
+            "max_port": 443
+        },
+        {
+            "src": "my-proxy",
+            "dst": "private-subnet-2"
+        }
+    ]
+}

@@ -19,3 +19,7 @@
 
 # Go workspace file
 go.work
+
+# Draw.io temporary files
+*.drawio.dtmp
+*.drawio.bkp

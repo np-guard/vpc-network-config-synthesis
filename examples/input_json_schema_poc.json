@@ -1,0 +1,56 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "github.com/np-guard/vpc-network-synthesis/v0.1",
+    "type": "object",
+    "properties": {
+        "sections": {
+            "description": "Sections are a way for users to create aggregations. These can later be used in src/dst fields.",
+            "type": "array",
+            "items": {
+                "description": "A section is a named collection of subnets",
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "description": "Each item is a subnet name",
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "name",
+                    "items"
+                ]
+            }
+        },
+        "required-connections": {
+            "type": "array",
+            "description": "A list of required connections",
+            "items": {
+                "anyOf": [
+                    {
+                        "type": "object",
+                        "properties": {
+                            "src": {
+                                "type": "string"
+                            },
+                            "dst": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    {
+                        "$ref": "definitions.json#/definitions/schemas/protocol"
+                    }
+                ]
+            }
+        }
+    },
+    "required": [
+        "required-connections"
+    ]
+}
