@@ -25,9 +25,19 @@
                     "items": {
                         "type": "array",
                         "items": {
-                            "description": "All items are of the type specified in the type property",
+                            "description": "All items are of the type specified in the type property, identified by name",
                             "type": "string"
                         }
+                    },
+                    "fully-connected": {
+                        "description": "If present then any two items in the section will be connected. If the value is true then all protocols will be allowed, otherwise user can specify a protocol list to apply to all connections",
+                        "oneOf":[
+                            {
+                                "type": "boolean",
+                                "default": false
+                            },
+                            {"$ref": "definitions.json#/definitions/schemas/connections"}
+                        ]
                     }
                 },
                 "required": [
@@ -65,16 +75,12 @@
                     {
                         "type": "object",
                         "properties": {
-                            "src": {
-                                "type": "string"
-                            },
-                            "dst": {
-                                "type": "string"
-                            }
+                            "src": {"$ref": "definitions.json#/definitions/schemas/endpoint"},
+                            "dst": {"$ref": "definitions.json#/definitions/schemas/endpoint"}
                         }
                     },
                     {
-                        "$ref": "definitions.json#/definitions/schemas/protocol"
+                        "$ref": "definitions.json#/definitions/schemas/connections"
                     }
                 ]
             }

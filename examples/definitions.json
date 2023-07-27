@@ -17,7 +17,11 @@
                         "type": "integer",
                         "minimum": 0,
                         "maximum": 65535
-                    } 
+                    },
+                    "bidirectional": {
+                        "type": "boolean",
+                        "default": false
+                    }
                 }
             },
             "udp": {
@@ -36,7 +40,11 @@
                         "type": "integer",
                         "minimum": 0,
                         "maximum": 65535
-                    } 
+                    },
+                    "bidirectional": {
+                        "type": "boolean",
+                        "default": false
+                    }
                 }
             },
             "icmp": {
@@ -55,6 +63,10 @@
                         "type": "integer",
                         "minimum": 0,
                         "maximum": 254
+                    },
+                    "bidirectional": {
+                        "type": "boolean",
+                        "default": false
                     } 
                 }
             },
@@ -64,6 +76,18 @@
                     {"$ref": "#/definitions/schemas/udp"},
                     {"$ref": "#/definitions/schemas/icmp"}
                 ]
+            },
+            "connections": {
+                "type": "array",
+                "description": "List of allowed protocols",
+                "items": {"$ref": "#/definitions/schemas/protocol"}
+            },
+            "endpoint": {
+                "type": "object",
+                "properties":{
+                    "name": {"type": "string"},
+                    "type": {"type": "string"}
+                }
             }
         }
         

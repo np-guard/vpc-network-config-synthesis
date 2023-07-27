@@ -2,10 +2,27 @@
     "sections": [
         {
             "name": "edge-section",
+            "type": "subnet",
             "items": [
                 "edge-subnet-1",
                 "edge-subnet-2",
                 "edge-subnet-3"
+            ]
+        },
+        {
+            "name": "private-section",
+            "type": "subnet",
+            "items": [
+                "private-subnet-1",
+                "private-subnet-2",
+                "private-subnet-3"
+            ],
+            "fully-connected": [
+                {
+                    "protocol":"TCP",
+                    "min_port": 443,
+                    "max_port": 443
+                }
             ]
         }
     ],
@@ -21,15 +38,35 @@
     ],
     "required-connections": [
         {
-            "src": "edge-subnet-1",
-            "dst": "edge-section",
-            "protocol": "TCP",
-            "min_port": 443,
-            "max_port": 443
+            "src": {
+                "name": "edge-subnet-1",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "edge-section",
+                "type": "section"
+            },
+            "connection-type": [{
+                "protocol": "TCP",
+                "min_port": 443,
+                "max_port": 443,
+                "bidirectional": true
+            }]
         },
         {
-            "src": "my-proxy",
-            "dst": "private-subnet-2"
+            "src": {
+                "name": "my-proxy",
+                "type": "nif"
+            },
+            "dst": {
+                "name": "weather.com",
+                "type": "external"
+            },
+            "connection-type":[
+                {
+                    "bidirectional": true
+                }
+            ]
         }
     ]
 }

@@ -19,6 +19,16 @@
                             "description": "Each item is a subnet name",
                             "type": "string"
                         }
+                    },
+                    "fully-connected": {
+                        "description": "If present then any two items in the section will be connected. If the value is true then all protocols will be allowed, otherwise user can specify a protocol list to apply to all connections",
+                        "oneOf":[
+                            {
+                                "type": "boolean",
+                                "default": false
+                            },
+                            {"$ref": "definitions.json#/definitions/schemas/connections"}
+                        ]
                     }
                 },
                 "required": [
@@ -44,7 +54,7 @@
                         }
                     },
                     {
-                        "$ref": "definitions.json#/definitions/schemas/protocol"
+                        "$ref": "definitions.json#/definitions/schemas/connections"
                     }
                 ]
             }
