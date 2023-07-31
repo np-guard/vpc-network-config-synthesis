@@ -17,7 +17,8 @@
                 "private-subnet-2",
                 "private-subnet-3"
             ],
-            "fully-connected": [
+            "fully-connected": true,
+            "fully-connected-with-connection-type": [
                 {
                     "protocol": "TCP",
                     "min_port": 443,
@@ -46,12 +47,12 @@
                 "name": "edge-section",
                 "type": "section"
             },
-            "connection-type": [
+            "allowed-protocols": [
                 {
                     "protocol": "TCP",
                     "min_port": 443,
                     "max_port": 443,
-                    "bidirectional": true
+                    "bidirectional": false
                 }
             ]
         },
@@ -64,8 +65,11 @@
                 "name": "weather.com",
                 "type": "external"
             },
-            "connection-type": [
+            "allowed-protocols": [
                 {
+                    "protocol": "TCP",
+                    "min_port": 443,
+                    "max_port": 443,
                     "bidirectional": true
                 }
             ]

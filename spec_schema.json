@@ -1,0 +1,202 @@
+{
+    "title": "Spec",
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "$id": "https://github.com/np-guard/vpc-network-synthesis/v0.1",
+    "$defs": {
+        "tcp-udp": {
+            "type": "object",
+            "properties": {
+                "protocol": {
+                    "description": "Is it TCP or UDP",
+                    "enum": [
+                        "TCP",
+                        "UDP"
+                    ]
+                },
+                "min_port": {
+                    "description": "Minimal port; default is 0",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 65535,
+                    "default": 0
+                },
+                "max_port": {
+                    "description": "Maximal port; default is 65535",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 65535,
+                    "default": 65535
+                },
+                "bidirectional": {
+                    "description": "If true, allow both connections from src to dst and connections from dst to src",
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "required": ["protocol"]
+        },
+        "icmp": {
+            "type": "object",
+            "properties": {
+                "protocol": {
+                    "description": "Necessarily ICMP",
+                    "const": "ICMP"
+                },
+                "type": {
+                    "description": "ICMP type allowed. If omitted, any type is allowed",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 255
+                },
+                "code": {
+                    "description": "ICMP code allowed. If omitted, any code is allowed",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 254
+                },
+                "bidirectional": {
+                    "description": "If true, allow both connections from src to dst and connections from dst to src",
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "required": ["protocol"]
+        },
+        "protocol": {
+            "oneOf": [
+                {
+                    "$ref": "#/$defs/tcp-udp"
+                },
+                {
+                    "$ref": "#/$defs/icmp"
+                }
+            ]
+        },
+        "protocol-list": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/protocol",
+                "additionalProperties": false
+            }
+        },
+        "endpoint": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "name": {
+                    "description": "Name of endpoint, to be used in required connections",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Type of endpoint",
+                    "enum": [
+                        "external",
+                        "section",
+                        "subnet",
+                        "instance",
+                        "nif",
+                        "cidr",
+                        "vpe"
+                    ]
+                }
+            },
+            "required": ["name", "type"]
+        }
+    },
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "sections": {
+            "description": "Sections are a way for users to create aggregations. These can later be used in src/dst fields.",
+            "type": "array",
+            "items": {
+                "description": "A section is a named collection of subnets",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "name": {
+                        "description": "The name of the section, referred to in the required connections",
+                        "type": "string"
+                    },
+                    "type": {
+                        "description": "The kind of the section",
+                        "enum": [
+                            "subnet",
+                            "instance",
+                            "nif",
+                            "tag"
+                        ]
+                    },
+                    "items": {
+                        "description": "All items are of the type specified in the type property, identified by name",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "fully-connected": {
+                        "description": "If present then any two items will be connected.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "fully-connected-with-connection-type": {
+                        "description": "If present then any two items in the section will be connected.",
+                        "$ref": "#/$defs/protocol-list"
+                    }
+                },
+                "required": [
+                    "name",
+                    "type",
+                    "items"
+                ]
+            }
+        },
+        "externals": {
+            "type": "array",
+            "description": "Externals are a way for users to name IP addresses or ranges external to the VPC. These are later used in src/dst definitions.",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "name": {
+                        "description": "The name of the external endpoint, referred to in the required connections",
+                        "type": "string"
+                    },
+                    "cidr": {
+                        "description": "Acceptable format is standard CIDR notation, e.g. \"192.0.0.0/16\" or a single IP Address, e.g. \"192.168.32.35\"",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name",
+                    "cidr"
+                ]
+            }
+        },
+        "required-connections": {
+            "type": "array",
+            "description": "A list of required connections",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "src": {
+                        "description": "In unidirectional connection, this is the outgress endpoint",
+                        "$ref": "#/$defs/endpoint"
+                    },
+                    "dst": {
+                        "description": "In unidirectional connection, this is the ingress endpoint",
+                        "$ref": "#/$defs/endpoint"
+                    },
+                    "allowed-protocols": {
+                        "description": "List of allowed protocols",
+                        "$ref": "#/$defs/protocol-list"
+                    }
+                }
+            }
+        }
+    },
+    "required": [
+        "required-connections"
+    ]
+}
