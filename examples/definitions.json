@@ -6,7 +6,9 @@
                 "properties": {
                     "protocol": {
                         "type": "string",
-                        "enum": ["TCP"]
+                        "enum": [
+                            "TCP"
+                        ]
                     },
                     "min_port": {
                         "type": "integer",
@@ -17,10 +19,6 @@
                         "type": "integer",
                         "minimum": 0,
                         "maximum": 65535
-                    },
-                    "bidirectional": {
-                        "type": "boolean",
-                        "default": false
                     }
                 }
             },
@@ -29,7 +27,9 @@
                 "properties": {
                     "protocol": {
                         "type": "string",
-                        "enum": ["UDP"]
+                        "enum": [
+                            "UDP"
+                        ]
                     },
                     "min_port": {
                         "type": "integer",
@@ -40,10 +40,6 @@
                         "type": "integer",
                         "minimum": 0,
                         "maximum": 65535
-                    },
-                    "bidirectional": {
-                        "type": "boolean",
-                        "default": false
                     }
                 }
             },
@@ -52,7 +48,9 @@
                 "properties": {
                     "protocol": {
                         "type": "string",
-                        "enum": ["ICMP"]
+                        "enum": [
+                            "ICMP"
+                        ]
                     },
                     "type": {
                         "type": "integer",
@@ -63,33 +61,61 @@
                         "type": "integer",
                         "minimum": 0,
                         "maximum": 254
-                    },
-                    "bidirectional": {
-                        "type": "boolean",
-                        "default": false
-                    } 
+                    }
                 }
             },
             "protocol": {
-                "oneOf": [
-                    {"$ref": "#/definitions/schemas/tcp"},
-                    {"$ref": "#/definitions/schemas/udp"},
-                    {"$ref": "#/definitions/schemas/icmp"}
+                "anyOf": [
+                    {
+                        "oneOf": [
+                            {
+                                "$ref": "#/definitions/schemas/tcp"
+                            },
+                            {
+                                "$ref": "#/definitions/schemas/udp"
+                            },
+                            {
+                                "$ref": "#/definitions/schemas/icmp"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "bidirectional": {
+                                "type": "boolean",
+                                "default": false
+                            }
+                        }
+                    }
                 ]
             },
             "connections": {
                 "type": "array",
                 "description": "List of allowed protocols",
-                "items": {"$ref": "#/definitions/schemas/protocol"}
+                "items": {
+                    "$ref": "#/definitions/schemas/protocol"
+                }
             },
             "endpoint": {
                 "type": "object",
-                "properties":{
-                    "name": {"type": "string"},
-                    "type": {"type": "string"}
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "enum":[
+                        "external",
+                        "section",
+                        "subnet",
+                        "instance",
+                        "nif",
+                        "cidr"
+                    ]   
                 }
             }
         }
-        
     }
 }

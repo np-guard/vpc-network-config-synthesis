@@ -31,12 +31,14 @@
                     },
                     "fully-connected": {
                         "description": "If present then any two items in the section will be connected. If the value is true then all protocols will be allowed, otherwise user can specify a protocol list to apply to all connections",
-                        "oneOf":[
+                        "oneOf": [
                             {
                                 "type": "boolean",
                                 "default": false
                             },
-                            {"$ref": "definitions.json#/definitions/schemas/connections"}
+                            {
+                                "$ref": "definitions.json#/definitions/schemas/connections"
+                            }
                         ]
                     }
                 },
@@ -71,18 +73,19 @@
             "type": "array",
             "description": "A list of required connections",
             "items": {
-                "anyOf": [
-                    {
-                        "type": "object",
-                        "properties": {
-                            "src": {"$ref": "definitions.json#/definitions/schemas/endpoint"},
-                            "dst": {"$ref": "definitions.json#/definitions/schemas/endpoint"}
-                        }
+                "type": "object",
+                "properties": {
+                    "src": {
+                        "$ref": "definitions.json#/definitions/schemas/endpoint"
                     },
-                    {
+                    "dst": {
+                        "$ref": "definitions.json#/definitions/schemas/endpoint"
+                    },
+                    "connection-type": {
                         "$ref": "definitions.json#/definitions/schemas/connections"
                     }
-                ]
+                },
+                "additionalProperties": false
             }
         }
     },

@@ -19,7 +19,7 @@
             ],
             "fully-connected": [
                 {
-                    "protocol":"TCP",
+                    "protocol": "TCP",
                     "min_port": 443,
                     "max_port": 443
                 }
@@ -32,8 +32,8 @@
             "cidr": "192.0.0.0/16"
         },
         {
-          "name": "weather.com",
-          "cidr": "104.106.98.205"
+            "name": "weather.com",
+            "cidr": "104.106.98.205"
         }
     ],
     "required-connections": [
@@ -46,12 +46,14 @@
                 "name": "edge-section",
                 "type": "section"
             },
-            "connection-type": [{
-                "protocol": "TCP",
-                "min_port": 443,
-                "max_port": 443,
-                "bidirectional": true
-            }]
+            "connection-type": [
+                {
+                    "protocol": "TCP",
+                    "min_port": 443,
+                    "max_port": 443,
+                    "bidirectional": true
+                }
+            ]
         },
         {
             "src": {
@@ -62,7 +64,7 @@
                 "name": "weather.com",
                 "type": "external"
             },
-            "connection-type":[
+            "connection-type": [
                 {
                     "bidirectional": true
                 }
