@@ -84,7 +84,7 @@
             "additionalProperties": false,
             "properties": {
                 "name": {
-                    "description": "Name of endpoint, to be used in required connections",
+                    "description": "Name of endpoint",
                     "type": "string"
                 },
                 "type": {
@@ -110,12 +110,12 @@
             "description": "Sections are a way for users to create aggregations. These can later be used in src/dst fields",
             "type": "array",
             "items": {
-                "description": "A section is a named collection of subnets",
+                "description": "A section is a named collection of resources of the same type (subnet, instance, or nif)",
                 "type": "object",
                 "additionalProperties": false,
                 "properties": {
                     "name": {
-                        "description": "The name of the section, referred to in the required connections",
+                        "description": "The name of the section",
                         "type": "string"
                     },
                     "type": {
@@ -134,12 +134,12 @@
                         }
                     },
                     "fully-connected": {
-                        "description": "If present then any two items will be connected",
+                        "description": "If present then any two items will be connected bidirectionally with all protocols",
                         "type": "boolean",
                         "default": false
                     },
                     "fully-connected-with-connection-type": {
-                        "description": "If present then any two items in the section will be connected",
+                        "description": "If present then any two items in the section will be connected bidirectionally, with the specified protocols",
                         "$ref": "#/$defs/protocol-list"
                     }
                 },
@@ -158,7 +158,7 @@
                 "additionalProperties": false,
                 "properties": {
                     "name": {
-                        "description": "The name of the external endpoint, referred to in the required connections",
+                        "description": "The name of the external endpoint",
                         "type": "string"
                     },
                     "cidr": {

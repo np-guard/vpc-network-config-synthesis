@@ -26,115 +26,7 @@ func (j *TcpUdpProtocol) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-type Spec struct {
-	// Externals are a way for users to name IP addresses or ranges external to the
-	// VPC. These are later used in src/dst definitions.
-	Externals []SpecExternalsElem `json:"externals,omitempty"`
-
-	// A list of required connections
-	RequiredConnections []SpecRequiredConnectionsElem `json:"required-connections"`
-
-	// Sections are a way for users to create aggregations. These can later be used in
-	// src/dst fields.
-	Sections []SpecSectionsElem `json:"sections,omitempty"`
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *EndpointType) UnmarshalJSON(b []byte) error {
-	var v string
-	if err := json.Unmarshal(b, &v); err != nil {
-		return err
-	}
-	var ok bool
-	for _, expected := range enumValues_EndpointType {
-		if reflect.DeepEqual(v, expected) {
-			ok = true
-			break
-		}
-	}
-	if !ok {
-		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_EndpointType, v)
-	}
-	*j = EndpointType(v)
-	return nil
-}
-
-type EndpointType string
-
-const EndpointTypeSection EndpointType = "section"
-const EndpointTypeSubnet EndpointType = "subnet"
-const EndpointTypeInstance EndpointType = "instance"
-const EndpointTypeNif EndpointType = "nif"
-const EndpointTypeCidr EndpointType = "cidr"
 const EndpointTypeVpe EndpointType = "vpe"
-
-type Endpoint struct {
-	// Name of endpoint, to be used in required connections
-	Name string `json:"name"`
-
-	// Type of endpoint
-	Type EndpointType `json:"type"`
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *Endpoint) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	if v, ok := raw["name"]; !ok || v == nil {
-		return fmt.Errorf("field name in Endpoint: required")
-	}
-	if v, ok := raw["type"]; !ok || v == nil {
-		return fmt.Errorf("field type in Endpoint: required")
-	}
-	type Plain Endpoint
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	*j = Endpoint(plain)
-	return nil
-}
-
-type Icmp struct {
-	// If true, allow both connections from src to dst and connections from dst to src
-	Bidirectional bool `json:"bidirectional,omitempty"`
-
-	// ICMP code allowed. If omitted, any code is allowed
-	Code *int `json:"code,omitempty"`
-
-	// Necessarily ICMP
-	Protocol interface{} `json:"protocol"`
-
-	// ICMP type allowed. If omitted, any type is allowed
-	Type *int `json:"type,omitempty"`
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *Icmp) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	if v, ok := raw["protocol"]; !ok || v == nil {
-		return fmt.Errorf("field protocol in Icmp: required")
-	}
-	type Plain Icmp
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	if v, ok := raw["bidirectional"]; !ok || v == nil {
-		plain.Bidirectional = false
-	}
-	*j = Icmp(plain)
-	return nil
-}
-
-type Protocol interface{}
-
-type ProtocolList []interface{}
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *Spec) UnmarshalJSON(b []byte) error {
@@ -181,7 +73,42 @@ func (j *SpecSectionsElem) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-const EndpointTypeExternal EndpointType = "external"
+const EndpointTypeSection EndpointType = "section"
+const EndpointTypeSubnet EndpointType = "subnet"
+const EndpointTypeInstance EndpointType = "instance"
+const EndpointTypeNif EndpointType = "nif"
+const EndpointTypeCidr EndpointType = "cidr"
+
+type EndpointType string
+
+type Endpoint struct {
+	// Name of endpoint
+	Name string `json:"name"`
+
+	// Type of endpoint
+	Type EndpointType `json:"type"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *Endpoint) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if v, ok := raw["name"]; !ok || v == nil {
+		return fmt.Errorf("field name in Endpoint: required")
+	}
+	if v, ok := raw["type"]; !ok || v == nil {
+		return fmt.Errorf("field type in Endpoint: required")
+	}
+	type Plain Endpoint
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = Endpoint(plain)
+	return nil
+}
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *SpecSectionsElemType) UnmarshalJSON(b []byte) error {
@@ -200,6 +127,27 @@ func (j *SpecSectionsElemType) UnmarshalJSON(b []byte) error {
 		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_SpecSectionsElemType, v)
 	}
 	*j = SpecSectionsElemType(v)
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *Icmp) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if v, ok := raw["protocol"]; !ok || v == nil {
+		return fmt.Errorf("field protocol in Icmp: required")
+	}
+	type Plain Icmp
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	if v, ok := raw["bidirectional"]; !ok || v == nil {
+		plain.Bidirectional = false
+	}
+	*j = Icmp(plain)
 	return nil
 }
 
@@ -251,40 +199,67 @@ func (j *TcpUdp) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-const SpecSectionsElemTypeSubnet SpecSectionsElemType = "subnet"
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *EndpointType) UnmarshalJSON(b []byte) error {
+	var v string
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	var ok bool
+	for _, expected := range enumValues_EndpointType {
+		if reflect.DeepEqual(v, expected) {
+			ok = true
+			break
+		}
+	}
+	if !ok {
+		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_EndpointType, v)
+	}
+	*j = EndpointType(v)
+	return nil
+}
+
+const EndpointTypeExternal EndpointType = "external"
+
+type Icmp struct {
+	// If true, allow both connections from src to dst and connections from dst to src
+	Bidirectional bool `json:"bidirectional,omitempty"`
+
+	// ICMP code allowed. If omitted, any code is allowed
+	Code *int `json:"code,omitempty"`
+
+	// Necessarily ICMP
+	Protocol interface{} `json:"protocol"`
+
+	// ICMP type allowed. If omitted, any type is allowed
+	Type *int `json:"type,omitempty"`
+}
+
+type Protocol interface{}
+
+type ProtocolList []interface{}
+
+type Spec struct {
+	// Externals are a way for users to name IP addresses or ranges external to the
+	// VPC. These are later used in src/dst definitions
+	Externals []SpecExternalsElem `json:"externals,omitempty"`
+
+	// A list of required connections
+	RequiredConnections []SpecRequiredConnectionsElem `json:"required-connections"`
+
+	// Sections are a way for users to create aggregations. These can later be used in
+	// src/dst fields
+	Sections []SpecSectionsElem `json:"sections,omitempty"`
+}
 
 type SpecExternalsElem struct {
 	// Acceptable format is standard CIDR notation, e.g. "192.0.0.0/16" or a single IP
 	// Address, e.g. "192.168.32.35"
 	Cidr string `json:"cidr"`
 
-	// The name of the external endpoint, referred to in the required connections
+	// The name of the external endpoint
 	Name string `json:"name"`
 }
-
-// A section is a named collection of subnets
-type SpecSectionsElem struct {
-	// If present then any two items will be connected.
-	FullyConnected bool `json:"fully-connected,omitempty"`
-
-	// If present then any two items in the section will be connected.
-	FullyConnectedWithConnectionType ProtocolList `json:"fully-connected-with-connection-type,omitempty"`
-
-	// All items are of the type specified in the type property, identified by name
-	Items []string `json:"items"`
-
-	// The name of the section, referred to in the required connections
-	Name string `json:"name"`
-
-	// The kind of the section
-	Type SpecSectionsElemType `json:"type"`
-}
-
-const SpecSectionsElemTypeNif SpecSectionsElemType = "nif"
-
-type SpecSectionsElemType string
-
-const SpecSectionsElemTypeInstance SpecSectionsElemType = "instance"
 
 type SpecRequiredConnectionsElem struct {
 	// List of allowed protocols
@@ -293,11 +268,36 @@ type SpecRequiredConnectionsElem struct {
 	// In unidirectional connection, this is the ingress endpoint
 	Dst *Endpoint `json:"dst,omitempty"`
 
-	// In unidirectional connection, this is the outgress endpoint
+	// In unidirectional connection, this is the egress endpoint
 	Src *Endpoint `json:"src,omitempty"`
 }
 
-const SpecSectionsElemTypeTag SpecSectionsElemType = "tag"
+// A section is a named collection of resources of the same type (subnet, instance,
+// or nif)
+type SpecSectionsElem struct {
+	// If present then any two items will be connected bidirectionally with all
+	// protocols
+	FullyConnected bool `json:"fully-connected,omitempty"`
+
+	// If present then any two items in the section will be connected bidirectionally,
+	// with the specified protocols
+	FullyConnectedWithConnectionType ProtocolList `json:"fully-connected-with-connection-type,omitempty"`
+
+	// All items are of the type specified in the type property, identified by name
+	Items []string `json:"items"`
+
+	// The name of the section
+	Name string `json:"name"`
+
+	// The type of the elements inside the section
+	Type SpecSectionsElemType `json:"type"`
+}
+
+type SpecSectionsElemType string
+
+const SpecSectionsElemTypeInstance SpecSectionsElemType = "instance"
+const SpecSectionsElemTypeNif SpecSectionsElemType = "nif"
+const SpecSectionsElemTypeSubnet SpecSectionsElemType = "subnet"
 
 type TcpUdp struct {
 	// If true, allow both connections from src to dst and connections from dst to src
@@ -331,7 +331,6 @@ var enumValues_SpecSectionsElemType = []interface{}{
 	"subnet",
 	"instance",
 	"nif",
-	"tag",
 }
 var enumValues_TcpUdpProtocol = []interface{}{
 	"TCP",
