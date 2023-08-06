@@ -26,4 +26,4 @@ build:
 test: ./bin/$(EXE)
 	./bin/$(EXE) examples/generic_example.json > tmp.json
 	jd examples/generic_example.json tmp.json
-	#go test ./... -v -cover -coverprofile analyzer.coverprofile
+	go test ./... -v -cover -coverprofile synth.coverprofile
