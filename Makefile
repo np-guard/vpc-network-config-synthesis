@@ -21,7 +21,7 @@ synth/data_model.go: spec_schema.json
 	# Install https://github.com/omissis/go-jsonschema
 	gojsonschema spec_schema.json --package synth --struct-name-from-title --tags json --output $@
 
-generate: synth/data_model.go
+generate: pkg/synth
 
 build:
 	CGO_ENABLED=0 go build -o ./bin/$(EXE) ./cmd/main.go

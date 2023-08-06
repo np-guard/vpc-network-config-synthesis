@@ -28,4 +28,4 @@ Then run
 ```commandline
 make generate
 ```
-The result is written into [synth/data_model.go](synth/data_model.go).
+The result is written into [synth/data_model.go](pkg/synth/data_model.go).

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"vpc-network-config-synthesis/synth"
+	"vpc-network-config-synthesis/pkg/synth"
 )
 
 func main() {
