@@ -9,6 +9,18 @@ import (
 
 const examplesDir = "../examples/"
 
+func enterField(field, ctx string, j map[string]interface{}) (string, map[string]interface{}) {
+	return ctx + "." + field, j[field].(map[string]interface{})
+}
+
+func enterArray(i int, ctx string, j []interface{}) (string, map[string]interface{}) {
+	return ctx + "." + fmt.Sprintf("[%v]", i), j[i].(map[string]interface{})
+}
+
+func enter[T any](field, ctx string, j map[string]interface{}) (string, T) {
+	return ctx + "." + field, j[field].(T)
+}
+
 func TestUnmarshalSpec(t *testing.T) {
 	ctx := ""
 	filename := examplesDir + "generic_example.json"
@@ -28,116 +40,121 @@ func TestUnmarshalSpec(t *testing.T) {
 	if err != nil {
 		t.Fatalf(`Unmarshal %v returns %v`, filename, err)
 	}
-
 	{
-		ctx := ctx + ".required-connections"
-		jsonConnArray := jsonSpec["required-connections"].([]interface{})
+		ctx, jsonExtArray := enter[[]interface{}]("externals", ctx, jsonSpec)
+		if len(spec.Externals) != len(jsonExtArray) {
+			t.Fatalf(`len(%v): %v != %v`, ctx, len(spec.Externals), len(jsonExtArray))
+		}
+		for i, ext := range spec.Externals {
+			ctx, jsonExt := enterArray(i, ctx, jsonExtArray)
+			{
+				ctx, jsonName := enter[string]("name", ctx, jsonExt)
+				if ext.Name != jsonName {
+					t.Fatalf(`%v: %v != %v`, ctx, ext.Name, jsonName)
+				}
+			}
+			{
+				ctx, jsonCidr := enter[string]("cidr", ctx, jsonExt)
+				if ext.Cidr != jsonCidr {
+					t.Fatalf(`%v: %v != %v`, ctx, ext.Name, jsonCidr)
+				}
+			}
+		}
+	}
+	{
+		ctx, jsonConnArray := enter[[]interface{}]("required-connections", ctx, jsonSpec)
 		if len(spec.RequiredConnections) != len(jsonConnArray) {
-			t.Fatalf(`len(required-connections): %v != %v`, len(spec.RequiredConnections), len(jsonConnArray))
+			t.Fatalf(`len(%v): %v != %v`, ctx, len(spec.RequiredConnections), len(jsonConnArray))
 		}
 		for i, conn := range spec.RequiredConnections {
-			ctx := ctx + fmt.Sprintf("[%v]", i)
-			jsonConn := jsonConnArray[i].(map[string]interface{})
+			ctx, jsonConn := enterArray(i, ctx, jsonConnArray)
 			{
-				ctx := ctx + ".src"
-				jsonConnSrc := jsonConn["src"].(map[string]interface{})
+				ctx, jsonConnEndpoint := enterField("src", ctx, jsonConn)
+				endpoint := conn.Src
 				{
-					ctx := ctx + ".type"
-					jsonConnSrcType := jsonConnSrc["type"].(string)
-					if string(conn.Src.Type) != jsonConnSrcType {
-						t.Fatalf(`%v: %v != %v`, ctx, conn.Src.Type, jsonConnSrcType)
+					ctx, jsonConnEndpointType := enter[string]("type", ctx, jsonConnEndpoint)
+					if string(endpoint.Type) != jsonConnEndpointType {
+						t.Fatalf(`%v: %v != %v`, ctx, endpoint.Type, jsonConnEndpointType)
 					}
 				}
 				{
-					ctx := ctx + ".name"
-					jsonConnSrcName := jsonConnSrc["name"].(string)
-					if conn.Src.Name != jsonConnSrcName {
-						t.Fatalf(`%v: %v != %v`, ctx, conn.Src.Name, jsonConnSrcName)
+					ctx, jsonConnEndpointName := enter[string]("name", ctx, jsonConnEndpoint)
+					if endpoint.Name != jsonConnEndpointName {
+						t.Fatalf(`%v: %v != %v`, ctx, endpoint.Name, jsonConnEndpointName)
 					}
 				}
 			}
 			{
-				ctx := ctx + ".dst"
-				jsonConnDst := jsonConn["dst"].(map[string]interface{})
+				ctx, jsonConnEndpoint := enterField("dst", ctx, jsonConn)
+				endpoint := conn.Dst
 				{
-					ctx := ctx + ".type"
-					jsonConnDstType := jsonConnDst["type"].(string)
-					if string(conn.Dst.Type) != jsonConnDstType {
-						t.Fatalf(`%v: %v != %v`, ctx, conn.Dst.Type, jsonConnDstType)
+					ctx, jsonConnEndpointType := enter[string]("type", ctx, jsonConnEndpoint)
+					if string(endpoint.Type) != jsonConnEndpointType {
+						t.Fatalf(`%v: %v != %v`, ctx, endpoint.Type, jsonConnEndpointType)
 					}
 				}
 				{
-					ctx := ctx + ".name"
-					jsonConnDstName := jsonConnDst["name"].(string)
-					if conn.Dst.Name != jsonConnDstName {
-						t.Fatalf(`%v: %v != %v`, ctx, conn.Dst.Name, jsonConnDstName)
+					ctx, jsonConnEndpointName := enter[string]("name", ctx, jsonConnEndpoint)
+					if endpoint.Name != jsonConnEndpointName {
+						t.Fatalf(`%v: %v != %v`, ctx, endpoint.Name, jsonConnEndpointName)
 					}
 				}
 			}
 
 			{
-				ctx := ctx + ".allowed-protocols"
-				jsonConnDstAllowedProtocols := jsonConn["allowed-protocols"].([]interface{})
-				if len(conn.AllowedProtocols) != len(jsonConnDstAllowedProtocols) {
-					t.Fatalf(`len(%v): %v != %v`, ctx, len(conn.AllowedProtocols), len(jsonConnDstAllowedProtocols))
+				ctx, jsonConnAllowedProtocols := enter[[]interface{}]("allowed-protocols", ctx, jsonConn)
+				if len(conn.AllowedProtocols) != len(jsonConnAllowedProtocols) {
+					t.Fatalf(`len(%v): %v != %v`, ctx, len(conn.AllowedProtocols), len(jsonConnAllowedProtocols))
 				}
 				for j, protocol := range conn.AllowedProtocols {
-					ctx := ctx + fmt.Sprintf("[%v]", j)
-					jsonProtocol := jsonConnDstAllowedProtocols[j].(map[string]interface{})
-					jsonProtocolName := jsonProtocol["protocol"]
+					ctx, jsonProtocol := enterArray(j, ctx, jsonConnAllowedProtocols)
 					switch p := protocol.(type) {
 					case TcpUdp:
 						{
-							ctx := ctx + ".protocol"
+							ctx, jsonProtocolName := enter[string]("protocol", ctx, jsonProtocol)
 							if string(p.Protocol) != jsonProtocolName {
 								t.Fatalf(`%v: %v != %v`, ctx, p.Protocol, jsonProtocolName)
 							}
 						}
 						{
-							ctx := ctx + ".min_port"
-							jsonPortMinPort := jsonProtocol["min_port"].(int)
-							if p.MinPort != jsonPortMinPort {
-								t.Fatalf(`%v: %v != %v`, ctx, p.MinPort, jsonPortMinPort)
+							ctx, jsonProtocolPort := enter[int]("min_port", ctx, jsonProtocol)
+							if p.MinPort != jsonProtocolPort {
+								t.Fatalf(`%v: %v != %v`, ctx, p.MinPort, jsonProtocolPort)
 							}
 						}
 						{
-							ctx := ctx + ".max_port"
-							jsonPortMaxPort := jsonProtocol["max_port"].(int)
-							if p.MaxPort != jsonPortMaxPort {
-								t.Fatalf(`%v: %v != %v`, ctx, p.MaxPort, jsonPortMaxPort)
+							ctx, jsonProtocolPort := enter[int]("max_port", ctx, jsonProtocol)
+							if p.MaxPort != jsonProtocolPort {
+								t.Fatalf(`%v: %v != %v`, ctx, p.MaxPort, jsonProtocolPort)
 							}
 						}
 						{
-							ctx := ctx + ".bidirectional"
-							jsonBidirectional := jsonProtocol["bidirectional"].(bool)
+							ctx, jsonBidirectional := enter[bool]("bidirectional", ctx, jsonProtocol)
 							if p.Bidirectional != jsonBidirectional {
 								t.Fatalf(`%v: %t != %t`, ctx, p.Bidirectional, jsonBidirectional)
 							}
 						}
 					case Icmp:
 						{
-							ctx := ctx + ".protocol"
+							ctx, jsonProtocolName := enter[string]("protocol", ctx, jsonProtocol)
 							if p.Protocol.(string) != jsonProtocolName {
 								t.Fatalf(`%v: %v != %v`, ctx, p.Protocol, jsonProtocolName)
 							}
 						}
 						{
-							ctx := ctx + ".type"
-							jsonPortType := jsonProtocol["type"].(*int)
-							if p.Type != jsonPortType {
-								t.Fatalf(`%v: %v != %v`, ctx, p.Type, jsonPortType)
+							ctx, jsonProtocolType := enter[*int]("type", ctx, jsonProtocol)
+							if p.Type != jsonProtocolType {
+								t.Fatalf(`%v: %v != %v`, ctx, p.Type, jsonProtocolType)
 							}
 						}
 						{
-							ctx := ctx + ".code"
-							jsonPortCode := jsonProtocol["code"].(*int)
-							if p.Code != jsonPortCode {
-								t.Fatalf(`%v: %v != %v`, ctx, p.Code, jsonPortCode)
+							ctx, jsonProtocolCode := enter[*int]("code", ctx, jsonProtocol)
+							if p.Code != jsonProtocolCode {
+								t.Fatalf(`%v: %v != %v`, ctx, p.Code, jsonProtocolCode)
 							}
 						}
 						{
-							ctx := ctx + ".bidirectional"
-							jsonBidirectional := jsonProtocol["bidirectional"].(bool)
+							ctx, jsonBidirectional := enter[bool]("bidirectional", ctx, jsonProtocol)
 							if p.Bidirectional != jsonBidirectional {
 								t.Fatalf(`%v: %t != %t`, ctx, p.Bidirectional, jsonBidirectional)
 							}
