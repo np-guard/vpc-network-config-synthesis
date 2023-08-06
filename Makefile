@@ -19,7 +19,7 @@ synth/data_model.go: spec_schema.json
 generate: synth/data_model.go
 
 build:
-	go build -o ./bin/$(EXE) ./cmd/main.go
+	CGO_ENABLED=0 go build -o ./bin/$(EXE) ./cmd/main.go
 
 ./bin/$(EXE): build
 
