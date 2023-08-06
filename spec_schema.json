@@ -107,7 +107,7 @@
     "additionalProperties": false,
     "properties": {
         "sections": {
-            "description": "Sections are a way for users to create aggregations. These can later be used in src/dst fields.",
+            "description": "Sections are a way for users to create aggregations. These can later be used in src/dst fields",
             "type": "array",
             "items": {
                 "description": "A section is a named collection of subnets",
@@ -119,12 +119,11 @@
                         "type": "string"
                     },
                     "type": {
-                        "description": "The kind of the section",
+                        "description": "The type of the elements inside the section",
                         "enum": [
                             "subnet",
                             "instance",
-                            "nif",
-                            "tag"
+                            "nif"
                         ]
                     },
                     "items": {
@@ -135,12 +134,12 @@
                         }
                     },
                     "fully-connected": {
-                        "description": "If present then any two items will be connected.",
+                        "description": "If present then any two items will be connected",
                         "type": "boolean",
                         "default": false
                     },
                     "fully-connected-with-connection-type": {
-                        "description": "If present then any two items in the section will be connected.",
+                        "description": "If present then any two items in the section will be connected",
                         "$ref": "#/$defs/protocol-list"
                     }
                 },
@@ -153,7 +152,7 @@
         },
         "externals": {
             "type": "array",
-            "description": "Externals are a way for users to name IP addresses or ranges external to the VPC. These are later used in src/dst definitions.",
+            "description": "Externals are a way for users to name IP addresses or ranges external to the VPC. These are later used in src/dst definitions",
             "items": {
                 "type": "object",
                 "additionalProperties": false,
@@ -181,7 +180,7 @@
                 "additionalProperties": false,
                 "properties": {
                     "src": {
-                        "description": "In unidirectional connection, this is the outgress endpoint",
+                        "description": "In unidirectional connection, this is the egress endpoint",
                         "$ref": "#/$defs/endpoint"
                     },
                     "dst": {

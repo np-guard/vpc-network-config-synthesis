@@ -1,5 +1,5 @@
 REPOSITORY := github.com/np-guard/vpc-network-config-synthesis
-EXE := vpcsynthesizer
+EXE := vpcgen
 
 mod: go.mod
 	go mod tidy
