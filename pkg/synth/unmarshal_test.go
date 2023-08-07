@@ -100,12 +100,12 @@ func TestIcmp_UnmarshalJSON(t *testing.T) {
 }
 
 func TestEndpoint_UnmarshalJSON(t *testing.T) {
-	var table []TestItem[*Endpoint]
+	table := make([]TestItem[*Endpoint], 7)
 	for i, tp := range []string{"external", "section", "subnet", "instance", "nif", "cidr", "vpe"} {
 		name := fmt.Sprintf("ep-%v", i)
 		js := fmt.Sprintf(`{"name": "%v", "type": "%v"}`, name, tp)
 		endpoint := Endpoint{Name: name, Type: EndpointType(tp)}
-		table = append(table, TestItem[*Endpoint]{js, &endpoint})
+		table[i] = TestItem[*Endpoint]{js, &endpoint}
 	}
 	for _, test := range table {
 		actual := new(Endpoint)
@@ -120,6 +120,9 @@ func TestEndpoint_UnmarshalJSON(t *testing.T) {
 }
 
 // Compare unmarshalled structs/arrays for "sections" in a spec file against simple json maps
+//
+//goland:noinspection GoShadowedVar
+//nolint:govet // ctx is intentionally shadowed, allowing stack-like navigation
 func TestUnmarshalSpecSections(t *testing.T) {
 	ctx := ""
 	filename := examplesDir + "generic_example.json"
@@ -172,6 +175,9 @@ func TestUnmarshalSpecSections(t *testing.T) {
 }
 
 // Compare unmarshalled structs/arrays for "externals" in a spec file against simple json maps
+//
+//goland:noinspection GoShadowedVar
+//nolint:govet // ctx is intentionally shadowed, allowing stack-like navigation
 func TestUnmarshalSpecExternals(t *testing.T) {
 	ctx := ""
 	filename := examplesDir + "generic_example.json"
@@ -204,6 +210,9 @@ func TestUnmarshalSpecExternals(t *testing.T) {
 }
 
 // Compare unmarshalled structs/arrays for "required-connections" in a spec file against simple json maps
+//
+//goland:noinspection GoShadowedVar
+//nolint:gocyclo,govet // ctx is intentionally shadowed, allowing stack-like navigation
 func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 	ctx := ""
 	filename := examplesDir + "generic_example.json"
