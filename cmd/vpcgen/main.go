@@ -9,8 +9,6 @@ import (
 	"log"
 	"os"
 
-	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
-
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/synth"
 )
 
@@ -25,7 +23,4 @@ func main() {
 		log.Fatalf(err.Error())
 	}
 	fmt.Println(string(dataJSON))
-
-	var sgResource vpc1.SecurityGroup
-	fmt.Printf("%v", sgResource)
 }
