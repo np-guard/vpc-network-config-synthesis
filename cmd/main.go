@@ -1,3 +1,6 @@
+/*
+VpcGen reads specification files adhering to spec_schema.json and generates NetworkACLs
+*/
 package main
 
 import (

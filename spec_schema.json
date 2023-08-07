@@ -40,7 +40,9 @@
             "properties": {
                 "protocol": {
                     "description": "Necessarily ICMP",
-                    "const": "ICMP"
+                    "enum": [
+                        "ICMP"
+                    ]
                 },
                 "type": {
                     "description": "ICMP type allowed. If omitted, any type is allowed",

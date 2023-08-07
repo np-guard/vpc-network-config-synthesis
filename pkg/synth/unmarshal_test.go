@@ -4,10 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"reflect"
 	"testing"
 )
 
 const examplesDir = "../../examples/"
+
+type TestItem[T any] struct {
+	input    string
+	expected T
+}
 
 func enterField(field, ctx string, j map[string]interface{}) (resCtx string, res map[string]interface{}) {
 	resCtx = ctx + "." + field
@@ -46,11 +52,74 @@ func readFile(t *testing.T, filename string) map[string]interface{} {
 	jsonSpec := map[string]interface{}(nil)
 	err = json.Unmarshal(bytes, &jsonSpec)
 	if err != nil {
-		t.Fatalf(`json.Unmarshal %v returns %v`, filename, err)
+		t.Fatalf(`input.Unmarshal %v returns %v`, filename, err)
 	}
 	return jsonSpec
 }
 
+func ptr[T any](t T) *T {
+	return &t
+}
+
+func TestTcpUdp_UnmarshalJSON(t *testing.T) {
+	table := []TestItem[*TcpUdp]{
+		{`{"protocol": "TCP"}`,
+			&TcpUdp{Protocol: "TCP", MinPort: 0, MaxPort: 65535, Bidirectional: false}},
+		{`{"protocol": "UDP", "min_port": 433, "max_port": 433, "bidirectional": true}`,
+			&TcpUdp{Protocol: "UDP", MinPort: 433, MaxPort: 433, Bidirectional: true}},
+	}
+	for _, test := range table {
+		actual := new(TcpUdp)
+		err := json.Unmarshal([]byte(test.input), actual)
+		if err != nil {
+			t.Fatalf(`Unmarshal %q returns %v`, test.input, err)
+		}
+		if !reflect.DeepEqual(actual, test.expected) {
+			t.Fatalf(`Unmarshal %q returns %v instead of %v`, test.input, *actual, test.expected)
+		}
+	}
+}
+
+func TestIcmp_UnmarshalJSON(t *testing.T) {
+	table := []TestItem[*Icmp]{
+		{`{"protocol": "ICMP"}`,
+			&Icmp{Protocol: "ICMP", Code: nil, Type: nil, Bidirectional: false}},
+		{`{"protocol": "ICMP", "code": 0, "type": 1, "bidirectional": true}`,
+			&Icmp{Protocol: "ICMP", Code: ptr(0), Type: ptr(1), Bidirectional: true}},
+	}
+	for _, test := range table {
+		actual := new(Icmp)
+		err := json.Unmarshal([]byte(test.input), actual)
+		if err != nil {
+			t.Fatalf(`Unmarshal %v returns %v`, test.input, err)
+		}
+		if !reflect.DeepEqual(actual, test.expected) {
+			t.Fatalf(`Unmarshal %q returns %v instead of %v`, test.input, *actual, test.expected)
+		}
+	}
+}
+
+func TestEndpoint_UnmarshalJSON(t *testing.T) {
+	var table []TestItem[*Endpoint]
+	for i, tp := range []string{"external", "section", "subnet", "instance", "nif", "cidr", "vpe"} {
+		name := fmt.Sprintf("ep-%v", i)
+		js := fmt.Sprintf(`{"name": "%v", "type": "%v"}`, name, tp)
+		endpoint := Endpoint{Name: name, Type: EndpointType(tp)}
+		table = append(table, TestItem[*Endpoint]{js, &endpoint})
+	}
+	for _, test := range table {
+		actual := new(Endpoint)
+		err := json.Unmarshal([]byte(test.input), actual)
+		if err != nil {
+			t.Fatalf(`Unmarshal %v returns %v`, test.input, err)
+		}
+		if !reflect.DeepEqual(actual, test.expected) {
+			t.Fatalf(`Unmarshal %q returns %v instead of %v`, test.input, *actual, test.expected)
+		}
+	}
+}
+
+// Compare unmarshalled structs/arrays for "sections" in a spec file against a trivial json maps
 func TestUnmarshalSpecSections(t *testing.T) {
 	ctx := ""
 	filename := examplesDir + "generic_example.json"
@@ -102,6 +171,7 @@ func TestUnmarshalSpecSections(t *testing.T) {
 	}
 }
 
+// Compare unmarshalled structs/arrays for "externals" in a spec file against a trivial json maps
 func TestUnmarshalSpecExternals(t *testing.T) {
 	ctx := ""
 	filename := examplesDir + "generic_example.json"
@@ -133,6 +203,7 @@ func TestUnmarshalSpecExternals(t *testing.T) {
 	}
 }
 
+// Compare unmarshalled structs/arrays for "required-connections" in a spec file against a trivial json maps
 func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 	ctx := ""
 	filename := examplesDir + "generic_example.json"
@@ -218,7 +289,7 @@ func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 				case Icmp:
 					{
 						ctx, jsonProtocolName := enter[string]("protocol", ctx, jsonProtocol)
-						if p.Protocol.(string) != jsonProtocolName {
+						if string(p.Protocol) != jsonProtocolName {
 							t.Fatalf(`%v: %v != %v`, ctx, p.Protocol, jsonProtocolName)
 						}
 					}

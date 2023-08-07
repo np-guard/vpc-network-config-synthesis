@@ -17,11 +17,11 @@ lint:
 
 precommit: mod fmt lint
 
-synth/data_model.go: spec_schema.json
+pkg/synth/data_model.go: spec_schema.json
 	# Install https://github.com/omissis/go-jsonschema
 	gojsonschema spec_schema.json --package synth --struct-name-from-title --tags json --output $@
 
-generate: pkg/synth
+generate: pkg/synth/data_model.go
 
 build:
 	CGO_ENABLED=0 go build -o ./bin/$(EXE) ./cmd/main.go
