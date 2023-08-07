@@ -6,9 +6,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/synth"
 	"log"
 	"os"
-	"vpc-network-config-synthesis/pkg/synth"
 )
 
 func main() {
