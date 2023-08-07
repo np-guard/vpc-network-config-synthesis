@@ -24,7 +24,7 @@ pkg/synth/data_model.go: spec_schema.json
 generate: pkg/synth/data_model.go
 
 build:
-	CGO_ENABLED=0 go build -o ./bin/$(EXE) ./cmd/main.go
+	CGO_ENABLED=0 go build -o ./bin/$(EXE) ./cmd/vpcgen
 
 test:
 	go test ./... -v -cover -coverprofile synth.coverprofile
