@@ -2,9 +2,11 @@
 
 package synth
 
-import "encoding/json"
-import "fmt"
-import "reflect"
+import (
+	"encoding/json"
+	"fmt"
+	"reflect"
+)
 
 type Endpoint struct {
 	// Name of endpoint
