@@ -119,7 +119,7 @@ func TestEndpoint_UnmarshalJSON(t *testing.T) {
 	}
 }
 
-// Compare unmarshalled structs/arrays for "sections" in a spec file against a trivial json maps
+// Compare unmarshalled structs/arrays for "sections" in a spec file against simple json maps
 func TestUnmarshalSpecSections(t *testing.T) {
 	ctx := ""
 	filename := examplesDir + "generic_example.json"
@@ -171,7 +171,7 @@ func TestUnmarshalSpecSections(t *testing.T) {
 	}
 }
 
-// Compare unmarshalled structs/arrays for "externals" in a spec file against a trivial json maps
+// Compare unmarshalled structs/arrays for "externals" in a spec file against simple json maps
 func TestUnmarshalSpecExternals(t *testing.T) {
 	ctx := ""
 	filename := examplesDir + "generic_example.json"
@@ -203,7 +203,7 @@ func TestUnmarshalSpecExternals(t *testing.T) {
 	}
 }
 
-// Compare unmarshalled structs/arrays for "required-connections" in a spec file against a trivial json maps
+// Compare unmarshalled structs/arrays for "required-connections" in a spec file against simple json maps
 func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 	ctx := ""
 	filename := examplesDir + "generic_example.json"
