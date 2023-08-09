@@ -33,7 +33,7 @@ func enterArray[T any](i int, ctx string, j []interface{}) (resCtx string, res T
 	return
 }
 
-func enter[T any](field, ctx string, j map[string]interface{}) (resCtx string, res T) {
+func enter[T string | bool | float64 | *int | []interface{}](field, ctx string, j map[string]interface{}) (resCtx string, res T) {
 	resCtx = ctx + "." + field
 	res, ok := j[field].(T)
 	if !ok {
@@ -41,6 +41,11 @@ func enter[T any](field, ctx string, j map[string]interface{}) (resCtx string, r
 		res = *new(T)
 	}
 	return
+}
+
+func enterInt(field, ctx string, j map[string]interface{}) (resCtx string, result int) {
+	resCtx, tmp := enter[float64](field, ctx, j)
+	return resCtx, int(tmp)
 }
 
 func readFile(t *testing.T, filename string) map[string]interface{} {
@@ -270,7 +275,7 @@ func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 			for j, protocol := range conn.AllowedProtocols {
 				ctx, jsonProtocol := enterArray[map[string]interface{}](j, ctx, jsonConnAllowedProtocols)
 				switch p := protocol.(type) {
-				case TcpUdp:
+				case *TcpUdp:
 					{
 						ctx, jsonProtocolName := enter[string]("protocol", ctx, jsonProtocol)
 						if string(p.Protocol) != jsonProtocolName {
@@ -278,13 +283,13 @@ func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 						}
 					}
 					{
-						ctx, jsonProtocolPort := enter[int]("min_port", ctx, jsonProtocol)
+						ctx, jsonProtocolPort := enterInt("min_port", ctx, jsonProtocol)
 						if p.MinPort != jsonProtocolPort {
 							t.Fatalf(`%v: %v != %v`, ctx, p.MinPort, jsonProtocolPort)
 						}
 					}
 					{
-						ctx, jsonProtocolPort := enter[int]("max_port", ctx, jsonProtocol)
+						ctx, jsonProtocolPort := enterInt("max_port", ctx, jsonProtocol)
 						if p.MaxPort != jsonProtocolPort {
 							t.Fatalf(`%v: %v != %v`, ctx, p.MaxPort, jsonProtocolPort)
 						}
@@ -295,7 +300,7 @@ func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 							t.Fatalf(`%v: %t != %t`, ctx, p.Bidirectional, jsonBidirectional)
 						}
 					}
-				case Icmp:
+				case *Icmp:
 					{
 						ctx, jsonProtocolName := enter[string]("protocol", ctx, jsonProtocol)
 						if string(p.Protocol) != jsonProtocolName {
@@ -320,6 +325,8 @@ func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 							t.Fatalf(`%v: %t != %t`, ctx, p.Bidirectional, jsonBidirectional)
 						}
 					}
+				default:
+					t.Fatalf("Bad protocol %v", p)
 				}
 			}
 		}

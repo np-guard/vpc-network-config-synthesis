@@ -1,5 +1,5 @@
 REPOSITORY := github.com/np-guard/vpc-network-config-synthesis
-EXE := vpcgen
+EXE := vpcgen.exe
 
 ./bin/$(EXE): build
 
@@ -12,6 +12,7 @@ mod: go.mod
 
 fmt:
 	@echo -- $@ --
+	dos2unix * .* pkg/*/*.go cmd/*/*.go spec_schema.json examples/*
 	goimports -local $(REPOSITORY) -w .
 
 lint:
