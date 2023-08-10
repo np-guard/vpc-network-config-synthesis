@@ -14,7 +14,7 @@ make test
 ```
 Run:
 ```commandline
-bin/vpcgen examples/generic-example.json
+bin\vpcgen.exe -spec examples/connectivity_requirements.json -config examples/config_object.json
 ```
 
 ## Code generation
@@ -28,4 +28,4 @@ Then run
 ```commandline
 make generate
 ```
-The result is written into [synth/data_model.go](pkg/synth/data_model.go).
+The result is written into [pkg/spec/data_model.go](pkg/spec/data_model.go).
