@@ -104,7 +104,7 @@ func lookupMap(externals []spec.SpecExternalsElem, subnetToIP map[string]string)
 func translateProtocol(protocol interface{}) (ruleMaker acl.RuleMaker, bidirectional bool) {
 	switch p := protocol.(type) {
 	case *spec.TcpUdp:
-		portRange := acl.PortRange{MinPort: p.MinPort, MaxPort: p.MaxPort}
+		portRange := acl.PortRange{MinPort: p.MinDestinationPort, MaxPort: p.MaxDestinationPort}
 		bidirectional = p.Bidirectional
 		switch p.Protocol {
 		case spec.TcpUdpProtocolTCP:

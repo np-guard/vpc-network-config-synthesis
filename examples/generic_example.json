@@ -21,8 +21,8 @@
             "fully-connected-with-connection-type": [
                 {
                     "protocol": "TCP",
-                    "min_port": 443,
-                    "max_port": 443
+                    "min_destination_port": 443,
+                    "max_destination_port": 443
                 }
             ]
         }
@@ -50,8 +50,8 @@
             "allowed-protocols": [
                 {
                     "protocol": "TCP",
-                    "min_port": 443,
-                    "max_port": 443,
+                    "min_destination_port": 443,
+                    "max_destination_port": 443,
                     "bidirectional": false
                 }
             ]
@@ -68,8 +68,8 @@
             "allowed-protocols": [
                 {
                     "protocol": "TCP",
-                    "min_port": 443,
-                    "max_port": 443,
+                    "min_destination_port": 443,
+                    "max_destination_port": 443,
                     "bidirectional": true
                 }
             ]

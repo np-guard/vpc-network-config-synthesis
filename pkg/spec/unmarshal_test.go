@@ -69,9 +69,15 @@ func ptr[T any](t T) *T {
 func TestTcpUdp_UnmarshalJSON(t *testing.T) {
 	table := []TestItem[*TcpUdp]{
 		{`{"protocol": "TCP"}`,
-			&TcpUdp{Protocol: "TCP", MinPort: 0, MaxPort: 65535, Bidirectional: false}},
-		{`{"protocol": "UDP", "min_port": 433, "max_port": 433, "bidirectional": true}`,
-			&TcpUdp{Protocol: "UDP", MinPort: 433, MaxPort: 433, Bidirectional: true}},
+			&TcpUdp{Protocol: "TCP",
+				MinDestinationPort: 0, MaxDestinationPort: 65535,
+				MinSourcePort: 0, MaxSourcePort: 65535,
+				Bidirectional: false}},
+		{`{"protocol": "UDP", "min_destination_port": 433, "max_destination_port": 433, "bidirectional": true}`,
+			&TcpUdp{Protocol: "UDP",
+				MinDestinationPort: 433, MaxDestinationPort: 433,
+				MinSourcePort: 0, MaxSourcePort: 65535,
+				Bidirectional: true}},
 	}
 	for _, test := range table {
 		actual := new(TcpUdp)
@@ -80,7 +86,7 @@ func TestTcpUdp_UnmarshalJSON(t *testing.T) {
 			t.Fatalf(`Unmarshal %q returns %v`, test.input, err)
 		}
 		if !reflect.DeepEqual(actual, test.expected) {
-			t.Fatalf(`Unmarshal %q returns %v instead of %v`, test.input, *actual, test.expected)
+			t.Fatalf(`Unmarshal %q returns %v instead of %v`, test.input, *actual, *test.expected)
 		}
 	}
 }
@@ -99,7 +105,24 @@ func TestIcmp_UnmarshalJSON(t *testing.T) {
 			t.Fatalf(`Unmarshal %v returns %v`, test.input, err)
 		}
 		if !reflect.DeepEqual(actual, test.expected) {
-			t.Fatalf(`Unmarshal %q returns %v instead of %v`, test.input, *actual, test.expected)
+			t.Fatalf(`Unmarshal %q returns %v instead of %v`, test.input, *actual, *test.expected)
+		}
+	}
+}
+
+func TestAnyProtocol_UnmarshalJSON(t *testing.T) {
+	table := []TestItem[*AnyProtocol]{
+		{`{"protocol": "ANY"}`,
+			&AnyProtocol{Protocol: "ANY"}},
+	}
+	for _, test := range table {
+		actual := new(AnyProtocol)
+		err := json.Unmarshal([]byte(test.input), actual)
+		if err != nil {
+			t.Fatalf(`Unmarshal %v returns %v`, test.input, err)
+		}
+		if !reflect.DeepEqual(actual, test.expected) {
+			t.Fatalf(`Unmarshal %q returns %v instead of %v`, test.input, *actual, *test.expected)
 		}
 	}
 }
@@ -283,15 +306,15 @@ func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 						}
 					}
 					{
-						ctx, jsonProtocolPort := enterInt("min_port", ctx, jsonProtocol)
-						if p.MinPort != jsonProtocolPort {
-							t.Fatalf(`%v: %v != %v`, ctx, p.MinPort, jsonProtocolPort)
+						ctx, jsonProtocolPort := enterInt("min_destination_port", ctx, jsonProtocol)
+						if p.MinDestinationPort != jsonProtocolPort {
+							t.Fatalf(`%v: %v != %v`, ctx, p.MinDestinationPort, jsonProtocolPort)
 						}
 					}
 					{
-						ctx, jsonProtocolPort := enterInt("max_port", ctx, jsonProtocol)
-						if p.MaxPort != jsonProtocolPort {
-							t.Fatalf(`%v: %v != %v`, ctx, p.MaxPort, jsonProtocolPort)
+						ctx, jsonProtocolPort := enterInt("max_destination_port", ctx, jsonProtocol)
+						if p.MaxDestinationPort != jsonProtocolPort {
+							t.Fatalf(`%v: %v != %v`, ctx, p.MaxDestinationPort, jsonProtocolPort)
 						}
 					}
 					{
@@ -325,6 +348,8 @@ func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 							t.Fatalf(`%v: %t != %t`, ctx, p.Bidirectional, jsonBidirectional)
 						}
 					}
+				case *AnyProtocol:
+					t.Fatalf("Unsupported")
 				default:
 					t.Fatalf("Bad protocol %v", p)
 				}
