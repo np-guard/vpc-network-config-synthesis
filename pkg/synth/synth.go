@@ -9,7 +9,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/spec"
 )
 
-// MakeACL translates Spec to a terraform resource
+// MakeACL translates Spec to a collection of ACLs
 func MakeACL(s *spec.Spec, subnetToIP map[string]string) string {
 	result := acl.Collection{
 		Items: []*acl.ACL{
