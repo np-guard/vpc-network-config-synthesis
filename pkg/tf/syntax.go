@@ -1,3 +1,4 @@
+// Package tf represents the general syntax of terraform files
 package tf
 
 import "fmt"
