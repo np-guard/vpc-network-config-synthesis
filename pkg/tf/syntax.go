@@ -8,30 +8,30 @@ import "fmt"
 //
 // This part knows nothing about ACLs
 
-type block struct {
+type Block struct {
 	Name      string
 	Labels    []string
 	Arguments map[string]string
-	Blocks    []block
+	Blocks    []Block
 }
 
-type configFile struct {
-	Resources []block
+type ConfigFile struct {
+	Resources []Block
 }
 
-type blockable interface {
-	terraform() block
+type Blockable interface {
+	Terraform() Block
 }
 
-func blocks[T blockable](items []T) []block {
-	result := make([]block, len(items))
+func Blocks[T Blockable](items []T) []Block {
+	result := make([]Block, len(items))
 	for i := range items {
-		result[i] = items[i].terraform()
+		result[i] = items[i].Terraform()
 	}
 	return result
 }
 
-func (b *block) print(indent string) string {
+func (b *Block) print(indent string) string {
 	result := ""
 	result += indent + b.Name
 	for _, label := range b.Labels {
@@ -51,7 +51,7 @@ func (b *block) print(indent string) string {
 	return result
 }
 
-func (c *configFile) print() string {
+func (c *ConfigFile) Print() string {
 	result := ""
 	for _, block := range c.Resources {
 		result += block.print("")

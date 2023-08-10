@@ -9,6 +9,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/spec"
+
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/synth"
 )
 
@@ -31,7 +33,7 @@ func readSubnetMap(filename string) (map[string]string, error) {
 
 func main() {
 	connectivityFilename := os.Args[1]
-	spec, err := synth.UnmarshalSpec(connectivityFilename)
+	s, err := spec.Unmarshal(connectivityFilename)
 	if err != nil {
 		log.Fatalf("Could not parse connectivity file %s: %s", connectivityFilename, err)
 	}
@@ -40,5 +42,5 @@ func main() {
 	if err != nil {
 		log.Fatalf("Could not parse config file %s: %s", configFilename, err)
 	}
-	fmt.Println(spec.MakeACL(subnetMap))
+	fmt.Println(synth.MakeACL(s, subnetMap))
 }

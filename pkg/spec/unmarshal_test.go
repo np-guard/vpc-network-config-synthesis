@@ -1,4 +1,4 @@
-package synth
+package spec
 
 import (
 	"encoding/json"
@@ -134,7 +134,7 @@ func TestUnmarshalSpecSections(t *testing.T) {
 
 	jsonSpec := readFile(t, filename)
 
-	spec, err := UnmarshalSpec(filename)
+	spec, err := Unmarshal(filename)
 	if err != nil {
 		t.Fatalf(`Unmarshal %v returns %v`, filename, err)
 	}
@@ -189,7 +189,7 @@ func TestUnmarshalSpecExternals(t *testing.T) {
 
 	jsonSpec := readFile(t, filename)
 
-	spec, err := UnmarshalSpec(filename)
+	spec, err := Unmarshal(filename)
 	if err != nil {
 		t.Fatalf(`Unmarshal %v returns %v`, filename, err)
 	}
@@ -224,7 +224,7 @@ func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 
 	jsonSpec := readFile(t, filename)
 
-	spec, err := UnmarshalSpec(filename)
+	spec, err := Unmarshal(filename)
 	if err != nil {
 		t.Fatalf(`Unmarshal %v returns %v`, filename, err)
 	}

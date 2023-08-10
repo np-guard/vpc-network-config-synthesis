@@ -22,13 +22,13 @@ lint:
 
 precommit: mod fmt lint
 
-pkg/synth/data_model.go: spec_schema.json
+pkg/spec/data_model.go: spec_schema.json
 	@echo -- generate --
 	# Install https://github.com/omissis/go-jsonschema
-	gojsonschema spec_schema.json --package synth --struct-name-from-title --tags json --output $@
+	gojsonschema spec_schema.json --package spec --struct-name-from-title --tags json --output $@
 	goimports -local $(REPOSITORY) -w $@
 
-generate: pkg/synth/data_model.go
+generate: pkg/spec/data_model.go
 
 build:
 	@echo -- $@ --

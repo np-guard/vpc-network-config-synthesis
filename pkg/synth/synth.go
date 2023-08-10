@@ -1,41 +1,43 @@
+// Package synth generates NetworkACLs that collectively enable the connectivity described in a global specification.
 package synth
 
 import (
 	"fmt"
 	"log"
 
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/tf"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/acl"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/spec"
 )
 
 // MakeACL translates Spec to a terraform resource
-func (s *Spec) MakeACL(subnetToIP map[string]string) string {
-	result := tf.ACLCollection{
-		Items: []*tf.ACL{
+func MakeACL(s *spec.Spec, subnetToIP map[string]string) string {
+	result := acl.Collection{
+		Items: []*acl.ACL{
 			{
 				Name:          "acl1",
 				ResourceGroup: "var.resource_group_id",
 				Vpc:           "var.vpc_id",
-				Rules:         s.makeRules(lookupMap(s.Externals, subnetToIP)),
+				Rules:         makeRules(s, lookupMap(s.Externals, subnetToIP)),
 			},
 		},
 	}
 	return result.Print()
 }
 
-func (s *Spec) makeRules(endpointToIP func(*Endpoint) string) []*tf.ACLRule {
-	makeRulePair := func(aclRuleMaker tf.ACLRuleMaker, bidirectional bool, src, dst *Endpoint, name string) []*tf.ACLRule {
+func makeRules(s *spec.Spec, endpointToIP func(*spec.Endpoint) string) []*acl.Rule {
+	makeRulePair := func(aclRuleMaker acl.RuleMaker, bidirectional bool, src, dst *spec.Endpoint, name string) []*acl.Rule {
 		srcIP := endpointToIP(src)
 		dstIP := endpointToIP(dst)
 		prefix := fmt.Sprintf("rule-%v-", name)
-		egress := tf.NewACLRule(aclRuleMaker, prefix+"outbound", true, srcIP, dstIP, true)
+		egress := acl.NewRule(aclRuleMaker, prefix+"outbound", true, srcIP, dstIP, true)
 		if bidirectional {
-			ingress := tf.NewACLRule(aclRuleMaker, prefix+"inbound", true, srcIP, dstIP, false)
-			return []*tf.ACLRule{egress, ingress}
+			ingress := acl.NewRule(aclRuleMaker, prefix+"inbound", true, srcIP, dstIP, false)
+			return []*acl.Rule{egress, ingress}
 		}
-		return []*tf.ACLRule{egress}
+		return []*acl.Rule{egress}
 	}
 
-	var rules []*tf.ACLRule
+	var rules []*acl.Rule
 	for i, conn := range s.RequiredConnections {
 		for _, protocol := range conn.AllowedProtocols {
 			aclRuleMaker, bidirectional := translateProtocol(protocol)
@@ -54,8 +56,8 @@ func (s *Spec) makeRules(endpointToIP func(*Endpoint) string) []*tf.ACLRule {
 				}
 				for m, protocol := range section.FullyConnectedWithConnectionType {
 					aclRuleMaker, _ := translateProtocol(protocol)
-					srcEndpoint := &Endpoint{src, EndpointType(section.Type)}
-					dstEndpoint := &Endpoint{dst, EndpointType(section.Type)}
+					srcEndpoint := &spec.Endpoint{Name: src, Type: spec.EndpointType(section.Type)}
+					dstEndpoint := &spec.Endpoint{Name: dst, Type: spec.EndpointType(section.Type)}
 					rulePair := makeRulePair(aclRuleMaker, true, srcEndpoint, dstEndpoint,
 						fmt.Sprintf("fc-section%v-src%v-dst%v-prot%v", i, j, k, m))
 					rules = append(rules, rulePair...)
@@ -66,31 +68,31 @@ func (s *Spec) makeRules(endpointToIP func(*Endpoint) string) []*tf.ACLRule {
 	return rules
 }
 
-func lookupMap(externals []SpecExternalsElem, subnetToIP map[string]string) func(*Endpoint) string {
+func lookupMap(externals []spec.SpecExternalsElem, subnetToIP map[string]string) func(*spec.Endpoint) string {
 	externalToIP := make(map[string]string)
 	for _, ext := range externals {
 		externalToIP[ext.Name] = ext.Cidr
 	}
-	return func(endpoint *Endpoint) string {
+	return func(endpoint *spec.Endpoint) string {
 		switch endpoint.Type {
-		case EndpointTypeCidr:
+		case spec.EndpointTypeCidr:
 			return endpoint.Name
-		case EndpointTypeExternal:
+		case spec.EndpointTypeExternal:
 			ip, ok := externalToIP[endpoint.Name]
 			if !ok {
 				log.Fatalf("external not found: %v", endpoint.Name)
 			}
 			return ip
-		case EndpointTypeSubnet:
+		case spec.EndpointTypeSubnet:
 			ip, ok := subnetToIP[endpoint.Name]
 			if !ok {
 				log.Fatalf("subnet not found: %v", endpoint.Name)
 			}
 			return ip
-		case EndpointTypeNif:
-		case EndpointTypeInstance:
-		case EndpointTypeSection:
-		case EndpointTypeVpe:
+		case spec.EndpointTypeNif:
+		case spec.EndpointTypeInstance:
+		case spec.EndpointTypeSection:
+		case spec.EndpointTypeVpe:
 			log.Fatalf("Unsupported endpoint type: %v", endpoint.Type)
 		default:
 			log.Fatalf("Unknown endpoint type: %v", endpoint.Type)
@@ -99,22 +101,22 @@ func lookupMap(externals []SpecExternalsElem, subnetToIP map[string]string) func
 	}
 }
 
-func translateProtocol(protocol interface{}) (ruleMaker tf.ACLRuleMaker, bidirectional bool) {
+func translateProtocol(protocol interface{}) (ruleMaker acl.RuleMaker, bidirectional bool) {
 	switch p := protocol.(type) {
-	case *TcpUdp:
-		portRange := tf.PortRange{MinPort: p.MinPort, MaxPort: p.MaxPort}
+	case *spec.TcpUdp:
+		portRange := acl.PortRange{MinPort: p.MinPort, MaxPort: p.MaxPort}
 		bidirectional = p.Bidirectional
 		switch p.Protocol {
-		case TcpUdpProtocolTCP:
-			ruleMaker = &tf.TCP{PortRange: portRange}
-		case TcpUdpProtocolUDP:
-			ruleMaker = &tf.UDP{PortRange: portRange}
+		case spec.TcpUdpProtocolTCP:
+			ruleMaker = &acl.TCP{PortRange: portRange}
+		case spec.TcpUdpProtocolUDP:
+			ruleMaker = &acl.UDP{PortRange: portRange}
 		default:
 			log.Fatalf("Impossible protocol name: %q", p.Protocol)
 		}
-	case *Icmp:
+	case *spec.Icmp:
 		bidirectional = p.Bidirectional
-		ruleMaker = &tf.ICMP{Code: p.Code, Type: p.Type}
+		ruleMaker = &acl.ICMP{Code: p.Code, Type: p.Type}
 	case nil:
 		bidirectional = false
 		ruleMaker = nil
