@@ -9,6 +9,10 @@ import (
 )
 
 const examplesDir = "../../examples/"
+const (
+	minPort = 1
+	maxPort = 65535
+)
 
 type TestItem[T any] struct {
 	input    string
@@ -70,13 +74,13 @@ func TestTcpUdp_UnmarshalJSON(t *testing.T) {
 	table := []TestItem[*TcpUdp]{
 		{`{"protocol": "TCP"}`,
 			&TcpUdp{Protocol: "TCP",
-				MinDestinationPort: 0, MaxDestinationPort: 65535,
-				MinSourcePort: 0, MaxSourcePort: 65535,
+				MinDestinationPort: minPort, MaxDestinationPort: maxPort,
+				MinSourcePort: minPort, MaxSourcePort: maxPort,
 				Bidirectional: false}},
 		{`{"protocol": "UDP", "min_destination_port": 433, "max_destination_port": 433, "bidirectional": true}`,
 			&TcpUdp{Protocol: "UDP",
 				MinDestinationPort: 433, MaxDestinationPort: 433,
-				MinSourcePort: 0, MaxSourcePort: 65535,
+				MinSourcePort: minPort, MaxSourcePort: maxPort,
 				Bidirectional: true}},
 	}
 	for _, test := range table {
@@ -356,4 +360,7 @@ func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 			}
 		}
 	}
+}
+func TestOmitEmpty(t *testing.T) {
+
 }

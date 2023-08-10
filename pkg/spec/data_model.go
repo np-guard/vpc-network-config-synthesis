@@ -127,10 +127,10 @@ type TcpUdp struct {
 	// Maximal source port; default is 65535. Unsupported in vpc synthesis
 	MaxSourcePort int `json:"max_source_port,omitempty"`
 
-	// Minimal destination port; default is 0
+	// Minimal destination port; default is 1
 	MinDestinationPort int `json:"min_destination_port,omitempty"`
 
-	// Minimal source port; default is 0. Unsupported in vpc synthesis
+	// Minimal source port; default is 1. Unsupported in vpc synthesis
 	MinSourcePort int `json:"min_source_port,omitempty"`
 
 	// Is it TCP or UDP
@@ -212,10 +212,10 @@ func (j *TcpUdp) UnmarshalJSON(b []byte) error {
 		plain.MaxSourcePort = 65535.0
 	}
 	if v, ok := raw["min_destination_port"]; !ok || v == nil {
-		plain.MinDestinationPort = 0.0
+		plain.MinDestinationPort = 1.0
 	}
 	if v, ok := raw["min_source_port"]; !ok || v == nil {
-		plain.MinSourcePort = 0.0
+		plain.MinSourcePort = 1.0
 	}
 	*j = TcpUdp(plain)
 	return nil

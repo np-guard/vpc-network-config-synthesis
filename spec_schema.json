@@ -26,30 +26,30 @@
                     ]
                 },
                 "min_destination_port": {
-                    "description": "Minimal destination port; default is 0",
+                    "description": "Minimal destination port; default is 1",
                     "type": "integer",
-                    "minimum": 0,
+                    "minimum": 1,
                     "maximum": 65535,
-                    "default": 0
+                    "default": 1
                 },
                 "max_destination_port": {
                     "description": "Maximal destination port; default is 65535",
                     "type": "integer",
-                    "minimum": 0,
+                    "minimum": 1,
                     "maximum": 65535,
                     "default": 65535
                 },
                 "min_source_port": {
-                    "description": "Minimal source port; default is 0. Unsupported in vpc synthesis",
+                    "description": "Minimal source port; default is 1. Unsupported in vpc synthesis",
                     "type": "integer",
-                    "minimum": 0,
+                    "minimum": 1,
                     "maximum": 65535,
-                    "default": 0
+                    "default": 1
                 },
                 "max_source_port": {
                     "description": "Maximal source port; default is 65535. Unsupported in vpc synthesis",
                     "type": "integer",
-                    "minimum": 0,
+                    "minimum": 1,
                     "maximum": 65535,
                     "default": 65535
                 },
