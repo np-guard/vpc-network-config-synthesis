@@ -5,6 +5,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -32,15 +33,17 @@ func readSubnetMap(filename string) (map[string]string, error) {
 }
 
 func main() {
-	connectivityFilename := os.Args[1]
-	s, err := spec.Unmarshal(connectivityFilename)
+	connectivityFilename := flag.String("spec", "", "JSON file containing connectivity spec")
+	configFilename := flag.String("config", "", "JSON file containing config spec")
+	flag.Parse()
+
+	s, err := spec.Unmarshal(*connectivityFilename)
 	if err != nil {
-		log.Fatalf("Could not parse connectivity file %s: %s", connectivityFilename, err)
+		log.Fatalf("Could not parse connectivity file %s: %s", *connectivityFilename, err)
 	}
-	configFilename := os.Args[2]
-	subnetMap, err := readSubnetMap(configFilename)
+	subnetMap, err := readSubnetMap(*configFilename)
 	if err != nil {
-		log.Fatalf("Could not parse config file %s: %s", configFilename, err)
+		log.Fatalf("Could not parse config file %s: %s", *configFilename, err)
 	}
 	fmt.Println(synth.MakeACL(s, subnetMap))
 }

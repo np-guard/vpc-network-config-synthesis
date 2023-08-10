@@ -24,8 +24,8 @@ func MakeACL(s *spec.Spec, subnetToIP map[string]string) string {
 	return result.Print()
 }
 
-func makeRules(s *spec.Spec, endpointToIP func(*spec.Endpoint) string) []*acl.Rule {
-	makeRulePair := func(aclRuleMaker acl.RuleMaker, bidirectional bool, src, dst *spec.Endpoint, name string) []*acl.Rule {
+func makeRules(s *spec.Spec, endpointToIP func(spec.Endpoint) string) []*acl.Rule {
+	makeRulePair := func(aclRuleMaker acl.RuleMaker, bidirectional bool, src, dst spec.Endpoint, name string) []*acl.Rule {
 		srcIP := endpointToIP(src)
 		dstIP := endpointToIP(dst)
 		prefix := fmt.Sprintf("rule-%v-", name)
@@ -41,7 +41,7 @@ func makeRules(s *spec.Spec, endpointToIP func(*spec.Endpoint) string) []*acl.Ru
 	for i, conn := range s.RequiredConnections {
 		for _, protocol := range conn.AllowedProtocols {
 			aclRuleMaker, bidirectional := translateProtocol(protocol)
-			rulePair := makeRulePair(aclRuleMaker, bidirectional, conn.Src, conn.Dst, fmt.Sprintf("%v", i))
+			rulePair := makeRulePair(aclRuleMaker, bidirectional, *conn.Src, *conn.Dst, fmt.Sprintf("%v", i))
 			rules = append(rules, rulePair...)
 		}
 	}
@@ -50,14 +50,14 @@ func makeRules(s *spec.Spec, endpointToIP func(*spec.Endpoint) string) []*acl.Ru
 			continue
 		}
 		for j, src := range section.Items {
+			srcEndpoint := spec.Endpoint{Name: src, Type: spec.EndpointType(section.Type)}
 			for k, dst := range section.Items {
+				dstEndpoint := spec.Endpoint{Name: dst, Type: spec.EndpointType(section.Type)}
 				if j == k {
 					continue
 				}
 				for m, protocol := range section.FullyConnectedWithConnectionType {
 					aclRuleMaker, _ := translateProtocol(protocol)
-					srcEndpoint := &spec.Endpoint{Name: src, Type: spec.EndpointType(section.Type)}
-					dstEndpoint := &spec.Endpoint{Name: dst, Type: spec.EndpointType(section.Type)}
 					rulePair := makeRulePair(aclRuleMaker, true, srcEndpoint, dstEndpoint,
 						fmt.Sprintf("fc-section%v-src%v-dst%v-prot%v", i, j, k, m))
 					rules = append(rules, rulePair...)
@@ -68,25 +68,25 @@ func makeRules(s *spec.Spec, endpointToIP func(*spec.Endpoint) string) []*acl.Ru
 	return rules
 }
 
-func lookupMap(externals []spec.SpecExternalsElem, subnetToIP map[string]string) func(*spec.Endpoint) string {
+func lookupMap(externals []spec.SpecExternalsElem, subnetToIP map[string]string) func(spec.Endpoint) string {
 	externalToIP := make(map[string]string)
 	for _, ext := range externals {
 		externalToIP[ext.Name] = ext.Cidr
 	}
-	return func(endpoint *spec.Endpoint) string {
+	return func(endpoint spec.Endpoint) string {
 		switch endpoint.Type {
 		case spec.EndpointTypeCidr:
 			return endpoint.Name
 		case spec.EndpointTypeExternal:
 			ip, ok := externalToIP[endpoint.Name]
 			if !ok {
-				log.Fatalf("external not found: %v", endpoint.Name)
+				log.Fatalf("External not found: %v", endpoint.Name)
 			}
 			return ip
 		case spec.EndpointTypeSubnet:
 			ip, ok := subnetToIP[endpoint.Name]
 			if !ok {
-				log.Fatalf("subnet not found: %v", endpoint.Name)
+				log.Fatalf("Subnet not found: %v", endpoint.Name)
 			}
 			return ip
 		case spec.EndpointTypeNif:
