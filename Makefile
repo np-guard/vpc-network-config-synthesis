@@ -1,5 +1,5 @@
 REPOSITORY := github.com/np-guard/vpc-network-config-synthesis
-EXE := vpcgen
+EXE := vpcgen.exe
 
 ./bin/$(EXE): build
 
@@ -12,6 +12,7 @@ mod: go.mod
 
 fmt:
 	@echo -- $@ --
+	dos2unix * .* pkg/*/*.go cmd/*/*.go spec_schema.json examples/*
 	goimports -local $(REPOSITORY) -w .
 
 lint:
@@ -21,21 +22,21 @@ lint:
 
 precommit: mod fmt lint
 
-pkg/synth/data_model.go: spec_schema.json
+pkg/spec/data_model.go: spec_schema.json
 	@echo -- generate --
 	# Install https://github.com/omissis/go-jsonschema
-	gojsonschema spec_schema.json --package synth --struct-name-from-title --tags json --output $@
+	gojsonschema spec_schema.json --package spec --struct-name-from-title --tags json --output $@
 	goimports -local $(REPOSITORY) -w $@
 
-generate: pkg/synth/data_model.go
+generate: pkg/spec/data_model.go
 
 build:
 	@echo -- $@ --
-	CGO_ENABLED=0 go build -o ./bin/$(EXE) ./cmd/vpcgen
+	CGO_ENABLED=0 GOEXPERIMENT=loopvar go build -o ./bin/$(EXE) ./cmd/vpcgen
 
 test:
 	@echo -- $@ --
-	go test ./... -v -cover -coverprofile synth.coverprofile
+	GOEXPERIMENT=loopvar go test ./... -v -cover -coverprofile synth.coverprofile
 
 jd-test: ./bin/$(EXE)
 	@echo -- $@ --
