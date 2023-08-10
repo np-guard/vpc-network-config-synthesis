@@ -26,3 +26,6 @@ go.work
 # Draw.io temporary files
 *.drawio.dtmp
 *.drawio.bkp
+
+# IDEs
+.idea

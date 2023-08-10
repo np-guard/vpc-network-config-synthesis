@@ -56,6 +56,8 @@ func fixProtocol(unparsed interface{}) (interface{}, error) {
 		return unmarshalProtocol(p, new(TcpUdp))
 	case "ICMP":
 		return unmarshalProtocol(p, new(Icmp))
+	case "ANY":
+		return unmarshalProtocol(p, new(AnyProtocol))
 	default:
 		panic(fmt.Sprintf("Impossible protocol name: %q, %T", p["protocol"], p["protocol"]))
 	}

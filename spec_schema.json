@@ -3,6 +3,18 @@
     "$schema": "http://json-schema.org/draft-06/schema#",
     "$id": "https://github.com/np-guard/vpc-network-synthesis/v0.1",
     "$defs": {
+        "any-protocol": {
+            "type": "object",
+            "properties": {
+                "protocol": {
+                    "description": "Necessarily ANY",
+                    "enum": [
+                        "ANY"
+                    ]
+                }
+            },
+            "required": ["protocol"]
+        },
         "tcp-udp": {
             "type": "object",
             "properties": {
@@ -13,17 +25,31 @@
                         "UDP"
                     ]
                 },
-                "min_port": {
-                    "description": "Minimal port; default is 0",
+                "min_destination_port": {
+                    "description": "Minimal destination port; default is 1",
                     "type": "integer",
-                    "minimum": 0,
+                    "minimum": 1,
                     "maximum": 65535,
-                    "default": 0
+                    "default": 1
                 },
-                "max_port": {
-                    "description": "Maximal port; default is 65535",
+                "max_destination_port": {
+                    "description": "Maximal destination port; default is 65535",
                     "type": "integer",
-                    "minimum": 0,
+                    "minimum": 1,
+                    "maximum": 65535,
+                    "default": 65535
+                },
+                "min_source_port": {
+                    "description": "Minimal source port; default is 1. Unsupported in vpc synthesis",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 65535,
+                    "default": 1
+                },
+                "max_source_port": {
+                    "description": "Maximal source port; default is 65535. Unsupported in vpc synthesis",
+                    "type": "integer",
+                    "minimum": 1,
                     "maximum": 65535,
                     "default": 65535
                 },
@@ -71,6 +97,9 @@
                 },
                 {
                     "$ref": "#/$defs/icmp"
+                },
+                {
+                    "$ref": "#/$defs/any-protocol"
                 }
             ]
         },
