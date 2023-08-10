@@ -361,6 +361,3 @@ func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 		}
 	}
 }
-func TestOmitEmpty(t *testing.T) {
-
-}
