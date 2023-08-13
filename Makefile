@@ -32,11 +32,11 @@ generate: pkg/spec/data_model.go
 
 build:
 	@echo -- $@ --
-	CGO_ENABLED=0 GOEXPERIMENT=loopvar go build -o ./bin/$(EXE) ./cmd/vpcgen
+	CGO_ENABLED=0 go build -o ./bin/$(EXE) ./cmd/vpcgen
 
 test:
 	@echo -- $@ --
-	GOEXPERIMENT=loopvar go test ./... -v -cover -coverprofile synth.coverprofile
+	go test ./... -v -cover -coverprofile synth.coverprofile
 
 jd-test: ./bin/$(EXE)
 	@echo -- $@ --
