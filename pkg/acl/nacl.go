@@ -69,7 +69,8 @@ func NewRule(t RuleMaker, name string, allow bool, source, destination string, o
 	return t.newRule(name, allow, source, destination, outbound)
 }
 
-const maxTransportPort = 65535
+const defaultMinTransportPort = 1
+const defaultMaxTransportPort = 655355
 
 func quote(s string) string {
 	return fmt.Sprintf("%q", s)
@@ -91,10 +92,10 @@ func outbound(b bool) string {
 
 func (t *PortRange) Terraform(name string) tf.Block {
 	var arguments []tf.Argument
-	if t.MinPort != 0 {
+	if t.MinPort != defaultMinTransportPort {
 		arguments = append(arguments, tf.Argument{Name: "port_min", Value: strconv.Itoa(t.MinPort)})
 	}
-	if t.MaxPort != maxTransportPort {
+	if t.MaxPort != defaultMaxTransportPort {
 		arguments = append(arguments, tf.Argument{Name: "port_max", Value: strconv.Itoa(t.MaxPort)})
 	}
 	return tf.Block{
