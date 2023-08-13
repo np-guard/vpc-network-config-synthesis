@@ -28,8 +28,8 @@
             "allowed-protocols": [
                 {
                     "protocol": "TCP",
-                    "min_port": 443,
-                    "max_port": 443,
+                    "min_destination_port": 443,
+                    "max_destination_port": 443,
                     "bidirectional": true
                 }
             ]
