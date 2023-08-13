@@ -3,6 +3,7 @@ package spec
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 )
@@ -18,40 +19,54 @@ func Unmarshal(filename string) (*Spec, error) {
 	if err != nil {
 		return nil, err
 	}
-	for _, conn := range spec.RequiredConnections {
-		err = fixProtocolList(conn.AllowedProtocols)
-		if err != nil {
-			return nil, err
+	for i := range spec.RequiredConnections {
+		if spec.RequiredConnections[i].AllowedProtocols == nil {
+			spec.RequiredConnections[i].AllowedProtocols = ProtocolList{new(AnyProtocol)}
+			print(spec.RequiredConnections[i].AllowedProtocols)
+		} else {
+			err = fixProtocolList(spec.RequiredConnections[i].AllowedProtocols)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 	return spec, err
 }
 
+func (s *Spec) SetSubnets(subnets map[string]string) error {
+	if subnets != nil {
+		if len(s.Subnets) != 0 {
+			return errors.New("both subnets and config_file are supplied")
+		}
+		s.Subnets = subnets
+	}
+	return nil
+}
+
 func fixProtocolList(list ProtocolList) error {
 	for j := range list {
 		var err error
-		list[j], err = fixProtocol(list[j])
+		p := list[j].(map[string]interface{})
+		switch p["protocol"] {
+		case "TCP":
+			list[j], err = unmarshalProtocol(p, new(TcpUdp))
+		case "UDP":
+			list[j], err = unmarshalProtocol(p, new(TcpUdp))
+		case "ICMP":
+			list[j], err = unmarshalProtocol(p, new(Icmp))
+		case "ANY":
+			list[j], err = unmarshalProtocol(p, new(AnyProtocol))
+			if len(list) != 1 {
+				err = errors.New("redundant protocol declaration")
+			}
+		default:
+			panic(fmt.Sprintf("Impossible protocol name: %q, %T", p["protocol"], p["protocol"]))
+		}
 		if err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-func fixProtocol(unparsed interface{}) (interface{}, error) {
-	p := unparsed.(map[string]interface{})
-	switch p["protocol"] {
-	case "TCP":
-		return unmarshalProtocol(p, new(TcpUdp))
-	case "UDP":
-		return unmarshalProtocol(p, new(TcpUdp))
-	case "ICMP":
-		return unmarshalProtocol(p, new(Icmp))
-	case "ANY":
-		return unmarshalProtocol(p, new(AnyProtocol))
-	default:
-		panic(fmt.Sprintf("Impossible protocol name: %q, %T", p["protocol"], p["protocol"]))
-	}
 }
 
 func unmarshalProtocol[T json.Unmarshaler](p map[string]interface{}, result T) (T, error) {

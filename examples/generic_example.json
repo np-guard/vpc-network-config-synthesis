@@ -1,4 +1,12 @@
 {
+    "subnets": {
+        "edge-subnet-1": "10.10.10.0/24",
+        "edge-subnet-2": "10.10.20.0/24",
+        "edge-subnet-3": "10.10.30.0/24",
+        "private-subnet-1": "10.20.10.0/24",
+        "private-subnet-2": "10.20.20.0/24",
+        "private-subnet-3": "10.30.30.0/24"
+    },
     "sections": {
         "edge-section": {
             "type": "subnet",

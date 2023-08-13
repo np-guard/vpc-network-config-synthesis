@@ -10,32 +10,36 @@ import (
 )
 
 // MakeACL translates Spec to a collection of ACLs
-func MakeACL(s *spec.Spec, subnetToIP map[string]string) string {
+func MakeACL(s *spec.Spec) string {
 	result := acl.Collection{
 		Items: []*acl.ACL{
 			{
 				Name:          "acl1",
 				ResourceGroup: "var.resource_group_id",
 				Vpc:           "var.vpc_id",
-				Rules:         makeRules(s, lookupMap(s, subnetToIP)),
+				Rules:         makeRules(s),
 			},
 		},
 	}
 	return result.Print()
 }
 
-func makeRules(s *spec.Spec, endpointToIPs func(spec.Endpoint) []string) []*acl.Rule {
+func makeRules(s *spec.Spec) []*acl.Rule {
 	var rules []*acl.Rule
-	for i, conn := range s.RequiredConnections {
-		for m, protocol := range conn.AllowedProtocols {
+	for c := range s.RequiredConnections {
+		conn := s.RequiredConnections[c]
+		for p := range conn.AllowedProtocols {
+			protocol := conn.AllowedProtocols[p]
 			aclRuleMaker, bidirectional := translateProtocol(protocol)
-			for j, srcIP := range endpointToIPs(*conn.Src) {
-				for k, dstIP := range endpointToIPs(*conn.Dst) {
-					prefix := fmt.Sprintf("rule-%v-%v-%v-%v", i, m, j, k)
-					egress := acl.NewRule(aclRuleMaker, prefix+"-outbound", true, srcIP, dstIP, true)
+			srcEndpoints := lookupEndpoint(s, *conn.Src)
+			dstEndpoints := lookupEndpoint(s, *conn.Dst)
+			for src := range srcEndpoints {
+				for dst := range dstEndpoints {
+					prefix := fmt.Sprintf("rule-%v-%v-%v-%v", c, p, src, dst)
+					egress := acl.NewRule(aclRuleMaker, prefix+"-outbound", true, srcEndpoints[src], dstEndpoints[dst], true)
 					rulePair := []*acl.Rule{egress}
 					if bidirectional {
-						ingress := acl.NewRule(aclRuleMaker, prefix+"-inbound", true, srcIP, dstIP, false)
+						ingress := acl.NewRule(aclRuleMaker, prefix+"-inbound", true, srcEndpoints[src], dstEndpoints[dst], false)
 						rulePair = []*acl.Rule{egress, ingress}
 					}
 					rules = append(rules, rulePair...)
@@ -46,17 +50,7 @@ func makeRules(s *spec.Spec, endpointToIPs func(spec.Endpoint) []string) []*acl.
 	return rules
 }
 
-func lookupMap(s *spec.Spec, subnetToIP map[string]string) func(spec.Endpoint) []string {
-	return func(endpoint spec.Endpoint) []string {
-		return lookup(endpoint, s, subnetToIP)
-	}
-}
-
-func newSection(name string) *spec.Endpoint {
-	return &spec.Endpoint{Name: name, Type: spec.EndpointTypeSection}
-}
-
-func lookup(endpoint spec.Endpoint, s *spec.Spec, subnetToIP map[string]string) []string {
+func lookupEndpoint(s *spec.Spec, endpoint spec.Endpoint) []string {
 	name := endpoint.Name
 	switch endpoint.Type {
 	case spec.EndpointTypeCidr:
@@ -67,15 +61,19 @@ func lookup(endpoint spec.Endpoint, s *spec.Spec, subnetToIP map[string]string) 
 		}
 		log.Fatalf("External not found: %v", name)
 	case spec.EndpointTypeSubnet:
-		if ip, ok := subnetToIP[name]; ok {
+		if ip, ok := s.Subnets[name]; ok {
 			return []string{ip}
 		}
 		log.Fatalf("Subnet not found: %v", name)
 	case spec.EndpointTypeSection:
 		if section, ok := s.Sections[endpoint.Name]; ok {
-			var ips []string
-			for _, item := range section.Items {
-				ips = append(ips, lookup(*newSection(item), s, subnetToIP)...)
+			ips := make([]string, 0)
+			for i := range section.Items {
+				subnet := spec.Endpoint{
+					Name: section.Items[i],
+					Type: spec.EndpointType(section.Type),
+				}
+				ips = append(ips, lookupEndpoint(s, subnet)...)
 			}
 			return ips
 		}
@@ -105,7 +103,7 @@ func translateProtocol(protocol interface{}) (ruleMaker acl.RuleMaker, bidirecti
 	case *spec.Icmp:
 		bidirectional = p.Bidirectional
 		ruleMaker = &acl.ICMP{Code: p.Code, Type: p.Type}
-	case nil:
+	case *spec.AnyProtocol:
 		bidirectional = false
 		ruleMaker = nil
 	case map[string]interface{}:
