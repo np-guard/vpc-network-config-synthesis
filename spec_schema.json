@@ -167,6 +167,14 @@
                 }
             }
         },
+        "subnets": {
+            "type": "object",
+            "description": "Lightweight way to define subnets.",
+            "additionalProperties": {
+                "type": "string",
+                "pattern": "^\\d{1,3}(\\.\\d{1,3}){3}(/([1-2]?[0-9])|3[0-2]})$"
+            }
+        },
         "externals": {
             "type": "object",
             "description": "Externals are a way for users to name IP addresses or ranges external to the VPC. These are later used in src/dst definitions",
