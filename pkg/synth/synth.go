@@ -26,20 +26,16 @@ func MakeACL(s *spec.Spec) string {
 
 func makeRules(s *spec.Spec) []*acl.Rule {
 	var rules []*acl.Rule
-	for c := range s.RequiredConnections {
-		conn := s.RequiredConnections[c]
-		for p := range conn.AllowedProtocols {
-			protocol := conn.AllowedProtocols[p]
+	for c, conn := range s.RequiredConnections {
+		for p, protocol := range conn.AllowedProtocols {
 			aclRuleMaker, bidirectional := translateProtocol(protocol)
-			srcEndpoints := lookupEndpoint(s, *conn.Src)
-			dstEndpoints := lookupEndpoint(s, *conn.Dst)
-			for src := range srcEndpoints {
-				for dst := range dstEndpoints {
+			for src, srcIP := range lookupEndpoint(s, *conn.Src) {
+				for dst, dstIP := range lookupEndpoint(s, *conn.Dst) {
 					prefix := fmt.Sprintf("rule-%v-%v-%v-%v", c, p, src, dst)
-					egress := acl.NewRule(aclRuleMaker, prefix+"-outbound", true, srcEndpoints[src], dstEndpoints[dst], true)
+					egress := acl.NewRule(aclRuleMaker, prefix+"-outbound", true, srcIP, dstIP, true)
 					rulePair := []*acl.Rule{egress}
 					if bidirectional {
-						ingress := acl.NewRule(aclRuleMaker, prefix+"-inbound", true, srcEndpoints[src], dstEndpoints[dst], false)
+						ingress := acl.NewRule(aclRuleMaker, prefix+"-inbound", true, srcIP, dstIP, false)
 						rulePair = []*acl.Rule{egress, ingress}
 					}
 					rules = append(rules, rulePair...)
@@ -67,11 +63,15 @@ func lookupEndpoint(s *spec.Spec, endpoint spec.Endpoint) []string {
 		log.Fatalf("Subnet not found: %v", name)
 	case spec.EndpointTypeSection:
 		if section, ok := s.Sections[endpoint.Name]; ok {
-			ips := make([]string, 0)
-			for i := range section.Items {
+			if section.Type != spec.TypeSubnet {
+				log.Fatalf("Unsupported section item type %q", section.Type)
+			}
+			t := spec.EndpointType(section.Type)
+			var ips []string
+			for _, subnetName := range section.Items {
 				subnet := spec.Endpoint{
-					Name: section.Items[i],
-					Type: spec.EndpointType(section.Type),
+					Name: subnetName,
+					Type: t,
 				}
 				ips = append(ips, lookupEndpoint(s, subnet)...)
 			}

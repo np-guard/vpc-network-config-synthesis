@@ -22,7 +22,6 @@ func Unmarshal(filename string) (*Spec, error) {
 	for i := range spec.RequiredConnections {
 		if spec.RequiredConnections[i].AllowedProtocols == nil {
 			spec.RequiredConnections[i].AllowedProtocols = ProtocolList{new(AnyProtocol)}
-			print(spec.RequiredConnections[i].AllowedProtocols)
 		} else {
 			err = fixProtocolList(spec.RequiredConnections[i].AllowedProtocols)
 			if err != nil {
