@@ -24,15 +24,6 @@ func Unmarshal(filename string) (*Spec, error) {
 			return nil, err
 		}
 	}
-	for _, section := range spec.Sections {
-		if !section.FullyConnected {
-			continue
-		}
-		err = fixProtocolList(section.FullyConnectedWithConnectionType)
-		if err != nil {
-			return nil, err
-		}
-	}
 	return spec, err
 }
 

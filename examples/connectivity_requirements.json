@@ -1,26 +1,16 @@
 {
-    "sections": [
-        {
-            "name": "fc-12",
+    "sections": {
+        "fc-12": {
             "type": "subnet",
             "items": [
                 "subnet1-ky",
                 "subnet2-ky"
-            ],
-            "fully-connected": true,
-            "fully-connected-with-connection-type": [
-                {
-                    "protocol": "ICMP"
-                }
             ]
         }
-    ],
-    "externals": [
-        {
-            "name": "google.com",
-            "cidr": "172.217.22.46"
-        }
-    ],
+    },
+    "externals": {
+        "google.com": "172.217.22.46"
+    },
     "required-connections": [
         {
             "src": {

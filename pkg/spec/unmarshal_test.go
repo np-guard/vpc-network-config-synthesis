@@ -37,7 +37,11 @@ func enterArray[T any](i int, ctx string, j []interface{}) (resCtx string, res T
 	return
 }
 
-func enter[T string | bool | float64 | *int | []interface{}](field, ctx string, j map[string]interface{}) (resCtx string, res T) {
+type jsonType interface {
+	string | bool | float64 | *int | []string | map[string]interface{} | []interface{}
+}
+
+func enter[T jsonType](field, ctx string, j map[string]interface{}) (resCtx string, res T) {
 	resCtx = ctx + "." + field
 	res, ok := j[field].(T)
 	if !ok {
@@ -165,22 +169,16 @@ func TestUnmarshalSpecSections(t *testing.T) {
 	if err != nil {
 		t.Fatalf(`Unmarshal %v returns %v`, filename, err)
 	}
-	ctx, jsonSectionArray := enter[[]interface{}]("sections", ctx, jsonSpec)
-	if len(spec.Sections) != len(jsonSectionArray) {
-		t.Fatalf(`len(%v): %v != %v`, ctx, len(spec.Externals), len(jsonSectionArray))
+	ctx, jsonSectionMap := enter[map[string]interface{}]("sections", ctx, jsonSpec)
+	if len(spec.Sections) != len(jsonSectionMap) {
+		t.Fatalf(`len(%v): %v != %v`, ctx, len(spec.Sections), len(jsonSectionMap))
 	}
-	for i, section := range spec.Sections {
-		ctx, jsonSection := enterArray[map[string]interface{}](i, ctx, jsonSectionArray)
-		{
-			ctx, jsonName := enter[string]("name", ctx, jsonSection)
-			if section.Name != jsonName {
-				t.Fatalf(`%v: %v != %v`, ctx, section.Name, jsonName)
-			}
-		}
+	for field, section := range spec.Sections {
+		ctx, jsonSection := enter[map[string]interface{}](field, ctx, jsonSectionMap)
 		{
 			ctx, jsonType := enter[string]("type", ctx, jsonSection)
 			if string(section.Type) != jsonType {
-				t.Fatalf(`%v: %v != %v`, ctx, section.Name, jsonType)
+				t.Fatalf(`%v: %v != %v`, ctx, section.Type, jsonType)
 			}
 		}
 		{
@@ -195,14 +193,6 @@ func TestUnmarshalSpecSections(t *testing.T) {
 				}
 			}
 		}
-		{
-			ctx, jsonFullyConnected := enter[bool]("fully-connected", ctx, jsonSection)
-			if section.FullyConnected != jsonFullyConnected {
-				t.Fatalf(`%v: %t != %t`, ctx, section.FullyConnected, jsonFullyConnected)
-			}
-		}
-		// TODO: Check fully-connected-with-connection-type.
-		// It is the same code as allowed-protocols, but refactoring into assertion functions is not idiomatic in Go
 	}
 }
 
@@ -220,23 +210,14 @@ func TestUnmarshalSpecExternals(t *testing.T) {
 	if err != nil {
 		t.Fatalf(`Unmarshal %v returns %v`, filename, err)
 	}
-	ctx, jsonExtArray := enter[[]interface{}]("externals", ctx, jsonSpec)
-	if len(spec.Externals) != len(jsonExtArray) {
-		t.Fatalf(`len(%v): %v != %v`, ctx, len(spec.Externals), len(jsonExtArray))
+	ctx, jsonExtMap := enter[map[string]interface{}]("externals", ctx, jsonSpec)
+	if len(spec.Externals) != len(jsonExtMap) {
+		t.Fatalf(`len(%v): %v != %v`, ctx, len(spec.Externals), len(jsonExtMap))
 	}
-	for i, ext := range spec.Externals {
-		ctx, jsonExt := enterArray[map[string]interface{}](i, ctx, jsonExtArray)
-		{
-			ctx, jsonName := enter[string]("name", ctx, jsonExt)
-			if ext.Name != jsonName {
-				t.Fatalf(`%v: %v != %v`, ctx, ext.Name, jsonName)
-			}
-		}
-		{
-			ctx, jsonCidr := enter[string]("cidr", ctx, jsonExt)
-			if ext.Cidr != jsonCidr {
-				t.Fatalf(`%v: %v != %v`, ctx, ext.Name, jsonCidr)
-			}
+	for field, value := range spec.Externals {
+		ctx, jsonExt := enter[string](field, ctx, jsonExtMap)
+		if value != jsonExt {
+			t.Fatalf(`%v: %v != %v`, ctx, value, jsonExt)
 		}
 	}
 }

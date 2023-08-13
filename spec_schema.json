@@ -139,16 +139,16 @@
     "properties": {
         "sections": {
             "description": "Sections are a way for users to create aggregations. These can later be used in src/dst fields",
-            "type": "array",
-            "items": {
+            "type": "object",
+            "additionalProperties": {
                 "description": "A section is a named collection of resources of the same type (subnet, instance, or nif)",
                 "type": "object",
                 "additionalProperties": false,
+                "required": [
+                    "type",
+                    "items"
+                ],
                 "properties": {
-                    "name": {
-                        "description": "The name of the section",
-                        "type": "string"
-                    },
                     "type": {
                         "description": "The type of the elements inside the section",
                         "enum": [
@@ -163,44 +163,16 @@
                         "items": {
                             "type": "string"
                         }
-                    },
-                    "fully-connected": {
-                        "description": "If present then any two items will be connected bidirectionally with all protocols",
-                        "type": "boolean",
-                        "default": false
-                    },
-                    "fully-connected-with-connection-type": {
-                        "description": "If present then any two items in the section will be connected bidirectionally, with the specified protocols",
-                        "$ref": "#/$defs/protocol-list"
                     }
-                },
-                "required": [
-                    "name",
-                    "type",
-                    "items"
-                ]
+                }
             }
         },
         "externals": {
-            "type": "array",
+            "type": "object",
             "description": "Externals are a way for users to name IP addresses or ranges external to the VPC. These are later used in src/dst definitions",
-            "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "properties": {
-                    "name": {
-                        "description": "The name of the external endpoint",
-                        "type": "string"
-                    },
-                    "cidr": {
-                        "description": "Acceptable format is standard CIDR notation, e.g. \"192.0.0.0/16\" or a single IP Address, e.g. \"192.168.32.35\"",
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "name",
-                    "cidr"
-                ]
+            "additionalProperties": {
+                "type": "string",
+                "pattern": "^\\d{1,3}(\\.\\d{1,3}){3}(/([1-2]?[0-9])|3[0-2]})?$"
             }
         },
         "required-connections": {
