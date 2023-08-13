@@ -9,10 +9,15 @@ import "fmt"
 //
 // This part knows nothing about ACLs
 
+type Argument struct {
+	Name  string
+	Value string
+}
+
 type Block struct {
 	Name      string
 	Labels    []string
-	Arguments map[string]string
+	Arguments []Argument
 	Blocks    []Block
 }
 
@@ -41,8 +46,8 @@ func (b *Block) print(indent string) string {
 	result += " {\n"
 	{
 		indent := indent + "    " //nolint:govet  // intentionally shadow
-		for key, value := range b.Arguments {
-			result += indent + fmt.Sprintf("%v = %v\n", key, value)
+		for _, keyValue := range b.Arguments {
+			result += indent + fmt.Sprintf("%v = %v\n", keyValue.Name, keyValue.Value)
 		}
 		for _, sub := range b.Blocks {
 			result += sub.print(indent)

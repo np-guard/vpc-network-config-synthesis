@@ -90,12 +90,12 @@ func outbound(b bool) string {
 }
 
 func (t *PortRange) Terraform(name string) tf.Block {
-	arguments := map[string]string{}
+	var arguments []tf.Argument
 	if t.MinPort != 0 {
-		arguments["port_min"] = strconv.Itoa(t.MinPort)
+		arguments = append(arguments, tf.Argument{Name: "port_min", Value: strconv.Itoa(t.MinPort)})
 	}
 	if t.MaxPort != maxTransportPort {
-		arguments["port_max"] = strconv.Itoa(t.MaxPort)
+		arguments = append(arguments, tf.Argument{Name: "port_max", Value: strconv.Itoa(t.MaxPort)})
 	}
 	return tf.Block{
 		Name:      name,
@@ -112,12 +112,12 @@ func (t *UDP) Terraform() tf.Block {
 }
 
 func (t *ICMP) Terraform() tf.Block {
-	arguments := map[string]string{}
-	if t.Type != nil {
-		arguments["type"] = strconv.Itoa(*t.Type)
-	}
+	var arguments []tf.Argument
 	if t.Code != nil {
-		arguments["code"] = strconv.Itoa(*t.Code)
+		arguments = append(arguments, tf.Argument{Name: "code", Value: strconv.Itoa(*t.Code)})
+	}
+	if t.Type != nil {
+		arguments = append(arguments, tf.Argument{Name: "type", Value: strconv.Itoa(*t.Type)})
 	}
 	return tf.Block{
 		Name:      "icmp",
@@ -133,12 +133,12 @@ func (t *Rule) Terraform() tf.Block {
 		}
 	}
 	return tf.Block{Name: "rules",
-		Arguments: map[string]string{
-			"name":        quote(t.Name),
-			"action":      quote(allow(t.Allow)),
-			"source":      quote(t.Source),
-			"destination": quote(t.Destination),
-			"direction":   quote(outbound(t.Outbound)),
+		Arguments: []tf.Argument{
+			{Name: "name", Value: quote(t.Name)},
+			{Name: "action", Value: quote(allow(t.Allow))},
+			{Name: "direction", Value: quote(outbound(t.Outbound))},
+			{Name: "source", Value: quote(t.Source)},
+			{Name: "destination", Value: quote(t.Destination)},
 		},
 		Blocks: blocks,
 	}
@@ -148,10 +148,10 @@ func (t *ACL) Terraform() tf.Block {
 	return tf.Block{
 		Name:   "resource",
 		Labels: []string{quote("ibm_is_network_acl"), quote(t.Name)},
-		Arguments: map[string]string{
-			"name":           quote(t.Name + "-${var.initials}"), //nolint:revive  // obvious false positive
-			"resource_group": t.ResourceGroup,
-			"vpc":            t.Vpc,
+		Arguments: []tf.Argument{
+			{Name: "name", Value: quote(t.Name + "-${var.initials}")}, //nolint:revive  // obvious false positive
+			{Name: "resource_group", Value: t.ResourceGroup},
+			{Name: "vpc", Value: t.Vpc},
 		},
 		Blocks: tf.Blocks(t.Rules),
 	}
