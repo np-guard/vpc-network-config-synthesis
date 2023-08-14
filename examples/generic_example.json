@@ -1,7 +1,14 @@
 {
-    "sections": [
-        {
-            "name": "edge-section",
+    "subnets": {
+        "edge-subnet-1": "10.10.10.0/24",
+        "edge-subnet-2": "10.10.20.0/24",
+        "edge-subnet-3": "10.10.30.0/24",
+        "private-subnet-1": "10.20.10.0/24",
+        "private-subnet-2": "10.20.20.0/24",
+        "private-subnet-3": "10.30.30.0/24"
+    },
+    "sections": {
+        "edge-section": {
             "type": "subnet",
             "items": [
                 "edge-subnet-1",
@@ -9,35 +16,38 @@
                 "edge-subnet-3"
             ]
         },
-        {
-            "name": "private-section",
+        "private-section": {
             "type": "subnet",
             "items": [
                 "private-subnet-1",
                 "private-subnet-2",
                 "private-subnet-3"
-            ],
-            "fully-connected": true,
-            "fully-connected-with-connection-type": [
+            ]
+        }
+    },
+    "externals": {
+        "on-prem": "192.0.0.0/16",
+        "weather.com": "104.106.98.205"
+    },
+    "required-connections": [
+        {
+            "src": {
+                "name": "private-section",
+                "type": "section"
+            },
+            "dst": {
+                "name": "private-section",
+                "type": "section"
+            },
+            "allowed-protocols": [
                 {
                     "protocol": "TCP",
                     "min_destination_port": 443,
-                    "max_destination_port": 443
+                    "max_destination_port": 443,
+                    "bidirectional": true
                 }
             ]
-        }
-    ],
-    "externals": [
-        {
-            "name": "on-prem",
-            "cidr": "192.0.0.0/16"
         },
-        {
-            "name": "weather.com",
-            "cidr": "104.106.98.205"
-        }
-    ],
-    "required-connections": [
         {
             "src": {
                 "name": "edge-subnet-1",

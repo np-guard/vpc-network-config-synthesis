@@ -70,7 +70,7 @@ func NewRule(t RuleMaker, name string, allow bool, source, destination string, o
 }
 
 const defaultMinTransportPort = 1
-const defaultMaxTransportPort = 655355
+const defaultMaxTransportPort = 65535
 
 func quote(s string) string {
 	return fmt.Sprintf("%q", s)

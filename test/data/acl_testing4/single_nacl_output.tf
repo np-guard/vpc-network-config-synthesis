@@ -1,8 +1,8 @@
 # Permissive network ACLs
 resource "ibm_is_network_acl" "acl-for-test-vpc1-ky" {
-  name = "acl-for-test-vpc1-ky"
+  name           = "acl-for-test-vpc1-ky"
   resource_group = var.resource_group_id
-  vpc  = var.vpc_id
+  vpc            = var.vpc_id
   rules {
     name        = "subnet1-out-1"
     action      = "allow"

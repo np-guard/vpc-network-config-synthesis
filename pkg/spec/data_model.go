@@ -9,6 +9,9 @@ import (
 )
 
 type AnyProtocol struct {
+	// If true, allow both connections from src to dst and connections from dst to src
+	Bidirectional bool `json:"bidirectional,omitempty"`
+
 	// Necessarily ANY
 	Protocol AnyProtocolProtocol `json:"protocol"`
 }
@@ -60,24 +63,22 @@ type ProtocolList []interface{}
 type Spec struct {
 	// Externals are a way for users to name IP addresses or ranges external to the
 	// VPC. These are later used in src/dst definitions
-	Externals []SpecExternalsElem `json:"externals,omitempty"`
+	Externals SpecExternals `json:"externals,omitempty"`
 
 	// A list of required connections
 	RequiredConnections []SpecRequiredConnectionsElem `json:"required-connections"`
 
 	// Sections are a way for users to create aggregations. These can later be used in
 	// src/dst fields
-	Sections []SpecSectionsElem `json:"sections,omitempty"`
+	Sections SpecSections `json:"sections,omitempty"`
+
+	// Lightweight way to define subnets.
+	Subnets SpecSubnets `json:"subnets,omitempty"`
 }
 
-type SpecExternalsElem struct {
-	// Acceptable format is standard CIDR notation, e.g. "192.0.0.0/16" or a single IP
-	// Address, e.g. "192.168.32.35"
-	Cidr string `json:"cidr"`
-
-	// The name of the external endpoint
-	Name string `json:"name"`
-}
+// Externals are a way for users to name IP addresses or ranges external to the
+// VPC. These are later used in src/dst definitions
+type SpecExternals map[string]string
 
 type SpecRequiredConnectionsElem struct {
 	// List of allowed protocols
@@ -90,32 +91,18 @@ type SpecRequiredConnectionsElem struct {
 	Src *Endpoint `json:"src,omitempty"`
 }
 
-// A section is a named collection of resources of the same type (subnet, instance,
-// or nif)
-type SpecSectionsElem struct {
-	// If present then any two items will be connected bidirectionally with all
-	// protocols
-	FullyConnected bool `json:"fully-connected,omitempty"`
-
-	// If present then any two items in the section will be connected bidirectionally,
-	// with the specified protocols
-	FullyConnectedWithConnectionType ProtocolList `json:"fully-connected-with-connection-type,omitempty"`
-
+// Sections are a way for users to create aggregations. These can later be used in
+// src/dst fields
+type SpecSections map[string]struct {
 	// All items are of the type specified in the type property, identified by name
 	Items []string `json:"items"`
 
-	// The name of the section
-	Name string `json:"name"`
-
 	// The type of the elements inside the section
-	Type SpecSectionsElemType `json:"type"`
+	Type Type `json:"type"`
 }
 
-type SpecSectionsElemType string
-
-const SpecSectionsElemTypeInstance SpecSectionsElemType = "instance"
-const SpecSectionsElemTypeNif SpecSectionsElemType = "nif"
-const SpecSectionsElemTypeSubnet SpecSectionsElemType = "subnet"
+// Lightweight way to define subnets.
+type SpecSubnets map[string]string
 
 type TcpUdp struct {
 	// If true, allow both connections from src to dst and connections from dst to src
@@ -140,24 +127,46 @@ type TcpUdp struct {
 type TcpUdpProtocol string
 
 const TcpUdpProtocolTCP TcpUdpProtocol = "TCP"
+const TcpUdpProtocolUDP TcpUdpProtocol = "UDP"
+
+type Type string
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *IcmpProtocol) UnmarshalJSON(b []byte) error {
-	var v string
-	if err := json.Unmarshal(b, &v); err != nil {
+func (j *Spec) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-	var ok bool
-	for _, expected := range enumValues_IcmpProtocol {
-		if reflect.DeepEqual(v, expected) {
-			ok = true
-			break
-		}
+	if v, ok := raw["required-connections"]; !ok || v == nil {
+		return fmt.Errorf("field required-connections in Spec: required")
 	}
-	if !ok {
-		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_IcmpProtocol, v)
+	type Plain Spec
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
 	}
-	*j = IcmpProtocol(v)
+	*j = Spec(plain)
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *Endpoint) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if v, ok := raw["name"]; !ok || v == nil {
+		return fmt.Errorf("field name in Endpoint: required")
+	}
+	if v, ok := raw["type"]; !ok || v == nil {
+		return fmt.Errorf("field type in Endpoint: required")
+	}
+	type Plain Endpoint
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = Endpoint(plain)
 	return nil
 }
 
@@ -181,11 +190,28 @@ func (j *EndpointType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-const TcpUdpProtocolUDP TcpUdpProtocol = "UDP"
+var enumValues_AnyProtocolProtocol = []interface{}{
+	"ANY",
+}
 
-var enumValues_TcpUdpProtocol = []interface{}{
-	"TCP",
-	"UDP",
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *IcmpProtocol) UnmarshalJSON(b []byte) error {
+	var v string
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	var ok bool
+	for _, expected := range enumValues_IcmpProtocol {
+		if reflect.DeepEqual(v, expected) {
+			ok = true
+			break
+		}
+	}
+	if !ok {
+		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_IcmpProtocol, v)
+	}
+	*j = IcmpProtocol(v)
+	return nil
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -221,50 +247,8 @@ func (j *TcpUdp) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *Icmp) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	if v, ok := raw["protocol"]; !ok || v == nil {
-		return fmt.Errorf("field protocol in Icmp: required")
-	}
-	type Plain Icmp
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	if v, ok := raw["bidirectional"]; !ok || v == nil {
-		plain.Bidirectional = false
-	}
-	*j = Icmp(plain)
-	return nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *SpecExternalsElem) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	if v, ok := raw["cidr"]; !ok || v == nil {
-		return fmt.Errorf("field cidr in SpecExternalsElem: required")
-	}
-	if v, ok := raw["name"]; !ok || v == nil {
-		return fmt.Errorf("field name in SpecExternalsElem: required")
-	}
-	type Plain SpecExternalsElem
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	*j = SpecExternalsElem(plain)
-	return nil
-}
-
-var enumValues_AnyProtocolProtocol = []interface{}{
-	"ANY",
+var enumValues_IcmpProtocol = []interface{}{
+	"ICMP",
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -287,56 +271,40 @@ func (j *TcpUdpProtocol) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-var enumValues_SpecSectionsElemType = []interface{}{
-	"subnet",
-	"instance",
-	"nif",
+var enumValues_TcpUdpProtocol = []interface{}{
+	"TCP",
+	"UDP",
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *SpecSectionsElemType) UnmarshalJSON(b []byte) error {
+func (j *Type) UnmarshalJSON(b []byte) error {
 	var v string
 	if err := json.Unmarshal(b, &v); err != nil {
 		return err
 	}
 	var ok bool
-	for _, expected := range enumValues_SpecSectionsElemType {
+	for _, expected := range enumValues_Type {
 		if reflect.DeepEqual(v, expected) {
 			ok = true
 			break
 		}
 	}
 	if !ok {
-		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_SpecSectionsElemType, v)
+		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_Type, v)
 	}
-	*j = SpecSectionsElemType(v)
+	*j = Type(v)
 	return nil
 }
 
-var enumValues_IcmpProtocol = []interface{}{
-	"ICMP",
+var enumValues_Type = []interface{}{
+	"subnet",
+	"instance",
+	"nif",
 }
 
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *Endpoint) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	if v, ok := raw["name"]; !ok || v == nil {
-		return fmt.Errorf("field name in Endpoint: required")
-	}
-	if v, ok := raw["type"]; !ok || v == nil {
-		return fmt.Errorf("field type in Endpoint: required")
-	}
-	type Plain Endpoint
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	*j = Endpoint(plain)
-	return nil
-}
+const TypeSubnet Type = "subnet"
+const TypeInstance Type = "instance"
+const TypeNif Type = "nif"
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *AnyProtocolProtocol) UnmarshalJSON(b []byte) error {
@@ -372,34 +340,10 @@ func (j *AnyProtocol) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
 	}
+	if v, ok := raw["bidirectional"]; !ok || v == nil {
+		plain.Bidirectional = false
+	}
 	*j = AnyProtocol(plain)
-	return nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *SpecSectionsElem) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	if v, ok := raw["items"]; !ok || v == nil {
-		return fmt.Errorf("field items in SpecSectionsElem: required")
-	}
-	if v, ok := raw["name"]; !ok || v == nil {
-		return fmt.Errorf("field name in SpecSectionsElem: required")
-	}
-	if v, ok := raw["type"]; !ok || v == nil {
-		return fmt.Errorf("field type in SpecSectionsElem: required")
-	}
-	type Plain SpecSectionsElem
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	if v, ok := raw["fully-connected"]; !ok || v == nil {
-		plain.FullyConnected = false
-	}
-	*j = SpecSectionsElem(plain)
 	return nil
 }
 
@@ -414,19 +358,22 @@ var enumValues_EndpointType = []interface{}{
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *Spec) UnmarshalJSON(b []byte) error {
+func (j *Icmp) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-	if v, ok := raw["required-connections"]; !ok || v == nil {
-		return fmt.Errorf("field required-connections in Spec: required")
+	if v, ok := raw["protocol"]; !ok || v == nil {
+		return fmt.Errorf("field protocol in Icmp: required")
 	}
-	type Plain Spec
+	type Plain Icmp
 	var plain Plain
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
 	}
-	*j = Spec(plain)
+	if v, ok := raw["bidirectional"]; !ok || v == nil {
+		plain.Bidirectional = false
+	}
+	*j = Icmp(plain)
 	return nil
 }

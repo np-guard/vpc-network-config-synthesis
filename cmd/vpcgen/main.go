@@ -41,9 +41,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("Could not parse connectivity file %s: %s", *connectivityFilename, err)
 	}
-	subnetMap, err := readSubnetMap(*configFilename)
-	if err != nil {
-		log.Fatalf("Could not parse config file %s: %s", *configFilename, err)
+	if *configFilename != "" {
+		subnetMap, err := readSubnetMap(*configFilename)
+		if err != nil {
+			log.Fatalf("Could not parse config file %s: %s", *configFilename, err)
+		}
+		err = s.SetSubnets(subnetMap)
+		if err != nil {
+			log.Fatalf("Bad subnets: %v", err)
+		}
 	}
-	fmt.Println(synth.MakeACL(s, subnetMap))
+	fmt.Println(synth.MakeACL(s))
 }
