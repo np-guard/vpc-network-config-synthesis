@@ -1,7 +1,7 @@
 resource "ibm_is_network_acl" "sub1-1-acl" {
-  name = "sub1-1-acl"
+  name           = "sub1-1-acl"
   resource_group = var.resource_group_id
-  vpc  = var.vpc_id
+  vpc            = var.vpc_id
 
   rules {
     name        = "out-1"
@@ -66,9 +66,9 @@ resource "ibm_is_network_acl" "sub1-1-acl" {
 }
 
 resource "ibm_is_network_acl" "sub1-2-acl" {
-  name = "sub1-2-acl"
+  name           = "sub1-2-acl"
   resource_group = var.resource_group_id
-  vpc  = var.vpc_id
+  vpc            = var.vpc_id
 
   rules {
     name        = "out-1"
@@ -105,9 +105,9 @@ resource "ibm_is_network_acl" "sub1-2-acl" {
 }
 
 resource "ibm_is_network_acl" "sub2-1-acl" {
-  name = "sub2-1-acl"
+  name           = "sub2-1-acl"
   resource_group = var.resource_group_id
-  vpc  = var.vpc_id
+  vpc            = var.vpc_id
 
   rules {
     name        = "out-1"
@@ -192,9 +192,9 @@ resource "ibm_is_network_acl" "sub2-1-acl" {
 }
 
 resource "ibm_is_network_acl" "sub2-2-acl" {
-  name = "sub2-2-acl"
+  name           = "sub2-2-acl"
   resource_group = var.resource_group_id
-  vpc  = var.vpc_id
+  vpc            = var.vpc_id
 
   rules {
     name        = "out-1"
@@ -213,9 +213,9 @@ resource "ibm_is_network_acl" "sub2-2-acl" {
 }
 
 resource "ibm_is_network_acl" "sub3-1-acl" {
-  name = "sub3-1-acl"
+  name           = "sub3-1-acl"
   resource_group = var.resource_group_id
-  vpc  = var.vpc_id
+  vpc            = var.vpc_id
 
   rules {
     name        = "out-1"

@@ -14,6 +14,7 @@ fmt:
 	@echo -- $@ --
 	dos2unix * .* pkg/*/*.go cmd/*/*.go spec_schema.json examples/* test/data/*/*
 	goimports -local $(REPOSITORY) -w .
+	terraform fmt -recursive
 
 lint:
 	@echo -- $@ --

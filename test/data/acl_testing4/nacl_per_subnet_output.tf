@@ -1,7 +1,7 @@
 resource "ibm_is_network_acl" "subnet1-acl" {
-  name = "subnet1-acl"
+  name           = "subnet1-acl"
   resource_group = var.resource_group_id
-  vpc  = var.vpc_id
+  vpc            = var.vpc_id
 
   rules {
     name        = "out-1"
@@ -78,9 +78,9 @@ resource "ibm_is_network_acl" "subnet1-acl" {
 }
 
 resource "ibm_is_network_acl" "subnet2-acl" {
-  name = "subnet2-acl"
+  name           = "subnet2-acl"
   resource_group = var.resource_group_id
-  vpc  = var.vpc_id
+  vpc            = var.vpc_id
 
   rules {
     name        = "out-1"
@@ -113,9 +113,9 @@ resource "ibm_is_network_acl" "subnet2-acl" {
 }
 
 resource "ibm_is_network_acl" "subnet3-acl" {
-  name = "subnet3-acl"
+  name           = "subnet3-acl"
   resource_group = var.resource_group_id
-  vpc  = var.vpc_id
+  vpc            = var.vpc_id
 
   rules {
     name        = "out-1"

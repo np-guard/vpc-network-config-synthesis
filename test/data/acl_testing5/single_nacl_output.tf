@@ -1,7 +1,7 @@
 resource "ibm_is_network_acl" "acl-for-test-vpc-ky" {
-  name = "acl-for-test-vpc-ky"
+  name           = "acl-for-test-vpc-ky"
   resource_group = var.resource_group_id
-  vpc  = var.vpc_id
+  vpc            = var.vpc_id
 
   rules {
     name        = "sub1-1-out-1"
