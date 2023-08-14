@@ -1,0 +1,58 @@
+{
+    "externals": [
+        {
+            "name": "google.com",
+            "cidr": "172.217.22.46"
+        }
+    ],
+    "required-connections": [
+        {
+            "src": {
+                "name": "subnet1",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "google.com",
+                "type": "external"
+            }
+        },
+        {
+            "src": {
+                "name": "subnet1",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "subnet3",
+                "type": "subnet"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP",
+                    "min_destination_port": 443,
+                    "max_destination_port": 443,
+                    "bidirectional": true
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "subnet1",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "subnet2",
+                "type": "subnet"
+            }
+        },
+        {
+            "src": {
+                "name": "subnet2",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "0.0.0.0/0",
+                "type": "cidr"
+            }
+        }
+    ]
+}
