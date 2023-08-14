@@ -28,14 +28,17 @@ func makeRules(s *spec.Spec) []*acl.Rule {
 	var rules []*acl.Rule
 	for c, conn := range s.RequiredConnections {
 		for p, protocol := range conn.AllowedProtocols {
-			aclRuleMaker, bidirectional := translateProtocol(protocol)
+			aclConnection, bidirectional := translateProtocol(protocol)
 			for src, srcIP := range lookupEndpoint(s, *conn.Src) {
 				for dst, dstIP := range lookupEndpoint(s, *conn.Dst) {
-					prefix := fmt.Sprintf("rule-%v-%v-%v-%v", c, p, src, dst)
-					egress := acl.NewRule(aclRuleMaker, prefix+"-outbound", true, srcIP, dstIP, true)
+					if srcIP == dstIP {
+						continue
+					}
+					prefix := fmt.Sprintf("rule:c%v,p%v,[%v->%v],s%v,d%v", c, p, conn.Src.Name, conn.Dst.Name, src, dst)
+					egress := newRule(prefix+"-outbound", srcIP, dstIP, true, aclConnection)
 					rulePair := []*acl.Rule{egress}
 					if bidirectional {
-						ingress := acl.NewRule(aclRuleMaker, prefix+"-inbound", true, srcIP, dstIP, false)
+						ingress := newRule(prefix+"-inbound", dstIP, srcIP, false, aclConnection)
 						rulePair = []*acl.Rule{egress, ingress}
 					}
 					rules = append(rules, rulePair...)
@@ -44,6 +47,10 @@ func makeRules(s *spec.Spec) []*acl.Rule {
 		}
 	}
 	return rules
+}
+
+func newRule(name, srcIP, dstIP string, outbound bool, aclConnection acl.Connection) *acl.Rule {
+	return &acl.Rule{Name: name, Allow: true, Source: srcIP, Destination: dstIP, Outbound: outbound, Protocol: aclConnection}
 }
 
 func lookupEndpoint(s *spec.Spec, endpoint spec.Endpoint) []string {
@@ -69,10 +76,7 @@ func lookupEndpoint(s *spec.Spec, endpoint spec.Endpoint) []string {
 			t := spec.EndpointType(section.Type)
 			var ips []string
 			for _, subnetName := range section.Items {
-				subnet := spec.Endpoint{
-					Name: subnetName,
-					Type: t,
-				}
+				subnet := spec.Endpoint{Name: subnetName, Type: t}
 				ips = append(ips, lookupEndpoint(s, subnet)...)
 			}
 			return ips
@@ -85,25 +89,25 @@ func lookupEndpoint(s *spec.Spec, endpoint spec.Endpoint) []string {
 	return []string{}
 }
 
-func translateProtocol(protocol interface{}) (ruleMaker acl.RuleMaker, bidirectional bool) {
+func translateProtocol(protocol interface{}) (aclConnection acl.Connection, bidirectional bool) {
 	switch p := protocol.(type) {
 	case *spec.TcpUdp:
 		portRange := acl.PortRange{MinPort: p.MinDestinationPort, MaxPort: p.MaxDestinationPort}
 		bidirectional = p.Bidirectional
 		switch p.Protocol {
 		case spec.TcpUdpProtocolTCP:
-			ruleMaker = &acl.TCP{PortRange: portRange}
+			aclConnection = &acl.TCP{PortRange: portRange}
 		case spec.TcpUdpProtocolUDP:
-			ruleMaker = &acl.UDP{PortRange: portRange}
+			aclConnection = &acl.UDP{PortRange: portRange}
 		default:
 			log.Fatalf("Impossible protocol name: %q", p.Protocol)
 		}
 	case *spec.Icmp:
 		bidirectional = p.Bidirectional
-		ruleMaker = &acl.ICMP{Code: p.Code, Type: p.Type}
+		aclConnection = &acl.ICMP{Code: p.Code, Type: p.Type}
 	case *spec.AnyProtocol:
 		bidirectional = p.Bidirectional
-		ruleMaker = nil
+		aclConnection = nil
 	case map[string]interface{}:
 		log.Fatalf("JSON unparsed: %v", p)
 	default:

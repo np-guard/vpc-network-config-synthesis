@@ -46,27 +46,8 @@ type Collection struct {
 	Items []*ACL
 }
 
-type RuleMaker interface {
-	newRule(name string, allow bool, source string, destination string, outbound bool) *Rule
-}
-
-func (t *TCP) newRule(name string, allow bool, source, destination string, outbound bool) *Rule {
-	return &Rule{Name: name, Allow: allow, Source: source, Destination: destination, Outbound: outbound, Protocol: t}
-}
-
-func (t *UDP) newRule(name string, allow bool, source, destination string, outbound bool) *Rule {
-	return &Rule{Name: name, Allow: allow, Source: source, Destination: destination, Outbound: outbound, Protocol: t}
-}
-
-func (t *ICMP) newRule(name string, allow bool, source, destination string, outbound bool) *Rule {
-	return &Rule{Name: name, Allow: allow, Source: source, Destination: destination, Outbound: outbound, Protocol: t}
-}
-
-func NewRule(t RuleMaker, name string, allow bool, source, destination string, outbound bool) *Rule {
-	if t == nil {
-		return &Rule{Name: name, Allow: allow, Source: source, Destination: destination, Outbound: outbound}
-	}
-	return t.newRule(name, allow, source, destination, outbound)
+type Connection interface {
+	tf.Blockable
 }
 
 const defaultMinTransportPort = 1
