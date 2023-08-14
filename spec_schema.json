@@ -11,6 +11,11 @@
                     "enum": [
                         "ANY"
                     ]
+                },
+                "bidirectional": {
+                    "description": "If true, allow both connections from src to dst and connections from dst to src",
+                    "type": "boolean",
+                    "default": false
                 }
             },
             "required": ["protocol"]
