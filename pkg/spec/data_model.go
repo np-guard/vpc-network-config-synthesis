@@ -9,6 +9,9 @@ import (
 )
 
 type AnyProtocol struct {
+	// If true, allow both connections from src to dst and connections from dst to src
+	Bidirectional bool `json:"bidirectional,omitempty"`
+
 	// Necessarily ANY
 	Protocol AnyProtocolProtocol `json:"protocol"`
 }
@@ -336,6 +339,9 @@ func (j *AnyProtocol) UnmarshalJSON(b []byte) error {
 	var plain Plain
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
+	}
+	if v, ok := raw["bidirectional"]; !ok || v == nil {
+		plain.Bidirectional = false
 	}
 	*j = AnyProtocol(plain)
 	return nil

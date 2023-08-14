@@ -55,16 +55,16 @@ func lookupEndpoint(s *spec.Spec, endpoint spec.Endpoint) []string {
 		if ip, ok := s.Externals[name]; ok {
 			return []string{ip}
 		}
-		log.Fatalf("External not found: %v", name)
+		return []string{fmt.Sprintf("<Unknown external %v>", name)}
 	case spec.EndpointTypeSubnet:
 		if ip, ok := s.Subnets[name]; ok {
 			return []string{ip}
 		}
-		log.Fatalf("Subnet not found: %v", name)
+		return []string{fmt.Sprintf("<Unknown subnet %v>", name)}
 	case spec.EndpointTypeSection:
 		if section, ok := s.Sections[endpoint.Name]; ok {
 			if section.Type != spec.TypeSubnet {
-				log.Fatalf("Unsupported section item type %q", section.Type)
+				return []string{fmt.Sprintf("<Unsupported section item type %v (%v)>", section.Type, endpoint.Name)}
 			}
 			t := spec.EndpointType(section.Type)
 			var ips []string
@@ -80,9 +80,9 @@ func lookupEndpoint(s *spec.Spec, endpoint spec.Endpoint) []string {
 	case spec.EndpointTypeNif:
 	case spec.EndpointTypeInstance:
 	case spec.EndpointTypeVpe:
-		log.Fatalf("Unsupported endpoint type: %v", endpoint.Type)
+		return []string{fmt.Sprintf("<Unsupported %v %v>", endpoint.Type, name)}
 	default:
-		log.Fatalf("Unknown endpoint type: %v", endpoint.Type)
+		return []string{fmt.Sprintf("<Unknown type %v (%v)>", endpoint.Type, name)}
 	}
 	return []string{}
 }
