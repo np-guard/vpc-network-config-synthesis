@@ -42,7 +42,16 @@ type AnyProtocol struct{}
 
 type Protocol interface {
 	Rule(f Flow) *Rule
+	Swap() Protocol
 }
+
+func (t TCP) Swap() Protocol { return TCP{Swap(t.PortRangePair)} }
+
+func (t UDP) Swap() Protocol { return UDP{Swap(t.PortRangePair)} }
+
+func (t ICMP) Swap() Protocol { return ICMP{Code: t.Code, Type: t.Type} }
+
+func (t AnyProtocol) Swap() Protocol { return AnyProtocol{} }
 
 func (t TCP) Rule(f Flow) *Rule { return &Rule{Flow: f, Protocol: t} }
 

@@ -32,12 +32,22 @@ func generateConstraints(s *spec.Spec) []*acl.Rule {
 				if srcIP == dstIP {
 					continue
 				}
-				for p, protocol := range conn.AllowedProtocols {
+				for p, _specProtocol := range conn.AllowedProtocols {
+					specProtocol := _specProtocol.(spec.ProtocolInfo)
 					originPrefix := fmt.Sprintf("c%v,p%v,[%v->%v],s%v,d%v", c, p, conn.Src.Name, conn.Dst.Name, src, dst)
-					flows := makeFlows(originPrefix, srcIP, dstIP, protocol.(spec.ProtocolInfo).Bidi())
-					protocols := makeProtocols(protocol)
-					for i := range protocols {
-						result = append(result, protocols[i].Rule(flows[i]))
+					bidi := specProtocol.Bidi() || specProtocol.Name() == "TCP"
+					flows := makeFlows(originPrefix, srcIP, dstIP, bidi)
+					aclProtocol := makeProtocol(specProtocol)
+					result = append(result, []*acl.Rule{
+						aclProtocol.Rule(flows[0]),
+						aclProtocol.Rule(flows[1]),
+					}...)
+					if bidi {
+						aclProtocol = aclProtocol.Swap()
+						result = append(result, []*acl.Rule{
+							aclProtocol.Rule(flows[2]),
+							aclProtocol.Rule(flows[3]),
+						}...)
 					}
 				}
 			}
@@ -60,46 +70,27 @@ func makeFlows(originPrefix, srcIP, dstIP string, bidirectional bool) []acl.Flow
 	return flows
 }
 
-func makeProtocols(protocol interface{}) []acl.Protocol {
-	var protocols []acl.Protocol
+func makeProtocol(protocol interface{}) acl.Protocol {
 	switch p := protocol.(type) {
 	case *spec.TcpUdp:
 		pair := acl.PortRangePair{
 			SrcPort: acl.PortRange{Min: acl.DefaultMinPort, Max: acl.DefaultMaxPort},
 			DstPort: acl.PortRange{Min: p.MinDestinationPort, Max: p.MaxDestinationPort},
 		}
-		pairs := []acl.PortRangePair{pair, pair}
-		if p.Bidirectional {
-			pair = acl.Swap(pair)
-			pairs = append(pairs, []acl.PortRangePair{pair, pair}...)
-		}
 		switch p.Protocol {
 		case spec.TcpUdpProtocolUDP:
-			for f := range pairs {
-				protocols = append(protocols, acl.UDP{PortRangePair: pairs[f]})
-			}
+			return acl.UDP{PortRangePair: pair}
 		case spec.TcpUdpProtocolTCP:
-			for f := range pairs {
-				protocols = append(protocols, acl.TCP{PortRangePair: pairs[f]})
-			}
+			return acl.TCP{PortRangePair: pair}
 		}
 	case *spec.Icmp:
-		aclProtocol := acl.ICMP{Code: p.Type, Type: p.Code}
-		direction := []acl.Protocol{aclProtocol, aclProtocol}
-		protocols = append(protocols, direction...)
-		if p.Bidi() {
-			protocols = append(protocols, direction...)
-		}
+		return acl.ICMP{Code: p.Type, Type: p.Code}
 	case *spec.AnyProtocol:
-		direction := []acl.Protocol{acl.AnyProtocol{}, acl.AnyProtocol{}}
-		protocols = append(protocols, direction...)
-		if p.Bidi() {
-			protocols = append(protocols, direction...)
-		}
+		return acl.AnyProtocol{}
 	default:
 		log.Fatalf("Impossible protocol type: %v", p)
 	}
-	return protocols
+	return nil
 }
 
 func lookupEndpoint(s *spec.Spec, endpoint spec.Endpoint) []string {
