@@ -102,7 +102,7 @@ func translateProtocol(protocol interface{}) (ruleMaker acl.RuleMaker, bidirecti
 		bidirectional = p.Bidirectional
 		ruleMaker = &acl.ICMP{Code: p.Code, Type: p.Type}
 	case *spec.AnyProtocol:
-		bidirectional = false
+		bidirectional = p.Bidirectional
 		ruleMaker = nil
 	case map[string]interface{}:
 		log.Fatalf("JSON unparsed: %v", p)
