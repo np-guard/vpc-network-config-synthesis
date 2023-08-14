@@ -1,14 +1,11 @@
 {
-    "externals": [
-        {
-            "name": "google.com",
-            "cidr": "172.217.22.46"
-        }
-    ],
+    "externals": {
+        "google.com": "172.217.22.46"
+    },
     "required-connections": [
         {
             "src": {
-                "name": "subnet1",
+                "name": "subnet1-ky",
                 "type": "subnet"
             },
             "dst": {
@@ -18,11 +15,11 @@
         },
         {
             "src": {
-                "name": "subnet1",
+                "name": "subnet1-ky",
                 "type": "subnet"
             },
             "dst": {
-                "name": "subnet3",
+                "name": "subnet3-ky",
                 "type": "subnet"
             },
             "allowed-protocols": [
@@ -36,17 +33,17 @@
         },
         {
             "src": {
-                "name": "subnet1",
+                "name": "subnet1-ky",
                 "type": "subnet"
             },
             "dst": {
-                "name": "subnet2",
+                "name": "subnet2-ky",
                 "type": "subnet"
             }
         },
         {
             "src": {
-                "name": "subnet2",
+                "name": "subnet2-ky",
                 "type": "subnet"
             },
             "dst": {
