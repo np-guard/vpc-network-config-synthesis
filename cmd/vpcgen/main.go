@@ -34,14 +34,14 @@ func readSubnetMap(filename string) (map[string]string, error) {
 
 func main() {
 	connectivityFilename := flag.String("spec", "", "JSON file containing connectivity spec")
-	configFilename := flag.String("config", "-", "JSON file containing config spec")
+	configFilename := flag.String("config", "", "JSON file containing config spec")
 	flag.Parse()
 
 	s, err := spec.Unmarshal(*connectivityFilename)
 	if err != nil {
 		log.Fatalf("Could not parse connectivity file %s: %s", *connectivityFilename, err)
 	}
-	if *configFilename != "-" {
+	if *configFilename != "" {
 		subnetMap, err := readSubnetMap(*configFilename)
 		if err != nil {
 			log.Fatalf("Could not parse config file %s: %s", *configFilename, err)
