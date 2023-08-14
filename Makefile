@@ -19,6 +19,7 @@ lint:
 	@echo -- $@ --
 	# to avoid parse errors, use git's diff - in windows, add C:\Program Files\Git\usr\bin\ to PATH
 	golangci-lint run --new
+	check-jsonschema test/data/*/conn_spec.json examples/generic_example.json  --schemafile spec_schema.json
 
 precommit: mod fmt lint
 
