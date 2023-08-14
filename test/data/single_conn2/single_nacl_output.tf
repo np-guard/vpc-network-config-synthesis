@@ -15,15 +15,15 @@ resource "ibm_is_network_acl" "acl-for-test-vpc1-ky" {
     }
   }
   rules {
-      name        = "subnet1-out-2"
-      action      = "allow"
-      direction   = "outbound"
-      source      = "10.240.10.0/24"
-      destination = "10.240.30.0/24"
-      tcp {
-        source_port_min = 443
-        source_port_max = 443
-      }
+    name        = "subnet1-out-2"
+    action      = "allow"
+    direction   = "outbound"
+    source      = "10.240.10.0/24"
+    destination = "10.240.30.0/24"
+    tcp {
+      source_port_min = 443
+      source_port_max = 443
+    }
   }
   rules {
     name        = "subnet1-in-1"
