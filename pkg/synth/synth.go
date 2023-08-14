@@ -77,9 +77,7 @@ func lookupEndpoint(s *spec.Spec, endpoint spec.Endpoint) []string {
 			}
 			return ips
 		}
-	case spec.EndpointTypeNif:
-	case spec.EndpointTypeInstance:
-	case spec.EndpointTypeVpe:
+	case spec.EndpointTypeNif, spec.EndpointTypeInstance, spec.EndpointTypeVpe:
 		return []string{fmt.Sprintf("<Unsupported %v %v>", endpoint.Type, name)}
 	default:
 		return []string{fmt.Sprintf("<Unknown type %v (%v)>", endpoint.Type, name)}
