@@ -4,7 +4,7 @@ package spec
 import (
 	"encoding/json"
 	"errors"
-	"log"
+	"fmt"
 	"os"
 )
 
@@ -59,7 +59,7 @@ func fixProtocolList(list ProtocolList) error {
 				err = errors.New("redundant protocol declaration")
 			}
 		default:
-			log.Fatalf("Impossible protocol name: %q, %T", p["protocol"], p["protocol"])
+			return fmt.Errorf("unknown protocol name: %q, %T", p["protocol"], p["protocol"])
 		}
 		if err != nil {
 			return err
