@@ -9,16 +9,28 @@ import (
 )
 
 type PortRange struct {
-	MinPort int
-	MaxPort int
+	Min int
+	Max int
+}
+
+type PortRangePair struct {
+	SrcPort PortRange
+	DstPort PortRange
+}
+
+const DefaultMinPort = 1
+const DefaultMaxPort = 65535
+
+func Swap(pair PortRangePair) PortRangePair {
+	return PortRangePair{SrcPort: pair.DstPort, DstPort: pair.SrcPort}
 }
 
 type TCP struct {
-	PortRange
+	PortRangePair
 }
 
 type UDP struct {
-	PortRange
+	PortRangePair
 }
 
 type ICMP struct {
@@ -26,13 +38,41 @@ type ICMP struct {
 	Type *int
 }
 
-type Rule struct {
+type AnyProtocol struct{}
+
+type Protocol interface {
+	Rule(f Flow) *Rule
+}
+
+func (t TCP) Rule(f Flow) *Rule { return &Rule{Flow: f, Protocol: t} }
+
+func (t UDP) Rule(f Flow) *Rule { return &Rule{Flow: f, Protocol: t} }
+
+func (t ICMP) Rule(f Flow) *Rule { return &Rule{Flow: f, Protocol: t} }
+
+func (t AnyProtocol) Rule(f Flow) *Rule { return &Rule{Flow: f, Protocol: nil} }
+
+type Flow struct {
 	Name        string
 	Allow       bool
 	Source      string
 	Destination string
 	Outbound    bool
-	Protocol    tf.Blockable
+}
+
+type Rule struct {
+	Flow     Flow
+	Protocol tf.Blockable
+}
+
+func (f *Flow) Terraform() []tf.Argument {
+	return []tf.Argument{
+		{Name: "name", Value: quote(f.Name)},
+		{Name: "action", Value: quote(allow(f.Allow))},
+		{Name: "direction", Value: quote(outbound(f.Outbound))},
+		{Name: "source", Value: quote(f.Source)},
+		{Name: "destination", Value: quote(f.Destination)},
+	}
 }
 
 type ACL struct {
@@ -49,9 +89,6 @@ type Collection struct {
 type Connection interface {
 	tf.Blockable
 }
-
-const defaultMinTransportPort = 1
-const defaultMaxTransportPort = 65535
 
 func quote(s string) string {
 	return fmt.Sprintf("%q", s)
@@ -71,13 +108,19 @@ func outbound(b bool) string {
 	return "inbound"
 }
 
-func (t *PortRange) Terraform(name string) tf.Block {
+func (t *PortRangePair) Terraform(name string) tf.Block {
 	var arguments []tf.Argument
-	if t.MinPort != defaultMinTransportPort {
-		arguments = append(arguments, tf.Argument{Name: "port_min", Value: strconv.Itoa(t.MinPort)})
+	if t.DstPort.Min != DefaultMinPort {
+		arguments = append(arguments, tf.Argument{Name: "port_min", Value: strconv.Itoa(t.DstPort.Min)})
 	}
-	if t.MaxPort != defaultMaxTransportPort {
-		arguments = append(arguments, tf.Argument{Name: "port_max", Value: strconv.Itoa(t.MaxPort)})
+	if t.DstPort.Max != DefaultMaxPort {
+		arguments = append(arguments, tf.Argument{Name: "port_max", Value: strconv.Itoa(t.DstPort.Max)})
+	}
+	if t.SrcPort.Min != DefaultMinPort {
+		arguments = append(arguments, tf.Argument{Name: "source_port_min", Value: strconv.Itoa(t.SrcPort.Min)})
+	}
+	if t.SrcPort.Max != DefaultMaxPort {
+		arguments = append(arguments, tf.Argument{Name: "source_port_max", Value: strconv.Itoa(t.SrcPort.Max)})
 	}
 	return tf.Block{
 		Name:      name,
@@ -85,15 +128,15 @@ func (t *PortRange) Terraform(name string) tf.Block {
 	}
 }
 
-func (t *TCP) Terraform() tf.Block {
-	return t.PortRange.Terraform("tcp")
+func (t TCP) Terraform() tf.Block {
+	return t.PortRangePair.Terraform("tcp")
 }
 
-func (t *UDP) Terraform() tf.Block {
-	return t.PortRange.Terraform("udp")
+func (t UDP) Terraform() tf.Block {
+	return t.PortRangePair.Terraform("udp")
 }
 
-func (t *ICMP) Terraform() tf.Block {
+func (t ICMP) Terraform() tf.Block {
 	var arguments []tf.Argument
 	if t.Code != nil {
 		arguments = append(arguments, tf.Argument{Name: "code", Value: strconv.Itoa(*t.Code)})
@@ -115,14 +158,8 @@ func (t *Rule) Terraform() tf.Block {
 		}
 	}
 	return tf.Block{Name: "rules",
-		Arguments: []tf.Argument{
-			{Name: "name", Value: quote(t.Name)},
-			{Name: "action", Value: quote(allow(t.Allow))},
-			{Name: "direction", Value: quote(outbound(t.Outbound))},
-			{Name: "source", Value: quote(t.Source)},
-			{Name: "destination", Value: quote(t.Destination)},
-		},
-		Blocks: blocks,
+		Arguments: t.Flow.Terraform(),
+		Blocks:    blocks,
 	}
 }
 

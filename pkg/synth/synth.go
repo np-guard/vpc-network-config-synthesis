@@ -17,40 +17,89 @@ func MakeACL(s *spec.Spec) string {
 				Name:          "acl1",
 				ResourceGroup: "var.resource_group_id",
 				Vpc:           "var.vpc_id",
-				Rules:         makeRules(s),
+				Rules:         generateConstraints(s),
 			},
 		},
 	}
 	return result.Print()
 }
 
-func makeRules(s *spec.Spec) []*acl.Rule {
-	var rules []*acl.Rule
+func generateConstraints(s *spec.Spec) []*acl.Rule {
+	var result []*acl.Rule
 	for c, conn := range s.RequiredConnections {
-		for p, protocol := range conn.AllowedProtocols {
-			aclConnection, bidirectional := translateProtocol(protocol)
-			for src, srcIP := range lookupEndpoint(s, *conn.Src) {
-				for dst, dstIP := range lookupEndpoint(s, *conn.Dst) {
-					if srcIP == dstIP {
-						continue
+		for src, srcIP := range lookupEndpoint(s, *conn.Src) {
+			for dst, dstIP := range lookupEndpoint(s, *conn.Dst) {
+				if srcIP == dstIP {
+					continue
+				}
+				for p, protocol := range conn.AllowedProtocols {
+					originPrefix := fmt.Sprintf("c%v,p%v,[%v->%v],s%v,d%v", c, p, conn.Src.Name, conn.Dst.Name, src, dst)
+					flows := makeFlows(originPrefix, srcIP, dstIP, protocol.(spec.ProtocolInfo).Bidi())
+					protocols := makeProtocols(protocol)
+					for i := range protocols {
+						result = append(result, protocols[i].Rule(flows[i]))
 					}
-					prefix := fmt.Sprintf("rule:c%v,p%v,[%v->%v],s%v,d%v", c, p, conn.Src.Name, conn.Dst.Name, src, dst)
-					egress := newRule(prefix+"-outbound", srcIP, dstIP, true, aclConnection)
-					rulePair := []*acl.Rule{egress}
-					if bidirectional {
-						ingress := newRule(prefix+"-inbound", dstIP, srcIP, false, aclConnection)
-						rulePair = []*acl.Rule{egress, ingress}
-					}
-					rules = append(rules, rulePair...)
 				}
 			}
 		}
 	}
-	return rules
+	return result
 }
 
-func newRule(name, srcIP, dstIP string, outbound bool, aclConnection acl.Connection) *acl.Rule {
-	return &acl.Rule{Name: name, Allow: true, Source: srcIP, Destination: dstIP, Outbound: outbound, Protocol: aclConnection}
+func makeFlows(originPrefix, srcIP, dstIP string, bidirectional bool) []acl.Flow {
+	flows := []acl.Flow{
+		{Name: originPrefix + "-outbound-src", Outbound: true, Source: srcIP, Destination: dstIP, Allow: true},
+		{Name: originPrefix + "-inbound-src", Outbound: false, Source: srcIP, Destination: dstIP, Allow: true},
+	}
+	if bidirectional {
+		flows = append(flows, []acl.Flow{
+			{Name: originPrefix + "-outbound-dst", Outbound: true, Source: dstIP, Destination: srcIP, Allow: true},
+			{Name: originPrefix + "-inbound-dst", Outbound: false, Source: dstIP, Destination: srcIP, Allow: true},
+		}...)
+	}
+	return flows
+}
+
+func makeProtocols(protocol interface{}) []acl.Protocol {
+	var protocols []acl.Protocol
+	switch p := protocol.(type) {
+	case *spec.TcpUdp:
+		pair := acl.PortRangePair{
+			SrcPort: acl.PortRange{Min: acl.DefaultMinPort, Max: acl.DefaultMaxPort},
+			DstPort: acl.PortRange{Min: p.MinDestinationPort, Max: p.MaxDestinationPort},
+		}
+		pairs := []acl.PortRangePair{pair, pair}
+		if p.Bidirectional {
+			pair = acl.Swap(pair)
+			pairs = append(pairs, []acl.PortRangePair{pair, pair}...)
+		}
+		switch p.Protocol {
+		case spec.TcpUdpProtocolUDP:
+			for f := range pairs {
+				protocols = append(protocols, acl.UDP{PortRangePair: pairs[f]})
+			}
+		case spec.TcpUdpProtocolTCP:
+			for f := range pairs {
+				protocols = append(protocols, acl.TCP{PortRangePair: pairs[f]})
+			}
+		}
+	case *spec.Icmp:
+		aclProtocol := acl.ICMP{Code: p.Type, Type: p.Code}
+		direction := []acl.Protocol{aclProtocol, aclProtocol}
+		protocols = append(protocols, direction...)
+		if p.Bidi() {
+			protocols = append(protocols, direction...)
+		}
+	case *spec.AnyProtocol:
+		direction := []acl.Protocol{acl.AnyProtocol{}, acl.AnyProtocol{}}
+		protocols = append(protocols, direction...)
+		if p.Bidi() {
+			protocols = append(protocols, direction...)
+		}
+	default:
+		log.Fatalf("Impossible protocol type: %v", p)
+	}
+	return protocols
 }
 
 func lookupEndpoint(s *spec.Spec, endpoint spec.Endpoint) []string {
@@ -87,31 +136,4 @@ func lookupEndpoint(s *spec.Spec, endpoint spec.Endpoint) []string {
 		return []string{fmt.Sprintf("<Unknown type %v (%v)>", endpoint.Type, name)}
 	}
 	return []string{}
-}
-
-func translateProtocol(protocol interface{}) (aclConnection acl.Connection, bidirectional bool) {
-	switch p := protocol.(type) {
-	case *spec.TcpUdp:
-		portRange := acl.PortRange{MinPort: p.MinDestinationPort, MaxPort: p.MaxDestinationPort}
-		bidirectional = p.Bidirectional
-		switch p.Protocol {
-		case spec.TcpUdpProtocolTCP:
-			aclConnection = &acl.TCP{PortRange: portRange}
-		case spec.TcpUdpProtocolUDP:
-			aclConnection = &acl.UDP{PortRange: portRange}
-		default:
-			log.Fatalf("Impossible protocol name: %q", p.Protocol)
-		}
-	case *spec.Icmp:
-		bidirectional = p.Bidirectional
-		aclConnection = &acl.ICMP{Code: p.Code, Type: p.Type}
-	case *spec.AnyProtocol:
-		bidirectional = p.Bidirectional
-		aclConnection = nil
-	case map[string]interface{}:
-		log.Fatalf("JSON unparsed: %v", p)
-	default:
-		log.Fatalf("Impossible protocol type: %v", p)
-	}
-	return
 }
