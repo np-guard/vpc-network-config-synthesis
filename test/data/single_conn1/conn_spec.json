@@ -11,7 +11,7 @@
             },
             "allowed-protocols": [
                 {
-                    "protocol": "TCD",
+                    "protocol": "TCP",
                     "min_destination_port": 443,
                     "max_destination_port": 443
                 }
