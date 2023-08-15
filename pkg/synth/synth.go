@@ -17,14 +17,14 @@ func MakeACL(s *spec.Spec) string {
 				Name:          "acl1",
 				ResourceGroup: "var.resource_group_id",
 				Vpc:           "var.vpc_id",
-				Rules:         generateConstraints(s),
+				Rules:         generateRules(s),
 			},
 		},
 	}
 	return result.Print()
 }
 
-func generateConstraints(s *spec.Spec) []*acl.Rule {
+func generateRules(s *spec.Spec) []*acl.Rule {
 	var result []*acl.Rule
 	for c, conn := range s.RequiredConnections {
 		for i, src := range lookupEndpoint(s, *conn.Src) {
@@ -35,9 +35,9 @@ func generateConstraints(s *spec.Spec) []*acl.Rule {
 				for p := range conn.AllowedProtocols {
 					prefix := fmt.Sprintf("c%v,p%v,[%v->%v],src%v,dst%v", c, p, conn.Src.Name, conn.Dst.Name, i, j)
 					protocol := conn.AllowedProtocols[p].(spec.ProtocolInfo)
-					result = append(result, makeConnectionRules(src, dst, protocol, prefix)...)
+					result = append(result, allowDirectedConnection(src, dst, protocol, prefix)...)
 					if protocol.Bidi() {
-						result = append(result, makeConnectionRules(dst, src, protocol, prefix)...)
+						result = append(result, allowDirectedConnection(dst, src, protocol, prefix)...)
 					}
 				}
 			}
@@ -46,20 +46,33 @@ func generateConstraints(s *spec.Spec) []*acl.Rule {
 	return result
 }
 
-func makeConnectionRules(src, dst string, protocol spec.ProtocolInfo, prefix string) []*acl.Rule {
-	inout := makeProtocol(protocol)
-	return append(
-		// Allow request src->dst
-		directionRules(src, dst, inout, prefix+"-request"),
-		// Allow response dst->src
-		directionRules(dst, src, inout.SwapSrcDstPortRange(), prefix+"-response")...)
+type packet struct {
+	src, dst string
+	protocol acl.Protocol
+	prefix   string
 }
 
-func directionRules(src, dst string, inout acl.Protocol, prefix string) []*acl.Rule {
+func allowDirectedConnection(src, dst string, protocol spec.ProtocolInfo, prefix string) []*acl.Rule {
+	inout := makeProtocol(protocol)
+	request := packet{src, dst, inout, prefix + "-request"}
+	response := packet{dst, src, inout.SwapSrcDstPortRange(), prefix + "-response"}
 	return []*acl.Rule{
-		inout.Rule(prefix+"-atsrc", acl.Flow{Outbound: true, Source: src, Destination: dst}),
-		inout.Rule(prefix+"-atdst", acl.Flow{Outbound: false, Source: src, Destination: dst}),
+		// Allow request src->dst
+		allowSend(request),
+		allowReceive(request),
+
+		// Allow response dst->src
+		allowSend(response),
+		allowReceive(response),
 	}
+}
+
+func allowSend(packet packet) *acl.Rule {
+	return packet.protocol.Rule(packet.prefix+"-send", acl.Flow{Outbound: true, Source: packet.src, Destination: packet.dst})
+}
+
+func allowReceive(packet packet) *acl.Rule {
+	return packet.protocol.Rule(packet.prefix+"-receive", acl.Flow{Outbound: false, Source: packet.src, Destination: packet.dst})
 }
 
 func makeProtocol(protocol interface{}) acl.Protocol {
