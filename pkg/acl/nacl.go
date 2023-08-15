@@ -41,43 +41,61 @@ type ICMP struct {
 type AnyProtocol struct{}
 
 type Protocol interface {
-	Rule(f Flow) *Rule
-	Swap() Protocol
+	Rule(name string, f Flow) *Rule
+	SwapSrcDstPortRange() Protocol
 }
 
-func (t TCP) Swap() Protocol { return TCP{Swap(t.PortRangePair)} }
+func (t TCP) SwapSrcDstPortRange() Protocol { return TCP{Swap(t.PortRangePair)} }
 
-func (t UDP) Swap() Protocol { return UDP{Swap(t.PortRangePair)} }
+func (t UDP) SwapSrcDstPortRange() Protocol { return UDP{Swap(t.PortRangePair)} }
 
-func (t ICMP) Swap() Protocol { return ICMP{Code: t.Code, Type: t.Type} }
+func (t ICMP) SwapSrcDstPortRange() Protocol { return ICMP{Code: t.Code, Type: t.Type} }
 
-func (t AnyProtocol) Swap() Protocol { return AnyProtocol{} }
+func (t AnyProtocol) SwapSrcDstPortRange() Protocol { return AnyProtocol{} }
 
-func (t TCP) Rule(f Flow) *Rule { return &Rule{Flow: f, Protocol: t} }
+func (t TCP) Rule(name string, f Flow) *Rule { return &Rule{Name: name, Flow: f, Protocol: t} }
 
-func (t UDP) Rule(f Flow) *Rule { return &Rule{Flow: f, Protocol: t} }
+func (t UDP) Rule(name string, f Flow) *Rule { return &Rule{Name: name, Flow: f, Protocol: t} }
 
-func (t ICMP) Rule(f Flow) *Rule { return &Rule{Flow: f, Protocol: t} }
+func (t ICMP) Rule(name string, f Flow) *Rule { return &Rule{Name: name, Flow: f, Protocol: t} }
 
-func (t AnyProtocol) Rule(f Flow) *Rule { return &Rule{Flow: f, Protocol: nil} }
+func (t AnyProtocol) Rule(name string, f Flow) *Rule {
+	return &Rule{Name: name, Flow: f, Protocol: nil}
+}
 
 type Flow struct {
-	Name        string
-	Allow       bool
+	Deny        bool
 	Source      string
 	Destination string
 	Outbound    bool
 }
 
+func (f *Flow) Invert() Flow {
+	return Flow{
+		Deny:        f.Deny,
+		Source:      f.Destination,
+		Destination: f.Destination,
+		Outbound:    !f.Outbound,
+	}
+}
+
 type Rule struct {
+	Name     string
 	Flow     Flow
-	Protocol tf.Blockable
+	Protocol Protocol
+}
+
+func (t *Rule) Invert() *Rule {
+	return &Rule{
+		t.Name,
+		t.Flow.Invert(),
+		t.Protocol.SwapSrcDstPortRange(),
+	}
 }
 
 func (f *Flow) Terraform() []tf.Argument {
 	return []tf.Argument{
-		{Name: "name", Value: quote(f.Name)},
-		{Name: "action", Value: quote(allow(f.Allow))},
+		{Name: "action", Value: quote(action(f.Deny))},
 		{Name: "direction", Value: quote(outbound(f.Outbound))},
 		{Name: "source", Value: quote(f.Source)},
 		{Name: "destination", Value: quote(f.Destination)},
@@ -103,11 +121,11 @@ func quote(s string) string {
 	return fmt.Sprintf("%q", s)
 }
 
-func allow(b bool) string {
-	if b {
-		return "allow"
+func action(deny bool) string {
+	if deny {
+		return "deny"
 	}
-	return "deny"
+	return "allow"
 }
 
 func outbound(b bool) string {
@@ -163,11 +181,12 @@ func (t *Rule) Terraform() tf.Block {
 	var blocks []tf.Block
 	if t.Protocol != nil {
 		blocks = []tf.Block{
-			t.Protocol.Terraform(),
+			t.Protocol.(tf.Blockable).Terraform(),
 		}
 	}
+	arguments := []tf.Argument{{Name: "name", Value: quote(t.Name)}}
 	return tf.Block{Name: "rules",
-		Arguments: t.Flow.Terraform(),
+		Arguments: append(arguments, t.Flow.Terraform()...),
 		Blocks:    blocks,
 	}
 }

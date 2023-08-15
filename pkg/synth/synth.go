@@ -27,27 +27,17 @@ func MakeACL(s *spec.Spec) string {
 func generateConstraints(s *spec.Spec) []*acl.Rule {
 	var result []*acl.Rule
 	for c, conn := range s.RequiredConnections {
-		for src, srcIP := range lookupEndpoint(s, *conn.Src) {
-			for dst, dstIP := range lookupEndpoint(s, *conn.Dst) {
-				if srcIP == dstIP {
+		for i, src := range lookupEndpoint(s, *conn.Src) {
+			for j, dst := range lookupEndpoint(s, *conn.Dst) {
+				if src == dst {
 					continue
 				}
-				for p, _specProtocol := range conn.AllowedProtocols {
-					specProtocol := _specProtocol.(spec.ProtocolInfo)
-					originPrefix := fmt.Sprintf("c%v,p%v,[%v->%v],s%v,d%v", c, p, conn.Src.Name, conn.Dst.Name, src, dst)
-					bidi := specProtocol.Bidi() || specProtocol.Name() == "TCP"
-					flows := makeFlows(originPrefix, srcIP, dstIP, bidi)
-					aclProtocol := makeProtocol(specProtocol)
-					result = append(result, []*acl.Rule{
-						aclProtocol.Rule(flows[0]),
-						aclProtocol.Rule(flows[1]),
-					}...)
-					if bidi {
-						aclProtocol = aclProtocol.Swap()
-						result = append(result, []*acl.Rule{
-							aclProtocol.Rule(flows[2]),
-							aclProtocol.Rule(flows[3]),
-						}...)
+				for p := range conn.AllowedProtocols {
+					prefix := fmt.Sprintf("c%v,p%v,[%v->%v],src%v,dst%v", c, p, conn.Src.Name, conn.Dst.Name, i, j)
+					protocol := conn.AllowedProtocols[p].(spec.ProtocolInfo)
+					result = append(result, makeConnectionRules(src, dst, protocol, prefix)...)
+					if protocol.Bidi() {
+						result = append(result, makeConnectionRules(dst, src, protocol, prefix)...)
 					}
 				}
 			}
@@ -56,18 +46,20 @@ func generateConstraints(s *spec.Spec) []*acl.Rule {
 	return result
 }
 
-func makeFlows(originPrefix, srcIP, dstIP string, bidirectional bool) []acl.Flow {
-	flows := []acl.Flow{
-		{Name: originPrefix + "-outbound-src", Outbound: true, Source: srcIP, Destination: dstIP, Allow: true},
-		{Name: originPrefix + "-inbound-src", Outbound: false, Source: srcIP, Destination: dstIP, Allow: true},
+func makeConnectionRules(src, dst string, protocol spec.ProtocolInfo, prefix string) []*acl.Rule {
+	inout := makeProtocol(protocol)
+	return append(
+		// Allow request src->dst
+		directionRules(src, dst, inout, prefix+"-request"),
+		// Allow response dst->src
+		directionRules(dst, src, inout.SwapSrcDstPortRange(), prefix+"-response")...)
+}
+
+func directionRules(src, dst string, inout acl.Protocol, prefix string) []*acl.Rule {
+	return []*acl.Rule{
+		inout.Rule(prefix+"-atsrc", acl.Flow{Outbound: true, Source: src, Destination: dst}),
+		inout.Rule(prefix+"-atdst", acl.Flow{Outbound: false, Source: src, Destination: dst}),
 	}
-	if bidirectional {
-		flows = append(flows, []acl.Flow{
-			{Name: originPrefix + "-outbound-dst", Outbound: true, Source: dstIP, Destination: srcIP, Allow: true},
-			{Name: originPrefix + "-inbound-dst", Outbound: false, Source: dstIP, Destination: srcIP, Allow: true},
-		}...)
-	}
-	return flows
 }
 
 func makeProtocol(protocol interface{}) acl.Protocol {
