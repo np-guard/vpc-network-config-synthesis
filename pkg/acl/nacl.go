@@ -41,7 +41,6 @@ type ICMP struct {
 type AnyProtocol struct{}
 
 type Protocol interface {
-	Rule(name string, f Flow) *Rule
 	SwapSrcDstPortRange() Protocol
 }
 
@@ -53,53 +52,13 @@ func (t ICMP) SwapSrcDstPortRange() Protocol { return ICMP{Code: t.Code, Type: t
 
 func (t AnyProtocol) SwapSrcDstPortRange() Protocol { return AnyProtocol{} }
 
-func (t TCP) Rule(name string, f Flow) *Rule { return &Rule{Name: name, Flow: f, Protocol: t} }
-
-func (t UDP) Rule(name string, f Flow) *Rule { return &Rule{Name: name, Flow: f, Protocol: t} }
-
-func (t ICMP) Rule(name string, f Flow) *Rule { return &Rule{Name: name, Flow: f, Protocol: t} }
-
-func (t AnyProtocol) Rule(name string, f Flow) *Rule {
-	return &Rule{Name: name, Flow: f, Protocol: nil}
-}
-
-type Flow struct {
+type Rule struct {
+	Name        string
 	Deny        bool
 	Source      string
 	Destination string
 	Outbound    bool
-}
-
-func (f *Flow) Invert() Flow {
-	return Flow{
-		Deny:        f.Deny,
-		Source:      f.Destination,
-		Destination: f.Destination,
-		Outbound:    !f.Outbound,
-	}
-}
-
-type Rule struct {
-	Name     string
-	Flow     Flow
-	Protocol Protocol
-}
-
-func (t *Rule) Invert() *Rule {
-	return &Rule{
-		t.Name,
-		t.Flow.Invert(),
-		t.Protocol.SwapSrcDstPortRange(),
-	}
-}
-
-func (f *Flow) Terraform() []tf.Argument {
-	return []tf.Argument{
-		{Name: "action", Value: quote(action(f.Deny))},
-		{Name: "direction", Value: quote(outbound(f.Outbound))},
-		{Name: "source", Value: quote(f.Source)},
-		{Name: "destination", Value: quote(f.Destination)},
-	}
+	Protocol    Protocol
 }
 
 type ACL struct {
@@ -179,14 +138,23 @@ func (t ICMP) Terraform() tf.Block {
 
 func (t *Rule) Terraform() tf.Block {
 	var blocks []tf.Block
-	if t.Protocol != nil {
+	switch t.Protocol.(type) {
+	case AnyProtocol:
+		break
+	default:
 		blocks = []tf.Block{
 			t.Protocol.(tf.Blockable).Terraform(),
 		}
 	}
-	arguments := []tf.Argument{{Name: "name", Value: quote(t.Name)}}
+	arguments := []tf.Argument{
+		{Name: "name", Value: quote(t.Name)},
+		{Name: "action", Value: quote(action(t.Deny))},
+		{Name: "direction", Value: quote(outbound(t.Outbound))},
+		{Name: "source", Value: quote(t.Source)},
+		{Name: "destination", Value: quote(t.Destination)},
+	}
 	return tf.Block{Name: "rules",
-		Arguments: append(arguments, t.Flow.Terraform()...),
+		Arguments: arguments,
 		Blocks:    blocks,
 	}
 }

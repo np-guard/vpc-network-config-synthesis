@@ -57,22 +57,28 @@ func allowDirectedConnection(src, dst string, protocol spec.ProtocolInfo, prefix
 	request := packet{src, dst, inout, prefix + "-request"}
 	response := packet{dst, src, inout.SwapSrcDstPortRange(), prefix + "-response"}
 	return []*acl.Rule{
-		// Allow request src->dst
 		allowSend(request),
 		allowReceive(request),
-
-		// Allow response dst->src
 		allowSend(response),
 		allowReceive(response),
 	}
 }
 
 func allowSend(packet packet) *acl.Rule {
-	return packet.protocol.Rule(packet.prefix+"-send", acl.Flow{Outbound: true, Source: packet.src, Destination: packet.dst})
+	return allowPacket(packet, true)
 }
 
 func allowReceive(packet packet) *acl.Rule {
-	return packet.protocol.Rule(packet.prefix+"-receive", acl.Flow{Outbound: false, Source: packet.src, Destination: packet.dst})
+	return allowPacket(packet, false)
+}
+
+func allowPacket(packet packet, outbound bool) *acl.Rule {
+	if outbound {
+		packet.prefix += "-send"
+	} else {
+		packet.prefix += "-receive"
+	}
+	return &acl.Rule{Name: packet.prefix, Outbound: outbound, Source: packet.src, Destination: packet.dst, Protocol: packet.protocol}
 }
 
 func makeProtocol(protocol interface{}) acl.Protocol {
