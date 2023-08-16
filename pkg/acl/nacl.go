@@ -106,7 +106,7 @@ func action(a Action) string {
 	return ""
 }
 
-func outbound(d Direction) string {
+func direction(d Direction) string {
 	switch d {
 	case Outbound:
 		return "outbound"
@@ -168,7 +168,7 @@ func (t *Rule) Terraform() tf.Block {
 	arguments := []tf.Argument{
 		{Name: "name", Value: quote(t.Name)},
 		{Name: "action", Value: quote(action(t.Action))},
-		{Name: "direction", Value: quote(outbound(t.Direction))},
+		{Name: "direction", Value: quote(direction(t.Direction))},
 		{Name: "source", Value: quote(t.Source)},
 		{Name: "destination", Value: quote(t.Destination)},
 	}
