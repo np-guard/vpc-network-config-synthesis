@@ -54,8 +54,8 @@ type packet struct {
 
 func allowDirectedConnection(src, dst string, protocol spec.ProtocolInfo, prefix string) []*acl.Rule {
 	inout := makeProtocol(protocol)
-	request := packet{src, dst, inout, prefix + "-request"}
-	response := packet{dst, src, inout.SwapSrcDstPortRange(), prefix + "-response"}
+	request := packet{src, dst, inout, prefix + ",request"}
+	response := packet{dst, src, inout.SwapSrcDstPortRange(), prefix + ",response"}
 	return []*acl.Rule{
 		allowSend(request),
 		allowReceive(request),
@@ -65,20 +65,22 @@ func allowDirectedConnection(src, dst string, protocol spec.ProtocolInfo, prefix
 }
 
 func allowSend(packet packet) *acl.Rule {
-	return allowPacket(packet, true)
+	return allowPacket(packet, acl.Outbound)
 }
 
 func allowReceive(packet packet) *acl.Rule {
-	return allowPacket(packet, false)
+	return allowPacket(packet, acl.Inbound)
 }
 
-func allowPacket(packet packet, outbound bool) *acl.Rule {
-	if outbound {
-		packet.prefix += "-send"
-	} else {
-		packet.prefix += "-receive"
+func allowPacket(packet packet, direction acl.Direction) *acl.Rule {
+	return &acl.Rule{
+		Name:        packet.prefix + fmt.Sprintf(",%v", direction),
+		Action:      acl.Allow,
+		Source:      packet.src,
+		Destination: packet.dst,
+		Direction:   direction,
+		Protocol:    packet.protocol,
 	}
-	return &acl.Rule{Name: packet.prefix, Outbound: outbound, Source: packet.src, Destination: packet.dst, Protocol: packet.protocol}
 }
 
 func makeProtocol(protocol interface{}) acl.Protocol {

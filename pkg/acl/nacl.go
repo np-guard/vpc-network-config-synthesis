@@ -3,9 +3,24 @@ package acl
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/tf"
+)
+
+type Action string
+
+const (
+	Allow Action = "allow"
+	Deny  Action = "deny"
+)
+
+type Direction string
+
+const (
+	Outbound Direction = "outbound"
+	Inbound  Direction = "inbound"
 )
 
 type PortRange struct {
@@ -54,10 +69,10 @@ func (t AnyProtocol) SwapSrcDstPortRange() Protocol { return AnyProtocol{} }
 
 type Rule struct {
 	Name        string
-	Deny        bool
+	Action      Action
+	Direction   Direction
 	Source      string
 	Destination string
-	Outbound    bool
 	Protocol    Protocol
 }
 
@@ -80,18 +95,26 @@ func quote(s string) string {
 	return fmt.Sprintf("%q", s)
 }
 
-func action(deny bool) string {
-	if deny {
+func action(a Action) string {
+	switch a {
+	case Allow:
+		return "allow"
+	case Deny:
 		return "deny"
 	}
-	return "allow"
+	log.Fatalf("Impossible action %q", a)
+	return ""
 }
 
-func outbound(b bool) string {
-	if b {
+func outbound(d Direction) string {
+	switch d {
+	case Outbound:
 		return "outbound"
+	case Inbound:
+		return "inbound"
 	}
-	return "inbound"
+	log.Fatalf("Impossible direction %q", d)
+	return ""
 }
 
 func (t *PortRangePair) Terraform(name string) tf.Block {
@@ -138,18 +161,14 @@ func (t ICMP) Terraform() tf.Block {
 
 func (t *Rule) Terraform() tf.Block {
 	var blocks []tf.Block
-	switch t.Protocol.(type) {
-	case AnyProtocol:
-		break
-	default:
-		blocks = []tf.Block{
-			t.Protocol.(tf.Blockable).Terraform(),
-		}
+	p, ok := t.Protocol.(tf.Blockable)
+	if ok {
+		blocks = []tf.Block{p.Terraform()}
 	}
 	arguments := []tf.Argument{
 		{Name: "name", Value: quote(t.Name)},
-		{Name: "action", Value: quote(action(t.Deny))},
-		{Name: "direction", Value: quote(outbound(t.Outbound))},
+		{Name: "action", Value: quote(action(t.Action))},
+		{Name: "direction", Value: quote(outbound(t.Direction))},
 		{Name: "source", Value: quote(t.Source)},
 		{Name: "destination", Value: quote(t.Destination)},
 	}
