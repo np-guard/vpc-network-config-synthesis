@@ -16,11 +16,16 @@ fmt:
 	goimports -local $(REPOSITORY) -w .
 	terraform fmt -recursive
 
-lint:
+lint-go:
 	@echo -- $@ --
 	# to avoid parse errors, use git's diff - in windows, add C:\Program Files\Git\usr\bin\ to PATH
 	golangci-lint run --new
+
+lint-json:
+	@echo -- $@ --
 	check-jsonschema test/data/*/conn_spec.json examples/generic_example.json  --schemafile spec_schema.json
+
+lint: lint-go lint-json
 
 precommit: mod fmt lint
 
