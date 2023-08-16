@@ -17,33 +17,93 @@ func MakeACL(s *spec.Spec) string {
 				Name:          "acl1",
 				ResourceGroup: "var.resource_group_id",
 				Vpc:           "var.vpc_id",
-				Rules:         makeRules(s),
+				Rules:         generateRules(s),
 			},
 		},
 	}
 	return result.Print()
 }
 
-func makeRules(s *spec.Spec) []*acl.Rule {
-	var rules []*acl.Rule
+func generateRules(s *spec.Spec) []*acl.Rule {
+	var result []*acl.Rule
 	for c, conn := range s.RequiredConnections {
-		for p, protocol := range conn.AllowedProtocols {
-			aclRuleMaker, bidirectional := translateProtocol(protocol)
-			for src, srcIP := range lookupEndpoint(s, *conn.Src) {
-				for dst, dstIP := range lookupEndpoint(s, *conn.Dst) {
-					prefix := fmt.Sprintf("rule-%v-%v-%v-%v", c, p, src, dst)
-					egress := acl.NewRule(aclRuleMaker, prefix+"-outbound", true, srcIP, dstIP, true)
-					rulePair := []*acl.Rule{egress}
-					if bidirectional {
-						ingress := acl.NewRule(aclRuleMaker, prefix+"-inbound", true, srcIP, dstIP, false)
-						rulePair = []*acl.Rule{egress, ingress}
+		for i, src := range lookupEndpoint(s, *conn.Src) {
+			for j, dst := range lookupEndpoint(s, *conn.Dst) {
+				if src == dst {
+					continue
+				}
+				for p := range conn.AllowedProtocols {
+					prefix := fmt.Sprintf("c%v,p%v,[%v->%v],src%v,dst%v", c, p, conn.Src.Name, conn.Dst.Name, i, j)
+					protocol := conn.AllowedProtocols[p].(spec.ProtocolInfo)
+					result = append(result, allowDirectedConnection(src, dst, protocol, prefix)...)
+					if protocol.Bidi() {
+						result = append(result, allowDirectedConnection(dst, src, protocol, prefix)...)
 					}
-					rules = append(rules, rulePair...)
 				}
 			}
 		}
 	}
-	return rules
+	return result
+}
+
+type packet struct {
+	src, dst string
+	protocol acl.Protocol
+	prefix   string
+}
+
+func allowDirectedConnection(src, dst string, protocol spec.ProtocolInfo, prefix string) []*acl.Rule {
+	inout := makeProtocol(protocol)
+	request := packet{src, dst, inout, prefix + ",request"}
+	response := packet{dst, src, inout.SwapSrcDstPortRange(), prefix + ",response"}
+	return []*acl.Rule{
+		allowSend(request),
+		allowReceive(request),
+		allowSend(response),
+		allowReceive(response),
+	}
+}
+
+func allowSend(packet packet) *acl.Rule {
+	return allowPacket(packet, acl.Outbound)
+}
+
+func allowReceive(packet packet) *acl.Rule {
+	return allowPacket(packet, acl.Inbound)
+}
+
+func allowPacket(packet packet, direction acl.Direction) *acl.Rule {
+	return &acl.Rule{
+		Name:        packet.prefix + fmt.Sprintf(",%v", direction),
+		Action:      acl.Allow,
+		Source:      packet.src,
+		Destination: packet.dst,
+		Direction:   direction,
+		Protocol:    packet.protocol,
+	}
+}
+
+func makeProtocol(protocol interface{}) acl.Protocol {
+	switch p := protocol.(type) {
+	case *spec.TcpUdp:
+		pair := acl.PortRangePair{
+			SrcPort: acl.PortRange{Min: acl.DefaultMinPort, Max: acl.DefaultMaxPort},
+			DstPort: acl.PortRange{Min: p.MinDestinationPort, Max: p.MaxDestinationPort},
+		}
+		switch p.Protocol {
+		case spec.TcpUdpProtocolUDP:
+			return acl.UDP{PortRangePair: pair}
+		case spec.TcpUdpProtocolTCP:
+			return acl.TCP{PortRangePair: pair}
+		}
+	case *spec.Icmp:
+		return acl.ICMP{Code: p.Type, Type: p.Code}
+	case *spec.AnyProtocol:
+		return acl.AnyProtocol{}
+	default:
+		log.Fatalf("Impossible protocol type: %v", p)
+	}
+	return nil
 }
 
 func lookupEndpoint(s *spec.Spec, endpoint spec.Endpoint) []string {
@@ -69,10 +129,7 @@ func lookupEndpoint(s *spec.Spec, endpoint spec.Endpoint) []string {
 			t := spec.EndpointType(section.Type)
 			var ips []string
 			for _, subnetName := range section.Items {
-				subnet := spec.Endpoint{
-					Name: subnetName,
-					Type: t,
-				}
+				subnet := spec.Endpoint{Name: subnetName, Type: t}
 				ips = append(ips, lookupEndpoint(s, subnet)...)
 			}
 			return ips
@@ -83,31 +140,4 @@ func lookupEndpoint(s *spec.Spec, endpoint spec.Endpoint) []string {
 		return []string{fmt.Sprintf("<Unknown type %v (%v)>", endpoint.Type, name)}
 	}
 	return []string{}
-}
-
-func translateProtocol(protocol interface{}) (ruleMaker acl.RuleMaker, bidirectional bool) {
-	switch p := protocol.(type) {
-	case *spec.TcpUdp:
-		portRange := acl.PortRange{MinPort: p.MinDestinationPort, MaxPort: p.MaxDestinationPort}
-		bidirectional = p.Bidirectional
-		switch p.Protocol {
-		case spec.TcpUdpProtocolTCP:
-			ruleMaker = &acl.TCP{PortRange: portRange}
-		case spec.TcpUdpProtocolUDP:
-			ruleMaker = &acl.UDP{PortRange: portRange}
-		default:
-			log.Fatalf("Impossible protocol name: %q", p.Protocol)
-		}
-	case *spec.Icmp:
-		bidirectional = p.Bidirectional
-		ruleMaker = &acl.ICMP{Code: p.Code, Type: p.Type}
-	case *spec.AnyProtocol:
-		bidirectional = p.Bidirectional
-		ruleMaker = nil
-	case map[string]interface{}:
-		log.Fatalf("JSON unparsed: %v", p)
-	default:
-		log.Fatalf("Impossible protocol type: %v", p)
-	}
-	return
 }

@@ -45,7 +45,7 @@ func (b *Block) print(indent string) string {
 	}
 	result += " {\n"
 	{
-		indent := indent + "    " //nolint:govet  // intentionally shadow
+		indent := indent + "  " //nolint:govet  // intentionally shadow
 		for _, keyValue := range b.Arguments {
 			result += indent + fmt.Sprintf("%v = %v\n", keyValue.Name, keyValue.Value)
 		}

@@ -42,6 +42,35 @@ func (s *Spec) SetSubnets(subnets map[string]string) error {
 	return nil
 }
 
+type ProtocolInfo interface {
+	Name() string
+	Bidi() bool
+}
+
+func (p *TcpUdp) Name() string {
+	return string(p.Protocol)
+}
+
+func (p *Icmp) Name() string {
+	return string(p.Protocol)
+}
+
+func (p *AnyProtocol) Name() string {
+	return string(p.Protocol)
+}
+
+func (p *TcpUdp) Bidi() bool {
+	return p.Bidirectional
+}
+
+func (p *Icmp) Bidi() bool {
+	return p.Bidirectional
+}
+
+func (p *AnyProtocol) Bidi() bool {
+	return p.Bidirectional
+}
+
 func fixProtocolList(list ProtocolList) error {
 	for j := range list {
 		var err error
