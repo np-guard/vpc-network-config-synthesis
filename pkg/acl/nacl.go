@@ -49,8 +49,8 @@ type UDP struct {
 }
 
 type ICMP struct {
-	Code *int
 	Type *int
+	Code *int
 }
 
 type AnyProtocol struct{}
@@ -62,9 +62,20 @@ type Protocol interface {
 
 func (t TCP) InverseDirection() Protocol { return TCP{Swap(t.PortRangePair)} }
 
+
 func (t UDP) InverseDirection() Protocol { return nil }
 
-func (t ICMP) InverseDirection() Protocol { return ICMP{Code: t.Code, Type: t.Type} }
+func (t ICMP) InverseDirection() Protocol {
+	if t.Type == nil {
+		// Code should be nil anyway
+		return ICMP{Type: nil, Code: nil}
+	}
+
+	if invType := inverseICMPType(*t.Type); invType != undefinedICMP {
+		return ICMP{Type: &invType, Code: t.Code}
+	}
+	return nil
+}
 
 func (t AnyProtocol) InverseDirection() Protocol { return AnyProtocol{} }
 
