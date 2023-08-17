@@ -85,13 +85,18 @@ type packet struct {
 func allowDirectedConnection(src, dst string, protocol spec.ProtocolInfo, prefix string) []*acl.Rule {
 	inout := makeProtocol(protocol)
 	request := packet{src, dst, inout, prefix + ",request"}
-	response := packet{dst, src, inout.SwapSrcDstPortRange(), prefix + ",response"}
-	return []*acl.Rule{
+	result := []*acl.Rule{
 		allowSend(request),
 		allowReceive(request),
-		allowSend(response),
-		allowReceive(response),
 	}
+	if inverseProtocol := inout.InverseDirection(); inverseProtocol != nil {
+		response := packet{dst, src, inverseProtocol, prefix + ",response"}
+		result = append(result, []*acl.Rule{
+			allowSend(response),
+			allowReceive(response),
+		}...)
+	}
+	return result
 }
 
 func allowSend(packet packet) *acl.Rule {

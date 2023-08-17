@@ -49,23 +49,34 @@ type UDP struct {
 }
 
 type ICMP struct {
-	Code *int
 	Type *int
+	Code *int
 }
 
 type AnyProtocol struct{}
 
 type Protocol interface {
-	SwapSrcDstPortRange() Protocol
+	// InverseDirection returns the response expected for a request made using this protocol
+	InverseDirection() Protocol
 }
 
-func (t TCP) SwapSrcDstPortRange() Protocol { return TCP{Swap(t.PortRangePair)} }
+func (t TCP) InverseDirection() Protocol { return TCP{Swap(t.PortRangePair)} }
 
-func (t UDP) SwapSrcDstPortRange() Protocol { return UDP{Swap(t.PortRangePair)} }
+func (t UDP) InverseDirection() Protocol { return nil }
 
-func (t ICMP) SwapSrcDstPortRange() Protocol { return ICMP{Code: t.Code, Type: t.Type} }
+func (t ICMP) InverseDirection() Protocol {
+	if t.Type == nil {
+		// Code should be nil anyway
+		return ICMP{Type: nil, Code: nil}
+	}
 
-func (t AnyProtocol) SwapSrcDstPortRange() Protocol { return AnyProtocol{} }
+	if invType := inverseICMPType(*t.Type); invType != undefinedICMP {
+		return ICMP{Type: &invType, Code: t.Code}
+	}
+	return nil
+}
+
+func (t AnyProtocol) InverseDirection() Protocol { return AnyProtocol{} }
 
 type Rule struct {
 	Name        string
