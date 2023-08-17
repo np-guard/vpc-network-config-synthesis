@@ -127,7 +127,7 @@
                     "description": "Type of endpoint",
                     "enum": [
                         "external",
-                        "section",
+                        "segment",
                         "subnet",
                         "instance",
                         "nif",
@@ -142,11 +142,11 @@
     "type": "object",
     "additionalProperties": false,
     "properties": {
-        "sections": {
-            "description": "Sections are a way for users to create aggregations. These can later be used in src/dst fields",
+        "segments": {
+            "description": "Segments are a way for users to create aggregations. These can later be used in src/dst fields",
             "type": "object",
             "additionalProperties": {
-                "description": "A section is a named collection of resources of the same type (subnet, instance, or nif)",
+                "description": "A segment is a named collection of resources of the same type (subnet, instance, or nif)",
                 "type": "object",
                 "additionalProperties": false,
                 "required": [
@@ -155,7 +155,7 @@
                 ],
                 "properties": {
                     "type": {
-                        "description": "The type of the elements inside the section",
+                        "description": "The type of the elements inside the segment",
                         "enum": [
                             "subnet",
                             "instance",

@@ -34,7 +34,7 @@ const EndpointTypeCidr EndpointType = "cidr"
 const EndpointTypeExternal EndpointType = "external"
 const EndpointTypeInstance EndpointType = "instance"
 const EndpointTypeNif EndpointType = "nif"
-const EndpointTypeSection EndpointType = "section"
+const EndpointTypeSegment EndpointType = "segment"
 const EndpointTypeSubnet EndpointType = "subnet"
 const EndpointTypeVpe EndpointType = "vpe"
 
@@ -68,9 +68,9 @@ type Spec struct {
 	// A list of required connections
 	RequiredConnections []SpecRequiredConnectionsElem `json:"required-connections"`
 
-	// Sections are a way for users to create aggregations. These can later be used in
+	// Segments are a way for users to create aggregations. These can later be used in
 	// src/dst fields
-	Sections SpecSections `json:"sections,omitempty"`
+	Segments SpecSegments `json:"segments,omitempty"`
 
 	// Lightweight way to define subnets.
 	Subnets SpecSubnets `json:"subnets,omitempty"`
@@ -91,13 +91,13 @@ type SpecRequiredConnectionsElem struct {
 	Src *Endpoint `json:"src,omitempty"`
 }
 
-// Sections are a way for users to create aggregations. These can later be used in
+// Segments are a way for users to create aggregations. These can later be used in
 // src/dst fields
-type SpecSections map[string]struct {
+type SpecSegments map[string]struct {
 	// All items are of the type specified in the type property, identified by name
 	Items []string `json:"items"`
 
-	// The type of the elements inside the section
+	// The type of the elements inside the segment
 	Type Type `json:"type"`
 }
 
@@ -349,7 +349,7 @@ func (j *AnyProtocol) UnmarshalJSON(b []byte) error {
 
 var enumValues_EndpointType = []interface{}{
 	"external",
-	"section",
+	"segment",
 	"subnet",
 	"instance",
 	"nif",
