@@ -64,14 +64,15 @@ func makeDenyInternal() []*acl.Rule {
 		"172.16.0.0/12",
 		"192.168.0.0/16",
 	}
-	unknownIP := "0.0.0.0/0"
 	var denyInternal []*acl.Rule
-	for i, anyLocalIP := range localIPs {
-		prefix := fmt.Sprintf("%v", i)
-		denyInternal = append(denyInternal, []*acl.Rule{
-			packetRule(packet{anyLocalIP, unknownIP, acl.AnyProtocol{}, prefix}, acl.Outbound, acl.Deny),
-			packetRule(packet{unknownIP, anyLocalIP, acl.AnyProtocol{}, prefix}, acl.Inbound, acl.Deny),
-		}...)
+	for i, anyLocalIPSrc := range localIPs {
+		for j, anyLocalIPDst := range localIPs {
+			prefix := fmt.Sprintf("%vx%v", i, j)
+			denyInternal = append(denyInternal, []*acl.Rule{
+				packetRule(packet{anyLocalIPSrc, anyLocalIPDst, acl.AnyProtocol{}, prefix}, acl.Outbound, acl.Deny),
+				packetRule(packet{anyLocalIPDst, anyLocalIPSrc, acl.AnyProtocol{}, prefix}, acl.Inbound, acl.Deny),
+			}...)
+		}
 	}
 	return denyInternal
 }
