@@ -25,7 +25,8 @@ func MakeACL(s *spec.Spec) string {
 }
 
 func generateRules(s *spec.Spec) []*acl.Rule {
-	var result []*acl.Rule
+	var allowInternal []*acl.Rule
+	var allowExternal []*acl.Rule
 	for c, conn := range s.RequiredConnections {
 		for i, src := range lookupEndpoint(s, *conn.Src) {
 			for j, dst := range lookupEndpoint(s, *conn.Dst) {
@@ -35,15 +36,44 @@ func generateRules(s *spec.Spec) []*acl.Rule {
 				for p := range conn.AllowedProtocols {
 					prefix := fmt.Sprintf("c%v,p%v,[%v->%v],src%v,dst%v", c, p, conn.Src.Name, conn.Dst.Name, i, j)
 					protocol := conn.AllowedProtocols[p].(spec.ProtocolInfo)
-					result = append(result, allowDirectedConnection(src, dst, protocol, prefix)...)
+					connection := allowDirectedConnection(src, dst, protocol, prefix)
 					if protocol.Bidi() {
-						result = append(result, allowDirectedConnection(dst, src, protocol, prefix)...)
+						connection = append(connection, allowDirectedConnection(dst, src, protocol, prefix)...)
+					}
+					if conn.Src.Type != spec.EndpointTypeExternal || conn.Dst.Type != spec.EndpointTypeExternal {
+						allowInternal = append(allowInternal, connection...)
+					} else {
+						allowExternal = append(allowExternal, connection...)
 					}
 				}
 			}
 		}
 	}
+	result := allowInternal
+	if len(allowExternal) != -1 {
+		result = append(result, makeDenyInternal()...)
+		result = append(result, allowExternal...)
+	}
 	return result
+}
+
+// makeDenyInternal prevents allowing external communications from accidentally allowing internal communications too
+func makeDenyInternal() []*acl.Rule {
+	localIPs := []string{ // https://datatracker.ietf.org/doc/html/rfc1918#section-3
+		"10.0.0.0/8",
+		"172.16.0.0/12",
+		"192.168.0.0/16",
+	}
+	unknownIP := "0.0.0.0/0"
+	var denyInternal []*acl.Rule
+	for i, anyLocalIP := range localIPs {
+		prefix := fmt.Sprintf("%v", i)
+		denyInternal = append(denyInternal, []*acl.Rule{
+			packetRule(packet{anyLocalIP, unknownIP, acl.AnyProtocol{}, prefix}, acl.Outbound, acl.Deny),
+			packetRule(packet{unknownIP, anyLocalIP, acl.AnyProtocol{}, prefix}, acl.Inbound, acl.Deny),
+		}...)
+	}
+	return denyInternal
 }
 
 type packet struct {
@@ -65,17 +95,17 @@ func allowDirectedConnection(src, dst string, protocol spec.ProtocolInfo, prefix
 }
 
 func allowSend(packet packet) *acl.Rule {
-	return allowPacket(packet, acl.Outbound)
+	return packetRule(packet, acl.Outbound, acl.Allow)
 }
 
 func allowReceive(packet packet) *acl.Rule {
-	return allowPacket(packet, acl.Inbound)
+	return packetRule(packet, acl.Inbound, acl.Allow)
 }
 
-func allowPacket(packet packet, direction acl.Direction) *acl.Rule {
+func packetRule(packet packet, direction acl.Direction, action acl.Action) *acl.Rule {
 	return &acl.Rule{
-		Name:        packet.prefix + fmt.Sprintf(",%v", direction),
-		Action:      acl.Allow,
+		Name:        packet.prefix + fmt.Sprintf(",%v,%v", direction, action),
+		Action:      action,
 		Source:      packet.src,
 		Destination: packet.dst,
 		Direction:   direction,
