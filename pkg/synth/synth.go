@@ -40,7 +40,7 @@ func generateRules(s *spec.Spec) []*acl.Rule {
 					if protocol.Bidi() {
 						connection = append(connection, allowDirectedConnection(dst, src, protocol, prefix)...)
 					}
-					if conn.Src.Type != spec.EndpointTypeExternal || conn.Dst.Type != spec.EndpointTypeExternal {
+					if conn.Src.Type != spec.EndpointTypeExternal && conn.Dst.Type != spec.EndpointTypeExternal {
 						allowInternal = append(allowInternal, connection...)
 					} else {
 						allowExternal = append(allowExternal, connection...)
@@ -50,7 +50,7 @@ func generateRules(s *spec.Spec) []*acl.Rule {
 		}
 	}
 	result := allowInternal
-	if len(allowExternal) != -1 {
+	if len(allowExternal) != 0 {
 		result = append(result, makeDenyInternal()...)
 		result = append(result, allowExternal...)
 	}
