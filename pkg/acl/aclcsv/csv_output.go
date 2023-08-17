@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strconv"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/acl"
 )
@@ -22,6 +23,9 @@ func NewWriter(w io.Writer) *Writer {
 // Write prints an entire collection of acls as a single CSV table.
 // This is mostly useful when there is only a single acl.ACL item in the collection
 func (w *Writer) Write(collection acl.Collection) error {
+	if err := w.w.Write(header()); err != nil {
+		return err
+	}
 	for _, item := range collection.Items {
 		if err := w.w.WriteAll(makeTable(item)); err != nil {
 			return err
@@ -35,7 +39,7 @@ const allPorts = "All"
 func makeTable(t *acl.ACL) [][]string {
 	rows := make([][]string, len(t.Rules))
 	for i, rule := range t.Rules {
-		rows[i] = makeRow(rule)
+		rows[i] = makeRow(i+1, rule)
 	}
 	return rows
 }
@@ -52,38 +56,24 @@ func port(p acl.PortRange) string {
 }
 
 func action(a acl.Action) string {
-	switch a {
-	case acl.Allow:
-		return "allow"
-	case acl.Deny:
-		return "deny"
-	}
-	log.Fatalf("Impossible action %q", a)
-	return ""
+	return string(a)
 }
 
 func direction(d acl.Direction) string {
-	switch d {
-	case acl.Outbound:
-		return "outbound"
-	case acl.Inbound:
-		return "inbound"
-	}
-	log.Fatalf("Impossible direction %q", d)
-	return ""
+	return string(d)
 }
 
-func printPortRange(protocol acl.Protocol, d acl.Direction) string {
+func printPortRange(protocol acl.Protocol, isSrcPort bool) string {
 	switch p := protocol.(type) {
 	case acl.ICMP:
 		return "-"
 	case acl.UDP:
-		if d == acl.Outbound {
+		if isSrcPort {
 			return port(p.SrcPort)
 		}
 		return port(p.DstPort)
 	case acl.TCP:
-		if d == acl.Outbound {
+		if isSrcPort {
 			return port(p.SrcPort)
 		}
 		return port(p.DstPort)
@@ -95,13 +85,28 @@ func printPortRange(protocol acl.Protocol, d acl.Direction) string {
 	return ""
 }
 
-func makeRow(rule *acl.Rule) []string {
+func header() []string {
 	return []string{
+		"#",
+		"direction",
+		"action",
+		"source",
+		"source port",
+		"destination",
+		"destination port",
+		"protocol",
+	}
+}
+
+func makeRow(i int, rule *acl.Rule) []string {
+	return []string{
+		strconv.Itoa(i),
 		direction(rule.Direction),
 		action(rule.Action),
 		rule.Source,
+		printPortRange(rule.Protocol, true),
 		rule.Destination,
+		printPortRange(rule.Protocol, false),
 		rule.Protocol.Name(),
-		printPortRange(rule.Protocol, rule.Direction),
 	}
 }

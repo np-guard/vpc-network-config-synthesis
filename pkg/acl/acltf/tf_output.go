@@ -5,7 +5,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"log"
 	"strconv"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/acl"
@@ -76,25 +75,11 @@ func quote(s string) string {
 }
 
 func action(a acl.Action) string {
-	switch a {
-	case acl.Allow:
-		return "allow"
-	case acl.Deny:
-		return "deny"
-	}
-	log.Fatalf("Impossible action %q", a)
-	return ""
+	return string(a)
 }
 
 func direction(d acl.Direction) string {
-	switch d {
-	case acl.Outbound:
-		return "outbound"
-	case acl.Inbound:
-		return "inbound"
-	}
-	log.Fatalf("Impossible direction %q", d)
-	return ""
+	return string(d)
 }
 
 func rule(t *acl.Rule) tf.Block {
