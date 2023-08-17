@@ -136,11 +136,7 @@
                     ]
                 }
             },
-            "required": ["name", "type"],
-            "default": {
-                "name": "0.0.0.0/0",
-                "type": "cidr"
-            }
+            "required": ["name", "type"]
         }
     },
     "type": "object",
