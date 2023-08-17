@@ -28,7 +28,9 @@ func generateRules(s *spec.Spec) []*acl.Rule {
 	var allowInternal []*acl.Rule
 	var allowExternal []*acl.Rule
 	for c, conn := range s.RequiredConnections {
+		internalSrc := conn.Src.Type != spec.EndpointTypeExternal
 		for i, src := range lookupEndpoint(s, *conn.Src) {
+			internalDst := conn.Dst.Type != spec.EndpointTypeExternal
 			for j, dst := range lookupEndpoint(s, *conn.Dst) {
 				if src == dst {
 					continue
@@ -36,11 +38,13 @@ func generateRules(s *spec.Spec) []*acl.Rule {
 				for p := range conn.AllowedProtocols {
 					prefix := fmt.Sprintf("c%v,p%v,[%v->%v],src%v,dst%v", c, p, conn.Src.Name, conn.Dst.Name, i, j)
 					protocol := conn.AllowedProtocols[p].(spec.ProtocolInfo)
-					connection := allowDirectedConnection(src, dst, protocol, prefix)
+
+					connection := allowDirectedConnection(src, dst, internalSrc, internalDst, protocol, prefix)
 					if protocol.Bidi() {
-						connection = append(connection, allowDirectedConnection(dst, src, protocol, prefix)...)
+						connection = append(connection, allowDirectedConnection(dst, src, internalDst, internalSrc, protocol, prefix)...)
 					}
-					if conn.Src.Type != spec.EndpointTypeExternal && conn.Dst.Type != spec.EndpointTypeExternal {
+
+					if internalSrc && internalDst {
 						allowInternal = append(allowInternal, connection...)
 					} else {
 						allowExternal = append(allowExternal, connection...)
@@ -83,21 +87,28 @@ type packet struct {
 	prefix   string
 }
 
-func allowDirectedConnection(src, dst string, protocol spec.ProtocolInfo, prefix string) []*acl.Rule {
+func allowDirectedConnection(src, dst string, internalSrc, internalDst bool, protocol spec.ProtocolInfo, prefix string) []*acl.Rule {
 	inout := makeProtocol(protocol)
-	request := packet{src, dst, inout, prefix + ",request"}
-	result := []*acl.Rule{
-		allowSend(request),
-		allowReceive(request),
-	}
+	var request, response *packet
+	request = &packet{src, dst, inout, prefix + ",request"}
 	if inverseProtocol := inout.InverseDirection(); inverseProtocol != nil {
-		response := packet{dst, src, inverseProtocol, prefix + ",response"}
-		result = append(result, []*acl.Rule{
-			allowSend(response),
-			allowReceive(response),
-		}...)
+		response = &packet{dst, src, inverseProtocol, prefix + ",response"}
 	}
-	return result
+
+	var connection []*acl.Rule
+	if internalSrc {
+		connection = append(connection, allowReceive(*request))
+		if response != nil {
+			connection = append(connection, allowSend(*response))
+		}
+	}
+	if internalDst {
+		connection = append(connection, allowSend(*request))
+		if response != nil {
+			connection = append(connection, allowReceive(*response))
+		}
+	}
+	return connection
 }
 
 func allowSend(packet packet) *acl.Rule {
