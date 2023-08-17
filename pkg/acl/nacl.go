@@ -62,7 +62,7 @@ type Protocol interface {
 
 func (t TCP) InverseDirection() Protocol { return TCP{Swap(t.PortRangePair)} }
 
-func (t UDP) InverseDirection() Protocol { return UDP{Swap(t.PortRangePair)} }
+func (t UDP) InverseDirection() Protocol { return nil }
 
 func (t ICMP) InverseDirection() Protocol {
 	if t.Type == nil {
