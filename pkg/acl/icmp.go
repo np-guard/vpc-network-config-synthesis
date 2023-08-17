@@ -1,6 +1,10 @@
 package acl
 
-import "log"
+import (
+	"fmt"
+	"log"
+	"slices"
+)
 
 // Based on https://datatracker.ietf.org/doc/html/rfc792
 
@@ -45,4 +49,29 @@ func inverseICMPType(t int) int {
 		log.Fatalf("Impossible ICMP type: %v", t)
 	}
 	return undefinedICMP
+}
+
+//nolint:revive // magic numbers are fine here
+func ValidateICMP(t, c int) error {
+	possibleCodes := map[int][]int{
+		echoReply:              {0},
+		destinationUnreachable: {0, 1, 2, 3, 4, 5},
+		sourceQuench:           {0},
+		redirect:               {0, 1, 2, 3},
+		echo:                   {0},
+		timeExceeded:           {0, 1},
+		parameterProblem:       {0},
+		timestamp:              {13, 14},
+		timestampReply:         {13, 14},
+		informationRequest:     {15, 16},
+		informationReply:       {15, 16},
+	}
+	options, ok := possibleCodes[t]
+	if !ok {
+		return fmt.Errorf("invalid ICMP type %v", t)
+	}
+	if !slices.Contains(options, c) {
+		return fmt.Errorf("ICMP code %v is invalid for ICMP type %v", c, t)
+	}
+	return nil
 }

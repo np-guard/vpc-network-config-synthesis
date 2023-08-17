@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/acl"
 )
 
 // Unmarshal returns a Spec struct given a file adhering to spec_schema.input
@@ -81,9 +83,21 @@ func fixProtocolList(list ProtocolList) error {
 		case "UDP":
 			list[j], err = unmarshalProtocol(p, new(TcpUdp))
 		case "ICMP":
-			list[j], err = unmarshalProtocol(p, new(Icmp))
+			var icmp *Icmp
+			icmp, err = unmarshalProtocol(p, new(Icmp))
+			if err != nil {
+				return err
+			}
+			err = validateICMP(icmp)
+			if err != nil {
+				return err
+			}
+			list[j] = icmp
 		case "ANY":
 			list[j], err = unmarshalProtocol(p, new(AnyProtocol))
+			if err != nil {
+				return err
+			}
 			if len(list) != 1 {
 				err = errors.New("redundant protocol declaration")
 			}
@@ -95,6 +109,16 @@ func fixProtocolList(list ProtocolList) error {
 		}
 	}
 	return nil
+}
+
+func validateICMP(icmp *Icmp) error {
+	if icmp.Type == nil {
+		if icmp.Code != nil {
+			return errors.New("cannot define ICMP code for unknown ICMP type")
+		}
+		return nil
+	}
+	return acl.ValidateICMP(*icmp.Type, *icmp.Code)
 }
 
 func unmarshalProtocol[T json.Unmarshaler](p map[string]interface{}, result T) (T, error) {
