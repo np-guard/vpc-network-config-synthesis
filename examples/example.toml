@@ -1,0 +1,48 @@
+# Create new table; note the "define" table is created implicitly.
+
+[define.segments]
+    edge = [
+        "edge-subnet-1",
+        "edge-subnet-2",
+        "edge-subnet-3"
+    ]
+    private = [
+        "private-subnet-1",
+        "private-subnet-2",
+        "private-subnet-3"
+    ]
+
+[define.external]
+    "google.com" = '10.0.0.1'
+    "on-prem" = "192.0.0.0/16"
+    "weather.com" = "104.106.98.205"
+
+# Start a new table array; note that the "connection" table is created implicitly.
+[[connection]]
+    src.name = "private"
+    src.type = "section"
+    dst.name = "private"
+    dst.type = "section"
+    bidirectional = false
+
+    [[connection.tcp]]
+    min_dst_port = 443
+    max_dst_port = 443
+
+    [[connection.udp]]
+    min_dst_port = 80
+    max_dst_port = 80
+
+[[connection]]
+    src.name = "edge"
+    src.type = "section"
+    dst = {name = "google.com", type = "external"}
+    bidirectional = false
+
+    [[connection.tcp]]
+    min_dst_port = 23
+    max_dst_port = 145
+
+    [[connection.icmp]]
+    type = 5
+    code = 0
