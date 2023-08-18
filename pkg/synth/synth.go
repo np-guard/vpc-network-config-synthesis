@@ -97,15 +97,15 @@ func allowDirectedConnection(src, dst string, internalSrc, internalDst bool, pro
 
 	var connection []*acl.Rule
 	if internalSrc {
-		connection = append(connection, allowReceive(*request))
-		if response != nil {
-			connection = append(connection, allowSend(*response))
-		}
-	}
-	if internalDst {
 		connection = append(connection, allowSend(*request))
 		if response != nil {
 			connection = append(connection, allowReceive(*response))
+		}
+	}
+	if internalDst {
+		connection = append(connection, allowReceive(*request))
+		if response != nil {
+			connection = append(connection, allowSend(*response))
 		}
 	}
 	return connection
