@@ -9,9 +9,6 @@ import (
 )
 
 type AnyProtocol struct {
-	// If true, allow both connections from src to dst and connections from dst to src
-	Bidirectional bool `json:"bidirectional,omitempty"`
-
 	// Necessarily ANY
 	Protocol AnyProtocolProtocol `json:"protocol"`
 }
@@ -39,9 +36,6 @@ const EndpointTypeSubnet EndpointType = "subnet"
 const EndpointTypeVpe EndpointType = "vpe"
 
 type Icmp struct {
-	// If true, allow both connections from src to dst and connections from dst to src
-	Bidirectional bool `json:"bidirectional,omitempty"`
-
 	// ICMP code allowed. If omitted, any code is allowed
 	Code *int `json:"code,omitempty"`
 
@@ -84,6 +78,9 @@ type SpecRequiredConnectionsElem struct {
 	// List of allowed protocols
 	AllowedProtocols ProtocolList `json:"allowed-protocols,omitempty"`
 
+	// If true, allow both connections from src to dst and connections from dst to src
+	Bidirectional bool `json:"bidirectional,omitempty"`
+
 	// In unidirectional connection, this is the ingress endpoint
 	Dst *Endpoint `json:"dst,omitempty"`
 
@@ -105,9 +102,6 @@ type SpecSegments map[string]struct {
 type SpecSubnets map[string]string
 
 type TcpUdp struct {
-	// If true, allow both connections from src to dst and connections from dst to src
-	Bidirectional bool `json:"bidirectional,omitempty"`
-
 	// Maximal destination port; default is 65535
 	MaxDestinationPort int `json:"max_destination_port,omitempty"`
 
@@ -127,46 +121,50 @@ type TcpUdp struct {
 type TcpUdpProtocol string
 
 const TcpUdpProtocolTCP TcpUdpProtocol = "TCP"
-const TcpUdpProtocolUDP TcpUdpProtocol = "UDP"
-
-type Type string
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *Spec) UnmarshalJSON(b []byte) error {
+func (j *SpecRequiredConnectionsElem) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-	if v, ok := raw["required-connections"]; !ok || v == nil {
-		return fmt.Errorf("field required-connections in Spec: required")
-	}
-	type Plain Spec
+	type Plain SpecRequiredConnectionsElem
 	var plain Plain
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
 	}
-	*j = Spec(plain)
+	if v, ok := raw["bidirectional"]; !ok || v == nil {
+		plain.Bidirectional = false
+	}
+	*j = SpecRequiredConnectionsElem(plain)
 	return nil
 }
 
+var enumValues_AnyProtocolProtocol = []interface{}{
+	"ANY",
+}
+var enumValues_TcpUdpProtocol = []interface{}{
+	"TCP",
+	"UDP",
+}
+
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *Endpoint) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
+func (j *TcpUdpProtocol) UnmarshalJSON(b []byte) error {
+	var v string
+	if err := json.Unmarshal(b, &v); err != nil {
 		return err
 	}
-	if v, ok := raw["name"]; !ok || v == nil {
-		return fmt.Errorf("field name in Endpoint: required")
+	var ok bool
+	for _, expected := range enumValues_TcpUdpProtocol {
+		if reflect.DeepEqual(v, expected) {
+			ok = true
+			break
+		}
 	}
-	if v, ok := raw["type"]; !ok || v == nil {
-		return fmt.Errorf("field type in Endpoint: required")
+	if !ok {
+		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_TcpUdpProtocol, v)
 	}
-	type Plain Endpoint
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	*j = Endpoint(plain)
+	*j = TcpUdpProtocol(v)
 	return nil
 }
 
@@ -190,9 +188,7 @@ func (j *EndpointType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-var enumValues_AnyProtocolProtocol = []interface{}{
-	"ANY",
-}
+const TcpUdpProtocolUDP TcpUdpProtocol = "UDP"
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *IcmpProtocol) UnmarshalJSON(b []byte) error {
@@ -228,9 +224,6 @@ func (j *TcpUdp) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
 	}
-	if v, ok := raw["bidirectional"]; !ok || v == nil {
-		plain.Bidirectional = false
-	}
 	if v, ok := raw["max_destination_port"]; !ok || v == nil {
 		plain.MaxDestinationPort = 65535.0
 	}
@@ -252,28 +245,50 @@ var enumValues_IcmpProtocol = []interface{}{
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *TcpUdpProtocol) UnmarshalJSON(b []byte) error {
-	var v string
-	if err := json.Unmarshal(b, &v); err != nil {
+func (j *Endpoint) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-	var ok bool
-	for _, expected := range enumValues_TcpUdpProtocol {
-		if reflect.DeepEqual(v, expected) {
-			ok = true
-			break
-		}
+	if v, ok := raw["name"]; !ok || v == nil {
+		return fmt.Errorf("field name in Endpoint: required")
 	}
-	if !ok {
-		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_TcpUdpProtocol, v)
+	if v, ok := raw["type"]; !ok || v == nil {
+		return fmt.Errorf("field type in Endpoint: required")
 	}
-	*j = TcpUdpProtocol(v)
+	type Plain Endpoint
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = Endpoint(plain)
 	return nil
 }
 
-var enumValues_TcpUdpProtocol = []interface{}{
-	"TCP",
-	"UDP",
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *Icmp) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if v, ok := raw["protocol"]; !ok || v == nil {
+		return fmt.Errorf("field protocol in Icmp: required")
+	}
+	type Plain Icmp
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = Icmp(plain)
+	return nil
+}
+
+type Type string
+
+var enumValues_Type = []interface{}{
+	"subnet",
+	"instance",
+	"nif",
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -294,12 +309,6 @@ func (j *Type) UnmarshalJSON(b []byte) error {
 	}
 	*j = Type(v)
 	return nil
-}
-
-var enumValues_Type = []interface{}{
-	"subnet",
-	"instance",
-	"nif",
 }
 
 const TypeSubnet Type = "subnet"
@@ -340,9 +349,6 @@ func (j *AnyProtocol) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
 	}
-	if v, ok := raw["bidirectional"]; !ok || v == nil {
-		plain.Bidirectional = false
-	}
 	*j = AnyProtocol(plain)
 	return nil
 }
@@ -358,22 +364,19 @@ var enumValues_EndpointType = []interface{}{
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *Icmp) UnmarshalJSON(b []byte) error {
+func (j *Spec) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-	if v, ok := raw["protocol"]; !ok || v == nil {
-		return fmt.Errorf("field protocol in Icmp: required")
+	if v, ok := raw["required-connections"]; !ok || v == nil {
+		return fmt.Errorf("field required-connections in Spec: required")
 	}
-	type Plain Icmp
+	type Plain Spec
 	var plain Plain
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
 	}
-	if v, ok := raw["bidirectional"]; !ok || v == nil {
-		plain.Bidirectional = false
-	}
-	*j = Icmp(plain)
+	*j = Spec(plain)
 	return nil
 }

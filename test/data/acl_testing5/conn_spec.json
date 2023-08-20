@@ -65,10 +65,10 @@
                 "name": "sub1-2-ky",
                 "type": "subnet"
             },
+            "bidirectional": true,
             "allowed-protocols": [
                 {
-                    "protocol": "TCP",
-                    "bidirectional": true
+                    "protocol": "TCP"
                 }
             ]
         },
@@ -81,10 +81,10 @@
                 "name": "sub1-3-ky",
                 "type": "subnet"
             },
+            "bidirectional": true,
             "allowed-protocols": [
                 {
-                    "protocol": "TCP",
-                    "bidirectional": true
+                    "protocol": "TCP"
                 }
             ]
         },
@@ -97,10 +97,10 @@
                 "name": "sub1-3-ky",
                 "type": "subnet"
             },
+            "bidirectional": true,
             "allowed-protocols": [
                 {
-                    "protocol": "TCP",
-                    "bidirectional": true
+                    "protocol": "TCP"
                 }
             ]
         },
@@ -113,10 +113,10 @@
                 "name": "sub2-2-ky",
                 "type": "subnet"
             },
+            "bidirectional": true,
             "allowed-protocols": [
                 {
-                    "protocol": "ANY",
-                    "bidirectional": true
+                    "protocol": "ANY"
                 }
             ]
         },

@@ -11,11 +11,6 @@
                     "enum": [
                         "ANY"
                     ]
-                },
-                "bidirectional": {
-                    "description": "If true, allow both connections from src to dst and connections from dst to src",
-                    "type": "boolean",
-                    "default": false
                 }
             },
             "required": ["protocol"]
@@ -57,11 +52,6 @@
                     "minimum": 1,
                     "maximum": 65535,
                     "default": 65535
-                },
-                "bidirectional": {
-                    "description": "If true, allow both connections from src to dst and connections from dst to src",
-                    "type": "boolean",
-                    "default": false
                 }
             },
             "required": ["protocol"]
@@ -86,11 +76,6 @@
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 5
-                },
-                "bidirectional": {
-                    "description": "If true, allow both connections from src to dst and connections from dst to src",
-                    "type": "boolean",
-                    "default": false
                 }
             },
             "required": ["protocol"]
@@ -202,6 +187,11 @@
                     "dst": {
                         "description": "In unidirectional connection, this is the ingress endpoint",
                         "$ref": "#/$defs/endpoint"
+                    },
+                    "bidirectional": {
+                        "description": "If true, allow both connections from src to dst and connections from dst to src",
+                        "type": "boolean",
+                        "default": false
                     },
                     "allowed-protocols": {
                         "description": "List of allowed protocols",
