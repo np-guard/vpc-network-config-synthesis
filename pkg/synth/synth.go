@@ -168,14 +168,14 @@ func lookupEndpoint(s *spec.Spec, endpoint spec.Endpoint) []string {
 			return []string{ip}
 		}
 		return []string{fmt.Sprintf("<Unknown subnet %v>", name)}
-	case spec.EndpointTypeSection:
-		if section, ok := s.Sections[endpoint.Name]; ok {
-			if section.Type != spec.TypeSubnet {
-				return []string{fmt.Sprintf("<Unsupported section item type %v (%v)>", section.Type, endpoint.Name)}
+	case spec.EndpointTypeSegment:
+		if segment, ok := s.Segments[endpoint.Name]; ok {
+			if segment.Type != spec.TypeSubnet {
+				return []string{fmt.Sprintf("<Unsupported segment item type %v (%v)>", segment.Type, endpoint.Name)}
 			}
-			t := spec.EndpointType(section.Type)
+			t := spec.EndpointType(segment.Type)
 			var ips []string
-			for _, subnetName := range section.Items {
+			for _, subnetName := range segment.Items {
 				subnet := spec.Endpoint{Name: subnetName, Type: t}
 				ips = append(ips, lookupEndpoint(s, subnet)...)
 			}
