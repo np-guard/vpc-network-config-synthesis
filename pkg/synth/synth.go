@@ -37,10 +37,10 @@ func generateRules(s *spec.Spec) []*acl.Rule {
 				}
 				for p := range conn.AllowedProtocols {
 					prefix := fmt.Sprintf("c%v,p%v,[%v->%v],src%v,dst%v", c, p, conn.Src.Name, conn.Dst.Name, i, j)
-					protocol := conn.AllowedProtocols[p].(spec.ProtocolInfo)
+					protocol := makeProtocol(conn.AllowedProtocols[p])
 
 					connection := allowDirectedConnection(src, dst, internalSrc, internalDst, protocol, prefix)
-					if protocol.Bidi() {
+					if conn.Bidirectional {
 						connection = append(connection, allowDirectedConnection(dst, src, internalDst, internalSrc, protocol, prefix)...)
 					}
 
@@ -87,11 +87,10 @@ type packet struct {
 	prefix   string
 }
 
-func allowDirectedConnection(src, dst string, internalSrc, internalDst bool, protocol spec.ProtocolInfo, prefix string) []*acl.Rule {
-	inout := makeProtocol(protocol)
+func allowDirectedConnection(src, dst string, internalSrc, internalDst bool, protocol acl.Protocol, prefix string) []*acl.Rule {
 	var request, response *packet
-	request = &packet{src, dst, inout, prefix + ",request"}
-	if inverseProtocol := inout.InverseDirection(); inverseProtocol != nil {
+	request = &packet{src, dst, protocol, prefix + ",request"}
+	if inverseProtocol := protocol.InverseDirection(); inverseProtocol != nil {
 		response = &packet{dst, src, inverseProtocol, prefix + ",response"}
 	}
 

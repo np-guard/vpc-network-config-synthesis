@@ -79,13 +79,11 @@ func TestTcpUdp_UnmarshalJSON(t *testing.T) {
 		{`{"protocol": "TCP"}`,
 			&TcpUdp{Protocol: "TCP",
 				MinDestinationPort: minPort, MaxDestinationPort: maxPort,
-				MinSourcePort: minPort, MaxSourcePort: maxPort,
-				Bidirectional: false}},
-		{`{"protocol": "UDP", "min_destination_port": 433, "max_destination_port": 433, "bidirectional": true}`,
+				MinSourcePort: minPort, MaxSourcePort: maxPort}},
+		{`{"protocol": "UDP", "min_destination_port": 433, "max_destination_port": 433}`,
 			&TcpUdp{Protocol: "UDP",
 				MinDestinationPort: 433, MaxDestinationPort: 433,
-				MinSourcePort: minPort, MaxSourcePort: maxPort,
-				Bidirectional: true}},
+				MinSourcePort: minPort, MaxSourcePort: maxPort}},
 	}
 	for _, test := range table {
 		actual := new(TcpUdp)
@@ -102,9 +100,9 @@ func TestTcpUdp_UnmarshalJSON(t *testing.T) {
 func TestIcmp_UnmarshalJSON(t *testing.T) {
 	table := []TestItem[*Icmp]{
 		{`{"protocol": "ICMP"}`,
-			&Icmp{Protocol: "ICMP", Code: nil, Type: nil, Bidirectional: false}},
-		{`{"protocol": "ICMP", "code": 0, "type": 1, "bidirectional": true}`,
-			&Icmp{Protocol: "ICMP", Code: ptr(0), Type: ptr(1), Bidirectional: true}},
+			&Icmp{Protocol: "ICMP", Code: nil, Type: nil}},
+		{`{"protocol": "ICMP", "code": 0, "type": 1}`,
+			&Icmp{Protocol: "ICMP", Code: ptr(0), Type: ptr(1)}},
 	}
 	for _, test := range table {
 		actual := new(Icmp)
@@ -274,7 +272,12 @@ func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 				}
 			}
 		}
-
+		{
+			ctx, jsonBidirectional := enter[bool]("bidirectional", ctx, jsonConn)
+			if conn.Bidirectional != jsonBidirectional {
+				t.Fatalf(`%v: %t != %t`, ctx, conn.Bidirectional, jsonBidirectional)
+			}
+		}
 		{
 			ctx, jsonConnAllowedProtocols := enter[[]interface{}]("allowed-protocols", ctx, jsonConn)
 			if len(conn.AllowedProtocols) != len(jsonConnAllowedProtocols) {
@@ -302,12 +305,6 @@ func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 							t.Fatalf(`%v: %v != %v`, ctx, p.MaxDestinationPort, jsonProtocolPort)
 						}
 					}
-					{
-						ctx, jsonBidirectional := enter[bool]("bidirectional", ctx, jsonProtocol)
-						if p.Bidirectional != jsonBidirectional {
-							t.Fatalf(`%v: %t != %t`, ctx, p.Bidirectional, jsonBidirectional)
-						}
-					}
 				case *Icmp:
 					{
 						ctx, jsonProtocolName := enter[string]("protocol", ctx, jsonProtocol)
@@ -325,12 +322,6 @@ func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 						ctx, jsonProtocolCode := enter[*int]("code", ctx, jsonProtocol)
 						if p.Code != jsonProtocolCode {
 							t.Fatalf(`%v: %v != %v`, ctx, p.Code, jsonProtocolCode)
-						}
-					}
-					{
-						ctx, jsonBidirectional := enter[bool]("bidirectional", ctx, jsonProtocol)
-						if p.Bidirectional != jsonBidirectional {
-							t.Fatalf(`%v: %t != %t`, ctx, p.Bidirectional, jsonBidirectional)
 						}
 					}
 				case *AnyProtocol:
