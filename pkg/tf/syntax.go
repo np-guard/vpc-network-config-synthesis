@@ -25,17 +25,7 @@ type ConfigFile struct {
 	Resources []Block
 }
 
-type Blockable interface {
-	Terraform() Block
-}
-
-func Blocks[T Blockable](items []T) []Block {
-	result := make([]Block, len(items))
-	for i := range items {
-		result[i] = items[i].Terraform()
-	}
-	return result
-}
+const indentation = "  "
 
 func (b *Block) print(indent string) string {
 	result := ""
@@ -45,7 +35,7 @@ func (b *Block) print(indent string) string {
 	}
 	result += " {\n"
 	{
-		indent := indent + "  " //nolint:govet  // intentionally shadow
+		indent := indent + indentation //nolint:govet  // intentionally shadow
 		for _, keyValue := range b.Arguments {
 			result += indent + fmt.Sprintf("%v = %v\n", keyValue.Name, keyValue.Value)
 		}
