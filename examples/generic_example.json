@@ -41,9 +41,9 @@
             },
             "allowed-protocols": [
                 {
-                    "protocol": "TCP",
-                    "min_destination_port": 443,
-                    "max_destination_port": 443,
+                    "protocol": "UDP",
+                    "min_destination_port": 80,
+                    "max_destination_port": 80,
                     "bidirectional": true
                 }
             ]
@@ -63,24 +63,6 @@
                     "min_destination_port": 443,
                     "max_destination_port": 443,
                     "bidirectional": false
-                }
-            ]
-        },
-        {
-            "src": {
-                "name": "my-proxy",
-                "type": "nif"
-            },
-            "dst": {
-                "name": "weather.com",
-                "type": "external"
-            },
-            "allowed-protocols": [
-                {
-                    "protocol": "TCP",
-                    "min_destination_port": 443,
-                    "max_destination_port": 443,
-                    "bidirectional": true
                 }
             ]
         }

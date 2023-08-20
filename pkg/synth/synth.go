@@ -10,7 +10,7 @@ import (
 )
 
 // MakeACL translates Spec to a collection of ACLs
-func MakeACL(s *spec.Spec) string {
+func MakeACL(s *spec.Spec) acl.Collection {
 	result := acl.Collection{
 		Items: []*acl.ACL{
 			{
@@ -21,7 +21,7 @@ func MakeACL(s *spec.Spec) string {
 			},
 		},
 	}
-	return result.Print()
+	return result
 }
 
 func generateRules(s *spec.Spec) []*acl.Rule {
