@@ -4,72 +4,55 @@ VpcGen reads specification files adhering to spec_schema.json and generates netw
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/acl/aclcsv"
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/acl/acltf"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/csvio"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/jsonio"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/tfio"
 
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/acl"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/spec"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/synth"
 )
 
 // Output formats
 const (
-	tfFormat  = "tf"
-	csvFormat = "csv"
+	tfOutputFormat  = "tf"
+	csvOutputFormat = "csv"
 )
 
-func readSubnetMap(filename string) (map[string]string, error) {
-	bytes, err := os.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-	config := map[string][]map[string]interface{}{}
-	err = json.Unmarshal(bytes, &config)
-	if err != nil {
-		return nil, err
-	}
-	subnetMap := make(map[string]string)
-	for _, subnet := range config["subnets"] {
-		subnetMap[subnet["name"].(string)] = subnet["ipv4_cidr_block"].(string)
-	}
-	return subnetMap, nil
-}
+// Input formats
+const (
+	jsonInputFormat = "json"
+)
 
-func pickWriter(format string) (acl.Writer, error) {
+func pickWriter(format string) (spec.Writer, error) {
 	switch format {
-	case tfFormat:
-		return acltf.NewWriter(os.Stdout), nil
-	case csvFormat:
-		return aclcsv.NewWriter(os.Stdout), nil
+	case tfOutputFormat:
+		return tfio.NewWriter(os.Stdout), nil
+	case csvOutputFormat:
+		return csvio.NewWriter(os.Stdout), nil
 	default:
-		return nil, fmt.Errorf("bad format: %q", format)
+		return nil, fmt.Errorf("bad output format: %q", format)
 	}
 }
 
-func setSubnets(configFilename string, s *spec.Spec) error {
-	if configFilename != "" {
-		subnetMap, err := readSubnetMap(configFilename)
-		if err != nil {
-			return fmt.Errorf("could not parse config file %v: %w", configFilename, err)
-		}
-		err = s.SetSubnets(subnetMap)
-		if err != nil {
-			return fmt.Errorf("bad subnets: %w", err)
-		}
+func pickReader(format string) (spec.Reader, error) {
+	switch format {
+	case jsonInputFormat:
+		return jsonio.NewReader(), nil
+	default:
+		return nil, fmt.Errorf("bad input format: %q", format)
 	}
-	return nil
 }
 
 func main() {
 	connectivityFilename := flag.String("spec", "", "JSON file containing connectivity spec")
 	configFilename := flag.String("config", "", "JSON file containing config spec")
-	outputFormat := flag.String("fmt", tfFormat, fmt.Sprintf("Output format. One of %q, %q", tfFormat, csvFormat))
+	outputFormat := flag.String("fmt", tfOutputFormat, fmt.Sprintf("Output format. One of %q, %q", tfOutputFormat, csvOutputFormat))
+	inputFormat := flag.String("inputfmt", jsonInputFormat, fmt.Sprintf("Output format. Must be %q", jsonInputFormat))
 	flag.Parse()
 
 	writer, err := pickWriter(*outputFormat)
@@ -77,13 +60,22 @@ func main() {
 		log.Fatal(err)
 	}
 
-	s, err := spec.Unmarshal(*connectivityFilename)
+	reader, err := pickReader(*inputFormat)
 	if err != nil {
-		log.Fatalf("Could not parse connectivity file %s: %s", *connectivityFilename, err)
+		log.Fatal(err)
 	}
 
-	if err := setSubnets(*configFilename, s); err != nil {
-		log.Fatal(err)
+	var subnets map[string]string
+	if *configFilename != "" {
+		subnets, err = jsonio.ReadSubnetMap(*configFilename)
+		if err != nil {
+			log.Fatalf("could not parse config file %v: %v", *configFilename, err)
+		}
+	}
+
+	s, err := reader.ReadSpec(*connectivityFilename, subnets)
+	if err != nil {
+		log.Fatalf("Could not parse connectivity file %s: %s", *connectivityFilename, err)
 	}
 
 	finalACL := synth.MakeACL(s)

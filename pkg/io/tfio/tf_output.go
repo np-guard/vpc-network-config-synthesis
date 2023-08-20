@@ -1,17 +1,18 @@
-// Package acltf implements output of ACLs in terraform format
-package acltf
+// Package tfio implements output of ACLs in terraform format
+package tfio
 
 import (
 	"bufio"
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/acl"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/spec"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/tf"
 )
 
-// Writer implements acl.Writer
+// Writer implements spec.Writer
 type Writer struct {
 	w *bufio.Writer
 }
@@ -21,23 +22,28 @@ func NewWriter(w io.Writer) *Writer {
 }
 
 // Write prints an entire collection of acls as a sequence of terraform resources.
-func (w *Writer) Write(c acl.Collection) error {
-	_, err := w.w.WriteString(collection(c).Print())
+func (w *Writer) Write(c spec.Collection) error {
+	output := collection(c).Print()
+	_, err := w.w.WriteString(output)
+	if err != nil {
+		return err
+	}
+	err = w.w.Flush()
 	return err
 }
 
-func portRangePair(t acl.PortRangePair, name string) tf.Block {
+func portRangePair(t spec.PortRangePair, name string) tf.Block {
 	var arguments []tf.Argument
-	if t.DstPort.Min != acl.DefaultMinPort {
+	if t.DstPort.Min != spec.DefaultMinPort {
 		arguments = append(arguments, tf.Argument{Name: "port_min", Value: strconv.Itoa(t.DstPort.Min)})
 	}
-	if t.DstPort.Max != acl.DefaultMaxPort {
+	if t.DstPort.Max != spec.DefaultMaxPort {
 		arguments = append(arguments, tf.Argument{Name: "port_max", Value: strconv.Itoa(t.DstPort.Max)})
 	}
-	if t.SrcPort.Min != acl.DefaultMinPort {
+	if t.SrcPort.Min != spec.DefaultMinPort {
 		arguments = append(arguments, tf.Argument{Name: "source_port_min", Value: strconv.Itoa(t.SrcPort.Min)})
 	}
-	if t.SrcPort.Max != acl.DefaultMaxPort {
+	if t.SrcPort.Max != spec.DefaultMaxPort {
 		arguments = append(arguments, tf.Argument{Name: "source_port_max", Value: strconv.Itoa(t.SrcPort.Max)})
 	}
 	return tf.Block{
@@ -46,25 +52,23 @@ func portRangePair(t acl.PortRangePair, name string) tf.Block {
 	}
 }
 
-func protocol(t acl.Protocol) []tf.Block {
+func protocol(t spec.Protocol) []tf.Block {
 	switch p := t.(type) {
-	case acl.TCP:
-		return []tf.Block{portRangePair(p.PortRangePair, "tcp")}
-	case acl.UDP:
-		return []tf.Block{portRangePair(p.PortRangePair, "udp")}
-	case acl.ICMP:
+	case spec.TCPUDP:
+		return []tf.Block{portRangePair(p.PortRangePair, strings.ToLower(p.Name()))}
+	case spec.ICMP:
 		var arguments []tf.Argument
-		if p.Code != nil {
-			arguments = append(arguments, tf.Argument{Name: "code", Value: strconv.Itoa(*p.Code)})
-		}
-		if p.Type != nil {
-			arguments = append(arguments, tf.Argument{Name: "type", Value: strconv.Itoa(*p.Type)})
+		if p.ICMPCodeType != nil {
+			arguments = append(arguments, tf.Argument{Name: "type", Value: strconv.Itoa(p.Type)})
+			if p.Code != nil {
+				arguments = append(arguments, tf.Argument{Name: "code", Value: strconv.Itoa(*p.Code)})
+			}
 		}
 		return []tf.Block{{
 			Name:      "icmp",
 			Arguments: arguments,
 		}}
-	case acl.AnyProtocol:
+	case spec.AnyProtocol:
 		return []tf.Block{}
 	}
 	return nil
@@ -74,15 +78,15 @@ func quote(s string) string {
 	return fmt.Sprintf("%q", s)
 }
 
-func action(a acl.Action) string {
+func action(a spec.Action) string {
 	return string(a)
 }
 
-func direction(d acl.Direction) string {
+func direction(d spec.Direction) string {
 	return string(d)
 }
 
-func rule(t *acl.Rule) tf.Block {
+func rule(t *spec.Rule) tf.Block {
 	arguments := []tf.Argument{
 		{Name: "name", Value: quote(t.Name)},
 		{Name: "action", Value: quote(action(t.Action))},
@@ -96,27 +100,29 @@ func rule(t *acl.Rule) tf.Block {
 	}
 }
 
-func singleACL(t *acl.ACL) tf.Block {
+func singleACL(name string, t spec.ACL) tf.Block {
 	blocks := make([]tf.Block, len(t.Rules))
 	for i := range t.Rules {
 		blocks[i] = rule(t.Rules[i])
 	}
 	return tf.Block{
 		Name:   "resource",
-		Labels: []string{quote("ibm_is_network_acl"), quote(t.Name)},
+		Labels: []string{quote("ibm_is_network_acl"), quote(name)},
 		Arguments: []tf.Argument{
-			{Name: "name", Value: quote(t.Name + "-${var.initials}")}, //nolint:revive  // obvious false positive
-			{Name: "resource_group", Value: t.ResourceGroup},
-			{Name: "vpc", Value: t.Vpc},
+			{Name: "name", Value: quote(name + "-${var.initials}")}, //nolint:revive  // obvious false positive
+			{Name: "resource_group", Value: "var.resource_group_id"},
+			{Name: "vpc", Value: "var.vpc_id"},
 		},
 		Blocks: blocks,
 	}
 }
 
-func collection(t acl.Collection) *tf.ConfigFile {
-	acls := make([]tf.Block, len(t.Items))
-	for i := range t.Items {
-		acls[i] = singleACL(t.Items[i])
+func collection(t spec.Collection) *tf.ConfigFile {
+	var acls = make([]tf.Block, len(t.ACLs))
+	i := 0
+	for name := range t.ACLs {
+		acls[i] = singleACL(name, t.ACLs[name])
+		i += 1
 	}
 	return &tf.ConfigFile{
 		Resources: acls,

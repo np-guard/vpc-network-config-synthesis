@@ -1,5 +1,5 @@
 // Package aclcsv implements output of ACLs in CSV format
-package aclcsv
+package csvio
 
 import (
 	"encoding/csv"
@@ -8,10 +8,10 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/acl"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/spec"
 )
 
-// Writer implements acl.Writer
+// Writer implements spec.Writer
 type Writer struct {
 	w *csv.Writer
 }
@@ -21,12 +21,12 @@ func NewWriter(w io.Writer) *Writer {
 }
 
 // Write prints an entire collection of acls as a single CSV table.
-// This is mostly useful when there is only a single acl.ACL item in the collection
-func (w *Writer) Write(collection acl.Collection) error {
+// This is mostly useful when there is only a single spec.ACL item in the collection
+func (w *Writer) Write(collection spec.Collection) error {
 	if err := w.w.Write(header()); err != nil {
 		return err
 	}
-	for _, item := range collection.Items {
+	for _, item := range collection.ACLs {
 		if err := w.w.WriteAll(makeTable(item)); err != nil {
 			return err
 		}
@@ -36,7 +36,7 @@ func (w *Writer) Write(collection acl.Collection) error {
 
 const allPorts = "All"
 
-func makeTable(t *acl.ACL) [][]string {
+func makeTable(t spec.ACL) [][]string {
 	rows := make([][]string, len(t.Rules))
 	for i, rule := range t.Rules {
 		rows[i] = makeRow(i+1, rule)
@@ -44,9 +44,9 @@ func makeTable(t *acl.ACL) [][]string {
 	return rows
 }
 
-func port(p acl.PortRange) string {
+func port(p spec.PortRange) string {
 	switch {
-	case p.Min == acl.DefaultMinPort && p.Max == acl.DefaultMaxPort:
+	case p.Min == spec.DefaultMinPort && p.Max == spec.DefaultMaxPort:
 		return allPorts
 	case p.Min == p.Max:
 		return fmt.Sprintf("%v", p.Max)
@@ -55,29 +55,24 @@ func port(p acl.PortRange) string {
 	}
 }
 
-func action(a acl.Action) string {
+func action(a spec.Action) string {
 	return string(a)
 }
 
-func direction(d acl.Direction) string {
+func direction(d spec.Direction) string {
 	return string(d)
 }
 
-func printPortRange(protocol acl.Protocol, isSrcPort bool) string {
+func printPortRange(protocol spec.Protocol, isSrcPort bool) string {
 	switch p := protocol.(type) {
-	case acl.ICMP:
+	case spec.ICMP:
 		return "-"
-	case acl.UDP:
+	case spec.TCPUDP:
 		if isSrcPort {
-			return port(p.SrcPort)
+			return port(p.PortRangePair.SrcPort)
 		}
-		return port(p.DstPort)
-	case acl.TCP:
-		if isSrcPort {
-			return port(p.SrcPort)
-		}
-		return port(p.DstPort)
-	case acl.AnyProtocol:
+		return port(p.PortRangePair.DstPort)
+	case spec.AnyProtocol:
 		return allPorts
 	default:
 		log.Fatalf("Impossible protocol %v", p)
@@ -98,7 +93,7 @@ func header() []string {
 	}
 }
 
-func makeRow(i int, rule *acl.Rule) []string {
+func makeRow(i int, rule *spec.Rule) []string {
 	return []string{
 		strconv.Itoa(i),
 		direction(rule.Direction),

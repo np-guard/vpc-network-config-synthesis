@@ -1,9 +1,34 @@
-package acl
+package spec
 
 import (
 	"fmt"
 	"log"
 )
+
+type ICMPCodeType struct {
+	// ICMP type allowed.
+	Type int
+
+	// ICMP code allowed. If omitted, any code is allowed
+	Code *int
+}
+
+type ICMP struct {
+	*ICMPCodeType
+}
+
+func (t ICMP) Name() string { return "ICMP" }
+
+func (t ICMP) InverseDirection() Protocol {
+	if t.ICMPCodeType == nil {
+		return nil
+	}
+
+	if invType := inverseICMPType(t.Type); invType != undefinedICMP {
+		return &ICMP{ICMPCodeType: &ICMPCodeType{Type: invType, Code: t.Code}}
+	}
+	return nil
+}
 
 // Based on https://datatracker.ietf.org/doc/html/rfc792
 

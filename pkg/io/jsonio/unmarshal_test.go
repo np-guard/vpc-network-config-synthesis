@@ -1,4 +1,4 @@
-package spec
+package jsonio
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-const examplesDir = "../../examples/"
+const examplesDir = "../../../examples/"
 const (
 	minPort = 1
 	maxPort = 65535
@@ -163,7 +163,7 @@ func TestUnmarshalSpecSegments(t *testing.T) {
 
 	jsonSpec := readFile(t, filename)
 
-	spec, err := Unmarshal(filename)
+	spec, err := unmarshal(filename)
 	if err != nil {
 		t.Fatalf(`Unmarshal %v returns %v`, filename, err)
 	}
@@ -204,7 +204,7 @@ func TestUnmarshalSpecExternals(t *testing.T) {
 
 	jsonSpec := readFile(t, filename)
 
-	spec, err := Unmarshal(filename)
+	spec, err := unmarshal(filename)
 	if err != nil {
 		t.Fatalf(`Unmarshal %v returns %v`, filename, err)
 	}
@@ -230,7 +230,7 @@ func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 
 	jsonSpec := readFile(t, filename)
 
-	spec, err := Unmarshal(filename)
+	spec, err := unmarshal(filename)
 	if err != nil {
 		t.Fatalf(`Unmarshal %v returns %v`, filename, err)
 	}
