@@ -1,5 +1,5 @@
 {
-    "sections": {
+    "segments": {
         "need-dns": {
             "type": "subnet",
             "items": [
@@ -15,11 +15,11 @@
         {
             "src": {
                 "name": "need-dns",
-                "type": "section"
+                "type": "segment"
             },
             "dst": {
                 "name": "need-dns",
-                "type": "section"
+                "type": "segment"
             },
             "allowed-protocols": [
                 {
@@ -32,7 +32,7 @@
         {
             "src": {
                 "name": "need-dns",
-                "type": "section"
+                "type": "segment"
             },
             "dst": {
                 "name": "dns",
@@ -42,7 +42,7 @@
         {
             "src": {
                 "name": "need-dns",
-                "type": "section"
+                "type": "segment"
             },
             "dst": {
                 "name": "sub3-1-ky",

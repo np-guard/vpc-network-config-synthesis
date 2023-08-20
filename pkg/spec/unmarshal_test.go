@@ -137,7 +137,7 @@ func TestAnyProtocol_UnmarshalJSON(t *testing.T) {
 
 func TestEndpoint_UnmarshalJSON(t *testing.T) {
 	table := make([]TestItem[*Endpoint], 7)
-	for i, tp := range []string{"external", "section", "subnet", "instance", "nif", "cidr", "vpe"} {
+	for i, tp := range []string{"external", "segment", "subnet", "instance", "nif", "cidr", "vpe"} {
 		name := fmt.Sprintf("ep-%v", i)
 		js := fmt.Sprintf(`{"name": "%v", "type": "%v"}`, name, tp)
 		endpoint := Endpoint{Name: name, Type: EndpointType(tp)}
@@ -155,11 +155,11 @@ func TestEndpoint_UnmarshalJSON(t *testing.T) {
 	}
 }
 
-// Compare unmarshalled structs/arrays for "sections" in a spec file against simple json maps
+// Compare unmarshalled structs/arrays for "segments" in a spec file against simple json maps
 //
 //goland:noinspection GoShadowedVar
 //nolint:govet // ctx is intentionally shadowed, allowing stack-like navigation
-func TestUnmarshalSpecSections(t *testing.T) {
+func TestUnmarshalSpecSegments(t *testing.T) {
 	ctx := ""
 	filename := examplesDir + "generic_example.json"
 
@@ -169,25 +169,25 @@ func TestUnmarshalSpecSections(t *testing.T) {
 	if err != nil {
 		t.Fatalf(`Unmarshal %v returns %v`, filename, err)
 	}
-	ctx, jsonSectionMap := enter[map[string]interface{}]("sections", ctx, jsonSpec)
-	if len(spec.Sections) != len(jsonSectionMap) {
-		t.Fatalf(`len(%v): %v != %v`, ctx, len(spec.Sections), len(jsonSectionMap))
+	ctx, jsonSegmentMap := enter[map[string]interface{}]("segments", ctx, jsonSpec)
+	if len(spec.Segments) != len(jsonSegmentMap) {
+		t.Fatalf(`len(%v): %v != %v`, ctx, len(spec.Segments), len(jsonSegmentMap))
 	}
-	for field, section := range spec.Sections {
-		ctx, jsonSection := enter[map[string]interface{}](field, ctx, jsonSectionMap)
+	for field, segment := range spec.Segments {
+		ctx, jsonSegment := enter[map[string]interface{}](field, ctx, jsonSegmentMap)
 		{
-			ctx, jsonType := enter[string]("type", ctx, jsonSection)
-			if string(section.Type) != jsonType {
-				t.Fatalf(`%v: %v != %v`, ctx, section.Type, jsonType)
+			ctx, jsonType := enter[string]("type", ctx, jsonSegment)
+			if string(segment.Type) != jsonType {
+				t.Fatalf(`%v: %v != %v`, ctx, segment.Type, jsonType)
 			}
 		}
 		{
-			ctx, jsonSectionItemsArray := enter[[]interface{}]("items", ctx, jsonSection)
-			if len(section.Items) != len(jsonSectionItemsArray) {
-				t.Fatalf(`len(%v): %v != %v`, ctx, len(section.Items), len(jsonSectionItemsArray))
+			ctx, jsonSegmentItemsArray := enter[[]interface{}]("items", ctx, jsonSegment)
+			if len(segment.Items) != len(jsonSegmentItemsArray) {
+				t.Fatalf(`len(%v): %v != %v`, ctx, len(segment.Items), len(jsonSegmentItemsArray))
 			}
-			for j, item := range section.Items {
-				ctx, jsonItem := enterArray[string](j, ctx, jsonSectionItemsArray)
+			for j, item := range segment.Items {
+				ctx, jsonItem := enterArray[string](j, ctx, jsonSegmentItemsArray)
 				if item != jsonItem {
 					t.Fatalf(`%v: %v != %v`, ctx, item, jsonItem)
 				}
