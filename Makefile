@@ -19,7 +19,7 @@ fmt:
 lint-go:
 	@echo -- $@ --
 	# to avoid parse errors, use git's diff - in windows, add C:\Program Files\Git\usr\bin\ to PATH
-	golangci-lint run --new
+	golangci-lint run
 
 lint-json:
 	@echo -- $@ --

@@ -27,7 +27,8 @@ func MakeACL(s *spec.Spec) spec.Collection {
 func generateRules(s *spec.Spec) []*spec.Rule {
 	var allowInternal []*spec.Rule
 	var allowExternal []*spec.Rule
-	for c, conn := range s.Connections {
+	for c := range s.Connections {
+		conn := &s.Connections[c]
 		internalSrc := conn.Src.Type != spec.EndpointTypeExternal
 		for i, src := range conn.Src.Values {
 			internalDst := conn.Dst.Type != spec.EndpointTypeExternal
