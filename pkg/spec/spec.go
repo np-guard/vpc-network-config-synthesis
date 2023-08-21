@@ -7,18 +7,18 @@ import (
 
 type (
 	Spec struct {
-		// A list of required connections
+		// Required connections
 		Connections []Connection
 	}
 
 	Connection struct {
-		// In unidirectional connection, this is the egress endpoint
+		// Egress endpoint
 		Src Endpoint
 
-		// In unidirectional connection, this is the ingress endpoint
+		// Ingress endpoint
 		Dst Endpoint
 
-		// List of allowed transport-layer connections
+		// Allowed protocols
 		Protocols []Protocol
 	}
 
