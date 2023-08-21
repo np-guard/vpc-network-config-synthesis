@@ -90,6 +90,7 @@ func header() []string {
 		"destination",
 		"destination port",
 		"protocol",
+		"description",
 	}
 }
 
@@ -103,5 +104,6 @@ func makeRow(i int, rule *spec.Rule) []string {
 		rule.Destination,
 		printPortRange(rule.Protocol, false),
 		rule.Protocol.Name(),
+		rule.Name,
 	}
 }
