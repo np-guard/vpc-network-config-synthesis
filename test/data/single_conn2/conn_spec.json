@@ -9,12 +9,12 @@
                 "name": "subnet3-ky",
                 "type": "subnet"
             },
+            "bidirectional": true,
             "allowed-protocols": [
                 {
                     "protocol": "TCP",
                     "min_destination_port": 443,
-                    "max_destination_port": 443,
-                    "bidirectional": true
+                    "max_destination_port": 443
                 }
             ]
         }
