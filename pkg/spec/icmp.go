@@ -95,10 +95,10 @@ func ValidateICMP(t, c int) error {
 		echo:                   {0},
 		timeExceeded:           {0, 1},
 		parameterProblem:       {0},
-		timestamp:              {13, 14},
-		timestampReply:         {13, 14},
-		informationRequest:     {15, 16},
-		informationReply:       {15, 16},
+		timestamp:              {0},
+		timestampReply:         {0},
+		informationRequest:     {0},
+		informationReply:       {0},
 	}
 	options, ok := possibleCodes[t]
 	if !ok {
