@@ -3,6 +3,7 @@ package spec
 
 import (
 	"fmt"
+	"strings"
 )
 
 type (
@@ -63,36 +64,52 @@ const (
 	EndpointTypeExternal EndpointType = "external"
 	EndpointTypeSegment  EndpointType = "segment"
 	EndpointTypeSubnet   EndpointType = "subnet"
+	EndpointTypeAny      EndpointType = "any"
 )
 
 func (s *Definitions) Lookup(name string, expectedType EndpointType) (Endpoint, error) {
+	var result []Endpoint
 	if ip, ok := s.Externals[name]; ok {
-		if expectedType != EndpointTypeExternal {
-			return Endpoint{}, fmt.Errorf("<%v is external, not %v>", name, expectedType)
+		actualType := EndpointTypeExternal
+		if expectedType != EndpointTypeAny && expectedType != actualType {
+			return Endpoint{}, fmt.Errorf("%v is external, not %v", name, expectedType)
 		}
-		return Endpoint{name, []string{ip}, expectedType}, nil
-	} else if ip, ok := s.Subnets[name]; ok {
-		if expectedType != EndpointTypeSubnet {
-			return Endpoint{}, fmt.Errorf("<%v is subnet, not %v>", name, expectedType)
-		}
-		return Endpoint{name, []string{ip}, expectedType}, nil
-	} else {
-		if segment, ok := s.SubnetSegments[name]; ok {
-			if expectedType != EndpointTypeSegment {
-				return Endpoint{}, fmt.Errorf("<%v is segment, not %v>", name, expectedType)
-			}
-			var ips []string
-			for _, subnetName := range segment {
-				subnet, err := s.Lookup(subnetName, EndpointTypeSubnet)
-				if err != nil {
-					return Endpoint{}, err
-				}
-				ips = append(ips, subnet.Values...)
-			}
-			return Endpoint{name, ips, expectedType}, nil
-		}
+		result = append(result, Endpoint{name, []string{ip}, actualType})
 	}
-	return Endpoint{}, fmt.Errorf("<%v is not a valid %v>", name, expectedType)
+	if ip, ok := s.Subnets[name]; ok {
+		actualType := EndpointTypeSubnet
+		if expectedType != EndpointTypeAny && expectedType != EndpointTypeSubnet {
+			return Endpoint{}, fmt.Errorf("%v is subnet, not %v", name, expectedType)
+		}
+		result = append(result, Endpoint{name, []string{ip}, actualType})
+	}
+	if segment, ok := s.SubnetSegments[name]; ok {
+		actualType := EndpointTypeSegment
+		if expectedType != EndpointTypeAny && expectedType != actualType {
+			return Endpoint{}, fmt.Errorf("%v is segment, not %v", name, expectedType)
+		}
+		actualType = EndpointTypeSubnet
+		var ips []string
+		for _, subnetName := range segment {
+			subnet, err := s.Lookup(subnetName, actualType)
+			if err != nil {
+				return Endpoint{}, err
+			}
+			ips = append(ips, subnet.Values...)
+		}
+		result = append(result, Endpoint{name, ips, actualType})
+	}
+	if len(result) > 1 {
+		var possibleTypes []string
+		for i := range result {
+			possibleTypes[i] = string(result[i].Type)
+		}
+		return Endpoint{}, fmt.Errorf("%v is ambiguous: may be either one of %v", name, strings.Join(possibleTypes, ", "))
+	}
+	if len(result) == 0 {
+		return Endpoint{}, fmt.Errorf("%v is not a valid %v", name, expectedType)
+	}
+	return result[0], nil
 }
 
 type Reader interface {
