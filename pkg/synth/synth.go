@@ -3,6 +3,7 @@ package synth
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/spec"
 )
@@ -28,9 +29,12 @@ func generateRules(s *spec.Spec) []*spec.Rule {
 	var allowExternal []*spec.Rule
 	for c, conn := range s.Connections {
 		internalSrc := conn.Src.Type != spec.EndpointTypeExternal
-		for i, src := range lookupEndpoint(s, *conn.Src) {
+		for i, src := range conn.Src.Values {
 			internalDst := conn.Dst.Type != spec.EndpointTypeExternal
-			for j, dst := range lookupEndpoint(s, *conn.Dst) {
+			if !internalSrc && !internalDst {
+				log.Fatalf("Both source and destination are external for connection #%v", c)
+			}
+			for j, dst := range conn.Dst.Values {
 				if src == dst {
 					continue
 				}
@@ -127,34 +131,5 @@ func packetRule(packet packet, direction spec.Direction, action spec.Action) *sp
 		Destination: packet.dst,
 		Direction:   direction,
 		Protocol:    packet.protocol,
-	}
-}
-
-func lookupEndpoint(s *spec.Spec, endpoint spec.Endpoint) []string {
-	name := endpoint.Name
-	switch endpoint.Type {
-	case spec.EndpointTypeExternal:
-		if ip, ok := s.Externals[name]; ok {
-			return []string{ip}
-		}
-		return []string{fmt.Sprintf("<Unknown external %v>", name)}
-	case spec.EndpointTypeSubnet:
-		if ip, ok := s.Subnets[name]; ok {
-			return []string{ip}
-		}
-		return []string{fmt.Sprintf("<Unknown subnet %v>", name)}
-	case spec.EndpointTypeSegment:
-		segment, ok := s.SubnetSegments[endpoint.Name]
-		if ok {
-			var ips []string
-			for _, subnetName := range segment {
-				subnet := spec.Endpoint{Name: subnetName, Type: spec.EndpointTypeSubnet}
-				ips = append(ips, lookupEndpoint(s, subnet)...)
-			}
-			return ips
-		}
-		return []string{fmt.Sprintf("<Unknown segment %v>", name)}
-	default:
-		return []string{fmt.Sprintf("<Unknown type %v (%v)>", endpoint.Type, name)}
 	}
 }

@@ -179,6 +179,7 @@
             "items": {
                 "type": "object",
                 "additionalProperties": false,
+                "required": ["src", "dst"],
                 "properties": {
                     "src": {
                         "description": "In unidirectional connection, this is the egress endpoint",

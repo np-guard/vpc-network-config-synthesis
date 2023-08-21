@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/spec"
@@ -24,7 +25,7 @@ func (*Reader) ReadSpec(filename string, subnets map[string]string) (*spec.Spec,
 		return nil, err
 	}
 
-	result := spec.Spec{
+	defs := spec.Definitions{
 		Externals:      jsonspec.Externals,
 		Subnets:        jsonspec.Subnets,
 		SubnetSegments: make(map[string][]string),
@@ -34,36 +35,45 @@ func (*Reader) ReadSpec(filename string, subnets map[string]string) (*spec.Spec,
 		if jsonspec.Subnets != nil && len(jsonspec.Subnets) != 0 {
 			return nil, fmt.Errorf("both subnets and config_file are supplied")
 		}
-		result.Subnets = subnets
+		defs.Subnets = subnets
 	}
 
 	for k, v := range jsonspec.Segments {
 		if v.Type != TypeSubnet {
 			return nil, fmt.Errorf("only subnet segments are supported, not %q", v.Type)
 		}
-		result.SubnetSegments[k] = v.Items
+		defs.SubnetSegments[k] = v.Items
 	}
 
-	for _, v := range jsonspec.RequiredConnections {
-		conn, err := translateConnection(v)
+	var connections = make([]spec.Connection, len(jsonspec.RequiredConnections))
+	for i := range jsonspec.RequiredConnections {
+		conn, err := translateConnection(&defs, &jsonspec.RequiredConnections[i])
 		if err != nil {
 			return nil, err
 		}
-		result.Connections = append(result.Connections, *conn)
+		connections[i] = *conn
 	}
 
-	return &result, nil
+	return &spec.Spec{Connections: connections}, nil
 }
 
-func translateConnection(v SpecRequiredConnectionsElem) (*spec.Connection, error) {
+func translateConnection(defs *spec.Definitions, v *SpecRequiredConnectionsElem) (*spec.Connection, error) {
 	p, err := translateProtocols(v.AllowedProtocols)
+	if err != nil {
+		return nil, err
+	}
+	srcEndpoint, err := defs.Lookup(v.Src.Name, translateEndpointType(v.Src.Type))
+	if err != nil {
+		return nil, err
+	}
+	dstEndpoint, err := defs.Lookup(v.Dst.Name, translateEndpointType(v.Dst.Type))
 	if err != nil {
 		return nil, err
 	}
 	result := &spec.Connection{
 		Bidirectional: v.Bidirectional,
-		Dst:           translateEndpoint(v.Dst),
-		Src:           translateEndpoint(v.Src),
+		Src:           srcEndpoint,
+		Dst:           dstEndpoint,
 		Protocols:     p,
 	}
 	return result, nil
@@ -106,14 +116,18 @@ func translateProtocols(protocols ProtocolList) ([]spec.Protocol, error) {
 	return result, nil
 }
 
-func translateEndpoint(dst *Endpoint) *spec.Endpoint {
-	if dst == nil {
-		return nil
+func translateEndpointType(endpointType EndpointType) spec.EndpointType {
+	switch endpointType {
+	case EndpointTypeExternal:
+		return spec.EndpointTypeExternal
+	case EndpointTypeSegment:
+		return spec.EndpointTypeSegment
+	case EndpointTypeSubnet:
+		return spec.EndpointTypeSubnet
+	default:
+		log.Fatalf("Unsupported endpoint type %v", endpointType)
 	}
-	return &spec.Endpoint{
-		Name: dst.Name,
-		Type: spec.EndpointType(dst.Type),
-	}
+	return spec.EndpointTypeSubnet
 }
 
 // unmarshal returns a Spec struct given a file adhering to spec_schema.input

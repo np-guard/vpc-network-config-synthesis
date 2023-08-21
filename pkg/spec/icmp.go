@@ -49,7 +49,7 @@ const (
 )
 
 // inverseICMPType returns the reply type for request type and vice versa.
-// When there is no inverse, returns `undefinedICMP`
+// When there is no inverse, returns undefinedICMP
 func inverseICMPType(t int) int {
 	switch t {
 	case echo:
