@@ -12,14 +12,11 @@ type (
 	}
 
 	Connection struct {
-		// If true, allow both connections from src to dst and connections from dst to src
-		Bidirectional bool
+		// In unidirectional connection, this is the egress endpoint
+		Src Endpoint
 
 		// In unidirectional connection, this is the ingress endpoint
 		Dst Endpoint
-
-		// In unidirectional connection, this is the egress endpoint
-		Src Endpoint
 
 		// List of allowed transport-layer connections
 		Protocols []Protocol
@@ -46,6 +43,19 @@ type (
 		Externals map[string]string
 	}
 )
+
+func MakeConnection(src, dst Endpoint, protocols []Protocol, bidirectional bool) []Connection {
+	out := Connection{
+		Src:       src,
+		Dst:       dst,
+		Protocols: protocols,
+	}
+	if bidirectional {
+		in := Connection{Src: dst, Dst: src, Protocols: protocols}
+		return []Connection{out, in}
+	}
+	return []Connection{out}
+}
 
 type EndpointType string
 

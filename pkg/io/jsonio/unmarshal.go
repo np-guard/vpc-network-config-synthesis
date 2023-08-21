@@ -45,37 +45,32 @@ func (*Reader) ReadSpec(filename string, subnets map[string]string) (*spec.Spec,
 		defs.SubnetSegments[k] = v.Items
 	}
 
-	var connections = make([]spec.Connection, len(jsonspec.RequiredConnections))
+	var connections []spec.Connection
 	for i := range jsonspec.RequiredConnections {
-		conn, err := translateConnection(&defs, &jsonspec.RequiredConnections[i])
+		bidiconns, err := translateConnection(&defs, &jsonspec.RequiredConnections[i])
 		if err != nil {
 			return nil, err
 		}
-		connections[i] = *conn
+		connections = append(connections, bidiconns...)
 	}
 
 	return &spec.Spec{Connections: connections}, nil
 }
 
-func translateConnection(defs *spec.Definitions, v *SpecRequiredConnectionsElem) (*spec.Connection, error) {
+func translateConnection(defs *spec.Definitions, v *SpecRequiredConnectionsElem) ([]spec.Connection, error) {
 	p, err := translateProtocols(v.AllowedProtocols)
 	if err != nil {
 		return nil, err
 	}
-	srcEndpoint, err := defs.Lookup(v.Src.Name, translateEndpointType(v.Src.Type))
+	src, err := defs.Lookup(v.Src.Name, translateEndpointType(v.Src.Type))
 	if err != nil {
 		return nil, err
 	}
-	dstEndpoint, err := defs.Lookup(v.Dst.Name, translateEndpointType(v.Dst.Type))
+	dst, err := defs.Lookup(v.Dst.Name, translateEndpointType(v.Dst.Type))
 	if err != nil {
 		return nil, err
 	}
-	result := &spec.Connection{
-		Bidirectional: v.Bidirectional,
-		Src:           srcEndpoint,
-		Dst:           dstEndpoint,
-		Protocols:     p,
-	}
+	result := spec.MakeConnection(src, dst, p, v.Bidirectional)
 	return result, nil
 }
 

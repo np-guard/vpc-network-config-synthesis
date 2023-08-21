@@ -46,9 +46,6 @@ func generateRules(s *spec.Spec) []*spec.Rule {
 					prefix := fmt.Sprintf("c%v,p%v,[%v->%v],src%v,dst%v", c, p, conn.Src.Name, conn.Dst.Name, i, j)
 
 					connection := allowDirectedConnection(src, dst, internalSrc, internalDst, protocol, prefix)
-					if conn.Bidirectional {
-						connection = append(connection, allowDirectedConnection(dst, src, internalDst, internalSrc, protocol, prefix)...)
-					}
 
 					if internalSrc && internalDst {
 						allowInternal = append(allowInternal, connection...)
