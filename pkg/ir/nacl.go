@@ -1,4 +1,4 @@
-package spec
+package ir
 
 type Action string
 

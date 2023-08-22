@@ -8,10 +8,10 @@ import (
 	"log"
 	"os"
 
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/spec"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-// Reader implements spec.Reader
+// Reader implements ir.Reader
 type Reader struct {
 }
 
@@ -19,13 +19,13 @@ func NewReader() *Reader {
 	return &Reader{}
 }
 
-func (*Reader) ReadSpec(filename string, subnets map[string]string) (*spec.Spec, error) {
+func (*Reader) ReadSpec(filename string, subnets map[string]string) (*ir.Spec, error) {
 	jsonspec, err := unmarshal(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	defs := spec.Definitions{
+	defs := ir.Definitions{
 		Externals:      jsonspec.Externals,
 		Subnets:        jsonspec.Subnets,
 		SubnetSegments: make(map[string][]string),
@@ -45,7 +45,7 @@ func (*Reader) ReadSpec(filename string, subnets map[string]string) (*spec.Spec,
 		defs.SubnetSegments[k] = v.Items
 	}
 
-	var connections []spec.Connection
+	var connections []ir.Connection
 	for i := range jsonspec.RequiredConnections {
 		bidiconns, err := translateConnection(&defs, &jsonspec.RequiredConnections[i])
 		if err != nil {
@@ -54,10 +54,10 @@ func (*Reader) ReadSpec(filename string, subnets map[string]string) (*spec.Spec,
 		connections = append(connections, bidiconns...)
 	}
 
-	return &spec.Spec{Connections: connections}, nil
+	return &ir.Spec{Connections: connections}, nil
 }
 
-func translateConnection(defs *spec.Definitions, v *SpecRequiredConnectionsElem) ([]spec.Connection, error) {
+func translateConnection(defs *ir.Definitions, v *SpecRequiredConnectionsElem) ([]ir.Connection, error) {
 	p, err := translateProtocols(v.AllowedProtocols)
 	if err != nil {
 		return nil, err
@@ -70,39 +70,39 @@ func translateConnection(defs *spec.Definitions, v *SpecRequiredConnectionsElem)
 	if err != nil {
 		return nil, err
 	}
-	result := spec.MakeConnection(src, dst, p, v.Bidirectional)
+	result := ir.MakeConnection(src, dst, p, v.Bidirectional)
 	return result, nil
 }
 
-func translateProtocols(protocols ProtocolList) ([]spec.Protocol, error) {
-	var result = make([]spec.Protocol, len(protocols))
+func translateProtocols(protocols ProtocolList) ([]ir.Protocol, error) {
+	var result = make([]ir.Protocol, len(protocols))
 	for i, _p := range protocols {
-		var protocol spec.Protocol
+		var protocol ir.Protocol
 		switch p := _p.(type) {
 		case *AnyProtocol:
 			if i != 0 {
 				return nil, fmt.Errorf("when allowing any protocol, no more protocols can be defined")
 			}
-			return []spec.Protocol{}, nil
+			return []ir.Protocol{}, nil
 		case *Icmp:
 			if p.Type == nil {
 				if p.Code != nil {
 					return nil, fmt.Errorf("defnining ICMP code for unspecified ICMP type is not allowed")
 				}
-				protocol = spec.ICMP{}
+				protocol = ir.ICMP{}
 			} else {
-				err := spec.ValidateICMP(*p.Type, *p.Code)
+				err := ir.ValidateICMP(*p.Type, *p.Code)
 				if err != nil {
 					return nil, err
 				}
-				protocol = spec.ICMP{ICMPCodeType: &spec.ICMPCodeType{Type: *p.Type, Code: p.Code}}
+				protocol = ir.ICMP{ICMPCodeType: &ir.ICMPCodeType{Type: *p.Type, Code: p.Code}}
 			}
 		case *TcpUdp:
-			protocol = spec.TCPUDP{
-				Protocol: spec.TransportLayerProtocolName(p.Protocol),
-				PortRangePair: spec.PortRangePair{
-					SrcPort: spec.PortRange{Min: p.MinSourcePort, Max: p.MaxSourcePort},
-					DstPort: spec.PortRange{Min: p.MinDestinationPort, Max: p.MaxDestinationPort},
+			protocol = ir.TCPUDP{
+				Protocol: ir.TransportLayerProtocolName(p.Protocol),
+				PortRangePair: ir.PortRangePair{
+					SrcPort: ir.PortRange{Min: p.MinSourcePort, Max: p.MaxSourcePort},
+					DstPort: ir.PortRange{Min: p.MinDestinationPort, Max: p.MaxDestinationPort},
 				},
 			}
 		}
@@ -111,18 +111,18 @@ func translateProtocols(protocols ProtocolList) ([]spec.Protocol, error) {
 	return result, nil
 }
 
-func translateEndpointType(endpointType EndpointType) spec.EndpointType {
+func translateEndpointType(endpointType EndpointType) ir.EndpointType {
 	switch endpointType {
 	case EndpointTypeExternal:
-		return spec.EndpointTypeExternal
+		return ir.EndpointTypeExternal
 	case EndpointTypeSegment:
-		return spec.EndpointTypeSegment
+		return ir.EndpointTypeSegment
 	case EndpointTypeSubnet:
-		return spec.EndpointTypeSubnet
+		return ir.EndpointTypeSubnet
 	default:
 		log.Fatalf("Unsupported endpoint type %v", endpointType)
 	}
-	return spec.EndpointTypeSubnet
+	return ir.EndpointTypeSubnet
 }
 
 // unmarshal returns a Spec struct given a file adhering to spec_schema.input

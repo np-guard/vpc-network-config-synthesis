@@ -8,11 +8,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/spec"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/tf"
 )
 
-// Writer implements spec.Writer
+// Writer implements ir.Writer
 type Writer struct {
 	w *bufio.Writer
 }
@@ -22,7 +22,7 @@ func NewWriter(w io.Writer) *Writer {
 }
 
 // Write prints an entire collection of acls as a sequence of terraform resources.
-func (w *Writer) Write(c spec.Collection) error {
+func (w *Writer) Write(c ir.Collection) error {
 	output := collection(c).Print()
 	_, err := w.w.WriteString(output)
 	if err != nil {
@@ -32,18 +32,18 @@ func (w *Writer) Write(c spec.Collection) error {
 	return err
 }
 
-func portRangePair(t spec.PortRangePair, name string) tf.Block {
+func portRangePair(t ir.PortRangePair, name string) tf.Block {
 	var arguments []tf.Argument
-	if t.DstPort.Min != spec.DefaultMinPort {
+	if t.DstPort.Min != ir.DefaultMinPort {
 		arguments = append(arguments, tf.Argument{Name: "port_min", Value: strconv.Itoa(t.DstPort.Min)})
 	}
-	if t.DstPort.Max != spec.DefaultMaxPort {
+	if t.DstPort.Max != ir.DefaultMaxPort {
 		arguments = append(arguments, tf.Argument{Name: "port_max", Value: strconv.Itoa(t.DstPort.Max)})
 	}
-	if t.SrcPort.Min != spec.DefaultMinPort {
+	if t.SrcPort.Min != ir.DefaultMinPort {
 		arguments = append(arguments, tf.Argument{Name: "source_port_min", Value: strconv.Itoa(t.SrcPort.Min)})
 	}
-	if t.SrcPort.Max != spec.DefaultMaxPort {
+	if t.SrcPort.Max != ir.DefaultMaxPort {
 		arguments = append(arguments, tf.Argument{Name: "source_port_max", Value: strconv.Itoa(t.SrcPort.Max)})
 	}
 	return tf.Block{
@@ -52,11 +52,11 @@ func portRangePair(t spec.PortRangePair, name string) tf.Block {
 	}
 }
 
-func protocol(t spec.Protocol) []tf.Block {
+func protocol(t ir.Protocol) []tf.Block {
 	switch p := t.(type) {
-	case spec.TCPUDP:
+	case ir.TCPUDP:
 		return []tf.Block{portRangePair(p.PortRangePair, strings.ToLower(p.Name()))}
-	case spec.ICMP:
+	case ir.ICMP:
 		var arguments []tf.Argument
 		if p.ICMPCodeType != nil {
 			arguments = append(arguments, tf.Argument{Name: "type", Value: strconv.Itoa(p.Type)})
@@ -68,7 +68,7 @@ func protocol(t spec.Protocol) []tf.Block {
 			Name:      "icmp",
 			Arguments: arguments,
 		}}
-	case spec.AnyProtocol:
+	case ir.AnyProtocol:
 		return []tf.Block{}
 	}
 	return nil
@@ -78,15 +78,15 @@ func quote(s string) string {
 	return fmt.Sprintf("%q", s)
 }
 
-func action(a spec.Action) string {
+func action(a ir.Action) string {
 	return string(a)
 }
 
-func direction(d spec.Direction) string {
+func direction(d ir.Direction) string {
 	return string(d)
 }
 
-func rule(t *spec.Rule) tf.Block {
+func rule(t *ir.Rule) tf.Block {
 	arguments := []tf.Argument{
 		{Name: "name", Value: quote(t.Name)},
 		{Name: "action", Value: quote(action(t.Action))},
@@ -100,7 +100,7 @@ func rule(t *spec.Rule) tf.Block {
 	}
 }
 
-func singleACL(name string, t spec.ACL) tf.Block {
+func singleACL(name string, t ir.ACL) tf.Block {
 	blocks := make([]tf.Block, len(t.Rules))
 	for i := range t.Rules {
 		blocks[i] = rule(t.Rules[i])
@@ -117,7 +117,7 @@ func singleACL(name string, t spec.ACL) tf.Block {
 	}
 }
 
-func collection(t spec.Collection) *tf.ConfigFile {
+func collection(t ir.Collection) *tf.ConfigFile {
 	var acls = make([]tf.Block, len(t.ACLs))
 	i := 0
 	for name := range t.ACLs {

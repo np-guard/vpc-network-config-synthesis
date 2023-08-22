@@ -1,5 +1,5 @@
-// Package spec describes the input-format-agnostic specification of the required connectivity
-package spec
+// Package ir describes the input-format-agnostic specification of the required connectivity
+package ir
 
 import (
 	"fmt"

@@ -13,7 +13,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/jsonio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/tfio"
 
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/spec"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/synth"
 )
 
@@ -28,7 +28,7 @@ const (
 	jsonInputFormat = "json"
 )
 
-func pickWriter(format string) (spec.Writer, error) {
+func pickWriter(format string) (ir.Writer, error) {
 	switch format {
 	case tfOutputFormat:
 		return tfio.NewWriter(os.Stdout), nil
@@ -39,7 +39,7 @@ func pickWriter(format string) (spec.Writer, error) {
 	}
 }
 
-func pickReader(format string) (spec.Reader, error) {
+func pickReader(format string) (ir.Reader, error) {
 	switch format {
 	case jsonInputFormat:
 		return jsonio.NewReader(), nil
@@ -52,7 +52,7 @@ func main() {
 	connectivityFilename := flag.String("spec", "", "JSON file containing connectivity spec")
 	configFilename := flag.String("config", "", "JSON file containing config spec")
 	outputFormat := flag.String("fmt", tfOutputFormat, fmt.Sprintf("Output format. One of %q, %q", tfOutputFormat, csvOutputFormat))
-	inputFormat := flag.String("inputfmt", jsonInputFormat, fmt.Sprintf("Output format. Must be %q", jsonInputFormat))
+	inputFormat := flag.String("inputfmt", jsonInputFormat, fmt.Sprintf("Input format. Must be %q", jsonInputFormat))
 	flag.Parse()
 
 	writer, err := pickWriter(*outputFormat)

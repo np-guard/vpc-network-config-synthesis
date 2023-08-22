@@ -1,4 +1,4 @@
-// Package aclcsv implements output of ACLs in CSV format
+// Package csvio implements output of ACLs in CSV format
 package csvio
 
 import (
@@ -8,10 +8,10 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/spec"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-// Writer implements spec.Writer
+// Writer implements ir.Writer
 type Writer struct {
 	w *csv.Writer
 }
@@ -21,8 +21,8 @@ func NewWriter(w io.Writer) *Writer {
 }
 
 // Write prints an entire collection of acls as a single CSV table.
-// This is mostly useful when there is only a single spec.ACL item in the collection
-func (w *Writer) Write(collection spec.Collection) error {
+// This is mostly useful when there is only a single ir.ACL item in the collection
+func (w *Writer) Write(collection ir.Collection) error {
 	if err := w.w.Write(header()); err != nil {
 		return err
 	}
@@ -36,7 +36,7 @@ func (w *Writer) Write(collection spec.Collection) error {
 
 const allPorts = "All"
 
-func makeTable(t spec.ACL) [][]string {
+func makeTable(t ir.ACL) [][]string {
 	rows := make([][]string, len(t.Rules))
 	for i, rule := range t.Rules {
 		rows[i] = makeRow(i+1, rule)
@@ -44,9 +44,9 @@ func makeTable(t spec.ACL) [][]string {
 	return rows
 }
 
-func port(p spec.PortRange) string {
+func port(p ir.PortRange) string {
 	switch {
-	case p.Min == spec.DefaultMinPort && p.Max == spec.DefaultMaxPort:
+	case p.Min == ir.DefaultMinPort && p.Max == ir.DefaultMaxPort:
 		return allPorts
 	case p.Min == p.Max:
 		return fmt.Sprintf("%v", p.Max)
@@ -55,24 +55,24 @@ func port(p spec.PortRange) string {
 	}
 }
 
-func action(a spec.Action) string {
+func action(a ir.Action) string {
 	return string(a)
 }
 
-func direction(d spec.Direction) string {
+func direction(d ir.Direction) string {
 	return string(d)
 }
 
-func printPortRange(protocol spec.Protocol, isSrcPort bool) string {
+func printPortRange(protocol ir.Protocol, isSrcPort bool) string {
 	switch p := protocol.(type) {
-	case spec.ICMP:
+	case ir.ICMP:
 		return "-"
-	case spec.TCPUDP:
+	case ir.TCPUDP:
 		if isSrcPort {
 			return port(p.PortRangePair.SrcPort)
 		}
 		return port(p.PortRangePair.DstPort)
-	case spec.AnyProtocol:
+	case ir.AnyProtocol:
 		return allPorts
 	default:
 		log.Fatalf("Impossible protocol %v", p)
@@ -94,7 +94,7 @@ func header() []string {
 	}
 }
 
-func makeRow(i int, rule *spec.Rule) []string {
+func makeRow(i int, rule *ir.Rule) []string {
 	return []string{
 		strconv.Itoa(i),
 		direction(rule.Direction),

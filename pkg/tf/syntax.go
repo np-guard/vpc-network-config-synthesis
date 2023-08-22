@@ -4,7 +4,7 @@ package tf
 import "fmt"
 
 // Terminology inspired by
-// * https://github.com/hashicorp/hcl/blob/main/hclsyntax/spec.md
+// * https://github.com/hashicorp/hcl/blob/main/hclsyntax/ir.md
 // * https://developer.hashicorp.com/terraform/language/syntax/configuration
 //
 // This part knows nothing about ACLs
