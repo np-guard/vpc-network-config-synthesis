@@ -286,7 +286,7 @@ func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 			for j, protocol := range conn.AllowedProtocols {
 				ctx, jsonProtocol := enterArray[map[string]interface{}](j, ctx, jsonConnAllowedProtocols)
 				switch p := protocol.(type) {
-				case *TcpUdp:
+				case TcpUdp:
 					{
 						ctx, jsonProtocolName := enter[string]("protocol", ctx, jsonProtocol)
 						if string(p.Protocol) != jsonProtocolName {
@@ -305,7 +305,7 @@ func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 							t.Fatalf(`%v: %v != %v`, ctx, p.MaxDestinationPort, jsonProtocolPort)
 						}
 					}
-				case *Icmp:
+				case Icmp:
 					{
 						ctx, jsonProtocolName := enter[string]("protocol", ctx, jsonProtocol)
 						if string(p.Protocol) != jsonProtocolName {
@@ -324,7 +324,7 @@ func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 							t.Fatalf(`%v: %v != %v`, ctx, p.Code, jsonProtocolCode)
 						}
 					}
-				case *AnyProtocol:
+				case AnyProtocol:
 					t.Fatalf("Unsupported")
 				default:
 					t.Fatalf("Bad protocol %v", p)

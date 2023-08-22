@@ -1,0 +1,9 @@
+#,direction,action,source,source port,destination,destination port,protocol,description
+1,outbound,allow,10.240.10.0/24,All,10.240.30.0/24,443,TCP,"c0,p0,[subnet1-ky->subnet3-ky],src0,dst0,request,outbound,allow"
+2,inbound,allow,10.240.30.0/24,443,10.240.10.0/24,All,TCP,"c0,p0,[subnet1-ky->subnet3-ky],src0,dst0,response,inbound,allow"
+3,inbound,allow,10.240.10.0/24,All,10.240.30.0/24,443,TCP,"c0,p0,[subnet1-ky->subnet3-ky],src0,dst0,request,inbound,allow"
+4,outbound,allow,10.240.30.0/24,443,10.240.10.0/24,All,TCP,"c0,p0,[subnet1-ky->subnet3-ky],src0,dst0,response,outbound,allow"
+5,outbound,allow,10.240.30.0/24,All,10.240.10.0/24,443,TCP,"c1,p0,[subnet3-ky->subnet1-ky],src0,dst0,request,outbound,allow"
+6,inbound,allow,10.240.10.0/24,443,10.240.30.0/24,All,TCP,"c1,p0,[subnet3-ky->subnet1-ky],src0,dst0,response,inbound,allow"
+7,inbound,allow,10.240.30.0/24,All,10.240.10.0/24,443,TCP,"c1,p0,[subnet3-ky->subnet1-ky],src0,dst0,request,inbound,allow"
+8,outbound,allow,10.240.10.0/24,443,10.240.30.0/24,All,TCP,"c1,p0,[subnet3-ky->subnet1-ky],src0,dst0,response,outbound,allow"

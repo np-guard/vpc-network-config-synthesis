@@ -45,5 +45,5 @@ type Collection struct {
 }
 
 type Writer interface {
-	Write(Collection) error
+	Write(*Collection) error
 }

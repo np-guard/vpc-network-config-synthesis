@@ -9,8 +9,8 @@ import (
 )
 
 // MakeACL translates Spec to a collection of ACLs
-func MakeACL(s *ir.Spec) ir.Collection {
-	return ir.Collection{
+func MakeACL(s *ir.Spec) *ir.Collection {
+	return &ir.Collection{
 		ACLs: map[string]ir.ACL{
 			"acl1": {Rules: generateRules(s)},
 		},

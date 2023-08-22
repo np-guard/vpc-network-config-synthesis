@@ -26,7 +26,7 @@ func (t ICMP) InverseDirection() Protocol {
 	}
 
 	if invType := inverseICMPType(t.Type); invType != undefinedICMP {
-		return &ICMP{ICMPCodeType: &ICMPCodeType{Type: invType, Code: t.Code}}
+		return ICMP{ICMPCodeType: &ICMPCodeType{Type: invType, Code: t.Code}}
 	}
 	return nil
 }
