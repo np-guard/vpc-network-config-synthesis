@@ -5,44 +5,40 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/acl"
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/spec"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
 // MakeACL translates Spec to a collection of ACLs
-func MakeACL(s *spec.Spec) acl.Collection {
-	result := acl.Collection{
-		Items: []*acl.ACL{
-			{
-				Name:          "acl1",
-				ResourceGroup: "var.resource_group_id",
-				Vpc:           "var.vpc_id",
-				Rules:         generateRules(s),
-			},
+func MakeACL(s *ir.Spec) ir.Collection {
+	return ir.Collection{
+		ACLs: map[string]ir.ACL{
+			"acl1": {Rules: generateRules(s)},
 		},
 	}
-	return result
 }
 
-func generateRules(s *spec.Spec) []*acl.Rule {
-	var allowInternal []*acl.Rule
-	var allowExternal []*acl.Rule
-	for c, conn := range s.RequiredConnections {
-		internalSrc := conn.Src.Type != spec.EndpointTypeExternal
-		for i, src := range lookupEndpoint(s, *conn.Src) {
-			internalDst := conn.Dst.Type != spec.EndpointTypeExternal
-			for j, dst := range lookupEndpoint(s, *conn.Dst) {
+func generateRules(s *ir.Spec) []*ir.Rule {
+	var allowInternal []*ir.Rule
+	var allowExternal []*ir.Rule
+	for c := range s.Connections {
+		conn := &s.Connections[c]
+		internalSrc := conn.Src.Type != ir.EndpointTypeExternal
+		for i, src := range conn.Src.Values {
+			internalDst := conn.Dst.Type != ir.EndpointTypeExternal
+			if !internalSrc && !internalDst {
+				log.Fatalf("Both source and destination are external for connection #%v", c)
+			}
+			for j, dst := range conn.Dst.Values {
 				if src == dst {
 					continue
 				}
-				for p := range conn.AllowedProtocols {
+				if len(conn.Protocols) == 0 {
+					conn.Protocols = []ir.Protocol{ir.AnyProtocol{}}
+				}
+				for p, protocol := range conn.Protocols {
 					prefix := fmt.Sprintf("c%v,p%v,[%v->%v],src%v,dst%v", c, p, conn.Src.Name, conn.Dst.Name, i, j)
-					protocol := makeProtocol(conn.AllowedProtocols[p])
 
 					connection := allowDirectedConnection(src, dst, internalSrc, internalDst, protocol, prefix)
-					if conn.Bidirectional {
-						connection = append(connection, allowDirectedConnection(dst, src, internalDst, internalSrc, protocol, prefix)...)
-					}
 
 					if internalSrc && internalDst {
 						allowInternal = append(allowInternal, connection...)
@@ -62,19 +58,19 @@ func generateRules(s *spec.Spec) []*acl.Rule {
 }
 
 // makeDenyInternal prevents allowing external communications from accidentally allowing internal communications too
-func makeDenyInternal() []*acl.Rule {
+func makeDenyInternal() []*ir.Rule {
 	localIPs := []string{ // https://datatracker.ietf.org/doc/html/rfc1918#section-3
 		"10.0.0.0/8",
 		"172.16.0.0/12",
 		"192.168.0.0/16",
 	}
-	var denyInternal []*acl.Rule
+	var denyInternal []*ir.Rule
 	for i, anyLocalIPSrc := range localIPs {
 		for j, anyLocalIPDst := range localIPs {
 			prefix := fmt.Sprintf("%vx%v", i, j)
-			denyInternal = append(denyInternal, []*acl.Rule{
-				packetRule(packet{anyLocalIPSrc, anyLocalIPDst, acl.AnyProtocol{}, prefix}, acl.Outbound, acl.Deny),
-				packetRule(packet{anyLocalIPDst, anyLocalIPSrc, acl.AnyProtocol{}, prefix}, acl.Inbound, acl.Deny),
+			denyInternal = append(denyInternal, []*ir.Rule{
+				packetRule(packet{anyLocalIPSrc, anyLocalIPDst, ir.AnyProtocol{}, prefix}, ir.Outbound, ir.Deny),
+				packetRule(packet{anyLocalIPDst, anyLocalIPSrc, ir.AnyProtocol{}, prefix}, ir.Inbound, ir.Deny),
 			}...)
 		}
 	}
@@ -83,18 +79,18 @@ func makeDenyInternal() []*acl.Rule {
 
 type packet struct {
 	src, dst string
-	protocol acl.Protocol
+	protocol ir.Protocol
 	prefix   string
 }
 
-func allowDirectedConnection(src, dst string, internalSrc, internalDst bool, protocol acl.Protocol, prefix string) []*acl.Rule {
+func allowDirectedConnection(src, dst string, internalSrc, internalDst bool, protocol ir.Protocol, prefix string) []*ir.Rule {
 	var request, response *packet
 	request = &packet{src, dst, protocol, prefix + ",request"}
 	if inverseProtocol := protocol.InverseDirection(); inverseProtocol != nil {
 		response = &packet{dst, src, inverseProtocol, prefix + ",response"}
 	}
 
-	var connection []*acl.Rule
+	var connection []*ir.Rule
 	if internalSrc {
 		connection = append(connection, allowSend(*request))
 		if response != nil {
@@ -110,16 +106,16 @@ func allowDirectedConnection(src, dst string, internalSrc, internalDst bool, pro
 	return connection
 }
 
-func allowSend(packet packet) *acl.Rule {
-	return packetRule(packet, acl.Outbound, acl.Allow)
+func allowSend(packet packet) *ir.Rule {
+	return packetRule(packet, ir.Outbound, ir.Allow)
 }
 
-func allowReceive(packet packet) *acl.Rule {
-	return packetRule(packet, acl.Inbound, acl.Allow)
+func allowReceive(packet packet) *ir.Rule {
+	return packetRule(packet, ir.Inbound, ir.Allow)
 }
 
-func packetRule(packet packet, direction acl.Direction, action acl.Action) *acl.Rule {
-	return &acl.Rule{
+func packetRule(packet packet, direction ir.Direction, action ir.Action) *ir.Rule {
+	return &ir.Rule{
 		Name:        packet.prefix + fmt.Sprintf(",%v,%v", direction, action),
 		Action:      action,
 		Source:      packet.src,
@@ -127,63 +123,4 @@ func packetRule(packet packet, direction acl.Direction, action acl.Action) *acl.
 		Direction:   direction,
 		Protocol:    packet.protocol,
 	}
-}
-
-func makeProtocol(protocol interface{}) acl.Protocol {
-	switch p := protocol.(type) {
-	case *spec.TcpUdp:
-		pair := acl.PortRangePair{
-			SrcPort: acl.PortRange{Min: acl.DefaultMinPort, Max: acl.DefaultMaxPort},
-			DstPort: acl.PortRange{Min: p.MinDestinationPort, Max: p.MaxDestinationPort},
-		}
-		switch p.Protocol {
-		case spec.TcpUdpProtocolUDP:
-			return acl.UDP{PortRangePair: pair}
-		case spec.TcpUdpProtocolTCP:
-			return acl.TCP{PortRangePair: pair}
-		}
-	case *spec.Icmp:
-		return acl.ICMP{Code: p.Type, Type: p.Code}
-	case *spec.AnyProtocol:
-		return acl.AnyProtocol{}
-	default:
-		log.Fatalf("Impossible protocol type: %v", p)
-	}
-	return nil
-}
-
-func lookupEndpoint(s *spec.Spec, endpoint spec.Endpoint) []string {
-	name := endpoint.Name
-	switch endpoint.Type {
-	case spec.EndpointTypeCidr:
-		return []string{name}
-	case spec.EndpointTypeExternal:
-		if ip, ok := s.Externals[name]; ok {
-			return []string{ip}
-		}
-		return []string{fmt.Sprintf("<Unknown external %v>", name)}
-	case spec.EndpointTypeSubnet:
-		if ip, ok := s.Subnets[name]; ok {
-			return []string{ip}
-		}
-		return []string{fmt.Sprintf("<Unknown subnet %v>", name)}
-	case spec.EndpointTypeSegment:
-		if segment, ok := s.Segments[endpoint.Name]; ok {
-			if segment.Type != spec.TypeSubnet {
-				return []string{fmt.Sprintf("<Unsupported segment item type %v (%v)>", segment.Type, endpoint.Name)}
-			}
-			t := spec.EndpointType(segment.Type)
-			var ips []string
-			for _, subnetName := range segment.Items {
-				subnet := spec.Endpoint{Name: subnetName, Type: t}
-				ips = append(ips, lookupEndpoint(s, subnet)...)
-			}
-			return ips
-		}
-	case spec.EndpointTypeNif, spec.EndpointTypeInstance, spec.EndpointTypeVpe:
-		return []string{fmt.Sprintf("<Unsupported %v %v>", endpoint.Type, name)}
-	default:
-		return []string{fmt.Sprintf("<Unknown type %v (%v)>", endpoint.Type, name)}
-	}
-	return []string{}
 }

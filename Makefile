@@ -19,7 +19,7 @@ fmt:
 lint-go:
 	@echo -- $@ --
 	# to avoid parse errors, use git's diff - in windows, add C:\Program Files\Git\usr\bin\ to PATH
-	golangci-lint run --new
+	golangci-lint run
 
 lint-json:
 	@echo -- $@ --
@@ -29,13 +29,13 @@ lint: lint-go lint-json
 
 precommit: mod fmt lint
 
-pkg/spec/data_model.go: spec_schema.json
+pkg/io/jsonio/data_model.go: spec_schema.json
 	@echo -- generate --
 	# Install https://github.com/omissis/go-jsonschema
-	gojsonschema spec_schema.json --package spec --struct-name-from-title --tags json --output $@
+	gojsonschema spec_schema.json --package jsonio --struct-name-from-title --tags json --output $@
 	goimports -local $(REPOSITORY) -w $@
 
-generate: pkg/spec/data_model.go
+generate: pkg/io/jsonio/data_model.go
 
 build:
 	@echo -- $@ --
