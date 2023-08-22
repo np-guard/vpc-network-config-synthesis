@@ -13,7 +13,9 @@
                     ]
                 }
             },
-            "required": ["protocol"]
+            "required": [
+                "protocol"
+            ]
         },
         "tcp-udp": {
             "type": "object",
@@ -54,7 +56,9 @@
                     "default": 65535
                 }
             },
-            "required": ["protocol"]
+            "required": [
+                "protocol"
+            ]
         },
         "icmp": {
             "type": "object",
@@ -78,7 +82,9 @@
                     "maximum": 5
                 }
             },
-            "required": ["protocol"]
+            "required": [
+                "protocol"
+            ]
         },
         "protocol": {
             "oneOf": [
@@ -121,7 +127,10 @@
                     ]
                 }
             },
-            "required": ["name", "type"]
+            "required": [
+                "name",
+                "type"
+            ]
         }
     },
     "type": "object",
@@ -179,7 +188,10 @@
             "items": {
                 "type": "object",
                 "additionalProperties": false,
-                "required": ["src", "dst"],
+                "required": [
+                    "src",
+                    "dst"
+                ],
                 "properties": {
                     "src": {
                         "description": "In unidirectional connection, this is the egress endpoint",
