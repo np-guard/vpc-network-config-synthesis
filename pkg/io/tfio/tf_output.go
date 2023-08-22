@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/tfio/tf"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/tf"
 )
 
 // Writer implements ir.Writer
