@@ -3,6 +3,7 @@ package ir
 import (
 	"fmt"
 	"log"
+	"slices"
 )
 
 type ICMPCodeType struct {
@@ -75,16 +76,6 @@ func inverseICMPType(t int) int {
 	return undefinedICMP
 }
 
-// FIX: use go21 slices.Contains
-func contains(s []int, e int) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
-}
-
 //nolint:revive // magic numbers are fine here
 func ValidateICMP(t, c int) error {
 	possibleCodes := map[int][]int{
@@ -104,7 +95,7 @@ func ValidateICMP(t, c int) error {
 	if !ok {
 		return fmt.Errorf("invalid ICMP type %v", t)
 	}
-	if !contains(options, c) {
+	if !slices.Contains(options, c) {
 		return fmt.Errorf("ICMP code %v is invalid for ICMP type %v", c, t)
 	}
 	return nil
