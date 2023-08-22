@@ -107,10 +107,10 @@ issues:
   exclude-rules:
     - path: _test\.go
       linters:
-       - dupl
-       - revive
-       - goconst
-       - funlen
+        - dupl
+        - revive
+        - goconst
+        - funlen
 
 run:
   timeout: 5m
