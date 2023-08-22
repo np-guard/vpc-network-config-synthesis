@@ -12,9 +12,10 @@ Test:
 ```commandline
 make test
 ```
+
 Run:
-```commandline
-bin\vpcgen.exe -spec examples/connectivity_requirements.json -config examples/config_object.json
+```
+bin\vpcgen.exe -spec test\data\acl_testing5\conn_spec.json -config test\data\acl_testing5\config_object.json
 ```
 
 ## Code generation
@@ -28,4 +29,4 @@ Then run
 ```commandline
 make generate
 ```
-The result is written into [pkg/spec/data_model.go](pkg/spec/data_model.go).
+The result is written into [pkg/io/jsonio/data_model.go](pkg/io/jsonio/data_model.go).
