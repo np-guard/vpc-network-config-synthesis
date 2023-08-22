@@ -13,7 +13,7 @@ import (
 
 const dataFolder = "data/"
 
-func TestInvalidConnectivity(t *testing.T) {
+func Test_acl_testing4(t *testing.T) {
 	folder := dataFolder + "acl_testing4"
 	_, err := makeACL(folder)
 	if err.Error() != "unsupported endpoint type cidr" {
