@@ -1,0 +1,3 @@
+#,direction,action,source,source port,destination,destination port,protocol,type,code,description
+1,outbound,allow,10.240.10.0/24,All,10.240.30.0/24,All,UDP,-,-,"c0,p0,[subnet1->subnet2],src0,dst0,request,outbound,allow"
+2,inbound,allow,10.240.10.0/24,All,10.240.30.0/24,All,UDP,-,-,"c0,p0,[subnet1->subnet2],src0,dst0,request,inbound,allow"

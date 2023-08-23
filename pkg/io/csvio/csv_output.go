@@ -41,8 +41,8 @@ const (
 
 func makeTable(t ir.ACL) [][]string {
 	rows := make([][]string, len(t.Rules))
-	for i, rule := range t.Rules {
-		rows[i] = makeRow(i+1, rule)
+	for i := range t.Rules {
+		rows[i] = makeRow(i+1, &t.Rules[i])
 	}
 	return rows
 }
