@@ -11,35 +11,52 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/synth"
 )
 
-const dataFolder = "data/"
+const (
+	dataFolder          = "data"
+	defaultSpecName     = "conn_spec.json"
+	defaultExpectedName = "nacl_single_expected.csv"
+)
 
-func Test_acl_testing4(t *testing.T) {
-	folder := dataFolder + "acl_testing4"
-	_, err := makeACL(folder)
+type TestCase struct {
+	folder       string
+	specName     string
+	expectedName string
+	configName   string
+}
+
+func (c *TestCase) resolve(name string) string {
+	return dataFolder + "/" + c.folder + "/" + name
+}
+
+func (c *TestCase) at(name, otherwise string) string {
+	if name == "" {
+		name = otherwise
+	}
+	return c.resolve(name)
+}
+
+func TestCIDR(t *testing.T) {
+	_, err := makeACLCSV(TestCase{folder: "cidr"})
 	if err.Error() != "unsupported endpoint type cidr" {
 		t.Errorf("No failure for unsupported type; got %v", err)
 	}
 }
 
-type TestCase struct {
-	name string
-}
-
 func TestCSVCompare(t *testing.T) {
-	suite := []TestCase{
-		{"single_conn1"},
-		{"single_conn2"},
-		{"acl_testing5"},
+	suite := map[string]TestCase{
+		"single_conn1": {folder: "single_conn1"},
+		"single_conn2": {folder: "single_conn2"},
+		"acl_testing5": {folder: "acl_testing5", configName: "config_object.json"},
 	}
-	for i := range suite {
-		testcase := suite[i]
-		folder := dataFolder + testcase.name
-		t.Run(testcase.name, func(t *testing.T) {
-			actualCSVString, err := makeACL(folder)
+	for testname, c := range suite {
+		testcase := c
+		t.Run(testname, func(t *testing.T) {
+			actualCSVString, err := makeACLCSV(testcase)
 			if err != nil {
 				t.Error(err)
 			}
-			expectedCSVString := readExpectedCSV(folder + "/nacl_single_expected.csv")
+			expectedFile := testcase.at(testcase.expectedName, defaultExpectedName)
+			expectedCSVString := readExpectedCSV(expectedFile)
 			if expectedCSVString != actualCSVString {
 				t.Errorf("%v != %v", expectedCSVString, actualCSVString)
 			}
@@ -47,18 +64,17 @@ func TestCSVCompare(t *testing.T) {
 	}
 }
 
-func makeACL(folder string) (string, error) {
+func makeACLCSV(c TestCase) (csvString string, err error) {
 	reader := jsonio.NewReader()
 
 	var subnets map[string]string
-	configFilename := folder + "/config_object.json"
-	subnets, err := jsonio.ReadSubnetMap(configFilename)
-	if err != nil {
-		return "", err
+	if c.configName != "" {
+		subnets, err = jsonio.ReadSubnetMap(c.resolve(c.configName))
+		if err != nil {
+			return
+		}
 	}
-
-	connectivityFilename := folder + "/conn_spec.json"
-	s, err := reader.ReadSpec(connectivityFilename, subnets)
+	s, err := reader.ReadSpec(c.at(c.specName, defaultSpecName), subnets)
 	if err != nil {
 		return "", err
 	}
