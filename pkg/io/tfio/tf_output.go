@@ -22,7 +22,7 @@ func NewWriter(w io.Writer) *Writer {
 }
 
 // Write prints an entire collection of acls as a sequence of terraform resources.
-func (w *Writer) Write(c ir.Collection) error {
+func (w *Writer) Write(c *ir.Collection) error {
 	output := collection(c).Print()
 	_, err := w.w.WriteString(output)
 	if err != nil {
@@ -117,7 +117,7 @@ func singleACL(name string, t ir.ACL) tf.Block {
 	}
 }
 
-func collection(t ir.Collection) *tf.ConfigFile {
+func collection(t *ir.Collection) *tf.ConfigFile {
 	var acls = make([]tf.Block, len(t.ACLs))
 	i := 0
 	for name := range t.ACLs {

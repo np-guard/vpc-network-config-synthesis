@@ -22,7 +22,7 @@ func NewWriter(w io.Writer) *Writer {
 
 // Write prints an entire collection of acls as a single CSV table.
 // This is mostly useful when there is only a single ir.ACL item in the collection
-func (w *Writer) Write(collection ir.Collection) error {
+func (w *Writer) Write(collection *ir.Collection) error {
 	if err := w.w.Write(header()); err != nil {
 		return err
 	}

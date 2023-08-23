@@ -3,9 +3,7 @@ package jsonio
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
@@ -62,11 +60,19 @@ func translateConnection(defs *ir.Definitions, v *SpecRequiredConnectionsElem) (
 	if err != nil {
 		return nil, err
 	}
-	src, err := defs.Lookup(v.Src.Name, translateEndpointType(v.Src.Type))
+	srcEndpointType, err := translateEndpointType(v.Src.Type)
 	if err != nil {
 		return nil, err
 	}
-	dst, err := defs.Lookup(v.Dst.Name, translateEndpointType(v.Dst.Type))
+	src, err := defs.Lookup(v.Src.Name, srcEndpointType)
+	if err != nil {
+		return nil, err
+	}
+	dstEndpointType, err := translateEndpointType(v.Dst.Type)
+	if err != nil {
+		return nil, err
+	}
+	dst, err := defs.Lookup(v.Dst.Name, dstEndpointType)
 	if err != nil {
 		return nil, err
 	}
@@ -77,52 +83,51 @@ func translateConnection(defs *ir.Definitions, v *SpecRequiredConnectionsElem) (
 func translateProtocols(protocols ProtocolList) ([]ir.Protocol, error) {
 	var result = make([]ir.Protocol, len(protocols))
 	for i, _p := range protocols {
-		var protocol ir.Protocol
 		switch p := _p.(type) {
-		case *AnyProtocol:
+		case AnyProtocol:
 			if i != 0 {
 				return nil, fmt.Errorf("when allowing any protocol, no more protocols can be defined")
 			}
 			return []ir.Protocol{}, nil
-		case *Icmp:
+		case Icmp:
 			if p.Type == nil {
 				if p.Code != nil {
 					return nil, fmt.Errorf("defnining ICMP code for unspecified ICMP type is not allowed")
 				}
-				protocol = ir.ICMP{}
+				result[i] = ir.ICMP{}
 			} else {
 				err := ir.ValidateICMP(*p.Type, *p.Code)
 				if err != nil {
 					return nil, err
 				}
-				protocol = ir.ICMP{ICMPCodeType: &ir.ICMPCodeType{Type: *p.Type, Code: p.Code}}
+				result[i] = ir.ICMP{ICMPCodeType: &ir.ICMPCodeType{Type: *p.Type, Code: p.Code}}
 			}
-		case *TcpUdp:
-			protocol = ir.TCPUDP{
+		case TcpUdp:
+			result[i] = ir.TCPUDP{
 				Protocol: ir.TransportLayerProtocolName(p.Protocol),
 				PortRangePair: ir.PortRangePair{
 					SrcPort: ir.PortRange{Min: p.MinSourcePort, Max: p.MaxSourcePort},
 					DstPort: ir.PortRange{Min: p.MinDestinationPort, Max: p.MaxDestinationPort},
 				},
 			}
+		default:
+			return nil, fmt.Errorf("impossible protocol: %v", p)
 		}
-		result[i] = protocol
 	}
 	return result, nil
 }
 
-func translateEndpointType(endpointType EndpointType) ir.EndpointType {
+func translateEndpointType(endpointType EndpointType) (ir.EndpointType, error) {
 	switch endpointType {
 	case EndpointTypeExternal:
-		return ir.EndpointTypeExternal
+		return ir.EndpointTypeExternal, nil
 	case EndpointTypeSegment:
-		return ir.EndpointTypeSegment
+		return ir.EndpointTypeSegment, nil
 	case EndpointTypeSubnet:
-		return ir.EndpointTypeSubnet
+		return ir.EndpointTypeSubnet, nil
 	default:
-		log.Fatalf("Unsupported endpoint type %v", endpointType)
+		return ir.EndpointTypeSubnet, fmt.Errorf("unsupported endpoint type %v", endpointType)
 	}
-	return ir.EndpointTypeSubnet
 }
 
 // unmarshal returns a Spec struct given a file adhering to spec_schema.input
@@ -137,60 +142,37 @@ func unmarshal(filename string) (*Spec, error) {
 		return nil, err
 	}
 	for i := range jsonspec.RequiredConnections {
-		if jsonspec.RequiredConnections[i].AllowedProtocols == nil {
-			jsonspec.RequiredConnections[i].AllowedProtocols = ProtocolList{new(AnyProtocol)}
+		conn := &jsonspec.RequiredConnections[i]
+		if conn.AllowedProtocols == nil {
+			conn.AllowedProtocols = ProtocolList{AnyProtocol{}}
 		} else {
-			err = fixProtocolList(jsonspec.RequiredConnections[i].AllowedProtocols)
-			if err != nil {
-				return nil, err
+			for j := range conn.AllowedProtocols {
+				p := conn.AllowedProtocols[j].(map[string]interface{})
+				bytes, err = json.Marshal(p)
+				if err != nil {
+					return nil, err
+				}
+				switch p["protocol"] {
+				case "ANY":
+					var result AnyProtocol
+					err = json.Unmarshal(bytes, &result)
+					conn.AllowedProtocols[j] = result
+				case "TCP", "UDP":
+					var result TcpUdp
+					err = json.Unmarshal(bytes, &result)
+					conn.AllowedProtocols[j] = result
+				case "ICMP":
+					var result Icmp
+					err = json.Unmarshal(bytes, &result)
+					conn.AllowedProtocols[j] = result
+				default:
+					return nil, fmt.Errorf("invalid protocol type %q", p["protocol"])
+				}
+				if err != nil {
+					return nil, err
+				}
 			}
 		}
 	}
 	return jsonspec, err
-}
-
-func fixProtocolList(list ProtocolList) error {
-	for j := range list {
-		var err error
-		p := list[j].(map[string]interface{})
-		switch p["protocol"] {
-		case "TCP":
-			list[j], err = unmarshalProtocol(p, new(TcpUdp))
-		case "UDP":
-			list[j], err = unmarshalProtocol(p, new(TcpUdp))
-		case "ICMP":
-			var icmp *Icmp
-			icmp, err = unmarshalProtocol(p, new(Icmp))
-			if err != nil {
-				return err
-			}
-			list[j] = icmp
-		case "ANY":
-			list[j], err = unmarshalProtocol(p, new(AnyProtocol))
-			if err != nil {
-				return err
-			}
-			if len(list) != 1 {
-				err = errors.New("redundant protocol declaration")
-			}
-		default:
-			return fmt.Errorf("unknown protocol name: %q, %T", p["protocol"], p["protocol"])
-		}
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func unmarshalProtocol[T json.Unmarshaler](p map[string]interface{}, result T) (T, error) {
-	bytes, err := json.Marshal(p)
-	if err != nil {
-		return result, err
-	}
-	err = json.Unmarshal(bytes, result)
-	if err != nil {
-		return result, err
-	}
-	return result, nil
 }
