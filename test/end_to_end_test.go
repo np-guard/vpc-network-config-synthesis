@@ -21,39 +21,29 @@ func Test_acl_testing4(t *testing.T) {
 	}
 }
 
-func Test_single_conn1(t *testing.T) {
-	subfolder := "single_conn1"
-	actualCSVString, err := makeACL(dataFolder + subfolder)
-	if err != nil {
-		t.Error(err)
-	}
-	expectedCSVString := readExpectedCSV(dataFolder + subfolder + "/nacl_single_expected.csv")
-	if expectedCSVString != actualCSVString {
-		t.Errorf("%v != %v", expectedCSVString, actualCSVString)
-	}
+type TestCase struct {
+	name string
 }
 
-func Test_single_conn2(t *testing.T) {
-	subfolder := "single_conn2"
-	actualCSVString, err := makeACL(dataFolder + subfolder)
-	if err != nil {
-		t.Error(err)
+func TestCSVCompare(t *testing.T) {
+	suite := []TestCase{
+		{"single_conn1"},
+		{"single_conn2"},
+		{"acl_testing5"},
 	}
-	expectedCSVString := readExpectedCSV(dataFolder + subfolder + "/nacl_single_expected.csv")
-	if expectedCSVString != actualCSVString {
-		t.Errorf("%v != %v", expectedCSVString, actualCSVString)
-	}
-}
-
-func Test_acl_testing5(t *testing.T) {
-	subfolder := "acl_testing5"
-	actualCSVString, err := makeACL(dataFolder + subfolder)
-	if err != nil {
-		t.Error(err)
-	}
-	expectedCSVString := readExpectedCSV(dataFolder + subfolder + "/nacl_single_expected.csv")
-	if expectedCSVString != actualCSVString {
-		t.Errorf("%v != %v", expectedCSVString, actualCSVString)
+	for i := range suite {
+		testcase := suite[i]
+		folder := dataFolder + testcase.name
+		t.Run(testcase.name, func(t *testing.T) {
+			actualCSVString, err := makeACL(folder)
+			if err != nil {
+				t.Error(err)
+			}
+			expectedCSVString := readExpectedCSV(folder + "/nacl_single_expected.csv")
+			if expectedCSVString != actualCSVString {
+				t.Errorf("%v != %v", expectedCSVString, actualCSVString)
+			}
+		})
 	}
 }
 
