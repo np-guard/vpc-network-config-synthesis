@@ -34,7 +34,10 @@ func (w *Writer) Write(collection *ir.Collection) error {
 	return nil
 }
 
-const allPorts = "All"
+const (
+	all = "All"
+	na  = "-"
+)
 
 func makeTable(t ir.ACL) [][]string {
 	rows := make([][]string, len(t.Rules))
@@ -47,7 +50,7 @@ func makeTable(t ir.ACL) [][]string {
 func port(p ir.PortRange) string {
 	switch {
 	case p.Min == ir.DefaultMinPort && p.Max == ir.DefaultMaxPort:
-		return allPorts
+		return all
 	case p.Min == p.Max:
 		return fmt.Sprintf("%v", p.Max)
 	default:
@@ -66,14 +69,14 @@ func direction(d ir.Direction) string {
 func printPortRange(protocol ir.Protocol, isSrcPort bool) string {
 	switch p := protocol.(type) {
 	case ir.ICMP:
-		return "-"
+		return na
 	case ir.TCPUDP:
 		if isSrcPort {
 			return port(p.PortRangePair.SrcPort)
 		}
 		return port(p.PortRangePair.DstPort)
 	case ir.AnyProtocol:
-		return allPorts
+		return all
 	default:
 		log.Fatalf("Impossible protocol %v", p)
 	}
@@ -90,11 +93,14 @@ func header() []string {
 		"destination",
 		"destination port",
 		"protocol",
+		"type",
+		"code",
 		"description",
 	}
 }
 
 func makeRow(i int, rule *ir.Rule) []string {
+	icmpType, icmpCode := printICMPTypeCode(rule.Protocol)
 	return []string{
 		strconv.Itoa(i),
 		direction(rule.Direction),
@@ -104,6 +110,24 @@ func makeRow(i int, rule *ir.Rule) []string {
 		rule.Destination,
 		printPortRange(rule.Protocol, false),
 		rule.Protocol.Name(),
+		icmpType,
+		icmpCode,
 		rule.Name,
 	}
+}
+
+func printICMPTypeCode(protocol ir.Protocol) (icmpType, icmpCode string) {
+	p, ok := protocol.(ir.ICMP)
+	if !ok {
+		return na, na
+	}
+	icmpType = all
+	icmpCode = all
+	if p.ICMPCodeType != nil {
+		icmpType = strconv.Itoa(p.Type)
+		if p.Code != nil {
+			icmpCode = strconv.Itoa(*p.Code)
+		}
+	}
+	return
 }
