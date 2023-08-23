@@ -4,6 +4,7 @@ package synth
 import (
 	"fmt"
 	"log"
+	"reflect"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
@@ -17,7 +18,7 @@ func MakeACL(s *ir.Spec) *ir.Collection {
 	}
 }
 
-func generateRules(s *ir.Spec) []*ir.Rule {
+func generateRules(s *ir.Spec) []ir.Rule {
 	var allowInternal []*ir.Rule
 	var allowExternal []*ir.Rule
 	for c := range s.Connections {
@@ -49,12 +50,62 @@ func generateRules(s *ir.Spec) []*ir.Rule {
 			}
 		}
 	}
-	result := allowInternal
+
+	rules := allowInternal
 	if len(allowExternal) != 0 {
-		result = append(result, makeDenyInternal()...)
-		result = append(result, allowExternal...)
+		rules = append(rules, makeDenyInternal()...)
+		rules = append(rules, allowExternal...)
+	}
+
+	nullifyRedundant(rules)
+	return copyNonNil(rules)
+}
+
+func copyNonNil(list []*ir.Rule) []ir.Rule {
+	result := make([]ir.Rule, countNonNil(list))
+	i := 0
+	for _, maybeRule := range list {
+		if maybeRule != nil {
+			result[i] = *maybeRule
+			i++
+		}
 	}
 	return result
+}
+
+func countNonNil[T any](list []*T) int {
+	result := 0
+	for i := range list {
+		if list[i] != nil {
+			result++
+		}
+	}
+	return result
+}
+
+func nullifyRedundant(rules []*ir.Rule) {
+	for i, main := range rules {
+		if main == nil {
+			continue
+		}
+		for j := i + 1; j < len(rules); j++ {
+			other := rules[j]
+			if other == nil {
+				continue
+			}
+			if mustSupersede(main, other) {
+				rules[j] = nil
+			}
+		}
+	}
+}
+
+func mustSupersede(main, other *ir.Rule) bool {
+	otherName := other.Name
+	other.Name = main.Name
+	res := reflect.DeepEqual(main, other)
+	other.Name = otherName
+	return res
 }
 
 // makeDenyInternal prevents allowing external communications from accidentally allowing internal communications too

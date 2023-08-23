@@ -37,7 +37,7 @@ type Rule struct {
 }
 
 type ACL struct {
-	Rules []*Rule
+	Rules []Rule
 }
 
 type Collection struct {

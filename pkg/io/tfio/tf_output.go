@@ -103,7 +103,7 @@ func rule(t *ir.Rule) tf.Block {
 func singleACL(name string, t ir.ACL) tf.Block {
 	blocks := make([]tf.Block, len(t.Rules))
 	for i := range t.Rules {
-		blocks[i] = rule(t.Rules[i])
+		blocks[i] = rule(&t.Rules[i])
 	}
 	return tf.Block{
 		Name:   "resource",

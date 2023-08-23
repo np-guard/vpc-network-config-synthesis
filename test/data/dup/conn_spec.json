@@ -1,0 +1,38 @@
+{
+    "subnets": {
+        "subnet1": "10.240.10.0/24",
+        "subnet2": "10.240.30.0/24"
+    },
+    "required-connections": [
+        {
+            "src": {
+                "name": "subnet1",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "subnet2",
+                "type": "subnet"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "UDP"
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "subnet1",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "subnet2",
+                "type": "subnet"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "UDP"
+                }
+            ]
+        }
+    ]
+}

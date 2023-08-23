@@ -44,9 +44,10 @@ func TestCIDR(t *testing.T) {
 
 func TestCSVCompare(t *testing.T) {
 	suite := map[string]TestCase{
-		"single_conn1": {folder: "single_conn1"},
-		"single_conn2": {folder: "single_conn2"},
-		"acl_testing5": {folder: "acl_testing5", configName: "config_object.json"},
+		"single connection 1": {folder: "single_conn1"},
+		"single connection 2": {folder: "single_conn2"},
+		"duplication":         {folder: "dup"},
+		"acl_testing5":        {folder: "acl_testing5", configName: "config_object.json"},
 	}
 	for testname, c := range suite {
 		testcase := c
