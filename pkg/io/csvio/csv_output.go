@@ -128,7 +128,7 @@ func printPortRange(protocol ir.Protocol, isSrcPort bool) string {
 	case ir.AnyProtocol:
 		return all
 	default:
-		log.Fatalf("Impossible protocol %v", p)
+		log.Panicf("Impossible protocol %v", p)
 	}
 	return ""
 }

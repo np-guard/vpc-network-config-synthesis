@@ -93,7 +93,7 @@ func makeACLCSV(c TestCase) (csvString string, err error) {
 func readExpectedCSV(filename string) string {
 	buf, err := os.ReadFile(filename)
 	if err != nil {
-		log.Fatalf("Bad test: %v", err)
+		log.Panicf("Bad test: %v", err)
 	}
 	return string(buf)
 }
