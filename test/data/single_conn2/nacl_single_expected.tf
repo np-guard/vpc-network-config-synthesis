@@ -1,5 +1,5 @@
 resource "ibm_is_network_acl" "acl1" {
-  name           = "acl1-${var.initials}"
+  name           = "acl1"
   resource_group = var.resource_group_id
   vpc            = var.vpc_id
   rules {
