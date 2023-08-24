@@ -110,7 +110,7 @@ func singleACL(name string, t ir.ACL) tf.Block {
 		Name:   "resource",
 		Labels: []string{quote("ibm_is_network_acl"), quote(name)},
 		Arguments: []tf.Argument{
-			{Name: "name", Value: quote(name + "-${var.initials}")}, //nolint:revive  // obvious false positive
+			{Name: "name", Value: quote(name)}, //nolint:revive  // obvious false positive
 			{Name: "resource_group", Value: "var.resource_group_id"},
 			{Name: "vpc", Value: "var.vpc_id"},
 		},
