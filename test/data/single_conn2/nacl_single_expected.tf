@@ -3,7 +3,8 @@ resource "ibm_is_network_acl" "acl1" {
   resource_group = var.resource_group_id
   vpc            = var.vpc_id
   rules {
-    name        = "c0,p0,[subnet1-ky->subnet3-ky],src0,dst0,request,outbound,allow"
+    # Internal. Connection #0: (subnet subnet1-ky)->(subnet subnet3-ky) protocol #0
+    name        = "rule0"
     action      = "allow"
     direction   = "outbound"
     source      = "10.240.10.0/24"
@@ -14,7 +15,8 @@ resource "ibm_is_network_acl" "acl1" {
     }
   }
   rules {
-    name        = "c0,p0,[subnet1-ky->subnet3-ky],src0,dst0,response,inbound,allow"
+    # Internal. Connection #0: (subnet subnet1-ky)->(subnet subnet3-ky) protocol #0
+    name        = "rule1"
     action      = "allow"
     direction   = "inbound"
     source      = "10.240.30.0/24"
@@ -25,7 +27,8 @@ resource "ibm_is_network_acl" "acl1" {
     }
   }
   rules {
-    name        = "c0,p0,[subnet1-ky->subnet3-ky],src0,dst0,request,inbound,allow"
+    # Internal. Connection #0: (subnet subnet1-ky)->(subnet subnet3-ky) protocol #0
+    name        = "rule2"
     action      = "allow"
     direction   = "inbound"
     source      = "10.240.10.0/24"
@@ -36,7 +39,8 @@ resource "ibm_is_network_acl" "acl1" {
     }
   }
   rules {
-    name        = "c0,p0,[subnet1-ky->subnet3-ky],src0,dst0,response,outbound,allow"
+    # Internal. Connection #0: (subnet subnet1-ky)->(subnet subnet3-ky) protocol #0
+    name        = "rule3"
     action      = "allow"
     direction   = "outbound"
     source      = "10.240.30.0/24"
@@ -47,7 +51,8 @@ resource "ibm_is_network_acl" "acl1" {
     }
   }
   rules {
-    name        = "c1,p0,[subnet3-ky->subnet1-ky],src0,dst0,request,outbound,allow"
+    # Internal. inverse of Connection #0: (subnet subnet1-ky)->(subnet subnet3-ky) protocol #0
+    name        = "rule4"
     action      = "allow"
     direction   = "outbound"
     source      = "10.240.30.0/24"
@@ -58,7 +63,8 @@ resource "ibm_is_network_acl" "acl1" {
     }
   }
   rules {
-    name        = "c1,p0,[subnet3-ky->subnet1-ky],src0,dst0,response,inbound,allow"
+    # Internal. inverse of Connection #0: (subnet subnet1-ky)->(subnet subnet3-ky) protocol #0
+    name        = "rule5"
     action      = "allow"
     direction   = "inbound"
     source      = "10.240.10.0/24"
@@ -69,7 +75,8 @@ resource "ibm_is_network_acl" "acl1" {
     }
   }
   rules {
-    name        = "c1,p0,[subnet3-ky->subnet1-ky],src0,dst0,request,inbound,allow"
+    # Internal. inverse of Connection #0: (subnet subnet1-ky)->(subnet subnet3-ky) protocol #0
+    name        = "rule6"
     action      = "allow"
     direction   = "inbound"
     source      = "10.240.30.0/24"
@@ -80,7 +87,8 @@ resource "ibm_is_network_acl" "acl1" {
     }
   }
   rules {
-    name        = "c1,p0,[subnet3-ky->subnet1-ky],src0,dst0,response,outbound,allow"
+    # Internal. inverse of Connection #0: (subnet subnet1-ky)->(subnet subnet3-ky) protocol #0
+    name        = "rule7"
     action      = "allow"
     direction   = "outbound"
     source      = "10.240.10.0/24"

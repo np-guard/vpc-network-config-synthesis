@@ -21,6 +21,9 @@ type (
 
 		// Allowed protocols
 		Protocols []Protocol
+
+		// Provenance information
+		Reason fmt.Stringer
 	}
 
 	Endpoint struct {
@@ -34,6 +37,13 @@ type (
 		Type EndpointType
 	}
 
+	Explanation struct {
+		IsResponse    bool
+		Internal      bool
+		ProtocolIndex int
+		Origin        fmt.Stringer
+	}
+
 	Definitions struct {
 		Subnets map[string]string
 
@@ -45,17 +55,16 @@ type (
 	}
 )
 
-func MakeConnection(src, dst Endpoint, protocols []Protocol, bidirectional bool) []Connection {
-	out := Connection{
-		Src:       src,
-		Dst:       dst,
-		Protocols: protocols,
+func (e Explanation) String() string {
+	locality := "External"
+	if e.Internal {
+		locality = "Internal"
 	}
-	if bidirectional {
-		in := Connection{Src: dst, Dst: src, Protocols: protocols}
-		return []Connection{out, in}
+	result := fmt.Sprintf("%v. %v protocol #%v", locality, e.Origin, e.ProtocolIndex)
+	if e.IsResponse {
+		result = "response to " + result
 	}
-	return []Connection{out}
+	return result
 }
 
 type EndpointType string

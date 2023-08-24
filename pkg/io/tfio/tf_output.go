@@ -86,24 +86,25 @@ func direction(d ir.Direction) string {
 	return string(d)
 }
 
-func rule(t *ir.Rule) tf.Block {
+func rule(rule *ir.Rule, name string) tf.Block {
 	arguments := []tf.Argument{
-		{Name: "name", Value: quote(t.Name)},
-		{Name: "action", Value: quote(action(t.Action))},
-		{Name: "direction", Value: quote(direction(t.Direction))},
-		{Name: "source", Value: quote(t.Source)},
-		{Name: "destination", Value: quote(t.Destination)},
+		{Name: "name", Value: quote(name)},
+		{Name: "action", Value: quote(action(rule.Action))},
+		{Name: "direction", Value: quote(direction(rule.Direction))},
+		{Name: "source", Value: quote(rule.Source)},
+		{Name: "destination", Value: quote(rule.Destination)},
 	}
 	return tf.Block{Name: "rules",
+		Comment:   rule.Explanation,
 		Arguments: arguments,
-		Blocks:    protocol(t.Protocol),
+		Blocks:    protocol(rule.Protocol),
 	}
 }
 
 func singleACL(name string, t ir.ACL) tf.Block {
 	blocks := make([]tf.Block, len(t.Rules))
 	for i := range t.Rules {
-		blocks[i] = rule(&t.Rules[i])
+		blocks[i] = rule(&t.Rules[i], fmt.Sprintf("rule%v", i))
 	}
 	return tf.Block{
 		Name:   "resource",

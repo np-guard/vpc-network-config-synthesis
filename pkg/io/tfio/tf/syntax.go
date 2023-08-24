@@ -15,6 +15,7 @@ type Argument struct {
 }
 
 type Block struct {
+	Comment   string
 	Name      string
 	Labels    []string
 	Arguments []Argument
@@ -36,6 +37,9 @@ func (b *Block) print(indent string) string {
 	result += " {\n"
 	{
 		indent := indent + indentation //nolint:govet  // intentionally shadow
+		if b.Comment != "" {
+			result += indent + fmt.Sprintf("# %v\n", b.Comment)
+		}
 		for _, keyValue := range b.Arguments {
 			result += indent + fmt.Sprintf("%v = %v\n", keyValue.Name, keyValue.Value)
 		}
