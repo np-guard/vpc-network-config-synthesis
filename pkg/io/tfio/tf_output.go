@@ -55,7 +55,7 @@ func portRangePair(t ir.PortRangePair, name string) tf.Block {
 func protocol(t ir.Protocol) []tf.Block {
 	switch p := t.(type) {
 	case ir.TCPUDP:
-		return []tf.Block{portRangePair(p.PortRangePair, strings.ToLower(p.Name()))}
+		return []tf.Block{portRangePair(p.PortRangePair, strings.ToLower(string(p.Protocol)))}
 	case ir.ICMP:
 		var arguments []tf.Argument
 		if p.ICMPCodeType != nil {

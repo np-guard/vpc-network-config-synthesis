@@ -15,8 +15,6 @@ const (
 )
 
 type Protocol interface {
-	Name() string
-
 	// InverseDirection returns the response expected for a request made using this protocol
 	InverseDirection() Protocol
 }
@@ -24,8 +22,6 @@ type Protocol interface {
 type AnyProtocol struct{}
 
 func (t AnyProtocol) InverseDirection() Protocol { return AnyProtocol{} }
-
-func (t AnyProtocol) Name() string { return "All" }
 
 type Rule struct {
 	Action      Action

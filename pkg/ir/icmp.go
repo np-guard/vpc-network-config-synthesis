@@ -18,8 +18,6 @@ type ICMP struct {
 	*ICMPCodeType
 }
 
-func (t ICMP) Name() string { return "ICMP" }
-
 func (t ICMP) InverseDirection() Protocol {
 	if t.ICMPCodeType == nil {
 		return nil

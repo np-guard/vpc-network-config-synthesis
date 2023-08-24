@@ -30,8 +30,6 @@ type TCPUDP struct {
 	PortRangePair PortRangePair
 }
 
-func (t TCPUDP) Name() string { return string(t.Protocol) }
-
 func (t TCPUDP) InverseDirection() Protocol {
 	switch t.Protocol {
 	case TCP:
