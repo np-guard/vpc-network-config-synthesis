@@ -45,7 +45,7 @@ func (*Reader) ReadSpec(filename string, subnets map[string]string) (*ir.Spec, e
 
 	var connections []ir.Connection
 	for i := range jsonspec.RequiredConnections {
-		bidiconns, err := translateConnection(&defs, &jsonspec.RequiredConnections[i])
+		bidiconns, err := translateConnection(&defs, &jsonspec.RequiredConnections[i], i)
 		if err != nil {
 			return nil, err
 		}
@@ -55,7 +55,7 @@ func (*Reader) ReadSpec(filename string, subnets map[string]string) (*ir.Spec, e
 	return &ir.Spec{Connections: connections}, nil
 }
 
-func translateConnection(defs *ir.Definitions, v *SpecRequiredConnectionsElem) ([]ir.Connection, error) {
+func translateConnection(defs *ir.Definitions, v *SpecRequiredConnectionsElem, connectionIndex int) ([]ir.Connection, error) {
 	p, err := translateProtocols(v.AllowedProtocols)
 	if err != nil {
 		return nil, err
@@ -76,8 +76,20 @@ func translateConnection(defs *ir.Definitions, v *SpecRequiredConnectionsElem) (
 	if err != nil {
 		return nil, err
 	}
-	result := ir.MakeConnection(src, dst, p, v.Bidirectional)
-	return result, nil
+
+	origin := Origin{
+		connectionIndex: connectionIndex,
+		srcName:         endpointName(v.Src),
+		dstName:         endpointName(v.Dst),
+	}
+	out := ir.Connection{Src: src, Dst: dst, Protocols: p, Reason: origin}
+	if v.Bidirectional {
+		backOrigin := origin
+		backOrigin.inverse = true
+		in := ir.Connection{Src: dst, Dst: src, Protocols: p, Reason: &backOrigin}
+		return []ir.Connection{out, in}, nil
+	}
+	return []ir.Connection{out}, nil
 }
 
 func translateProtocols(protocols ProtocolList) ([]ir.Protocol, error) {

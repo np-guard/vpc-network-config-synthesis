@@ -24,12 +24,12 @@ func generateRules(s *ir.Spec) []ir.Rule {
 	for c := range s.Connections {
 		conn := &s.Connections[c]
 		internalSrc := conn.Src.Type != ir.EndpointTypeExternal
-		for i, src := range conn.Src.Values {
+		for _, src := range conn.Src.Values {
 			internalDst := conn.Dst.Type != ir.EndpointTypeExternal
 			if !internalSrc && !internalDst {
 				log.Fatalf("Both source and destination are external for connection #%v", c)
 			}
-			for j, dst := range conn.Dst.Values {
+			for _, dst := range conn.Dst.Values {
 				if src == dst {
 					continue
 				}
@@ -37,11 +37,11 @@ func generateRules(s *ir.Spec) []ir.Rule {
 					conn.Protocols = []ir.Protocol{ir.AnyProtocol{}}
 				}
 				for p, protocol := range conn.Protocols {
-					prefix := fmt.Sprintf("c%v,p%v,[%v->%v],src%v,dst%v", c, p, conn.Src.Name, conn.Dst.Name, i, j)
+					internal := internalSrc && internalDst
+					explanation := ir.Explanation{ProtocolIndex: p, Internal: internal, Origin: conn.Reason}
+					connection := allowDirectedConnection(src, dst, internalSrc, internalDst, protocol, explanation)
 
-					connection := allowDirectedConnection(src, dst, internalSrc, internalDst, protocol, prefix)
-
-					if internalSrc && internalDst {
+					if internal {
 						allowInternal = append(allowInternal, connection...)
 					} else {
 						allowExternal = append(allowExternal, connection...)
@@ -101,10 +101,10 @@ func nullifyRedundant(rules []*ir.Rule) {
 }
 
 func mustSupersede(main, other *ir.Rule) bool {
-	otherName := other.Name
-	other.Name = main.Name
+	otherExplanation := other.Explanation
+	other.Explanation = main.Explanation
 	res := reflect.DeepEqual(main, other)
-	other.Name = otherName
+	other.Explanation = otherExplanation
 	return res
 }
 
@@ -118,10 +118,10 @@ func makeDenyInternal() []*ir.Rule {
 	var denyInternal []*ir.Rule
 	for i, anyLocalIPSrc := range localIPs {
 		for j, anyLocalIPDst := range localIPs {
-			prefix := fmt.Sprintf("%vx%v", i, j)
+			explanation := fmt.Sprintf("Deny other internal communication; see rfc1918#3; item %v,%v", i, j)
 			denyInternal = append(denyInternal, []*ir.Rule{
-				packetRule(packet{anyLocalIPSrc, anyLocalIPDst, ir.AnyProtocol{}, prefix}, ir.Outbound, ir.Deny),
-				packetRule(packet{anyLocalIPDst, anyLocalIPSrc, ir.AnyProtocol{}, prefix}, ir.Inbound, ir.Deny),
+				packetRule(packet{src: anyLocalIPSrc, dst: anyLocalIPDst, protocol: ir.AnyProtocol{}, explanation: explanation}, ir.Outbound, ir.Deny),
+				packetRule(packet{src: anyLocalIPDst, dst: anyLocalIPSrc, protocol: ir.AnyProtocol{}, explanation: explanation}, ir.Inbound, ir.Deny),
 			}...)
 		}
 	}
@@ -129,16 +129,18 @@ func makeDenyInternal() []*ir.Rule {
 }
 
 type packet struct {
-	src, dst string
-	protocol ir.Protocol
-	prefix   string
+	src, dst    string
+	protocol    ir.Protocol
+	explanation string
 }
 
-func allowDirectedConnection(src, dst string, internalSrc, internalDst bool, protocol ir.Protocol, prefix string) []*ir.Rule {
+func allowDirectedConnection(src, dst string, internalSrc, internalDst bool, protocol ir.Protocol, explanation ir.Explanation) []*ir.Rule {
 	var request, response *packet
-	request = &packet{src, dst, protocol, prefix + ",request"}
+	request = &packet{src: src, dst: dst, protocol: protocol, explanation: explanation.String()}
 	if inverseProtocol := protocol.InverseDirection(); inverseProtocol != nil {
-		response = &packet{dst, src, inverseProtocol, prefix + ",response"}
+		responseExplanation := explanation
+		responseExplanation.IsResponse = true
+		response = &packet{src: dst, dst: src, protocol: inverseProtocol, explanation: explanation.String()}
 	}
 
 	var connection []*ir.Rule
@@ -167,11 +169,11 @@ func allowReceive(packet packet) *ir.Rule {
 
 func packetRule(packet packet, direction ir.Direction, action ir.Action) *ir.Rule {
 	return &ir.Rule{
-		Name:        packet.prefix + fmt.Sprintf(",%v,%v", direction, action),
 		Action:      action,
 		Source:      packet.src,
 		Destination: packet.dst,
 		Direction:   direction,
 		Protocol:    packet.protocol,
+		Explanation: packet.explanation,
 	}
 }

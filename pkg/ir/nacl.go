@@ -28,12 +28,12 @@ func (t AnyProtocol) InverseDirection() Protocol { return AnyProtocol{} }
 func (t AnyProtocol) Name() string { return "All" }
 
 type Rule struct {
-	Name        string
 	Action      Action
 	Direction   Direction
 	Source      string
 	Destination string
 	Protocol    Protocol
+	Explanation string
 }
 
 type ACL struct {

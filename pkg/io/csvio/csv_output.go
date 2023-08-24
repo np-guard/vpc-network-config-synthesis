@@ -112,7 +112,7 @@ func makeRow(i int, rule *ir.Rule) []string {
 		rule.Protocol.Name(),
 		icmpType,
 		icmpCode,
-		rule.Name,
+		rule.Explanation,
 	}
 }
 
