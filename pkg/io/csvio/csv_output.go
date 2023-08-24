@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"strconv"
+	"strings"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
@@ -66,23 +67,6 @@ func direction(d ir.Direction) string {
 	return string(d)
 }
 
-func printPortRange(protocol ir.Protocol, isSrcPort bool) string {
-	switch p := protocol.(type) {
-	case ir.ICMP:
-		return na
-	case ir.TCPUDP:
-		if isSrcPort {
-			return port(p.PortRangePair.SrcPort)
-		}
-		return port(p.PortRangePair.DstPort)
-	case ir.AnyProtocol:
-		return all
-	default:
-		log.Fatalf("Impossible protocol %v", p)
-	}
-	return ""
-}
-
 func header() []string {
 	return []string{
 		"#",
@@ -109,7 +93,7 @@ func makeRow(i int, rule *ir.Rule) []string {
 		printPortRange(rule.Protocol, true),
 		rule.Destination,
 		printPortRange(rule.Protocol, false),
-		rule.Protocol.Name(),
+		printProtocolName(rule.Protocol),
 		icmpType,
 		icmpCode,
 		rule.Explanation,
@@ -130,4 +114,33 @@ func printICMPTypeCode(protocol ir.Protocol) (icmpType, icmpCode string) {
 		}
 	}
 	return
+}
+
+func printPortRange(protocol ir.Protocol, isSrcPort bool) string {
+	switch p := protocol.(type) {
+	case ir.ICMP:
+		return na
+	case ir.TCPUDP:
+		if isSrcPort {
+			return port(p.PortRangePair.SrcPort)
+		}
+		return port(p.PortRangePair.DstPort)
+	case ir.AnyProtocol:
+		return all
+	default:
+		log.Fatalf("Impossible protocol %v", p)
+	}
+	return ""
+}
+
+func printProtocolName(protocol ir.Protocol) string {
+	switch p := protocol.(type) {
+	case ir.ICMP:
+		return "ICMP"
+	case ir.TCPUDP:
+		return strings.ToUpper(string(p.Protocol))
+	case ir.AnyProtocol:
+		return all
+	}
+	return ""
 }

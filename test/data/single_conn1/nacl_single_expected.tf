@@ -3,7 +3,7 @@ resource "ibm_is_network_acl" "acl1" {
   resource_group = var.resource_group_id
   vpc            = var.vpc_id
   rules {
-    # Internal. Connection #0: (subnet subnet1-ky)->(subnet subnet3-ky) protocol #0
+    # Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
     name        = "rule0"
     action      = "allow"
     direction   = "outbound"
@@ -15,7 +15,7 @@ resource "ibm_is_network_acl" "acl1" {
     }
   }
   rules {
-    # Internal. Connection #0: (subnet subnet1-ky)->(subnet subnet3-ky) protocol #0
+    # Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
     name        = "rule1"
     action      = "allow"
     direction   = "inbound"
@@ -27,7 +27,7 @@ resource "ibm_is_network_acl" "acl1" {
     }
   }
   rules {
-    # Internal. Connection #0: (subnet subnet1-ky)->(subnet subnet3-ky) protocol #0
+    # Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
     name        = "rule2"
     action      = "allow"
     direction   = "inbound"
@@ -39,7 +39,7 @@ resource "ibm_is_network_acl" "acl1" {
     }
   }
   rules {
-    # Internal. Connection #0: (subnet subnet1-ky)->(subnet subnet3-ky) protocol #0
+    # Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
     name        = "rule3"
     action      = "allow"
     direction   = "outbound"

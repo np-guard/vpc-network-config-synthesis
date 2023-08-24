@@ -20,10 +20,10 @@ type (
 		Dst Endpoint
 
 		// Allowed protocols
-		Protocols []Protocol
+		TrackedProtocols []TrackedProtocol
 
 		// Provenance information
-		Reason fmt.Stringer
+		Origin fmt.Stringer
 	}
 
 	Endpoint struct {
@@ -37,11 +37,9 @@ type (
 		Type EndpointType
 	}
 
-	Explanation struct {
-		IsResponse    bool
-		Internal      bool
-		ProtocolIndex int
-		Origin        fmt.Stringer
+	TrackedProtocol struct {
+		Protocol
+		Origin fmt.Stringer
 	}
 
 	Definitions struct {
@@ -54,18 +52,6 @@ type (
 		Externals map[string]string
 	}
 )
-
-func (e Explanation) String() string {
-	locality := "External"
-	if e.Internal {
-		locality = "Internal"
-	}
-	result := fmt.Sprintf("%v. %v protocol #%v", locality, e.Origin, e.ProtocolIndex)
-	if e.IsResponse {
-		result = "response to " + result
-	}
-	return result
-}
 
 type EndpointType string
 

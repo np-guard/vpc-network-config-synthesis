@@ -33,13 +33,10 @@ func generateRules(s *ir.Spec) []ir.Rule {
 				if src == dst {
 					continue
 				}
-				if len(conn.Protocols) == 0 {
-					conn.Protocols = []ir.Protocol{ir.AnyProtocol{}}
-				}
-				for p, protocol := range conn.Protocols {
+				for _, trackedProtocol := range conn.TrackedProtocols {
 					internal := internalSrc && internalDst
-					explanation := ir.Explanation{ProtocolIndex: p, Internal: internal, Origin: conn.Reason}
-					connection := allowDirectedConnection(src, dst, internalSrc, internalDst, protocol, explanation)
+					reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}
+					connection := allowDirectedConnection(src, dst, internalSrc, internalDst, trackedProtocol.Protocol, reason)
 
 					if internal {
 						allowInternal = append(allowInternal, connection...)
@@ -61,8 +58,8 @@ func generateRules(s *ir.Spec) []ir.Rule {
 	return copyNonNil(rules)
 }
 
-func copyNonNil(list []*ir.Rule) []ir.Rule {
-	result := make([]ir.Rule, countNonNil(list))
+func copyNonNil[T any](list []*T) []T {
+	result := make([]T, countNonNil(list))
 	i := 0
 	for _, maybeRule := range list {
 		if maybeRule != nil {
@@ -134,13 +131,13 @@ type packet struct {
 	explanation string
 }
 
-func allowDirectedConnection(src, dst string, internalSrc, internalDst bool, protocol ir.Protocol, explanation ir.Explanation) []*ir.Rule {
+func allowDirectedConnection(src, dst string, internalSrc, internalDst bool, protocol ir.Protocol, reason explanation) []*ir.Rule {
 	var request, response *packet
-	request = &packet{src: src, dst: dst, protocol: protocol, explanation: explanation.String()}
+	request = &packet{src: src, dst: dst, protocol: protocol, explanation: reason.String()}
 	if inverseProtocol := protocol.InverseDirection(); inverseProtocol != nil {
-		responseExplanation := explanation
-		responseExplanation.IsResponse = true
-		response = &packet{src: dst, dst: src, protocol: inverseProtocol, explanation: explanation.String()}
+		responseReason := reason
+		responseReason.isResponse = true
+		response = &packet{src: dst, dst: src, protocol: inverseProtocol, explanation: reason.String()}
 	}
 
 	var connection []*ir.Rule

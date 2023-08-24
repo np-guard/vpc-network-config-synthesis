@@ -1,5 +1,5 @@
 #,direction,action,source,source port,destination,destination port,protocol,type,code,description
-1,outbound,allow,10.240.10.0/24,All,10.240.30.0/24,443,TCP,-,-,Internal. Connection #0: (subnet subnet1-ky)->(subnet subnet3-ky) protocol #0
-2,inbound,allow,10.240.30.0/24,443,10.240.10.0/24,All,TCP,-,-,Internal. Connection #0: (subnet subnet1-ky)->(subnet subnet3-ky) protocol #0
-3,inbound,allow,10.240.10.0/24,All,10.240.30.0/24,443,TCP,-,-,Internal. Connection #0: (subnet subnet1-ky)->(subnet subnet3-ky) protocol #0
-4,outbound,allow,10.240.30.0/24,443,10.240.10.0/24,All,TCP,-,-,Internal. Connection #0: (subnet subnet1-ky)->(subnet subnet3-ky) protocol #0
+1,outbound,allow,10.240.10.0/24,All,10.240.30.0/24,443,TCP,-,-,Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
+2,inbound,allow,10.240.30.0/24,443,10.240.10.0/24,All,TCP,-,-,Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
+3,inbound,allow,10.240.10.0/24,All,10.240.30.0/24,443,TCP,-,-,Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
+4,outbound,allow,10.240.30.0/24,443,10.240.10.0/24,All,TCP,-,-,Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]

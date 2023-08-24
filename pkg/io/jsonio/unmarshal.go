@@ -77,45 +77,46 @@ func translateConnection(defs *ir.Definitions, v *SpecRequiredConnectionsElem, c
 		return nil, err
 	}
 
-	origin := Origin{
+	origin := connectionOrigin{
 		connectionIndex: connectionIndex,
 		srcName:         endpointName(v.Src),
 		dstName:         endpointName(v.Dst),
 	}
-	out := ir.Connection{Src: src, Dst: dst, Protocols: p, Reason: origin}
+	out := ir.Connection{Src: src, Dst: dst, TrackedProtocols: p, Origin: origin}
 	if v.Bidirectional {
 		backOrigin := origin
 		backOrigin.inverse = true
-		in := ir.Connection{Src: dst, Dst: src, Protocols: p, Reason: &backOrigin}
+		in := ir.Connection{Src: dst, Dst: src, TrackedProtocols: p, Origin: &backOrigin}
 		return []ir.Connection{out, in}, nil
 	}
 	return []ir.Connection{out}, nil
 }
 
-func translateProtocols(protocols ProtocolList) ([]ir.Protocol, error) {
-	var result = make([]ir.Protocol, len(protocols))
+func translateProtocols(protocols ProtocolList) ([]ir.TrackedProtocol, error) {
+	var result = make([]ir.TrackedProtocol, len(protocols))
 	for i, _p := range protocols {
+		result[i].Origin = protocolOrigin{protocolIndex: i}
 		switch p := _p.(type) {
 		case AnyProtocol:
-			if i != 0 {
+			if len(protocols) != 1 {
 				return nil, fmt.Errorf("when allowing any protocol, no more protocols can be defined")
 			}
-			return []ir.Protocol{}, nil
+			result[i].Protocol = ir.AnyProtocol{}
 		case Icmp:
 			if p.Type == nil {
 				if p.Code != nil {
 					return nil, fmt.Errorf("defnining ICMP code for unspecified ICMP type is not allowed")
 				}
-				result[i] = ir.ICMP{}
+				result[i].Protocol = ir.TrackedProtocol{Protocol: ir.ICMP{}}
 			} else {
 				err := ir.ValidateICMP(*p.Type, *p.Code)
 				if err != nil {
 					return nil, err
 				}
-				result[i] = ir.ICMP{ICMPCodeType: &ir.ICMPCodeType{Type: *p.Type, Code: p.Code}}
+				result[i].Protocol = ir.ICMP{ICMPCodeType: &ir.ICMPCodeType{Type: *p.Type, Code: p.Code}}
 			}
 		case TcpUdp:
-			result[i] = ir.TCPUDP{
+			result[i].Protocol = ir.TCPUDP{
 				Protocol: ir.TransportLayerProtocolName(p.Protocol),
 				PortRangePair: ir.PortRangePair{
 					SrcPort: ir.PortRange{Min: p.MinSourcePort, Max: p.MaxSourcePort},
