@@ -4,10 +4,14 @@ VpcGen reads specification files adhering to spec_schema.json and generates netw
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/csvio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/jsonio"
@@ -19,8 +23,9 @@ import (
 
 // Output formats
 const (
-	tfOutputFormat  = "tf"
-	csvOutputFormat = "csv"
+	tfOutputFormat      = "tf"
+	csvOutputFormat     = "csv"
+	defaultOutputFormat = csvOutputFormat
 )
 
 // Input formats
@@ -28,12 +33,42 @@ const (
 	jsonInputFormat = "json"
 )
 
-func pickWriter(format string) (ir.Writer, error) {
+const defaultFilePermission = 0o666
+
+func inferFormatUsingFilename(filename string) string {
+	switch {
+	case filename == "":
+		return defaultOutputFormat
+	case strings.HasSuffix(filename, ".tf"):
+		return tfOutputFormat
+	case strings.HasSuffix(filename, ".csv"):
+		return csvOutputFormat
+	default:
+		return ""
+	}
+}
+
+func pickOutputFormat(outputFormat, outputFile string) (string, error) {
+	inferredOutputFormat := inferFormatUsingFilename(outputFile)
+	if outputFormat != "" {
+		if outputFile != "" && inferredOutputFormat != "" && inferredOutputFormat != outputFormat {
+			return "", fmt.Errorf("output file %v is expected to use format %v, but -fmt %v is supplied",
+				outputFile, inferredOutputFormat, outputFormat)
+		}
+		return outputFormat, nil
+	}
+	if inferredOutputFormat == "" {
+		return "", fmt.Errorf("unknown format for file %v. Please supply format using -fmt flag, or use a known extension", outputFile)
+	}
+	return inferredOutputFormat, nil
+}
+
+func pickWriter(format string, w io.Writer) (ir.Writer, error) {
 	switch format {
 	case tfOutputFormat:
-		return tfio.NewWriter(os.Stdout), nil
+		return tfio.NewWriter(w), nil
 	case csvOutputFormat:
-		return csvio.NewWriter(os.Stdout), nil
+		return csvio.NewWriter(w), nil
 	default:
 		return nil, fmt.Errorf("bad output format: %q", format)
 	}
@@ -49,13 +84,41 @@ func pickReader(format string) (ir.Reader, error) {
 }
 
 func main() {
-	connectivityFilename := flag.String("spec", "", "JSON file containing connectivity spec")
 	configFilename := flag.String("config", "", "JSON file containing config spec")
-	outputFormat := flag.String("fmt", tfOutputFormat, fmt.Sprintf("Output format. One of %q, %q", tfOutputFormat, csvOutputFormat))
 	inputFormat := flag.String("inputfmt", jsonInputFormat, fmt.Sprintf("Input format. Must be %q", jsonInputFormat))
+	outputFormat := flag.String("fmt", "",
+		fmt.Sprintf("Output format. One of %q, %q; must not contradict output file suffix.", tfOutputFormat, csvOutputFormat))
+	outputFile := flag.String("o", "", "Output to file")
+	flag.Usage = func() {
+		_, _ = fmt.Fprintf(os.Stderr, `VpcGen translates connectivity spec to network ACLs.
+Usage:
+	%s [flags] SPEC_FILE
+
+SPEC_FILE: JSON file containing connectivity spec
+
+Flags:
+`, "vpcgen")
+		flag.PrintDefaults()
+	}
 	flag.Parse()
 
-	writer, err := pickWriter(*outputFormat)
+	connectivityFilename := flag.Arg(0)
+	if connectivityFilename == "" || flag.NArg() != 1 {
+		flag.Usage()
+		os.Exit(0)
+	}
+
+	var err error
+
+	*outputFormat, err = pickOutputFormat(*outputFormat, *outputFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var data bytes.Buffer
+	w := bufio.NewWriter(&data)
+
+	writer, err := pickWriter(*outputFormat, w)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -73,14 +136,23 @@ func main() {
 		}
 	}
 
-	s, err := reader.ReadSpec(*connectivityFilename, subnets)
+	model, err := reader.ReadSpec(connectivityFilename, subnets)
 	if err != nil {
-		log.Fatalf("Could not parse connectivity file %s: %s", *connectivityFilename, err)
+		log.Fatalf("Could not parse connectivity file %s: %s", connectivityFilename, err)
 	}
 
-	finalACL := synth.MakeACL(s)
+	finalACL := synth.MakeACL(model)
 
-	if err := writer.Write(finalACL); err != nil {
+	if err = writer.Write(finalACL); err != nil {
 		log.Fatal(err)
+	}
+
+	if *outputFile == "" {
+		fmt.Print(data.String())
+	} else {
+		err = os.WriteFile(*outputFile, data.Bytes(), defaultFilePermission)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }

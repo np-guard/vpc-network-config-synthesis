@@ -40,7 +40,7 @@ func (t TCPUDP) InverseDirection() Protocol {
 	case UDP:
 		return nil
 	default:
-		log.Fatalf("Invalid protocol: %v", t.Protocol)
+		log.Panicf("Impossible protocol: %v", t.Protocol)
 	}
 	return nil
 }

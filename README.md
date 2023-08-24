@@ -18,7 +18,7 @@ make test
 Run:
 
 ```
-bin\vpcgen.exe -spec test\data\acl_testing5\conn_spec.json -config test\data\acl_testing5\config_object.json
+bin\vpcgen.exe -config test\data\acl_testing5\config_object.json test\data\acl_testing5\conn_spec.json
 ```
 
 ## Code generation

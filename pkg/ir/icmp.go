@@ -69,7 +69,7 @@ func inverseICMPType(t int) int {
 	case destinationUnreachable, sourceQuench, redirect, timeExceeded, parameterProblem:
 		return undefinedICMP
 	default:
-		log.Fatalf("Impossible ICMP type: %v", t)
+		log.Panicf("Impossible ICMP type: %v", t)
 	}
 	return undefinedICMP
 }
