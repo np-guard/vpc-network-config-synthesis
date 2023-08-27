@@ -101,10 +101,17 @@ func rule(rule *ir.Rule, name string) tf.Block {
 	}
 }
 
-func singleACL(name string, t ir.ACL) tf.Block {
-	blocks := make([]tf.Block, len(t.Rules))
-	for i := range t.Rules {
-		blocks[i] = rule(&t.Rules[i], fmt.Sprintf("rule%v", i))
+func targetToName(t string) string {
+	t = strings.ReplaceAll(t, ".", "-")
+	t = strings.Replace(t, "/", "_", 1)
+	return fmt.Sprintf("acl_%v", t)
+}
+
+func singleACL(name string, t *ir.ACL) tf.Block {
+	rules := t.Rules()
+	blocks := make([]tf.Block, len(rules))
+	for i := range rules {
+		blocks[i] = rule(&rules[i], fmt.Sprintf("rule%v", i))
 	}
 	return tf.Block{
 		Name:   "resource",
@@ -121,8 +128,8 @@ func singleACL(name string, t ir.ACL) tf.Block {
 func collection(t *ir.Collection) *tf.ConfigFile {
 	var acls = make([]tf.Block, len(t.ACLs))
 	i := 0
-	for name := range t.ACLs {
-		acls[i] = singleACL(name, t.ACLs[name])
+	for _, name := range t.SortedACLNames() {
+		acls[i] = singleACL(targetToName(name), t.ACLs[name])
 		i += 1
 	}
 	return &tf.ConfigFile{

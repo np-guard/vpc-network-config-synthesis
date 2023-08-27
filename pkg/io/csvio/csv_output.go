@@ -24,12 +24,18 @@ func NewWriter(w io.Writer) *Writer {
 // Write prints an entire collection of acls as a single CSV table.
 // This is mostly useful when there is only a single ir.ACL item in the collection
 func (w *Writer) Write(collection *ir.Collection) error {
-	if err := w.w.Write(header()); err != nil {
-		return err
-	}
-	for _, item := range collection.ACLs {
-		if err := w.w.WriteAll(makeTable(item)); err != nil {
+	for _, name := range collection.SortedACLNames() {
+		if len(collection.ACLs) > 1 {
+			_ = w.w.Write([]string{name})
+		}
+		if err := w.w.Write(header()); err != nil {
 			return err
+		}
+		if err := w.w.WriteAll(makeTable(collection.ACLs[name])); err != nil {
+			return err
+		}
+		if len(collection.ACLs) > 1 {
+			_ = w.w.Write([]string{})
 		}
 	}
 	return nil
@@ -40,10 +46,11 @@ const (
 	na  = "-"
 )
 
-func makeTable(t ir.ACL) [][]string {
-	rows := make([][]string, len(t.Rules))
-	for i := range t.Rules {
-		rows[i] = makeRow(i+1, &t.Rules[i])
+func makeTable(t *ir.ACL) [][]string {
+	rules := t.Rules()
+	rows := make([][]string, len(rules))
+	for i := range rules {
+		rows[i] = makeRow(i+1, &rules[i])
 	}
 	return rows
 }
