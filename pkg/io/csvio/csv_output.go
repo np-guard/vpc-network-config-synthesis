@@ -24,18 +24,12 @@ func NewWriter(w io.Writer) *Writer {
 // Write prints an entire collection of acls as a single CSV table.
 // This is mostly useful when there is only a single ir.ACL item in the collection
 func (w *Writer) Write(collection *ir.Collection) error {
+	if err := w.w.Write(header()); err != nil {
+		return err
+	}
 	for _, name := range collection.SortedACLNames() {
-		if len(collection.ACLs) > 1 {
-			_ = w.w.Write([]string{name})
-		}
-		if err := w.w.Write(header()); err != nil {
+		if err := w.w.WriteAll(makeTable(collection.ACLs[name], name)); err != nil {
 			return err
-		}
-		if err := w.w.WriteAll(makeTable(collection.ACLs[name])); err != nil {
-			return err
-		}
-		if len(collection.ACLs) > 1 {
-			_ = w.w.Write([]string{})
 		}
 	}
 	return nil
@@ -46,11 +40,11 @@ const (
 	na  = "-"
 )
 
-func makeTable(t *ir.ACL) [][]string {
+func makeTable(t *ir.ACL, aclName string) [][]string {
 	rules := t.Rules()
 	rows := make([][]string, len(rules))
 	for i := range rules {
-		rows[i] = makeRow(i+1, &rules[i])
+		rows[i] = makeRow(i+1, &rules[i], aclName)
 	}
 	return rows
 }
@@ -76,6 +70,7 @@ func direction(d ir.Direction) string {
 
 func header() []string {
 	return []string{
+		"acl",
 		"#",
 		"direction",
 		"action",
@@ -90,9 +85,10 @@ func header() []string {
 	}
 }
 
-func makeRow(i int, rule *ir.Rule) []string {
+func makeRow(i int, rule *ir.Rule, aclName string) []string {
 	icmpType, icmpCode := printICMPTypeCode(rule.Protocol)
 	return []string{
+		aclName,
 		strconv.Itoa(i),
 		direction(rule.Direction),
 		action(rule.Action),
