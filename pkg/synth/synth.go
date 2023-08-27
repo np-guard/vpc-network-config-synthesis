@@ -9,15 +9,15 @@ import (
 )
 
 type Options struct {
-	Multiple bool
+	Single bool
 }
 
 // MakeACL translates Spec to a collection of ACLs
 func MakeACL(s *ir.Spec, opt Options) *ir.Collection {
-	if opt.Multiple {
-		return generateCollection(s, func(target string) string { return target })
+	if opt.Single {
+		return generateCollection(s, func(target string) string { return "acl1" })
 	}
-	return generateCollection(s, func(target string) string { return "acl1" })
+	return generateCollection(s, func(target string) string { return target })
 }
 
 func generateCollection(s *ir.Spec, aclSelector func(target string) string) *ir.Collection {

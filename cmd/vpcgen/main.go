@@ -85,7 +85,7 @@ func pickReader(format string) (ir.Reader, error) {
 
 func main() {
 	configFilename := flag.String("config", "", "JSON file containing config spec")
-	multiple := flag.Bool("multiple", false, "Whether to create a single ACL, or one ACL per subnet")
+	single := flag.Bool("single", false, "If true, create a single ACL; by default, create one ACL per subnet")
 	inputFormat := flag.String("inputfmt", jsonInputFormat, fmt.Sprintf("Input format. Must be %q", jsonInputFormat))
 	outputFormat := flag.String("fmt", "",
 		fmt.Sprintf("Output format. One of %q, %q; must not contradict output file suffix.", tfOutputFormat, csvOutputFormat))
@@ -143,7 +143,7 @@ Flags:
 	}
 
 	opts := synth.Options{
-		Multiple: *multiple,
+		Single: *single,
 	}
 	finalACL := synth.MakeACL(model, opts)
 
