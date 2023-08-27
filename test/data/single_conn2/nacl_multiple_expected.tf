@@ -1,11 +1,11 @@
+# acl_subnet1-ky [10.240.10.0/24]
 resource "ibm_is_network_acl" "acl_subnet1-ky" {
-  # acl_subnet1-ky [10.240.10.0/24]
   name           = "acl_subnet1-ky"
   resource_group = var.resource_group_id
   vpc            = var.vpc_id
 
+  # Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
   rules {
-    # Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
     name        = "rule0"
     action      = "allow"
     direction   = "outbound"
@@ -18,8 +18,8 @@ resource "ibm_is_network_acl" "acl_subnet1-ky" {
     }
   }
 
+  # Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
   rules {
-    # Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
     name        = "rule1"
     action      = "allow"
     direction   = "inbound"
@@ -32,8 +32,8 @@ resource "ibm_is_network_acl" "acl_subnet1-ky" {
     }
   }
 
+  # Internal. inverse of required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
   rules {
-    # Internal. inverse of required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
     name        = "rule2"
     action      = "allow"
     direction   = "inbound"
@@ -46,8 +46,8 @@ resource "ibm_is_network_acl" "acl_subnet1-ky" {
     }
   }
 
+  # Internal. inverse of required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
   rules {
-    # Internal. inverse of required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
     name        = "rule3"
     action      = "allow"
     direction   = "outbound"
@@ -61,14 +61,14 @@ resource "ibm_is_network_acl" "acl_subnet1-ky" {
   }
 }
 
+# acl_subnet3-ky [10.240.30.0/24]
 resource "ibm_is_network_acl" "acl_subnet3-ky" {
-  # acl_subnet3-ky [10.240.30.0/24]
   name           = "acl_subnet3-ky"
   resource_group = var.resource_group_id
   vpc            = var.vpc_id
 
+  # Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
   rules {
-    # Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
     name        = "rule0"
     action      = "allow"
     direction   = "inbound"
@@ -81,8 +81,8 @@ resource "ibm_is_network_acl" "acl_subnet3-ky" {
     }
   }
 
+  # Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
   rules {
-    # Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
     name        = "rule1"
     action      = "allow"
     direction   = "outbound"
@@ -95,8 +95,8 @@ resource "ibm_is_network_acl" "acl_subnet3-ky" {
     }
   }
 
+  # Internal. inverse of required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
   rules {
-    # Internal. inverse of required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
     name        = "rule2"
     action      = "allow"
     direction   = "outbound"
@@ -109,8 +109,8 @@ resource "ibm_is_network_acl" "acl_subnet3-ky" {
     }
   }
 
+  # Internal. inverse of required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
   rules {
-    # Internal. inverse of required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
     name        = "rule3"
     action      = "allow"
     direction   = "inbound"

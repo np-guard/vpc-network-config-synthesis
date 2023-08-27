@@ -33,6 +33,9 @@ const indentation = "  "
 
 func (b *Block) print(indent string) string {
 	result := "\n"
+	if b.Comment != "" {
+		result += indent + fmt.Sprintf("# %v\n", b.Comment)
+	}
 	result += indent + b.Name
 	for _, label := range b.Labels {
 		result += " " + label
@@ -40,9 +43,6 @@ func (b *Block) print(indent string) string {
 	result += " {\n"
 	{
 		indent := indent + indentation //nolint:govet  // intentionally shadow
-		if b.Comment != "" {
-			result += indent + fmt.Sprintf("# %v\n", b.Comment)
-		}
 		for _, keyValue := range b.Arguments {
 			result += indent + fmt.Sprintf("%v = %v\n", keyValue.Name, keyValue.Value)
 		}
