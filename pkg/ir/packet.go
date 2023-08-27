@@ -23,6 +23,10 @@ func (a *ACL) AppendInternal(rule *Rule) {
 	a.Internal = append(a.Internal, *rule)
 }
 
+func (a *ACL) Name() string {
+	return fmt.Sprintf("acl_%v", a.Subnet)
+}
+
 func (a *ACL) AppendExternal(rule *Rule) {
 	if a.External == nil {
 		panic("ACLs should be created with non-null External")
@@ -35,12 +39,12 @@ func (c *Collection) LookupOrCreate(name string) *ACL {
 	if ok {
 		return acl
 	}
-	newACL := ACL{Internal: []Rule{}, External: []Rule{}}
+	newACL := ACL{Subnet: name, Internal: []Rule{}, External: []Rule{}}
 	c.ACLs[name] = &newACL
 	return &newACL
 }
 
-func (c *Collection) SortedACLNames() []string {
+func (c *Collection) SortedACLSubnets() []string {
 	keys := make([]string, len(c.ACLs))
 	i := 0
 	for k := range c.ACLs {

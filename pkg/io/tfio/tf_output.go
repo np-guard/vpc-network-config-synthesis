@@ -101,24 +101,18 @@ func rule(rule *ir.Rule, name string) tf.Block {
 	}
 }
 
-func targetToName(t string) string {
-	t = strings.ReplaceAll(t, ".", "-")
-	t = strings.Replace(t, "/", "_", 1)
-	return fmt.Sprintf("acl_%v", t)
-}
-
-func singleACL(name string, t *ir.ACL) tf.Block {
+func singleACL(subnet string, t *ir.ACL) tf.Block {
 	rules := t.Rules()
 	blocks := make([]tf.Block, len(rules))
 	for i := range rules {
 		blocks[i] = rule(&rules[i], fmt.Sprintf("# rule%v", i))
 	}
 	return tf.Block{
-		Comment: fmt.Sprintf("\n# %v [%v]", name, rules[0].Target()),
+		Comment: fmt.Sprintf("\n# %v [%v]", subnet, rules[0].Target()),
 		Name:    "resource",
-		Labels:  []string{quote("ibm_is_network_acl"), quote(name)},
+		Labels:  []string{quote("ibm_is_network_acl"), quote(t.Name())},
 		Arguments: []tf.Argument{
-			{Name: "name", Value: quote(name)}, //nolint:revive  // obvious false positive
+			{Name: "name", Value: quote(t.Name())}, //nolint:revive  // obvious false positive
 			{Name: "resource_group", Value: "var.resource_group_id"},
 			{Name: "vpc", Value: "var.vpc_id"},
 		},
@@ -129,8 +123,8 @@ func singleACL(name string, t *ir.ACL) tf.Block {
 func collection(t *ir.Collection) *tf.ConfigFile {
 	var acls = make([]tf.Block, len(t.ACLs))
 	i := 0
-	for _, name := range t.SortedACLNames() {
-		acls[i] = singleACL(targetToName(name), t.ACLs[name])
+	for _, subnet := range t.SortedACLSubnets() {
+		acls[i] = singleACL(subnet, t.ACLs[subnet])
 		i += 1
 	}
 	return &tf.ConfigFile{

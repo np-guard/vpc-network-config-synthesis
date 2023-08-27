@@ -16,7 +16,7 @@ type Options struct {
 // MakeACL translates Spec to a collection of ACLs
 func MakeACL(s *ir.Spec, opt Options) *ir.Collection {
 	if opt.Single {
-		return generateCollection(s, func(target string) string { return "acl1" })
+		return generateCollection(s, func(target string) string { return "1" })
 	}
 	return generateCollection(s, func(target string) string {
 		name, ok := s.SubnetNames[target]

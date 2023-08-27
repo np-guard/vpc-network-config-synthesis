@@ -33,6 +33,7 @@ type Rule struct {
 }
 
 type ACL struct {
+	Subnet   string
 	Internal []Rule
 	External []Rule
 }

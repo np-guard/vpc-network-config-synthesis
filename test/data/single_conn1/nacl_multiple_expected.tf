@@ -1,4 +1,4 @@
-# acl_subnet1-ky [10.240.10.0/24]
+# subnet1-ky [10.240.10.0/24]
 resource "ibm_is_network_acl" "acl_subnet1-ky" {
   name           = "acl_subnet1-ky"
   resource_group = var.resource_group_id
@@ -29,7 +29,7 @@ resource "ibm_is_network_acl" "acl_subnet1-ky" {
   }
 }
 
-# acl_subnet3-ky [10.240.30.0/24]
+# subnet3-ky [10.240.30.0/24]
 resource "ibm_is_network_acl" "acl_subnet3-ky" {
   name           = "acl_subnet3-ky"
   resource_group = var.resource_group_id
