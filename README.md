@@ -1,4 +1,5 @@
 # vpc-network-config-synthesis
+
 Tool for automatic synthesis of VPC network resources.
 
 * spec_schema.json is the JSON schema for VPC-synthesis
@@ -23,7 +24,8 @@ bin\vpcgen.exe -config test\data\acl_testing5\config_object.json test\data\acl_t
 
 ## Code generation
 
-Install [omissis/go-jsonschema](https://github.com/omissis/go-jsonschema) (important: **not** [xeipuuv/gojsonschema](https://github.com/xeipuuv/gojsonschema))
+Install [omissis/go-jsonschema](https://github.com/omissis/go-jsonschema)
+(important: **not** [xeipuuv/gojsonschema](https://github.com/xeipuuv/gojsonschema))
 
 ```commandline
 go install github.com/omissis/go-jsonschema
