@@ -105,7 +105,7 @@ func singleACL(subnet string, t *ir.ACL) tf.Block {
 	rules := t.Rules()
 	blocks := make([]tf.Block, len(rules))
 	for i := range rules {
-		blocks[i] = rule(&rules[i], fmt.Sprintf("# rule%v", i))
+		blocks[i] = rule(&rules[i], fmt.Sprintf("rule%v", i))
 	}
 	return tf.Block{
 		Comment: fmt.Sprintf("\n# %v [%v]", subnet, rules[0].Target()),
