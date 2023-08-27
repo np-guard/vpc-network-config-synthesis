@@ -95,7 +95,7 @@ func rule(rule *ir.Rule, name string) tf.Block {
 		{Name: "destination", Value: quote(rule.Destination)},
 	}
 	return tf.Block{Name: "rules",
-		Comment:   rule.Explanation,
+		Comment:   fmt.Sprintf("# %v", rule.Explanation),
 		Arguments: arguments,
 		Blocks:    protocol(rule.Protocol),
 	}
@@ -111,10 +111,10 @@ func singleACL(name string, t *ir.ACL) tf.Block {
 	rules := t.Rules()
 	blocks := make([]tf.Block, len(rules))
 	for i := range rules {
-		blocks[i] = rule(&rules[i], fmt.Sprintf("rule%v", i))
+		blocks[i] = rule(&rules[i], fmt.Sprintf("# rule%v", i))
 	}
 	return tf.Block{
-		Comment: fmt.Sprintf("%v [%v]", name, rules[0].Target()),
+		Comment: fmt.Sprintf("\n# %v [%v]", name, rules[0].Target()),
 		Name:    "resource",
 		Labels:  []string{quote("ibm_is_network_acl"), quote(name)},
 		Arguments: []tf.Argument{

@@ -32,9 +32,9 @@ type ConfigFile struct {
 const indentation = "  "
 
 func (b *Block) print(indent string) string {
-	result := "\n"
+	result := ""
 	if b.Comment != "" {
-		result += indent + fmt.Sprintf("# %v\n", b.Comment)
+		result += indent + fmt.Sprintf("%v\n", b.Comment)
 	}
 	result += indent + b.Name
 	for _, label := range b.Labels {
