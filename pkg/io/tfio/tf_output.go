@@ -95,22 +95,24 @@ func rule(rule *ir.Rule, name string) tf.Block {
 		{Name: "destination", Value: quote(rule.Destination)},
 	}
 	return tf.Block{Name: "rules",
-		Comment:   rule.Explanation,
+		Comment:   fmt.Sprintf("# %v", rule.Explanation),
 		Arguments: arguments,
 		Blocks:    protocol(rule.Protocol),
 	}
 }
 
-func singleACL(name string, t ir.ACL) tf.Block {
-	blocks := make([]tf.Block, len(t.Rules))
-	for i := range t.Rules {
-		blocks[i] = rule(&t.Rules[i], fmt.Sprintf("rule%v", i))
+func singleACL(subnet string, t *ir.ACL) tf.Block {
+	rules := t.Rules()
+	blocks := make([]tf.Block, len(rules))
+	for i := range rules {
+		blocks[i] = rule(&rules[i], fmt.Sprintf("# rule%v", i))
 	}
 	return tf.Block{
-		Name:   "resource",
-		Labels: []string{quote("ibm_is_network_acl"), quote(name)},
+		Comment: fmt.Sprintf("\n# %v [%v]", subnet, rules[0].Target()),
+		Name:    "resource",
+		Labels:  []string{quote("ibm_is_network_acl"), quote(t.Name())},
 		Arguments: []tf.Argument{
-			{Name: "name", Value: quote(name)}, //nolint:revive  // obvious false positive
+			{Name: "name", Value: quote(t.Name())}, //nolint:revive  // obvious false positive
 			{Name: "resource_group", Value: "var.resource_group_id"},
 			{Name: "vpc", Value: "var.vpc_id"},
 		},
@@ -121,8 +123,8 @@ func singleACL(name string, t ir.ACL) tf.Block {
 func collection(t *ir.Collection) *tf.ConfigFile {
 	var acls = make([]tf.Block, len(t.ACLs))
 	i := 0
-	for name := range t.ACLs {
-		acls[i] = singleACL(name, t.ACLs[name])
+	for _, subnet := range t.SortedACLSubnets() {
+		acls[i] = singleACL(subnet, t.ACLs[subnet])
 		i += 1
 	}
 	return &tf.ConfigFile{

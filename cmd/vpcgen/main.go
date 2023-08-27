@@ -85,6 +85,7 @@ func pickReader(format string) (ir.Reader, error) {
 
 func main() {
 	configFilename := flag.String("config", "", "JSON file containing config spec")
+	single := flag.Bool("single", false, "If true, create a single ACL; by default, create one ACL per subnet")
 	inputFormat := flag.String("inputfmt", jsonInputFormat, fmt.Sprintf("Input format. Must be %q", jsonInputFormat))
 	outputFormat := flag.String("fmt", "",
 		fmt.Sprintf("Output format. One of %q, %q; must not contradict output file suffix.", tfOutputFormat, csvOutputFormat))
@@ -141,7 +142,10 @@ Flags:
 		log.Fatalf("Could not parse connectivity file %s: %s", connectivityFilename, err)
 	}
 
-	finalACL := synth.MakeACL(model)
+	opts := synth.Options{
+		Single: *single,
+	}
+	finalACL := synth.MakeACL(model, opts)
 
 	if err = writer.Write(finalACL); err != nil {
 		log.Fatal(err)

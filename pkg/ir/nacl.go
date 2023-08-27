@@ -33,11 +33,13 @@ type Rule struct {
 }
 
 type ACL struct {
-	Rules []Rule
+	Subnet   string
+	Internal []Rule
+	External []Rule
 }
 
 type Collection struct {
-	ACLs map[string]ACL
+	ACLs map[string]*ACL
 }
 
 type Writer interface {

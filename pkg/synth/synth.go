@@ -9,18 +9,26 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-// MakeACL translates Spec to a collection of ACLs
-func MakeACL(s *ir.Spec) *ir.Collection {
-	return &ir.Collection{
-		ACLs: map[string]ir.ACL{
-			"acl1": {Rules: generateRules(s)},
-		},
-	}
+type Options struct {
+	Single bool
 }
 
-func generateRules(s *ir.Spec) []ir.Rule {
-	var allowInternal []*ir.Rule
-	var allowExternal []*ir.Rule
+// MakeACL translates Spec to a collection of ACLs
+func MakeACL(s *ir.Spec, opt Options) *ir.Collection {
+	if opt.Single {
+		return generateCollection(s, func(target string) string { return "1" })
+	}
+	return generateCollection(s, func(target string) string {
+		name, ok := s.SubnetNames[target]
+		if !ok {
+			return fmt.Sprintf("Unknown subnet %v", target)
+		}
+		return name
+	})
+}
+
+func generateCollection(s *ir.Spec, aclSelector func(target string) string) *ir.Collection {
+	result := ir.Collection{ACLs: map[string]*ir.ACL{}}
 	for c := range s.Connections {
 		conn := &s.Connections[c]
 		internalSrc := conn.Src.Type != ir.EndpointTypeExternal
@@ -38,63 +46,33 @@ func generateRules(s *ir.Spec) []ir.Rule {
 					reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}
 					connection := allowDirectedConnection(src, dst, internalSrc, internalDst, trackedProtocol.Protocol, reason)
 
-					if internal {
-						allowInternal = append(allowInternal, connection...)
-					} else {
-						allowExternal = append(allowExternal, connection...)
+					for _, rule := range connection {
+						acl := result.LookupOrCreate(aclSelector(rule.Target()))
+						if internal {
+							if !redundant(rule, acl.Internal) {
+								acl.AppendInternal(rule)
+							}
+						} else {
+							if !redundant(rule, acl.External) {
+								acl.AppendExternal(rule)
+							}
+						}
 					}
 				}
 			}
 		}
 	}
 
-	rules := allowInternal
-	if len(allowExternal) != 0 {
-		rules = append(rules, makeDenyInternal()...)
-		rules = append(rules, allowExternal...)
-	}
-
-	nullifyRedundant(rules)
-	return copyNonNil(rules)
+	return &result
 }
 
-func copyNonNil[T any](list []*T) []T {
-	result := make([]T, countNonNil(list))
-	i := 0
-	for _, maybeRule := range list {
-		if maybeRule != nil {
-			result[i] = *maybeRule
-			i++
+func redundant(rule *ir.Rule, rules []ir.Rule) bool {
+	for i := range rules {
+		if mustSupersede(&rules[i], rule) {
+			return true
 		}
 	}
-	return result
-}
-
-func countNonNil[T any](list []*T) int {
-	result := 0
-	for i := range list {
-		if list[i] != nil {
-			result++
-		}
-	}
-	return result
-}
-
-func nullifyRedundant(rules []*ir.Rule) {
-	for i, main := range rules {
-		if main == nil {
-			continue
-		}
-		for j := i + 1; j < len(rules); j++ {
-			other := rules[j]
-			if other == nil {
-				continue
-			}
-			if mustSupersede(main, other) {
-				rules[j] = nil
-			}
-		}
-	}
+	return false
 }
 
 func mustSupersede(main, other *ir.Rule) bool {
@@ -105,72 +83,27 @@ func mustSupersede(main, other *ir.Rule) bool {
 	return res
 }
 
-// makeDenyInternal prevents allowing external communications from accidentally allowing internal communications too
-func makeDenyInternal() []*ir.Rule {
-	localIPs := []string{ // https://datatracker.ietf.org/doc/html/rfc1918#section-3
-		"10.0.0.0/8",
-		"172.16.0.0/12",
-		"192.168.0.0/16",
-	}
-	var denyInternal []*ir.Rule
-	for i, anyLocalIPSrc := range localIPs {
-		for j, anyLocalIPDst := range localIPs {
-			explanation := fmt.Sprintf("Deny other internal communication; see rfc1918#3; item %v,%v", i, j)
-			denyInternal = append(denyInternal, []*ir.Rule{
-				packetRule(packet{src: anyLocalIPSrc, dst: anyLocalIPDst, protocol: ir.AnyProtocol{}, explanation: explanation}, ir.Outbound, ir.Deny),
-				packetRule(packet{src: anyLocalIPDst, dst: anyLocalIPSrc, protocol: ir.AnyProtocol{}, explanation: explanation}, ir.Inbound, ir.Deny),
-			}...)
-		}
-	}
-	return denyInternal
-}
-
-type packet struct {
-	src, dst    string
-	protocol    ir.Protocol
-	explanation string
-}
-
 func allowDirectedConnection(src, dst string, internalSrc, internalDst bool, protocol ir.Protocol, reason explanation) []*ir.Rule {
-	var request, response *packet
-	request = &packet{src: src, dst: dst, protocol: protocol, explanation: reason.String()}
+	var request, response *ir.Packet
+	request = &ir.Packet{Src: src, Dst: dst, Protocol: protocol, Explanation: reason.String()}
 	if inverseProtocol := protocol.InverseDirection(); inverseProtocol != nil {
 		responseReason := reason
 		responseReason.isResponse = true
-		response = &packet{src: dst, dst: src, protocol: inverseProtocol, explanation: reason.String()}
+		response = &ir.Packet{Src: dst, Dst: src, Protocol: inverseProtocol, Explanation: reason.String()}
 	}
 
 	var connection []*ir.Rule
 	if internalSrc {
-		connection = append(connection, allowSend(*request))
+		connection = append(connection, ir.AllowSend(*request))
 		if response != nil {
-			connection = append(connection, allowReceive(*response))
+			connection = append(connection, ir.AllowReceive(*response))
 		}
 	}
 	if internalDst {
-		connection = append(connection, allowReceive(*request))
+		connection = append(connection, ir.AllowReceive(*request))
 		if response != nil {
-			connection = append(connection, allowSend(*response))
+			connection = append(connection, ir.AllowSend(*response))
 		}
 	}
 	return connection
-}
-
-func allowSend(packet packet) *ir.Rule {
-	return packetRule(packet, ir.Outbound, ir.Allow)
-}
-
-func allowReceive(packet packet) *ir.Rule {
-	return packetRule(packet, ir.Inbound, ir.Allow)
-}
-
-func packetRule(packet packet, direction ir.Direction, action ir.Action) *ir.Rule {
-	return &ir.Rule{
-		Action:      action,
-		Source:      packet.src,
-		Destination: packet.dst,
-		Direction:   direction,
-		Protocol:    packet.protocol,
-		Explanation: packet.explanation,
-	}
 }

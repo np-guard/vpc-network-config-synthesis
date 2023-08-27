@@ -52,7 +52,7 @@ func (*Reader) ReadSpec(filename string, subnets map[string]string) (*ir.Spec, e
 		connections = append(connections, bidiconns...)
 	}
 
-	return &ir.Spec{Connections: connections}, nil
+	return &ir.Spec{Connections: connections, SubnetNames: defs.InverseSubnetMap()}, nil
 }
 
 func translateConnection(defs *ir.Definitions, v *SpecRequiredConnectionsElem, connectionIndex int) ([]ir.Connection, error) {

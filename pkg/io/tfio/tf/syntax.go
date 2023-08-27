@@ -1,7 +1,10 @@
 // Package tf represents the general syntax of terraform files
 package tf
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // Terminology inspired by
 // * https://github.com/hashicorp/hcl/blob/main/hclsyntax/ir.md
@@ -30,6 +33,9 @@ const indentation = "  "
 
 func (b *Block) print(indent string) string {
 	result := ""
+	if b.Comment != "" {
+		result += indent + fmt.Sprintf("%v\n", b.Comment)
+	}
 	result += indent + b.Name
 	for _, label := range b.Labels {
 		result += " " + label
@@ -37,9 +43,6 @@ func (b *Block) print(indent string) string {
 	result += " {\n"
 	{
 		indent := indent + indentation //nolint:govet  // intentionally shadow
-		if b.Comment != "" {
-			result += indent + fmt.Sprintf("# %v\n", b.Comment)
-		}
 		for _, keyValue := range b.Arguments {
 			result += indent + fmt.Sprintf("%v = %v\n", keyValue.Name, keyValue.Value)
 		}
@@ -56,5 +59,5 @@ func (c *ConfigFile) Print() string {
 	for _, block := range c.Resources {
 		result += block.print("")
 	}
-	return result
+	return strings.TrimSpace(result) + "\n"
 }

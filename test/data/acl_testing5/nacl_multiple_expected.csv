@@ -1,0 +1,77 @@
+acl,subnet,#,direction,action,source,source port,destination,destination port,protocol,type,code,description
+acl_sub1-1-ky,sub1-1-ky,1,outbound,allow,10.240.1.0/24,All,10.240.64.0/24,443,TCP,-,-,Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
+acl_sub1-1-ky,sub1-1-ky,2,inbound,allow,10.240.64.0/24,443,10.240.1.0/24,All,TCP,-,-,Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
+acl_sub1-1-ky,sub1-1-ky,3,inbound,allow,10.240.64.0/24,All,10.240.1.0/24,443,TCP,-,-,Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
+acl_sub1-1-ky,sub1-1-ky,4,outbound,allow,10.240.1.0/24,443,10.240.64.0/24,All,TCP,-,-,Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
+acl_sub1-1-ky,sub1-1-ky,5,outbound,allow,10.240.1.0/24,-,10.240.128.0/24,-,ICMP,8,0,Internal. required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
+acl_sub1-1-ky,sub1-1-ky,6,inbound,allow,10.240.128.0/24,-,10.240.1.0/24,-,ICMP,0,0,Internal. required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
+acl_sub1-1-ky,sub1-1-ky,7,outbound,allow,10.240.1.0/24,All,10.240.2.0/24,All,TCP,-,-,Internal. required-connections[3]: (subnet sub1-1-ky)->(subnet sub1-2-ky); allowed-protocols[0]
+acl_sub1-1-ky,sub1-1-ky,8,inbound,allow,10.240.2.0/24,All,10.240.1.0/24,All,TCP,-,-,Internal. required-connections[3]: (subnet sub1-1-ky)->(subnet sub1-2-ky); allowed-protocols[0]
+acl_sub1-1-ky,sub1-1-ky,9,outbound,allow,10.240.1.0/24,All,10.240.3.0/24,All,TCP,-,-,Internal. required-connections[4]: (subnet sub1-1-ky)->(subnet sub1-3-ky); allowed-protocols[0]
+acl_sub1-1-ky,sub1-1-ky,10,inbound,allow,10.240.3.0/24,All,10.240.1.0/24,All,TCP,-,-,Internal. required-connections[4]: (subnet sub1-1-ky)->(subnet sub1-3-ky); allowed-protocols[0]
+acl_sub1-1-ky,sub1-1-ky,11,outbound,deny,10.0.0.0/8,All,10.0.0.0/8,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 0,0"
+acl_sub1-1-ky,sub1-1-ky,12,inbound,deny,10.0.0.0/8,All,10.0.0.0/8,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 0,0"
+acl_sub1-1-ky,sub1-1-ky,13,outbound,deny,10.0.0.0/8,All,172.16.0.0/12,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 0,1"
+acl_sub1-1-ky,sub1-1-ky,14,inbound,deny,172.16.0.0/12,All,10.0.0.0/8,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 0,1"
+acl_sub1-1-ky,sub1-1-ky,15,outbound,deny,10.0.0.0/8,All,192.168.0.0/16,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 0,2"
+acl_sub1-1-ky,sub1-1-ky,16,inbound,deny,192.168.0.0/16,All,10.0.0.0/8,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 0,2"
+acl_sub1-1-ky,sub1-1-ky,17,outbound,deny,172.16.0.0/12,All,10.0.0.0/8,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 1,0"
+acl_sub1-1-ky,sub1-1-ky,18,inbound,deny,10.0.0.0/8,All,172.16.0.0/12,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 1,0"
+acl_sub1-1-ky,sub1-1-ky,19,outbound,deny,172.16.0.0/12,All,172.16.0.0/12,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 1,1"
+acl_sub1-1-ky,sub1-1-ky,20,inbound,deny,172.16.0.0/12,All,172.16.0.0/12,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 1,1"
+acl_sub1-1-ky,sub1-1-ky,21,outbound,deny,172.16.0.0/12,All,192.168.0.0/16,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 1,2"
+acl_sub1-1-ky,sub1-1-ky,22,inbound,deny,192.168.0.0/16,All,172.16.0.0/12,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 1,2"
+acl_sub1-1-ky,sub1-1-ky,23,outbound,deny,192.168.0.0/16,All,10.0.0.0/8,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 2,0"
+acl_sub1-1-ky,sub1-1-ky,24,inbound,deny,10.0.0.0/8,All,192.168.0.0/16,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 2,0"
+acl_sub1-1-ky,sub1-1-ky,25,outbound,deny,192.168.0.0/16,All,172.16.0.0/12,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 2,1"
+acl_sub1-1-ky,sub1-1-ky,26,inbound,deny,172.16.0.0/12,All,192.168.0.0/16,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 2,1"
+acl_sub1-1-ky,sub1-1-ky,27,outbound,deny,192.168.0.0/16,All,192.168.0.0/16,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 2,2"
+acl_sub1-1-ky,sub1-1-ky,28,inbound,deny,192.168.0.0/16,All,192.168.0.0/16,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 2,2"
+acl_sub1-1-ky,sub1-1-ky,29,outbound,allow,10.240.1.0/24,All,8.8.8.8,All,All,-,-,External. required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
+acl_sub1-1-ky,sub1-1-ky,30,inbound,allow,8.8.8.8,All,10.240.1.0/24,All,All,-,-,External. required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
+acl_sub1-2-ky,sub1-2-ky,1,inbound,allow,10.240.1.0/24,All,10.240.2.0/24,All,TCP,-,-,Internal. required-connections[3]: (subnet sub1-1-ky)->(subnet sub1-2-ky); allowed-protocols[0]
+acl_sub1-2-ky,sub1-2-ky,2,outbound,allow,10.240.2.0/24,All,10.240.1.0/24,All,TCP,-,-,Internal. required-connections[3]: (subnet sub1-1-ky)->(subnet sub1-2-ky); allowed-protocols[0]
+acl_sub1-2-ky,sub1-2-ky,3,outbound,allow,10.240.2.0/24,All,10.240.3.0/24,All,TCP,-,-,Internal. required-connections[5]: (subnet sub1-2-ky)->(subnet sub1-3-ky); allowed-protocols[0]
+acl_sub1-2-ky,sub1-2-ky,4,inbound,allow,10.240.3.0/24,All,10.240.2.0/24,All,TCP,-,-,Internal. required-connections[5]: (subnet sub1-2-ky)->(subnet sub1-3-ky); allowed-protocols[0]
+acl_sub1-3-ky,sub1-3-ky,1,inbound,allow,10.240.1.0/24,All,10.240.3.0/24,All,TCP,-,-,Internal. required-connections[4]: (subnet sub1-1-ky)->(subnet sub1-3-ky); allowed-protocols[0]
+acl_sub1-3-ky,sub1-3-ky,2,outbound,allow,10.240.3.0/24,All,10.240.1.0/24,All,TCP,-,-,Internal. required-connections[4]: (subnet sub1-1-ky)->(subnet sub1-3-ky); allowed-protocols[0]
+acl_sub1-3-ky,sub1-3-ky,3,inbound,allow,10.240.2.0/24,All,10.240.3.0/24,All,TCP,-,-,Internal. required-connections[5]: (subnet sub1-2-ky)->(subnet sub1-3-ky); allowed-protocols[0]
+acl_sub1-3-ky,sub1-3-ky,4,outbound,allow,10.240.3.0/24,All,10.240.2.0/24,All,TCP,-,-,Internal. required-connections[5]: (subnet sub1-2-ky)->(subnet sub1-3-ky); allowed-protocols[0]
+acl_sub2-1-ky,sub2-1-ky,1,inbound,allow,10.240.1.0/24,All,10.240.64.0/24,443,TCP,-,-,Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
+acl_sub2-1-ky,sub2-1-ky,2,outbound,allow,10.240.64.0/24,443,10.240.1.0/24,All,TCP,-,-,Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
+acl_sub2-1-ky,sub2-1-ky,3,outbound,allow,10.240.64.0/24,All,10.240.1.0/24,443,TCP,-,-,Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
+acl_sub2-1-ky,sub2-1-ky,4,inbound,allow,10.240.1.0/24,443,10.240.64.0/24,All,TCP,-,-,Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
+acl_sub2-1-ky,sub2-1-ky,5,outbound,allow,10.240.64.0/24,-,10.240.128.0/24,-,ICMP,8,0,Internal. required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
+acl_sub2-1-ky,sub2-1-ky,6,inbound,allow,10.240.128.0/24,-,10.240.64.0/24,-,ICMP,0,0,Internal. required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
+acl_sub2-1-ky,sub2-1-ky,7,outbound,allow,10.240.64.0/24,All,10.240.65.0/24,All,All,-,-,Internal. required-connections[6]: (subnet sub2-1-ky)->(subnet sub2-2-ky); allowed-protocols[0]
+acl_sub2-1-ky,sub2-1-ky,8,inbound,allow,10.240.65.0/24,All,10.240.64.0/24,All,All,-,-,Internal. required-connections[6]: (subnet sub2-1-ky)->(subnet sub2-2-ky); allowed-protocols[0]
+acl_sub2-1-ky,sub2-1-ky,9,inbound,allow,10.240.128.0/24,All,10.240.64.0/24,443,TCP,-,-,Internal. required-connections[7]: (subnet sub3-1-ky)->(subnet sub2-1-ky); allowed-protocols[0]
+acl_sub2-1-ky,sub2-1-ky,10,outbound,allow,10.240.64.0/24,443,10.240.128.0/24,All,TCP,-,-,Internal. required-connections[7]: (subnet sub3-1-ky)->(subnet sub2-1-ky); allowed-protocols[0]
+acl_sub2-1-ky,sub2-1-ky,11,outbound,deny,10.0.0.0/8,All,10.0.0.0/8,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 0,0"
+acl_sub2-1-ky,sub2-1-ky,12,inbound,deny,10.0.0.0/8,All,10.0.0.0/8,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 0,0"
+acl_sub2-1-ky,sub2-1-ky,13,outbound,deny,10.0.0.0/8,All,172.16.0.0/12,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 0,1"
+acl_sub2-1-ky,sub2-1-ky,14,inbound,deny,172.16.0.0/12,All,10.0.0.0/8,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 0,1"
+acl_sub2-1-ky,sub2-1-ky,15,outbound,deny,10.0.0.0/8,All,192.168.0.0/16,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 0,2"
+acl_sub2-1-ky,sub2-1-ky,16,inbound,deny,192.168.0.0/16,All,10.0.0.0/8,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 0,2"
+acl_sub2-1-ky,sub2-1-ky,17,outbound,deny,172.16.0.0/12,All,10.0.0.0/8,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 1,0"
+acl_sub2-1-ky,sub2-1-ky,18,inbound,deny,10.0.0.0/8,All,172.16.0.0/12,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 1,0"
+acl_sub2-1-ky,sub2-1-ky,19,outbound,deny,172.16.0.0/12,All,172.16.0.0/12,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 1,1"
+acl_sub2-1-ky,sub2-1-ky,20,inbound,deny,172.16.0.0/12,All,172.16.0.0/12,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 1,1"
+acl_sub2-1-ky,sub2-1-ky,21,outbound,deny,172.16.0.0/12,All,192.168.0.0/16,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 1,2"
+acl_sub2-1-ky,sub2-1-ky,22,inbound,deny,192.168.0.0/16,All,172.16.0.0/12,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 1,2"
+acl_sub2-1-ky,sub2-1-ky,23,outbound,deny,192.168.0.0/16,All,10.0.0.0/8,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 2,0"
+acl_sub2-1-ky,sub2-1-ky,24,inbound,deny,10.0.0.0/8,All,192.168.0.0/16,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 2,0"
+acl_sub2-1-ky,sub2-1-ky,25,outbound,deny,192.168.0.0/16,All,172.16.0.0/12,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 2,1"
+acl_sub2-1-ky,sub2-1-ky,26,inbound,deny,172.16.0.0/12,All,192.168.0.0/16,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 2,1"
+acl_sub2-1-ky,sub2-1-ky,27,outbound,deny,192.168.0.0/16,All,192.168.0.0/16,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 2,2"
+acl_sub2-1-ky,sub2-1-ky,28,inbound,deny,192.168.0.0/16,All,192.168.0.0/16,All,All,-,-,"Deny other internal communication; see rfc1918#3; item 2,2"
+acl_sub2-1-ky,sub2-1-ky,29,outbound,allow,10.240.64.0/24,All,8.8.8.8,All,All,-,-,External. required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
+acl_sub2-1-ky,sub2-1-ky,30,inbound,allow,8.8.8.8,All,10.240.64.0/24,All,All,-,-,External. required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
+acl_sub2-2-ky,sub2-2-ky,1,inbound,allow,10.240.64.0/24,All,10.240.65.0/24,All,All,-,-,Internal. required-connections[6]: (subnet sub2-1-ky)->(subnet sub2-2-ky); allowed-protocols[0]
+acl_sub2-2-ky,sub2-2-ky,2,outbound,allow,10.240.65.0/24,All,10.240.64.0/24,All,All,-,-,Internal. required-connections[6]: (subnet sub2-1-ky)->(subnet sub2-2-ky); allowed-protocols[0]
+acl_sub3-1-ky,sub3-1-ky,1,inbound,allow,10.240.1.0/24,-,10.240.128.0/24,-,ICMP,8,0,Internal. required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
+acl_sub3-1-ky,sub3-1-ky,2,outbound,allow,10.240.128.0/24,-,10.240.1.0/24,-,ICMP,0,0,Internal. required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
+acl_sub3-1-ky,sub3-1-ky,3,inbound,allow,10.240.64.0/24,-,10.240.128.0/24,-,ICMP,8,0,Internal. required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
+acl_sub3-1-ky,sub3-1-ky,4,outbound,allow,10.240.128.0/24,-,10.240.64.0/24,-,ICMP,0,0,Internal. required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
+acl_sub3-1-ky,sub3-1-ky,5,outbound,allow,10.240.128.0/24,All,10.240.64.0/24,443,TCP,-,-,Internal. required-connections[7]: (subnet sub3-1-ky)->(subnet sub2-1-ky); allowed-protocols[0]
+acl_sub3-1-ky,sub3-1-ky,6,inbound,allow,10.240.64.0/24,443,10.240.128.0/24,All,TCP,-,-,Internal. required-connections[7]: (subnet sub3-1-ky)->(subnet sub2-1-ky); allowed-protocols[0]

@@ -1,0 +1,9 @@
+acl,subnet,#,direction,action,source,source port,destination,destination port,protocol,type,code,description
+acl_subnet1-ky,subnet1-ky,1,outbound,allow,10.240.10.0/24,All,10.240.30.0/24,443,TCP,-,-,Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
+acl_subnet1-ky,subnet1-ky,2,inbound,allow,10.240.30.0/24,443,10.240.10.0/24,All,TCP,-,-,Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
+acl_subnet1-ky,subnet1-ky,3,inbound,allow,10.240.30.0/24,All,10.240.10.0/24,443,TCP,-,-,Internal. inverse of required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
+acl_subnet1-ky,subnet1-ky,4,outbound,allow,10.240.10.0/24,443,10.240.30.0/24,All,TCP,-,-,Internal. inverse of required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
+acl_subnet3-ky,subnet3-ky,1,inbound,allow,10.240.10.0/24,All,10.240.30.0/24,443,TCP,-,-,Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
+acl_subnet3-ky,subnet3-ky,2,outbound,allow,10.240.30.0/24,443,10.240.10.0/24,All,TCP,-,-,Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
+acl_subnet3-ky,subnet3-ky,3,outbound,allow,10.240.30.0/24,All,10.240.10.0/24,443,TCP,-,-,Internal. inverse of required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
+acl_subnet3-ky,subnet3-ky,4,inbound,allow,10.240.10.0/24,443,10.240.30.0/24,All,TCP,-,-,Internal. inverse of required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]

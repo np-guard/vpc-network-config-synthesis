@@ -27,8 +27,8 @@ func (w *Writer) Write(collection *ir.Collection) error {
 	if err := w.w.Write(header()); err != nil {
 		return err
 	}
-	for _, item := range collection.ACLs {
-		if err := w.w.WriteAll(makeTable(item)); err != nil {
+	for _, subnet := range collection.SortedACLSubnets() {
+		if err := w.w.WriteAll(makeTable(collection.ACLs[subnet], subnet)); err != nil {
 			return err
 		}
 	}
@@ -40,10 +40,11 @@ const (
 	na  = "-"
 )
 
-func makeTable(t ir.ACL) [][]string {
-	rows := make([][]string, len(t.Rules))
-	for i := range t.Rules {
-		rows[i] = makeRow(i+1, &t.Rules[i])
+func makeTable(t *ir.ACL, subnet string) [][]string {
+	rules := t.Rules()
+	rows := make([][]string, len(rules))
+	for i := range rules {
+		rows[i] = makeRow(i+1, &rules[i], t.Name(), subnet)
 	}
 	return rows
 }
@@ -69,6 +70,8 @@ func direction(d ir.Direction) string {
 
 func header() []string {
 	return []string{
+		"acl",
+		"subnet",
 		"#",
 		"direction",
 		"action",
@@ -83,9 +86,11 @@ func header() []string {
 	}
 }
 
-func makeRow(i int, rule *ir.Rule) []string {
+func makeRow(i int, rule *ir.Rule, aclName, subnet string) []string {
 	icmpType, icmpCode := printICMPTypeCode(rule.Protocol)
 	return []string{
+		aclName,
+		subnet,
 		strconv.Itoa(i),
 		direction(rule.Direction),
 		action(rule.Action),

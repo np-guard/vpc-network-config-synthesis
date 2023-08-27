@@ -12,9 +12,10 @@ import (
 )
 
 const (
-	dataFolder          = "data"
-	defaultSpecName     = "conn_spec.json"
-	defaultExpectedName = "nacl_single_expected.csv"
+	dataFolder                  = "data"
+	defaultSpecName             = "conn_spec.json"
+	defaultExpectedSingleName   = "nacl_single_expected.csv"
+	defaultExpectedMultipleName = "nacl_multiple_expected.csv"
 )
 
 type TestCase struct {
@@ -36,7 +37,7 @@ func (c *TestCase) at(name, otherwise string) string {
 }
 
 func TestCIDR(t *testing.T) {
-	_, err := makeACLCSV(TestCase{folder: "cidr"})
+	_, err := makeACLCSV(TestCase{folder: "cidr"}, synth.Options{Single: true})
 	if err.Error() != "unsupported endpoint type cidr" {
 		t.Errorf("No failure for unsupported type; got %v", err)
 	}
@@ -51,21 +52,27 @@ func TestCSVCompare(t *testing.T) {
 	}
 	for testname, c := range suite {
 		testcase := c
-		t.Run(testname, func(t *testing.T) {
-			actualCSVString, err := makeACLCSV(testcase)
-			if err != nil {
-				t.Error(err)
+		for _, single := range []bool{false, true} {
+			expectedName := defaultExpectedMultipleName
+			if single {
+				expectedName = defaultExpectedSingleName
 			}
-			expectedFile := testcase.at(testcase.expectedName, defaultExpectedName)
-			expectedCSVString := readExpectedCSV(expectedFile)
-			if expectedCSVString != actualCSVString {
-				t.Errorf("%v != %v", expectedCSVString, actualCSVString)
-			}
-		})
+			t.Run(testname, func(t *testing.T) {
+				actualCSVString, err := makeACLCSV(testcase, synth.Options{Single: single})
+				if err != nil {
+					t.Error(err)
+				}
+				expectedFile := testcase.at(testcase.expectedName, expectedName)
+				expectedCSVString := readExpectedCSV(expectedFile)
+				if expectedCSVString != actualCSVString {
+					t.Errorf("%v != %v", expectedCSVString, actualCSVString)
+				}
+			})
+		}
 	}
 }
 
-func makeACLCSV(c TestCase) (csvString string, err error) {
+func makeACLCSV(c TestCase, opt synth.Options) (csvString string, err error) {
 	reader := jsonio.NewReader()
 
 	var subnets map[string]string
@@ -79,7 +86,7 @@ func makeACLCSV(c TestCase) (csvString string, err error) {
 	if err != nil {
 		return "", err
 	}
-	acl := synth.MakeACL(s)
+	acl := synth.MakeACL(s, opt)
 
 	buf := new(bytes.Buffer)
 	writer := csvio.NewWriter(buf)
