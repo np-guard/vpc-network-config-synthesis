@@ -1,4 +1,3 @@
-# 1 [10.240.10.0/24]
 resource "ibm_is_network_acl" "acl_1" {
   name           = "acl_1"
   resource_group = var.resource_group_id
