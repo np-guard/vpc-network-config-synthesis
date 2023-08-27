@@ -2,6 +2,7 @@
 package synth
 
 import (
+	"fmt"
 	"log"
 	"reflect"
 
@@ -17,7 +18,13 @@ func MakeACL(s *ir.Spec, opt Options) *ir.Collection {
 	if opt.Single {
 		return generateCollection(s, func(target string) string { return "acl1" })
 	}
-	return generateCollection(s, func(target string) string { return target })
+	return generateCollection(s, func(target string) string {
+		name, ok := s.SubnetNames[target]
+		if !ok {
+			return fmt.Sprintf("Unknown subnet %v", target)
+		}
+		return name
+	})
 }
 
 func generateCollection(s *ir.Spec, aclSelector func(target string) string) *ir.Collection {
@@ -40,7 +47,7 @@ func generateCollection(s *ir.Spec, aclSelector func(target string) string) *ir.
 					connection := allowDirectedConnection(src, dst, internalSrc, internalDst, trackedProtocol.Protocol, reason)
 
 					for _, rule := range connection {
-						acl := result.LookupOrCreate(aclSelector(target(rule)))
+						acl := result.LookupOrCreate(aclSelector(rule.Target()))
 						if internal {
 							if !redundant(rule, acl.Internal) {
 								acl.AppendInternal(rule)
@@ -66,13 +73,6 @@ func redundant(rule *ir.Rule, rules []ir.Rule) bool {
 		}
 	}
 	return false
-}
-
-func target(r *ir.Rule) string {
-	if r.Direction == ir.Inbound {
-		return r.Destination
-	}
-	return r.Source
 }
 
 func mustSupersede(main, other *ir.Rule) bool {

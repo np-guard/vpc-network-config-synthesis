@@ -10,6 +10,9 @@ type (
 	Spec struct {
 		// Required connections
 		Connections []Connection
+
+		// Mapping from CIDR to subnet name
+		SubnetNames map[string]string
 	}
 
 	Connection struct {
@@ -105,6 +108,14 @@ func (s *Definitions) Lookup(name string, expectedType EndpointType) (Endpoint, 
 		return Endpoint{}, fmt.Errorf("%v is not a valid %v", name, expectedType)
 	}
 	return result[0], nil
+}
+
+func (s *Definitions) InverseSubnetMap() map[string]string {
+	result := make(map[string]string, len(s.Subnets))
+	for k, v := range s.Subnets {
+		result[v] = k
+	}
+	return result
 }
 
 type Reader interface {

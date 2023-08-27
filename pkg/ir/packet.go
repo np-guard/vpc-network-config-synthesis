@@ -57,6 +57,13 @@ type Packet struct {
 	Explanation string
 }
 
+func (r *Rule) Target() string {
+	if r.Direction == Inbound {
+		return r.Destination
+	}
+	return r.Source
+}
+
 func AllowSend(packet Packet) *Rule {
 	return packetRule(packet, Outbound, Allow)
 }

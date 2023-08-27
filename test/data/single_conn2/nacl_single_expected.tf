@@ -1,4 +1,5 @@
 resource "ibm_is_network_acl" "acl_acl1" {
+  # acl_acl1 [10.240.10.0/24]
   name           = "acl_acl1"
   resource_group = var.resource_group_id
   vpc            = var.vpc_id

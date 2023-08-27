@@ -114,8 +114,9 @@ func singleACL(name string, t *ir.ACL) tf.Block {
 		blocks[i] = rule(&rules[i], fmt.Sprintf("rule%v", i))
 	}
 	return tf.Block{
-		Name:   "resource",
-		Labels: []string{quote("ibm_is_network_acl"), quote(name)},
+		Comment: fmt.Sprintf("%v [%v]", name, rules[0].Target()),
+		Name:    "resource",
+		Labels:  []string{quote("ibm_is_network_acl"), quote(name)},
 		Arguments: []tf.Argument{
 			{Name: "name", Value: quote(name)}, //nolint:revive  // obvious false positive
 			{Name: "resource_group", Value: "var.resource_group_id"},

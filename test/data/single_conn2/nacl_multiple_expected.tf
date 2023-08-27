@@ -1,5 +1,6 @@
-resource "ibm_is_network_acl" "acl_10-240-10-0_24" {
-  name           = "acl_10-240-10-0_24"
+resource "ibm_is_network_acl" "acl_subnet1-ky" {
+  # acl_subnet1-ky [10.240.10.0/24]
+  name           = "acl_subnet1-ky"
   resource_group = var.resource_group_id
   vpc            = var.vpc_id
 
@@ -60,8 +61,9 @@ resource "ibm_is_network_acl" "acl_10-240-10-0_24" {
   }
 }
 
-resource "ibm_is_network_acl" "acl_10-240-30-0_24" {
-  name           = "acl_10-240-30-0_24"
+resource "ibm_is_network_acl" "acl_subnet3-ky" {
+  # acl_subnet3-ky [10.240.30.0/24]
+  name           = "acl_subnet3-ky"
   resource_group = var.resource_group_id
   vpc            = var.vpc_id
 
