@@ -14,9 +14,10 @@ func (e explanation) String() string {
 	if e.internal {
 		locality = "Internal"
 	}
-	result := fmt.Sprintf("%v. %v; %v", locality, e.connectionOrigin, e.protocolOrigin)
+	result := fmt.Sprintf("%v; %v", e.connectionOrigin, e.protocolOrigin)
 	if e.isResponse {
-		result = "response to " + result
+		result = fmt.Sprintf("response to %v", result)
 	}
+	result = fmt.Sprintf("%v. %v", locality, result)
 	return result
 }

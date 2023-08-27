@@ -14,7 +14,7 @@ resource "ibm_is_network_acl" "acl_1" {
       port_max = 443
     }
   }
-  # Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
+  # Internal. response to required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
   rules {
     name        = "rule1"
     action      = "allow"
@@ -38,7 +38,7 @@ resource "ibm_is_network_acl" "acl_1" {
       port_max = 443
     }
   }
-  # Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
+  # Internal. response to required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
   rules {
     name        = "rule3"
     action      = "allow"
