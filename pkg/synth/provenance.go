@@ -9,6 +9,11 @@ type explanation struct {
 	protocolOrigin   fmt.Stringer
 }
 
+func (e explanation) response() explanation {
+	e.isResponse = true
+	return e
+}
+
 func (e explanation) String() string {
 	locality := "External"
 	if e.internal {

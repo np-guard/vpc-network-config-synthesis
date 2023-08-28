@@ -87,9 +87,7 @@ func allowDirectedConnection(src, dst ir.IP, internalSrc, internalDst bool, prot
 	var request, response *ir.Packet
 	request = &ir.Packet{Src: src, Dst: dst, Protocol: protocol, Explanation: reason.String()}
 	if inverseProtocol := protocol.InverseDirection(); inverseProtocol != nil {
-		responseReason := reason
-		responseReason.isResponse = true
-		response = &ir.Packet{Src: dst, Dst: src, Protocol: inverseProtocol, Explanation: responseReason.String()}
+		response = &ir.Packet{Src: dst, Dst: src, Protocol: inverseProtocol, Explanation: reason.response().String()}
 	}
 
 	var connection []*ir.Rule
