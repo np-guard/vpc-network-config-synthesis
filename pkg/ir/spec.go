@@ -12,7 +12,7 @@ type (
 		Connections []Connection
 
 		// Mapping from CIDR to subnet name
-		SubnetNames map[string]string
+		SubnetNames map[IP]string
 	}
 
 	Connection struct {
@@ -34,7 +34,7 @@ type (
 		Name string
 
 		// list of CIDR / Ip addresses.
-		Values []string
+		Values []IP
 
 		// Type of endpoint
 		Type EndpointType
@@ -46,13 +46,13 @@ type (
 	}
 
 	Definitions struct {
-		Subnets map[string]string
+		Subnets map[string]IP
 
 		// Segments are a way for users to create aggregations.
 		SubnetSegments map[string][]string
 
 		// Externals are a way for users to name IP addresses or ranges external to the VPC.
-		Externals map[string]string
+		Externals map[string]IP
 	}
 )
 
@@ -72,14 +72,14 @@ func (s *Definitions) Lookup(name string, expectedType EndpointType) (Endpoint, 
 		if expectedType != EndpointTypeAny && expectedType != actualType {
 			return Endpoint{}, fmt.Errorf("%v is external, not %v", name, expectedType)
 		}
-		result = append(result, Endpoint{name, []string{ip}, actualType})
+		result = append(result, Endpoint{name, []IP{ip}, actualType})
 	}
 	if ip, ok := s.Subnets[name]; ok {
 		actualType := EndpointTypeSubnet
 		if expectedType != EndpointTypeAny && expectedType != EndpointTypeSubnet {
 			return Endpoint{}, fmt.Errorf("%v is subnet, not %v", name, expectedType)
 		}
-		result = append(result, Endpoint{name, []string{ip}, actualType})
+		result = append(result, Endpoint{name, []IP{ip}, actualType})
 	}
 	if segment, ok := s.SubnetSegments[name]; ok {
 		actualType := EndpointTypeSegment
@@ -87,7 +87,7 @@ func (s *Definitions) Lookup(name string, expectedType EndpointType) (Endpoint, 
 			return Endpoint{}, fmt.Errorf("%v is segment, not %v", name, expectedType)
 		}
 		actualType = EndpointTypeSubnet
-		var ips []string
+		var ips []IP
 		for _, subnetName := range segment {
 			subnet, err := s.Lookup(subnetName, actualType)
 			if err != nil {
@@ -110,8 +110,8 @@ func (s *Definitions) Lookup(name string, expectedType EndpointType) (Endpoint, 
 	return result[0], nil
 }
 
-func (s *Definitions) InverseSubnetMap() map[string]string {
-	result := make(map[string]string, len(s.Subnets))
+func (s *Definitions) InverseSubnetMap() map[IP]string {
+	result := make(map[IP]string, len(s.Subnets))
 	for k, v := range s.Subnets {
 		result[v] = k
 	}
@@ -119,5 +119,5 @@ func (s *Definitions) InverseSubnetMap() map[string]string {
 }
 
 type Reader interface {
-	ReadSpec(filename string, subnetMap map[string]string) (*Spec, error)
+	ReadSpec(filename string, subnetMap map[string]IP) (*Spec, error)
 }

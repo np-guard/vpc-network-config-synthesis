@@ -8,6 +8,7 @@ import (
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/csvio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/jsonio"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/synth"
 )
 
@@ -75,7 +76,7 @@ func TestCSVCompare(t *testing.T) {
 func makeACLCSV(c TestCase, opt synth.Options) (csvString string, err error) {
 	reader := jsonio.NewReader()
 
-	var subnets map[string]string
+	var subnets map[string]ir.IP
 	if c.configName != "" {
 		subnets, err = jsonio.ReadSubnetMap(c.resolve(c.configName))
 		if err != nil {

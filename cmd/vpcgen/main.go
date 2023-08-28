@@ -129,7 +129,7 @@ Flags:
 		log.Fatal(err)
 	}
 
-	var subnets map[string]string
+	var subnets map[string]ir.IP
 	if *configFilename != "" {
 		subnets, err = jsonio.ReadSubnetMap(*configFilename)
 		if err != nil {

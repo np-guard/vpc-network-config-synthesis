@@ -16,9 +16,9 @@ type Options struct {
 // MakeACL translates Spec to a collection of ACLs
 func MakeACL(s *ir.Spec, opt Options) *ir.Collection {
 	if opt.Single {
-		return generateCollection(s, func(target string) string { return "1" })
+		return generateCollection(s, func(target ir.IP) string { return "1" })
 	}
-	return generateCollection(s, func(target string) string {
+	return generateCollection(s, func(target ir.IP) string {
 		name, ok := s.SubnetNames[target]
 		if !ok {
 			return fmt.Sprintf("Unknown subnet %v", target)
@@ -27,7 +27,7 @@ func MakeACL(s *ir.Spec, opt Options) *ir.Collection {
 	})
 }
 
-func generateCollection(s *ir.Spec, aclSelector func(target string) string) *ir.Collection {
+func generateCollection(s *ir.Spec, aclSelector func(target ir.IP) string) *ir.Collection {
 	result := ir.Collection{ACLs: map[string]*ir.ACL{}}
 	for c := range s.Connections {
 		conn := &s.Connections[c]
@@ -83,7 +83,7 @@ func mustSupersede(main, other *ir.Rule) bool {
 	return res
 }
 
-func allowDirectedConnection(src, dst string, internalSrc, internalDst bool, protocol ir.Protocol, reason explanation) []*ir.Rule {
+func allowDirectedConnection(src, dst ir.IP, internalSrc, internalDst bool, protocol ir.Protocol, reason explanation) []*ir.Rule {
 	var request, response *ir.Packet
 	request = &ir.Packet{Src: src, Dst: dst, Protocol: protocol, Explanation: reason.String()}
 	if inverseProtocol := protocol.InverseDirection(); inverseProtocol != nil {

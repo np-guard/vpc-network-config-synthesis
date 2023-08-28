@@ -17,15 +17,15 @@ func NewReader() *Reader {
 	return &Reader{}
 }
 
-func (*Reader) ReadSpec(filename string, subnets map[string]string) (*ir.Spec, error) {
+func (*Reader) ReadSpec(filename string, subnets map[string]ir.IP) (*ir.Spec, error) {
 	jsonspec, err := unmarshal(filename)
 	if err != nil {
 		return nil, err
 	}
 
 	defs := ir.Definitions{
-		Externals:      jsonspec.Externals,
-		Subnets:        jsonspec.Subnets,
+		Externals:      translateMap(jsonspec.Externals),
+		Subnets:        translateMap(jsonspec.Subnets),
 		SubnetSegments: make(map[string][]string),
 	}
 
@@ -53,6 +53,14 @@ func (*Reader) ReadSpec(filename string, subnets map[string]string) (*ir.Spec, e
 	}
 
 	return &ir.Spec{Connections: connections, SubnetNames: defs.InverseSubnetMap()}, nil
+}
+
+func translateMap(m map[string]string) map[string]ir.IP {
+	res := make(map[string]ir.IP)
+	for k, v := range m {
+		res[k] = ir.IPFromString(v)
+	}
+	return res
 }
 
 func translateConnection(defs *ir.Definitions, v *SpecRequiredConnectionsElem, connectionIndex int) ([]ir.Connection, error) {

@@ -56,12 +56,12 @@ func (c *Collection) SortedACLSubnets() []string {
 }
 
 type Packet struct {
-	Src, Dst    string
+	Src, Dst    IP
 	Protocol    Protocol
 	Explanation string
 }
 
-func (r *Rule) Target() string {
+func (r *Rule) Target() IP {
 	if r.Direction == Inbound {
 		return r.Destination
 	}
@@ -89,10 +89,10 @@ func packetRule(packet Packet, direction Direction, action Action) *Rule {
 
 // makeDenyInternal prevents allowing external communications from accidentally allowing internal communications too
 func makeDenyInternal() []Rule {
-	localIPs := []string{ // https://datatracker.ietf.org/doc/html/rfc1918#section-3
-		"10.0.0.0/8",
-		"172.16.0.0/12",
-		"192.168.0.0/16",
+	localIPs := []IP{ // https://datatracker.ietf.org/doc/html/rfc1918#section-3
+		{"10.0.0.0/8"},
+		{"172.16.0.0/12"},
+		{"192.168.0.0/16"},
 	}
 	var denyInternal []Rule
 	for i, anyLocalIPSrc := range localIPs {
