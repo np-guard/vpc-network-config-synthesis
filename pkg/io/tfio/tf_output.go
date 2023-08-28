@@ -91,8 +91,8 @@ func rule(rule *ir.Rule, name string) tf.Block {
 		{Name: "name", Value: quote(name)},
 		{Name: "action", Value: quote(action(rule.Action))},
 		{Name: "direction", Value: quote(direction(rule.Direction))},
-		{Name: "source", Value: quote(rule.Source)},
-		{Name: "destination", Value: quote(rule.Destination)},
+		{Name: "source", Value: quote(rule.Source.String())},
+		{Name: "destination", Value: quote(rule.Destination.String())},
 	}
 	return tf.Block{Name: "rules",
 		Comment:   fmt.Sprintf("# %v", rule.Explanation),

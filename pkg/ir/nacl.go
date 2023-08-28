@@ -26,8 +26,8 @@ func (t AnyProtocol) InverseDirection() Protocol { return AnyProtocol{} }
 type Rule struct {
 	Action      Action
 	Direction   Direction
-	Source      string
-	Destination string
+	Source      IP
+	Destination IP
 	Protocol    Protocol
 	Explanation string
 }

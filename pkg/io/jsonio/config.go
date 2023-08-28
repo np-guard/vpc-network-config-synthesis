@@ -3,9 +3,11 @@ package jsonio
 import (
 	"encoding/json"
 	"os"
+
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-func ReadSubnetMap(filename string) (map[string]string, error) {
+func ReadSubnetMap(filename string) (map[string]ir.IP, error) {
 	bytes, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -15,9 +17,9 @@ func ReadSubnetMap(filename string) (map[string]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	subnetMap := make(map[string]string)
+	subnetMap := make(map[string]ir.IP)
 	for _, subnet := range config["subnets"] {
-		subnetMap[subnet["name"].(string)] = subnet["ipv4_cidr_block"].(string)
+		subnetMap[subnet["name"].(string)] = ir.IPFromString(subnet["ipv4_cidr_block"].(string))
 	}
 	return subnetMap, nil
 }
