@@ -1,59 +1,59 @@
 Acl,Subnet,Direction,Rule priority,Allow or deny,Protocol,Source,Destination,Value,Description
-acl_1,1,Outbound,1,Allow,TCP,"10.240.1.0/24, any port","10.240.64.0/24, ports 443-443",-,Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
-acl_1,1,Inbound,2,Allow,TCP,"10.240.64.0/24, ports 443-443","10.240.1.0/24, any port",-,Internal. response to required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
-acl_1,1,Inbound,3,Allow,TCP,"10.240.1.0/24, any port","10.240.64.0/24, ports 443-443",-,Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
-acl_1,1,Outbound,4,Allow,TCP,"10.240.64.0/24, ports 443-443","10.240.1.0/24, any port",-,Internal. response to required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
-acl_1,1,Outbound,5,Allow,TCP,"10.240.64.0/24, any port","10.240.1.0/24, ports 443-443",-,Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
-acl_1,1,Inbound,6,Allow,TCP,"10.240.1.0/24, ports 443-443","10.240.64.0/24, any port",-,Internal. response to required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
-acl_1,1,Inbound,7,Allow,TCP,"10.240.64.0/24, any port","10.240.1.0/24, ports 443-443",-,Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
-acl_1,1,Outbound,8,Allow,TCP,"10.240.1.0/24, ports 443-443","10.240.64.0/24, any port",-,Internal. response to required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
-acl_1,1,Outbound,9,Allow,ICMP,10.240.1.0/24,10.240.128.0/24,"Type: 8, Code: 0",Internal. required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
-acl_1,1,Inbound,10,Allow,ICMP,10.240.128.0/24,10.240.1.0/24,"Type: 0, Code: 0",Internal. response to required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
-acl_1,1,Inbound,11,Allow,ICMP,10.240.1.0/24,10.240.128.0/24,"Type: 8, Code: 0",Internal. required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
-acl_1,1,Outbound,12,Allow,ICMP,10.240.128.0/24,10.240.1.0/24,"Type: 0, Code: 0",Internal. response to required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
-acl_1,1,Outbound,13,Allow,ICMP,10.240.64.0/24,10.240.128.0/24,"Type: 8, Code: 0",Internal. required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
-acl_1,1,Inbound,14,Allow,ICMP,10.240.128.0/24,10.240.64.0/24,"Type: 0, Code: 0",Internal. response to required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
-acl_1,1,Inbound,15,Allow,ICMP,10.240.64.0/24,10.240.128.0/24,"Type: 8, Code: 0",Internal. required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
-acl_1,1,Outbound,16,Allow,ICMP,10.240.128.0/24,10.240.64.0/24,"Type: 0, Code: 0",Internal. response to required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
-acl_1,1,Outbound,17,Allow,TCP,"10.240.1.0/24, any port","10.240.2.0/24, any port",-,Internal. required-connections[3]: (subnet sub1-1-ky)->(subnet sub1-2-ky); allowed-protocols[0]
-acl_1,1,Inbound,18,Allow,TCP,"10.240.2.0/24, any port","10.240.1.0/24, any port",-,Internal. response to required-connections[3]: (subnet sub1-1-ky)->(subnet sub1-2-ky); allowed-protocols[0]
-acl_1,1,Inbound,19,Allow,TCP,"10.240.1.0/24, any port","10.240.2.0/24, any port",-,Internal. required-connections[3]: (subnet sub1-1-ky)->(subnet sub1-2-ky); allowed-protocols[0]
-acl_1,1,Outbound,20,Allow,TCP,"10.240.2.0/24, any port","10.240.1.0/24, any port",-,Internal. response to required-connections[3]: (subnet sub1-1-ky)->(subnet sub1-2-ky); allowed-protocols[0]
-acl_1,1,Outbound,21,Allow,TCP,"10.240.1.0/24, any port","10.240.3.0/24, any port",-,Internal. required-connections[4]: (subnet sub1-1-ky)->(subnet sub1-3-ky); allowed-protocols[0]
-acl_1,1,Inbound,22,Allow,TCP,"10.240.3.0/24, any port","10.240.1.0/24, any port",-,Internal. response to required-connections[4]: (subnet sub1-1-ky)->(subnet sub1-3-ky); allowed-protocols[0]
-acl_1,1,Inbound,23,Allow,TCP,"10.240.1.0/24, any port","10.240.3.0/24, any port",-,Internal. required-connections[4]: (subnet sub1-1-ky)->(subnet sub1-3-ky); allowed-protocols[0]
-acl_1,1,Outbound,24,Allow,TCP,"10.240.3.0/24, any port","10.240.1.0/24, any port",-,Internal. response to required-connections[4]: (subnet sub1-1-ky)->(subnet sub1-3-ky); allowed-protocols[0]
-acl_1,1,Outbound,25,Allow,TCP,"10.240.2.0/24, any port","10.240.3.0/24, any port",-,Internal. required-connections[5]: (subnet sub1-2-ky)->(subnet sub1-3-ky); allowed-protocols[0]
-acl_1,1,Inbound,26,Allow,TCP,"10.240.3.0/24, any port","10.240.2.0/24, any port",-,Internal. response to required-connections[5]: (subnet sub1-2-ky)->(subnet sub1-3-ky); allowed-protocols[0]
-acl_1,1,Inbound,27,Allow,TCP,"10.240.2.0/24, any port","10.240.3.0/24, any port",-,Internal. required-connections[5]: (subnet sub1-2-ky)->(subnet sub1-3-ky); allowed-protocols[0]
-acl_1,1,Outbound,28,Allow,TCP,"10.240.3.0/24, any port","10.240.2.0/24, any port",-,Internal. response to required-connections[5]: (subnet sub1-2-ky)->(subnet sub1-3-ky); allowed-protocols[0]
-acl_1,1,Outbound,29,Allow,ALL,10.240.64.0/24,10.240.65.0/24,-,Internal. required-connections[6]: (subnet sub2-1-ky)->(subnet sub2-2-ky); allowed-protocols[0]
-acl_1,1,Inbound,30,Allow,ALL,10.240.65.0/24,10.240.64.0/24,-,Internal. response to required-connections[6]: (subnet sub2-1-ky)->(subnet sub2-2-ky); allowed-protocols[0]
-acl_1,1,Inbound,31,Allow,ALL,10.240.64.0/24,10.240.65.0/24,-,Internal. required-connections[6]: (subnet sub2-1-ky)->(subnet sub2-2-ky); allowed-protocols[0]
-acl_1,1,Outbound,32,Allow,ALL,10.240.65.0/24,10.240.64.0/24,-,Internal. response to required-connections[6]: (subnet sub2-1-ky)->(subnet sub2-2-ky); allowed-protocols[0]
-acl_1,1,Outbound,33,Allow,TCP,"10.240.128.0/24, any port","10.240.64.0/24, ports 443-443",-,Internal. required-connections[7]: (subnet sub3-1-ky)->(subnet sub2-1-ky); allowed-protocols[0]
-acl_1,1,Inbound,34,Allow,TCP,"10.240.64.0/24, ports 443-443","10.240.128.0/24, any port",-,Internal. response to required-connections[7]: (subnet sub3-1-ky)->(subnet sub2-1-ky); allowed-protocols[0]
-acl_1,1,Inbound,35,Allow,TCP,"10.240.128.0/24, any port","10.240.64.0/24, ports 443-443",-,Internal. required-connections[7]: (subnet sub3-1-ky)->(subnet sub2-1-ky); allowed-protocols[0]
-acl_1,1,Outbound,36,Allow,TCP,"10.240.64.0/24, ports 443-443","10.240.128.0/24, any port",-,Internal. response to required-connections[7]: (subnet sub3-1-ky)->(subnet sub2-1-ky); allowed-protocols[0]
-acl_1,1,Outbound,37,Deny,ALL,10.0.0.0/8,10.0.0.0/8,-,"Deny other internal communication; see rfc1918#3; item 0,0"
-acl_1,1,Inbound,38,Deny,ALL,10.0.0.0/8,10.0.0.0/8,-,"Deny other internal communication; see rfc1918#3; item 0,0"
-acl_1,1,Outbound,39,Deny,ALL,10.0.0.0/8,172.16.0.0/12,-,"Deny other internal communication; see rfc1918#3; item 0,1"
-acl_1,1,Inbound,40,Deny,ALL,172.16.0.0/12,10.0.0.0/8,-,"Deny other internal communication; see rfc1918#3; item 0,1"
-acl_1,1,Outbound,41,Deny,ALL,10.0.0.0/8,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 0,2"
-acl_1,1,Inbound,42,Deny,ALL,192.168.0.0/16,10.0.0.0/8,-,"Deny other internal communication; see rfc1918#3; item 0,2"
-acl_1,1,Outbound,43,Deny,ALL,172.16.0.0/12,10.0.0.0/8,-,"Deny other internal communication; see rfc1918#3; item 1,0"
-acl_1,1,Inbound,44,Deny,ALL,10.0.0.0/8,172.16.0.0/12,-,"Deny other internal communication; see rfc1918#3; item 1,0"
-acl_1,1,Outbound,45,Deny,ALL,172.16.0.0/12,172.16.0.0/12,-,"Deny other internal communication; see rfc1918#3; item 1,1"
-acl_1,1,Inbound,46,Deny,ALL,172.16.0.0/12,172.16.0.0/12,-,"Deny other internal communication; see rfc1918#3; item 1,1"
-acl_1,1,Outbound,47,Deny,ALL,172.16.0.0/12,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 1,2"
-acl_1,1,Inbound,48,Deny,ALL,192.168.0.0/16,172.16.0.0/12,-,"Deny other internal communication; see rfc1918#3; item 1,2"
-acl_1,1,Outbound,49,Deny,ALL,192.168.0.0/16,10.0.0.0/8,-,"Deny other internal communication; see rfc1918#3; item 2,0"
-acl_1,1,Inbound,50,Deny,ALL,10.0.0.0/8,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 2,0"
-acl_1,1,Outbound,51,Deny,ALL,192.168.0.0/16,172.16.0.0/12,-,"Deny other internal communication; see rfc1918#3; item 2,1"
-acl_1,1,Inbound,52,Deny,ALL,172.16.0.0/12,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 2,1"
-acl_1,1,Outbound,53,Deny,ALL,192.168.0.0/16,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 2,2"
-acl_1,1,Inbound,54,Deny,ALL,192.168.0.0/16,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 2,2"
-acl_1,1,Outbound,55,Allow,ALL,10.240.1.0/24,8.8.8.8,-,External. required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
-acl_1,1,Inbound,56,Allow,ALL,8.8.8.8,10.240.1.0/24,-,External. response to required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
-acl_1,1,Outbound,57,Allow,ALL,10.240.64.0/24,8.8.8.8,-,External. required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
-acl_1,1,Inbound,58,Allow,ALL,8.8.8.8,10.240.64.0/24,-,External. response to required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
+acl-1,1,Outbound,1,Allow,TCP,"10.240.1.0/24, any port","10.240.64.0/24, ports 443-443",-,Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
+acl-1,1,Inbound,2,Allow,TCP,"10.240.64.0/24, ports 443-443","10.240.1.0/24, any port",-,Internal. response to required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
+acl-1,1,Inbound,3,Allow,TCP,"10.240.1.0/24, any port","10.240.64.0/24, ports 443-443",-,Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
+acl-1,1,Outbound,4,Allow,TCP,"10.240.64.0/24, ports 443-443","10.240.1.0/24, any port",-,Internal. response to required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
+acl-1,1,Outbound,5,Allow,TCP,"10.240.64.0/24, any port","10.240.1.0/24, ports 443-443",-,Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
+acl-1,1,Inbound,6,Allow,TCP,"10.240.1.0/24, ports 443-443","10.240.64.0/24, any port",-,Internal. response to required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
+acl-1,1,Inbound,7,Allow,TCP,"10.240.64.0/24, any port","10.240.1.0/24, ports 443-443",-,Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
+acl-1,1,Outbound,8,Allow,TCP,"10.240.1.0/24, ports 443-443","10.240.64.0/24, any port",-,Internal. response to required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
+acl-1,1,Outbound,9,Allow,ICMP,10.240.1.0/24,10.240.128.0/24,"Type: 8, Code: 0",Internal. required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
+acl-1,1,Inbound,10,Allow,ICMP,10.240.128.0/24,10.240.1.0/24,"Type: 0, Code: 0",Internal. response to required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
+acl-1,1,Inbound,11,Allow,ICMP,10.240.1.0/24,10.240.128.0/24,"Type: 8, Code: 0",Internal. required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
+acl-1,1,Outbound,12,Allow,ICMP,10.240.128.0/24,10.240.1.0/24,"Type: 0, Code: 0",Internal. response to required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
+acl-1,1,Outbound,13,Allow,ICMP,10.240.64.0/24,10.240.128.0/24,"Type: 8, Code: 0",Internal. required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
+acl-1,1,Inbound,14,Allow,ICMP,10.240.128.0/24,10.240.64.0/24,"Type: 0, Code: 0",Internal. response to required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
+acl-1,1,Inbound,15,Allow,ICMP,10.240.64.0/24,10.240.128.0/24,"Type: 8, Code: 0",Internal. required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
+acl-1,1,Outbound,16,Allow,ICMP,10.240.128.0/24,10.240.64.0/24,"Type: 0, Code: 0",Internal. response to required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
+acl-1,1,Outbound,17,Allow,TCP,"10.240.1.0/24, any port","10.240.2.0/24, any port",-,Internal. required-connections[3]: (subnet sub1-1-ky)->(subnet sub1-2-ky); allowed-protocols[0]
+acl-1,1,Inbound,18,Allow,TCP,"10.240.2.0/24, any port","10.240.1.0/24, any port",-,Internal. response to required-connections[3]: (subnet sub1-1-ky)->(subnet sub1-2-ky); allowed-protocols[0]
+acl-1,1,Inbound,19,Allow,TCP,"10.240.1.0/24, any port","10.240.2.0/24, any port",-,Internal. required-connections[3]: (subnet sub1-1-ky)->(subnet sub1-2-ky); allowed-protocols[0]
+acl-1,1,Outbound,20,Allow,TCP,"10.240.2.0/24, any port","10.240.1.0/24, any port",-,Internal. response to required-connections[3]: (subnet sub1-1-ky)->(subnet sub1-2-ky); allowed-protocols[0]
+acl-1,1,Outbound,21,Allow,TCP,"10.240.1.0/24, any port","10.240.3.0/24, any port",-,Internal. required-connections[4]: (subnet sub1-1-ky)->(subnet sub1-3-ky); allowed-protocols[0]
+acl-1,1,Inbound,22,Allow,TCP,"10.240.3.0/24, any port","10.240.1.0/24, any port",-,Internal. response to required-connections[4]: (subnet sub1-1-ky)->(subnet sub1-3-ky); allowed-protocols[0]
+acl-1,1,Inbound,23,Allow,TCP,"10.240.1.0/24, any port","10.240.3.0/24, any port",-,Internal. required-connections[4]: (subnet sub1-1-ky)->(subnet sub1-3-ky); allowed-protocols[0]
+acl-1,1,Outbound,24,Allow,TCP,"10.240.3.0/24, any port","10.240.1.0/24, any port",-,Internal. response to required-connections[4]: (subnet sub1-1-ky)->(subnet sub1-3-ky); allowed-protocols[0]
+acl-1,1,Outbound,25,Allow,TCP,"10.240.2.0/24, any port","10.240.3.0/24, any port",-,Internal. required-connections[5]: (subnet sub1-2-ky)->(subnet sub1-3-ky); allowed-protocols[0]
+acl-1,1,Inbound,26,Allow,TCP,"10.240.3.0/24, any port","10.240.2.0/24, any port",-,Internal. response to required-connections[5]: (subnet sub1-2-ky)->(subnet sub1-3-ky); allowed-protocols[0]
+acl-1,1,Inbound,27,Allow,TCP,"10.240.2.0/24, any port","10.240.3.0/24, any port",-,Internal. required-connections[5]: (subnet sub1-2-ky)->(subnet sub1-3-ky); allowed-protocols[0]
+acl-1,1,Outbound,28,Allow,TCP,"10.240.3.0/24, any port","10.240.2.0/24, any port",-,Internal. response to required-connections[5]: (subnet sub1-2-ky)->(subnet sub1-3-ky); allowed-protocols[0]
+acl-1,1,Outbound,29,Allow,ALL,10.240.64.0/24,10.240.65.0/24,-,Internal. required-connections[6]: (subnet sub2-1-ky)->(subnet sub2-2-ky); allowed-protocols[0]
+acl-1,1,Inbound,30,Allow,ALL,10.240.65.0/24,10.240.64.0/24,-,Internal. response to required-connections[6]: (subnet sub2-1-ky)->(subnet sub2-2-ky); allowed-protocols[0]
+acl-1,1,Inbound,31,Allow,ALL,10.240.64.0/24,10.240.65.0/24,-,Internal. required-connections[6]: (subnet sub2-1-ky)->(subnet sub2-2-ky); allowed-protocols[0]
+acl-1,1,Outbound,32,Allow,ALL,10.240.65.0/24,10.240.64.0/24,-,Internal. response to required-connections[6]: (subnet sub2-1-ky)->(subnet sub2-2-ky); allowed-protocols[0]
+acl-1,1,Outbound,33,Allow,TCP,"10.240.128.0/24, any port","10.240.64.0/24, ports 443-443",-,Internal. required-connections[7]: (subnet sub3-1-ky)->(subnet sub2-1-ky); allowed-protocols[0]
+acl-1,1,Inbound,34,Allow,TCP,"10.240.64.0/24, ports 443-443","10.240.128.0/24, any port",-,Internal. response to required-connections[7]: (subnet sub3-1-ky)->(subnet sub2-1-ky); allowed-protocols[0]
+acl-1,1,Inbound,35,Allow,TCP,"10.240.128.0/24, any port","10.240.64.0/24, ports 443-443",-,Internal. required-connections[7]: (subnet sub3-1-ky)->(subnet sub2-1-ky); allowed-protocols[0]
+acl-1,1,Outbound,36,Allow,TCP,"10.240.64.0/24, ports 443-443","10.240.128.0/24, any port",-,Internal. response to required-connections[7]: (subnet sub3-1-ky)->(subnet sub2-1-ky); allowed-protocols[0]
+acl-1,1,Outbound,37,Deny,ALL,10.0.0.0/8,10.0.0.0/8,-,"Deny other internal communication; see rfc1918#3; item 0,0"
+acl-1,1,Inbound,38,Deny,ALL,10.0.0.0/8,10.0.0.0/8,-,"Deny other internal communication; see rfc1918#3; item 0,0"
+acl-1,1,Outbound,39,Deny,ALL,10.0.0.0/8,172.16.0.0/12,-,"Deny other internal communication; see rfc1918#3; item 0,1"
+acl-1,1,Inbound,40,Deny,ALL,172.16.0.0/12,10.0.0.0/8,-,"Deny other internal communication; see rfc1918#3; item 0,1"
+acl-1,1,Outbound,41,Deny,ALL,10.0.0.0/8,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 0,2"
+acl-1,1,Inbound,42,Deny,ALL,192.168.0.0/16,10.0.0.0/8,-,"Deny other internal communication; see rfc1918#3; item 0,2"
+acl-1,1,Outbound,43,Deny,ALL,172.16.0.0/12,10.0.0.0/8,-,"Deny other internal communication; see rfc1918#3; item 1,0"
+acl-1,1,Inbound,44,Deny,ALL,10.0.0.0/8,172.16.0.0/12,-,"Deny other internal communication; see rfc1918#3; item 1,0"
+acl-1,1,Outbound,45,Deny,ALL,172.16.0.0/12,172.16.0.0/12,-,"Deny other internal communication; see rfc1918#3; item 1,1"
+acl-1,1,Inbound,46,Deny,ALL,172.16.0.0/12,172.16.0.0/12,-,"Deny other internal communication; see rfc1918#3; item 1,1"
+acl-1,1,Outbound,47,Deny,ALL,172.16.0.0/12,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 1,2"
+acl-1,1,Inbound,48,Deny,ALL,192.168.0.0/16,172.16.0.0/12,-,"Deny other internal communication; see rfc1918#3; item 1,2"
+acl-1,1,Outbound,49,Deny,ALL,192.168.0.0/16,10.0.0.0/8,-,"Deny other internal communication; see rfc1918#3; item 2,0"
+acl-1,1,Inbound,50,Deny,ALL,10.0.0.0/8,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 2,0"
+acl-1,1,Outbound,51,Deny,ALL,192.168.0.0/16,172.16.0.0/12,-,"Deny other internal communication; see rfc1918#3; item 2,1"
+acl-1,1,Inbound,52,Deny,ALL,172.16.0.0/12,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 2,1"
+acl-1,1,Outbound,53,Deny,ALL,192.168.0.0/16,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 2,2"
+acl-1,1,Inbound,54,Deny,ALL,192.168.0.0/16,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 2,2"
+acl-1,1,Outbound,55,Allow,ALL,10.240.1.0/24,8.8.8.8,-,External. required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
+acl-1,1,Inbound,56,Allow,ALL,8.8.8.8,10.240.1.0/24,-,External. response to required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
+acl-1,1,Outbound,57,Allow,ALL,10.240.64.0/24,8.8.8.8,-,External. required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
+acl-1,1,Inbound,58,Allow,ALL,8.8.8.8,10.240.64.0/24,-,External. response to required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
