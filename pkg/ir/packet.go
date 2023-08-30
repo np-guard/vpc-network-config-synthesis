@@ -24,7 +24,7 @@ func (a *ACL) AppendInternal(rule *Rule) {
 }
 
 func (a *ACL) Name() string {
-	return fmt.Sprintf("acl_%v", a.Subnet)
+	return fmt.Sprintf("acl-%v", a.Subnet)
 }
 
 func (a *ACL) AppendExternal(rule *Rule) {

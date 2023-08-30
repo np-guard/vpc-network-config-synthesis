@@ -36,8 +36,9 @@ func (w *Writer) Write(collection *ir.Collection) error {
 }
 
 const (
-	all = "All"
-	na  = "-"
+	anyProtocol  = "ALL"
+	nonIcmp      = "-" // IBM cloud uses "—"
+	anyIcmpValue = "Any"
 )
 
 func makeTable(t *ir.ACL, subnet string) [][]string {
@@ -52,90 +53,94 @@ func makeTable(t *ir.ACL, subnet string) [][]string {
 func port(p ir.PortRange) string {
 	switch {
 	case p.Min == ir.DefaultMinPort && p.Max == ir.DefaultMaxPort:
-		return all
-	case p.Min == p.Max:
-		return fmt.Sprintf("%v", p.Max)
+		return "any port"
 	default:
-		return fmt.Sprintf("%v-%v", p.Min, p.Max)
+		return fmt.Sprintf("ports %v-%v", p.Min, p.Max)
 	}
 }
 
 func action(a ir.Action) string {
-	return string(a)
+	if a == ir.Deny {
+		return "Deny"
+	}
+	return "Allow"
 }
 
 func direction(d ir.Direction) string {
-	return string(d)
+	if d == ir.Inbound {
+		return "Inbound"
+	}
+	return "Outbound"
 }
 
 func header() []string {
 	return []string{
-		"acl",
-		"subnet",
-		"#",
-		"direction",
-		"action",
-		"source",
-		"source port",
-		"destination",
-		"destination port",
-		"protocol",
-		"type",
-		"code",
-		"description",
+		"Acl",
+		"Subnet",
+		"Direction",
+		"Rule priority",
+		"Allow or deny",
+		"Protocol",
+		"Source",
+		"Destination",
+		"Value",
+		"Description",
 	}
 }
 
-func makeRow(i int, rule *ir.Rule, aclName, subnet string) []string {
-	icmpType, icmpCode := printICMPTypeCode(rule.Protocol)
+func makeRow(priority int, rule *ir.Rule, aclName, subnet string) []string {
 	return []string{
 		aclName,
 		subnet,
-		strconv.Itoa(i),
 		direction(rule.Direction),
+		strconv.Itoa(priority),
 		action(rule.Action),
-		rule.Source.String(),
-		printPortRange(rule.Protocol, true),
-		rule.Destination.String(),
-		printPortRange(rule.Protocol, false),
 		printProtocolName(rule.Protocol),
-		icmpType,
-		icmpCode,
+		printIP(rule.Source, rule.Protocol, true),
+		printIP(rule.Destination, rule.Protocol, false),
+		printICMPTypeCode(rule.Protocol),
 		rule.Explanation,
 	}
 }
 
-func printICMPTypeCode(protocol ir.Protocol) (icmpType, icmpCode string) {
+func printIP(ip ir.IP, protocol ir.Protocol, isSource bool) string {
+	ipString := ip.String()
+	if ipString == "0.0.0.0/0" {
+		ipString = "Any IP"
+	}
+	switch p := protocol.(type) {
+	case ir.ICMP:
+		return ipString
+	case ir.TCPUDP:
+		var portString string
+		if isSource {
+			portString = port(p.PortRangePair.SrcPort)
+		} else {
+			portString = port(p.PortRangePair.DstPort)
+		}
+		return fmt.Sprintf("%v, %v", ipString, portString)
+	case ir.AnyProtocol:
+		return ipString
+	default:
+		log.Panicf("Impossible protocol %v", p)
+	}
+	return ""
+}
+
+func printICMPTypeCode(protocol ir.Protocol) string {
 	p, ok := protocol.(ir.ICMP)
 	if !ok {
-		return na, na
+		return nonIcmp
 	}
-	icmpType = all
-	icmpCode = all
+	icmpType := anyIcmpValue
+	icmpCode := anyIcmpValue
 	if p.ICMPCodeType != nil {
 		icmpType = strconv.Itoa(p.Type)
 		if p.Code != nil {
 			icmpCode = strconv.Itoa(*p.Code)
 		}
 	}
-	return
-}
-
-func printPortRange(protocol ir.Protocol, isSrcPort bool) string {
-	switch p := protocol.(type) {
-	case ir.ICMP:
-		return na
-	case ir.TCPUDP:
-		if isSrcPort {
-			return port(p.PortRangePair.SrcPort)
-		}
-		return port(p.PortRangePair.DstPort)
-	case ir.AnyProtocol:
-		return all
-	default:
-		log.Panicf("Impossible protocol %v", p)
-	}
-	return ""
+	return fmt.Sprintf("Type: %v, Code: %v", icmpType, icmpCode)
 }
 
 func printProtocolName(protocol ir.Protocol) string {
@@ -145,7 +150,7 @@ func printProtocolName(protocol ir.Protocol) string {
 	case ir.TCPUDP:
 		return strings.ToUpper(string(p.Protocol))
 	case ir.AnyProtocol:
-		return all
+		return anyProtocol
 	}
 	return ""
 }
