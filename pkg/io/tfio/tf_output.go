@@ -5,6 +5,8 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"log"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -86,7 +88,16 @@ func direction(d ir.Direction) string {
 	return string(d)
 }
 
+func verifyName(name string) {
+	pattern := "^([a-z]|[a-z][-a-z0-9]*[a-z0-9])$"
+	_, err := regexp.MatchString(pattern, name)
+	if err != nil {
+		log.Fatalf("\"name\" should match regexp %q", pattern)
+	}
+}
+
 func rule(rule *ir.Rule, name string) tf.Block {
+	verifyName(name)
 	arguments := []tf.Argument{
 		{Name: "name", Value: quote(name)},
 		{Name: "action", Value: quote(action(rule.Action))},
