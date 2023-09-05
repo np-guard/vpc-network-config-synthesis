@@ -4,7 +4,6 @@ package synth
 import (
 	"fmt"
 	"log"
-	"reflect"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
@@ -27,61 +26,63 @@ func MakeACL(s *ir.Spec, opt Options) *ir.Collection {
 	})
 }
 
+func GenerateCollectionFromConnection(conn *ir.Connection, aclSelector func(target ir.IP) string) *ir.Collection {
+	internalSrc := conn.Src.Type != ir.EndpointTypeExternal
+	internalDst := conn.Dst.Type != ir.EndpointTypeExternal
+	internal := internalSrc && internalDst
+	if !internalSrc && !internalDst {
+		log.Fatalf("Both source and destination are external for connection %v", *conn)
+	}
+	result := ir.NewCollection()
+	var connectionRules []*ir.Rule
+	for _, src := range conn.Src.Values {
+		for _, dst := range conn.Dst.Values {
+			if src == dst {
+				continue
+			}
+			for _, trackedProtocol := range conn.TrackedProtocols {
+				reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}
+				protocolRules := allowDirectedConnection(src, dst, internalSrc, internalDst, trackedProtocol.Protocol, reason)
+				connectionRules = append(connectionRules, protocolRules...)
+			}
+		}
+	}
+	for _, rule := range connectionRules {
+		acl := result.LookupOrCreate(aclSelector(rule.Target()))
+		if internal {
+			acl.AppendInternal(rule)
+		} else {
+			acl.AppendExternal(rule)
+		}
+	}
+	return result
+}
+
 func generateCollection(s *ir.Spec, aclSelector func(target ir.IP) string) *ir.Collection {
-	result := ir.Collection{ACLs: map[string]*ir.ACL{}}
+	collections := []*ir.Collection{}
 	for c := range s.Connections {
 		conn := &s.Connections[c]
-		internalSrc := conn.Src.Type != ir.EndpointTypeExternal
-		for _, src := range conn.Src.Values {
-			internalDst := conn.Dst.Type != ir.EndpointTypeExternal
-			if !internalSrc && !internalDst {
-				log.Fatalf("Both source and destination are external for connection #%v", c)
-			}
-			for _, dst := range conn.Dst.Values {
-				if src == dst {
-					continue
-				}
-				for _, trackedProtocol := range conn.TrackedProtocols {
-					internal := internalSrc && internalDst
-					reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}
-					connection := allowDirectedConnection(src, dst, internalSrc, internalDst, trackedProtocol.Protocol, reason)
-
-					for _, rule := range connection {
-						acl := result.LookupOrCreate(aclSelector(rule.Target()))
-						if internal {
-							if !redundant(rule, acl.Internal) {
-								acl.AppendInternal(rule)
-							}
-						} else {
-							if !redundant(rule, acl.External) {
-								acl.AppendExternal(rule)
-							}
-						}
-					}
-				}
-			}
-		}
+		collections = append(collections, GenerateCollectionFromConnection(conn, aclSelector))
 	}
-
-	return &result
+	return ir.MergeCollections(collections...)
 }
 
-func redundant(rule *ir.Rule, rules []ir.Rule) bool {
-	for i := range rules {
-		if mustSupersede(&rules[i], rule) {
-			return true
-		}
-	}
-	return false
-}
+// func redundant(rule *ir.Rule, rules []ir.Rule) bool {
+// 	for i := range rules {
+// 		if mustSupersede(&rules[i], rule) {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
 
-func mustSupersede(main, other *ir.Rule) bool {
-	otherExplanation := other.Explanation
-	other.Explanation = main.Explanation
-	res := reflect.DeepEqual(main, other)
-	other.Explanation = otherExplanation
-	return res
-}
+// func mustSupersede(main, other *ir.Rule) bool {
+// 	otherExplanation := other.Explanation
+// 	other.Explanation = main.Explanation
+// 	res := reflect.DeepEqual(main, other)
+// 	other.Explanation = otherExplanation
+// 	return res
+// }
 
 func allowDirectedConnection(src, dst ir.IP, internalSrc, internalDst bool, protocol ir.Protocol, reason explanation) []*ir.Rule {
 	var request, response *ir.Packet
