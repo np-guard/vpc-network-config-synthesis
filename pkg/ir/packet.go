@@ -34,6 +34,26 @@ func (a *ACL) AppendExternal(rule *Rule) {
 	a.External = append(a.External, *rule)
 }
 
+func NewCollection() *Collection {
+	return &Collection{ACLs: map[string]*ACL{}}
+}
+
+func MergeCollections(collections ...*Collection) *Collection {
+	result := NewCollection()
+	for _, c := range collections {
+		for a := range c.ACLs {
+			acl := c.ACLs[a]
+			for r := range acl.Internal {
+				result.ACLs[a].AppendInternal(&acl.Internal[r])
+			}
+			for r := range acl.External {
+				result.ACLs[a].AppendExternal(&acl.External[r])
+			}
+		}
+	}
+	return result
+}
+
 func (c *Collection) LookupOrCreate(name string) *ACL {
 	acl, ok := c.ACLs[name]
 	if ok {
