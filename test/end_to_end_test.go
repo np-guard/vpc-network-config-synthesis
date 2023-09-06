@@ -2,6 +2,7 @@ package test
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -38,7 +39,7 @@ func (c *TestCase) at(name, otherwise string) string {
 }
 
 func TestCIDR(t *testing.T) {
-	_, err := makeACLCSV(TestCase{folder: "cidr"}, synth.Options{Single: true})
+	_, err := makeACLCSV(TestCase{folder: "acl_cidr"}, synth.Options{Single: true})
 	if err.Error() != "unsupported endpoint type cidr" {
 		t.Errorf("No failure for unsupported type; got %v", err)
 	}
@@ -46,9 +47,9 @@ func TestCIDR(t *testing.T) {
 
 func TestCSVCompare(t *testing.T) {
 	suite := map[string]TestCase{
-		"single connection 1": {folder: "single_conn1"},
-		"single connection 2": {folder: "single_conn2"},
-		"duplication":         {folder: "dup"},
+		"single connection 1": {folder: "acl_single_conn1"},
+		"single connection 2": {folder: "acl_single_conn2"},
+		"duplication":         {folder: "acl_dup"},
 		"acl_testing5":        {folder: "acl_testing5", configName: "config_object.json"},
 	}
 	for testname, c := range suite {
@@ -58,7 +59,7 @@ func TestCSVCompare(t *testing.T) {
 			if single {
 				expectedName = defaultExpectedSingleName
 			}
-			t.Run(testname, func(t *testing.T) {
+			t.Run(fmt.Sprintf("%v-%v", testname, single), func(t *testing.T) {
 				actualCSVString, err := makeACLCSV(testcase, synth.Options{Single: single})
 				if err != nil {
 					t.Error(err)
@@ -76,14 +77,14 @@ func TestCSVCompare(t *testing.T) {
 func makeACLCSV(c TestCase, opt synth.Options) (csvString string, err error) {
 	reader := jsonio.NewReader()
 
-	var subnets map[string]ir.IP
+	var defs *ir.ConfigDefs
 	if c.configName != "" {
-		subnets, err = jsonio.ReadSubnetMap(c.resolve(c.configName))
+		defs, err = jsonio.ReadDefs(c.resolve(c.configName))
 		if err != nil {
 			return
 		}
 	}
-	s, err := reader.ReadSpec(c.at(c.specName, defaultSpecName), subnets)
+	s, err := reader.ReadSpec(c.at(c.specName, defaultSpecName), defs)
 	if err != nil {
 		return "", err
 	}
@@ -91,7 +92,7 @@ func makeACLCSV(c TestCase, opt synth.Options) (csvString string, err error) {
 
 	buf := new(bytes.Buffer)
 	writer := csvio.NewWriter(buf)
-	err = writer.Write(acl)
+	err = writer.WriteACL(acl)
 	if err != nil {
 		return "", err
 	}

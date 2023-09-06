@@ -11,8 +11,7 @@ type (
 		// Required connections
 		Connections []Connection
 
-		// Mapping from CIDR to subnet name
-		SubnetNames map[IP]string
+		Defs Definitions
 	}
 
 	Connection struct {
@@ -45,8 +44,18 @@ type (
 		Origin fmt.Stringer
 	}
 
-	Definitions struct {
+	ConfigDefs struct {
 		Subnets map[string]IP
+
+		// Network interface name to IP address
+		NifToIP map[string]IP
+
+		// Instance is a collection of NIFs
+		InstanceToNifs map[string][]string
+	}
+
+	Definitions struct {
+		ConfigDefs
 
 		// Segments are a way for users to create aggregations.
 		SubnetSegments map[string][]string
@@ -62,9 +71,11 @@ const (
 	EndpointTypeExternal EndpointType = "external"
 	EndpointTypeSegment  EndpointType = "segment"
 	EndpointTypeSubnet   EndpointType = "subnet"
+	EndpointTypeNif      EndpointType = "nif"
 	EndpointTypeAny      EndpointType = "any"
 )
 
+//nolint:gocyclo  // Case by case basis
 func (s *Definitions) Lookup(name string, expectedType EndpointType) (Endpoint, error) {
 	var result []Endpoint
 	if ip, ok := s.Externals[name]; ok {
@@ -76,8 +87,15 @@ func (s *Definitions) Lookup(name string, expectedType EndpointType) (Endpoint, 
 	}
 	if ip, ok := s.Subnets[name]; ok {
 		actualType := EndpointTypeSubnet
-		if expectedType != EndpointTypeAny && expectedType != EndpointTypeSubnet {
+		if expectedType != EndpointTypeAny && expectedType != actualType {
 			return Endpoint{}, fmt.Errorf("%v is subnet, not %v", name, expectedType)
+		}
+		result = append(result, Endpoint{name, []IP{ip}, actualType})
+	}
+	if ip, ok := s.NifToIP[name]; ok {
+		actualType := EndpointTypeNif
+		if expectedType != EndpointTypeAny && expectedType != actualType {
+			return Endpoint{}, fmt.Errorf("%v is nif, not %v", name, expectedType)
 		}
 		result = append(result, Endpoint{name, []IP{ip}, actualType})
 	}
@@ -110,14 +128,38 @@ func (s *Definitions) Lookup(name string, expectedType EndpointType) (Endpoint, 
 	return result[0], nil
 }
 
-func (s *Definitions) InverseSubnetMap() map[IP]string {
-	result := make(map[IP]string, len(s.Subnets))
-	for k, v := range s.Subnets {
-		result[v] = k
+func inverseLookup[K, V comparable](m map[K]V, x V, notFound K) K {
+	for k, v := range m {
+		if v == x {
+			return k
+		}
 	}
-	return result
+	return notFound
+}
+
+func inverseLookupMulti[K, V comparable](m map[K][]V, x V, notFound K) K {
+	for k, vs := range m {
+		for _, v := range vs {
+			if v == x {
+				return k
+			}
+		}
+	}
+	return notFound
+}
+
+func (s *ConfigDefs) SubnetNameFromIP(ip IP) string {
+	return inverseLookup(s.Subnets, ip, fmt.Sprintf("<unknown subnet %v>", ip))
+}
+
+func (s *ConfigDefs) NifFromIP(ip IP) string {
+	return inverseLookup(s.NifToIP, ip, fmt.Sprintf("<unknown nif %v>", ip))
+}
+
+func (s *ConfigDefs) InstanceFromNif(nifName string) string {
+	return inverseLookupMulti(s.InstanceToNifs, nifName, fmt.Sprintf("<unknown instance %v>", nifName))
 }
 
 type Reader interface {
-	ReadSpec(filename string, subnetMap map[string]IP) (*Spec, error)
+	ReadSpec(filename string, defs *ConfigDefs) (*Spec, error)
 }

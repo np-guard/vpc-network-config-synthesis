@@ -1,8 +1,7 @@
-// Package synth generates NetworkACLs that collectively enable the connectivity described in a global specification.
+// Package synth generates Network ACLs that collectively enable the connectivity described in a global specification.
 package synth
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
@@ -13,28 +12,95 @@ type Options struct {
 }
 
 // MakeACL translates Spec to a collection of ACLs
-func MakeACL(s *ir.Spec, opt Options) *ir.Collection {
-	if opt.Single {
-		return generateCollection(s, func(target ir.IP) string { return "1" })
+func MakeACL(s *ir.Spec, opt Options) *ir.ACLCollection {
+	aclSelector := func(target ir.IP) string { return "1" }
+	if !opt.Single {
+		aclSelector = s.Defs.SubnetNameFromIP
 	}
-	return generateCollection(s, func(target ir.IP) string {
-		name, ok := s.SubnetNames[target]
-		if !ok {
-			return fmt.Sprintf("Unknown subnet %v", target)
-		}
-		return name
-	})
+	collections := []*ir.ACLCollection{}
+	for c := range s.Connections {
+		conn := &s.Connections[c]
+		collections = append(collections, GenerateACLCollectionFromConnection(conn, aclSelector))
+	}
+	return ir.MergeACLCollections(collections...)
 }
 
-func GenerateCollectionFromConnection(conn *ir.Connection, aclSelector func(target ir.IP) string) *ir.Collection {
+// MakeSG translates Spec to a collection of security groups
+func MakeSG(s *ir.Spec, opt Options) *ir.SecurityGroupCollection {
+	sgSelector := func(target ir.IP) string {
+		return s.Defs.InstanceFromNif(s.Defs.NifFromIP(target))
+	}
+	collections := []*ir.SecurityGroupCollection{}
+	for c := range s.Connections {
+		conn := &s.Connections[c]
+		collections = append(collections, GenerateSecurityGroupCollectionFromConnection(conn, sgSelector))
+	}
+	return ir.MergeSecurityGroupCollections(collections...)
+}
+
+func GenerateSecurityGroupCollectionFromConnection(conn *ir.Connection, sgSelector func(target ir.IP) string) *ir.SecurityGroupCollection {
+	internalSrc := conn.Src.Type != ir.EndpointTypeExternal
+	internalDst := conn.Dst.Type != ir.EndpointTypeExternal
+	if !internalSrc && !internalDst {
+		log.Fatalf("SG: Both source and destination are external for connection %v", *conn)
+	}
+
+	result := ir.NewSGCollection()
+
+	if conn.Src.Type != ir.EndpointTypeNif {
+		return result
+	}
+
+	for _, src := range conn.Src.Values {
+		for _, dst := range conn.Dst.Values {
+			if src == dst {
+				continue
+			}
+
+			for _, trackedProtocol := range conn.TrackedProtocols {
+				reason := explanation{internal: internalSrc && internalDst, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}
+
+				if internalSrc {
+					sgSrcName := ir.SecurityGroupName(sgSelector(src))
+					sgSrc := result.LookupOrCreate(sgSrcName)
+					sgSrc.Attached = []ir.SecurityGroupName{sgSrcName}
+					sgSrc.Rules = append(sgSrc.Rules, ir.SecurityGroupRule[ir.CIDR]{
+						Remote:      ir.CIDR(dst.String()),
+						Direction:   ir.Outbound,
+						Protocol:    trackedProtocol.Protocol,
+						Explanation: reason.String(),
+					})
+				}
+				if internalDst {
+					sgDstName := ir.SecurityGroupName(sgSelector(dst))
+					sgDst := result.LookupOrCreate(sgDstName)
+					sgDst.Attached = []ir.SecurityGroupName{sgDstName}
+					sgDst.Rules = append(sgDst.Rules, ir.SecurityGroupRule[ir.CIDR]{
+						Remote:      ir.CIDR(src.String()),
+						Direction:   ir.Inbound,
+						Protocol:    trackedProtocol.Protocol.InverseDirection(),
+						Explanation: reason.String(),
+					})
+				}
+			}
+		}
+	}
+
+	return result
+}
+
+func GenerateACLCollectionFromConnection(conn *ir.Connection, aclSelector func(target ir.IP) string) *ir.ACLCollection {
 	internalSrc := conn.Src.Type != ir.EndpointTypeExternal
 	internalDst := conn.Dst.Type != ir.EndpointTypeExternal
 	internal := internalSrc && internalDst
 	if !internalSrc && !internalDst {
-		log.Fatalf("Both source and destination are external for connection %v", *conn)
+		log.Fatalf("ACL: Both source and destination are external for connection %v", *conn)
 	}
-	result := ir.NewCollection()
-	var connectionRules []*ir.Rule
+	result := ir.NewACLCollection()
+	if conn.Src.Type == ir.EndpointTypeNif {
+		return result
+	}
+	var connectionRules []*ir.ACLRule
 	for _, src := range conn.Src.Values {
 		for _, dst := range conn.Dst.Values {
 			if src == dst {
@@ -58,23 +124,14 @@ func GenerateCollectionFromConnection(conn *ir.Connection, aclSelector func(targ
 	return result
 }
 
-func generateCollection(s *ir.Spec, aclSelector func(target ir.IP) string) *ir.Collection {
-	collections := []*ir.Collection{}
-	for c := range s.Connections {
-		conn := &s.Connections[c]
-		collections = append(collections, GenerateCollectionFromConnection(conn, aclSelector))
-	}
-	return ir.MergeCollections(collections...)
-}
-
-func allowDirectedConnection(src, dst ir.IP, internalSrc, internalDst bool, protocol ir.Protocol, reason explanation) []*ir.Rule {
+func allowDirectedConnection(src, dst ir.IP, internalSrc, internalDst bool, protocol ir.Protocol, reason explanation) []*ir.ACLRule {
 	var request, response *ir.Packet
 	request = &ir.Packet{Src: src, Dst: dst, Protocol: protocol, Explanation: reason.String()}
 	if inverseProtocol := protocol.InverseDirection(); inverseProtocol != nil {
 		response = &ir.Packet{Src: dst, Dst: src, Protocol: inverseProtocol, Explanation: reason.response().String()}
 	}
 
-	var connection []*ir.Rule
+	var connection []*ir.ACLRule
 	if internalSrc {
 		connection = append(connection, ir.AllowSend(*request))
 		if response != nil {

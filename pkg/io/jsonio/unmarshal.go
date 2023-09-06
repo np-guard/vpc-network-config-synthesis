@@ -17,45 +17,63 @@ func NewReader() *Reader {
 	return &Reader{}
 }
 
-func (*Reader) ReadSpec(filename string, subnets map[string]ir.IP) (*ir.Spec, error) {
+func (*Reader) ReadSpec(filename string, configDefs *ir.ConfigDefs) (*ir.Spec, error) {
 	jsonspec, err := unmarshal(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	defs := ir.Definitions{
-		Externals:      translateMap(jsonspec.Externals),
-		Subnets:        translateMap(jsonspec.Subnets),
-		SubnetSegments: make(map[string][]string),
+	err = validateSegments(jsonspec.Segments)
+	if err != nil {
+		return nil, err
 	}
 
-	if subnets != nil {
-		if jsonspec.Subnets != nil && len(jsonspec.Subnets) != 0 {
-			return nil, fmt.Errorf("both subnets and config_file are supplied")
+	if configDefs == nil {
+		configDefs = &ir.ConfigDefs{
+			Subnets:        translateIPMap(jsonspec.Subnets),
+			NifToIP:        translateIPMap(jsonspec.Nifs),
+			InstanceToNifs: jsonspec.Instances,
 		}
-		defs.Subnets = subnets
 	}
-
-	for k, v := range jsonspec.Segments {
-		if v.Type != TypeSubnet {
-			return nil, fmt.Errorf("only subnet segments are supported, not %q", v.Type)
-		}
-		defs.SubnetSegments[k] = v.Items
+	defs := &ir.Definitions{
+		ConfigDefs:     *configDefs,
+		SubnetSegments: translateSegments(jsonspec.Segments),
+		Externals:      translateIPMap(jsonspec.Externals),
 	}
 
 	var connections []ir.Connection
 	for i := range jsonspec.RequiredConnections {
-		bidiconns, err := translateConnection(&defs, &jsonspec.RequiredConnections[i], i)
+		bidiconns, err := translateConnection(defs, &jsonspec.RequiredConnections[i], i)
 		if err != nil {
 			return nil, err
 		}
 		connections = append(connections, bidiconns...)
 	}
 
-	return &ir.Spec{Connections: connections, SubnetNames: defs.InverseSubnetMap()}, nil
+	return &ir.Spec{
+		Connections: connections,
+		Defs:        *defs,
+	}, nil
 }
 
-func translateMap(m map[string]string) map[string]ir.IP {
+func validateSegments(jsonssegments SpecSegments) error {
+	for _, v := range jsonssegments {
+		if v.Type != TypeSubnet {
+			return fmt.Errorf("only subnet segments are supported, not %q", v.Type)
+		}
+	}
+	return nil
+}
+
+func translateSegments(jsonssegments SpecSegments) map[string][]string {
+	result := make(map[string][]string)
+	for k, v := range jsonssegments {
+		result[k] = v.Items
+	}
+	return result
+}
+
+func translateIPMap(m map[string]string) map[string]ir.IP {
 	res := make(map[string]ir.IP)
 	for k, v := range m {
 		res[k] = ir.IPFromString(v)
@@ -146,6 +164,8 @@ func translateEndpointType(endpointType EndpointType) (ir.EndpointType, error) {
 		return ir.EndpointTypeSegment, nil
 	case EndpointTypeSubnet:
 		return ir.EndpointTypeSubnet, nil
+	case EndpointTypeNif:
+		return ir.EndpointTypeNif, nil
 	default:
 		return ir.EndpointTypeSubnet, fmt.Errorf("unsupported endpoint type %v", endpointType)
 	}

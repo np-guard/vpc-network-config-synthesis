@@ -85,13 +85,13 @@ func pickReader(format string) (ir.Reader, error) {
 
 func main() {
 	configFilename := flag.String("config", "", "JSON file containing config spec")
-	single := flag.Bool("single", false, "If true, create a single ACL; by default, create one ACL per subnet")
+	single := flag.Bool("singleacl", false, "If true, create a single ACL; by default, create one ACL per subnet")
 	inputFormat := flag.String("inputfmt", jsonInputFormat, fmt.Sprintf("Input format. Must be %q", jsonInputFormat))
 	outputFormat := flag.String("fmt", "",
 		fmt.Sprintf("Output format. One of %q, %q; must not contradict output file suffix.", tfOutputFormat, csvOutputFormat))
 	outputFile := flag.String("o", "", "Output to file")
 	flag.Usage = func() {
-		_, _ = fmt.Fprintf(os.Stderr, `VpcGen translates connectivity spec to network ACLs.
+		_, _ = fmt.Fprintf(os.Stderr, `VpcGen translates connectivity spec to network ACLs and security groups.
 Usage:
 	%s [flags] SPEC_FILE
 
@@ -129,15 +129,15 @@ Flags:
 		log.Fatal(err)
 	}
 
-	var subnets map[string]ir.IP
+	var defs *ir.ConfigDefs
 	if *configFilename != "" {
-		subnets, err = jsonio.ReadSubnetMap(*configFilename)
+		defs, err = jsonio.ReadDefs(*configFilename)
 		if err != nil {
 			log.Fatalf("could not parse config file %v: %v", *configFilename, err)
 		}
 	}
 
-	model, err := reader.ReadSpec(connectivityFilename, subnets)
+	model, err := reader.ReadSpec(connectivityFilename, defs)
 	if err != nil {
 		log.Fatalf("Could not parse connectivity file %s: %s", connectivityFilename, err)
 	}
@@ -145,9 +145,14 @@ Flags:
 	opts := synth.Options{
 		Single: *single,
 	}
-	finalACL := synth.MakeACL(model, opts)
 
-	if err = writer.Write(finalACL); err != nil {
+	acl := synth.MakeACL(model, opts)
+
+	if err = writer.WriteACL(acl); err != nil {
+		log.Fatal(err)
+	}
+
+	if err = writer.WriteSG(synth.MakeSG(model, opts)); err != nil {
 		log.Fatal(err)
 	}
 

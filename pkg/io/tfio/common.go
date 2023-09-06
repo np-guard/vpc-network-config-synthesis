@@ -23,17 +23,6 @@ func NewWriter(w io.Writer) *Writer {
 	return &Writer{w: bufio.NewWriter(w)}
 }
 
-// Write prints an entire collection of acls as a sequence of terraform resources.
-func (w *Writer) Write(c *ir.Collection) error {
-	output := collection(c).Print()
-	_, err := w.w.WriteString(output)
-	if err != nil {
-		return err
-	}
-	err = w.w.Flush()
-	return err
-}
-
 func portRangePair(t ir.PortRangePair, name string) tf.Block {
 	var arguments []tf.Argument
 	if t.DstPort.Min != ir.DefaultMinPort {
@@ -93,56 +82,5 @@ func verifyName(name string) {
 	_, err := regexp.MatchString(pattern, name)
 	if err != nil {
 		log.Fatalf("\"name\" should match regexp %q", pattern)
-	}
-}
-
-func rule(rule *ir.Rule, name string) tf.Block {
-	verifyName(name)
-	arguments := []tf.Argument{
-		{Name: "name", Value: quote(name)},
-		{Name: "action", Value: quote(action(rule.Action))},
-		{Name: "direction", Value: quote(direction(rule.Direction))},
-		{Name: "source", Value: quote(rule.Source.String())},
-		{Name: "destination", Value: quote(rule.Destination.String())},
-	}
-	return tf.Block{Name: "rules",
-		Comment:   fmt.Sprintf("# %v", rule.Explanation),
-		Arguments: arguments,
-		Blocks:    protocol(rule.Protocol),
-	}
-}
-
-func singleACL(t *ir.ACL, comment string) tf.Block {
-	rules := t.Rules()
-	blocks := make([]tf.Block, len(rules))
-	for i := range rules {
-		blocks[i] = rule(&rules[i], fmt.Sprintf("rule%v", i))
-	}
-	return tf.Block{
-		Comment: comment,
-		Name:    "resource",
-		Labels:  []string{quote("ibm_is_network_acl"), quote(t.Name())},
-		Arguments: []tf.Argument{
-			{Name: "name", Value: quote(t.Name())}, //nolint:revive  // obvious false positive
-			{Name: "resource_group", Value: "var.resource_group_id"},
-			{Name: "vpc", Value: "var.vpc_id"},
-		},
-		Blocks: blocks,
-	}
-}
-
-func collection(t *ir.Collection) *tf.ConfigFile {
-	var acls = make([]tf.Block, len(t.ACLs))
-	i := 0
-	for _, subnet := range t.SortedACLSubnets() {
-		comment := ""
-		if len(acls) > 1 {
-			comment = fmt.Sprintf("\n# %v [%v]", subnet, t.ACLs[subnet].Internal[0].Target())
-		}
-		acls[i] = singleACL(t.ACLs[subnet], comment)
-		i += 1
-	}
-	return &tf.ConfigFile{
-		Resources: acls,
 	}
 }
