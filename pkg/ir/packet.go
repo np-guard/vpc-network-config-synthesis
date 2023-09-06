@@ -2,10 +2,28 @@ package ir
 
 import (
 	"fmt"
+	"reflect"
 	"sort"
 )
 
 // Helpers for creation of ACLs
+
+func (r *Rule) isRedundant(rules []Rule) bool {
+	for i := range rules {
+		if rules[i].mustSupersede(r) {
+			return true
+		}
+	}
+	return false
+}
+
+func (r *Rule) mustSupersede(other *Rule) bool {
+	otherExplanation := other.Explanation
+	other.Explanation = r.Explanation
+	res := reflect.DeepEqual(r, other)
+	other.Explanation = otherExplanation
+	return res
+}
 
 func (a *ACL) Rules() []Rule {
 	rules := a.Internal
@@ -20,6 +38,9 @@ func (a *ACL) AppendInternal(rule *Rule) {
 	if a.External == nil {
 		panic("ACLs should be created with non-null Internal")
 	}
+	if rule.isRedundant(a.Internal) {
+		return
+	}
 	a.Internal = append(a.Internal, *rule)
 }
 
@@ -30,6 +51,9 @@ func (a *ACL) Name() string {
 func (a *ACL) AppendExternal(rule *Rule) {
 	if a.External == nil {
 		panic("ACLs should be created with non-null External")
+	}
+	if rule.isRedundant(a.External) {
+		return
 	}
 	a.External = append(a.External, *rule)
 }
@@ -42,12 +66,12 @@ func MergeCollections(collections ...*Collection) *Collection {
 	result := NewCollection()
 	for _, c := range collections {
 		for a := range c.ACLs {
-			acl := c.ACLs[a]
+			acl := c.LookupOrCreate(a)
 			for r := range acl.Internal {
-				result.ACLs[a].AppendInternal(&acl.Internal[r])
+				result.LookupOrCreate(a).AppendInternal(&acl.Internal[r])
 			}
 			for r := range acl.External {
-				result.ACLs[a].AppendExternal(&acl.External[r])
+				result.LookupOrCreate(a).AppendExternal(&acl.External[r])
 			}
 		}
 	}
