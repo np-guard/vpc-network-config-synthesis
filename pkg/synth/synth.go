@@ -67,23 +67,6 @@ func generateCollection(s *ir.Spec, aclSelector func(target ir.IP) string) *ir.C
 	return ir.MergeCollections(collections...)
 }
 
-// func redundant(rule *ir.Rule, rules []ir.Rule) bool {
-// 	for i := range rules {
-// 		if mustSupersede(&rules[i], rule) {
-// 			return true
-// 		}
-// 	}
-// 	return false
-// }
-
-// func mustSupersede(main, other *ir.Rule) bool {
-// 	otherExplanation := other.Explanation
-// 	other.Explanation = main.Explanation
-// 	res := reflect.DeepEqual(main, other)
-// 	other.Explanation = otherExplanation
-// 	return res
-// }
-
 func allowDirectedConnection(src, dst ir.IP, internalSrc, internalDst bool, protocol ir.Protocol, reason explanation) []*ir.Rule {
 	var request, response *ir.Packet
 	request = &ir.Packet{Src: src, Dst: dst, Protocol: protocol, Explanation: reason.String()}
