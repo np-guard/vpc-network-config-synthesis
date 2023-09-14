@@ -25,6 +25,7 @@ type TestCase struct {
 	specName     string
 	expectedName string
 	configName   string
+	maker        func(s *ir.Spec) ir.Collection
 }
 
 func (c *TestCase) resolve(name string) string {
@@ -45,66 +46,61 @@ func TestACLCIDR(t *testing.T) {
 	}
 }
 
-func TestACLCSVCompare(t *testing.T) {
-	suite := map[string]TestCase{
-		"acl single connection 1": {folder: "acl_single_conn1"},
-		"acl single connection 2": {folder: "acl_single_conn2"},
-		"acl duplication":         {folder: "acl_dup"},
-		"acl_testing5":            {folder: "acl_testing5", configName: "config_object.json"},
+func aclTestCase(folder, configName string, single bool) TestCase {
+	expectedFormat := defaultExpectedMultipleFormat
+	if single {
+		expectedFormat = defaultExpectedSingleFormat
 	}
-	for testname, c := range suite {
-		testcase := c
-		for _, single := range []bool{false, true} {
-			expectedFormat := defaultExpectedMultipleFormat
-			if single {
-				expectedFormat = defaultExpectedSingleFormat
-			}
-			expectedName := fmt.Sprintf(expectedFormat, "nacl")
-			t.Run(fmt.Sprintf("%v-%v", testname, single), func(t *testing.T) {
-				s, err := readSpec(c)
-				if err != nil {
-					t.Error(err)
-				}
-				acl := synth.MakeACL(s, synth.Options{SingleACL: single})
-				if err != nil {
-					t.Error(err)
-				}
-				actualCSVString, err := writeCSV(acl)
-				if err != nil {
-					t.Error(err)
-				}
-				expectedFile := testcase.at(testcase.expectedName, expectedName)
-				expectedCSVString := readExpectedCSV(expectedFile)
-				if expectedCSVString != actualCSVString {
-					t.Errorf("%v != %v", expectedCSVString, actualCSVString)
-				}
-			})
-		}
+	return TestCase{
+		folder:       folder,
+		configName:   configName,
+		expectedName: fmt.Sprintf(expectedFormat, "nacl"),
+		maker: func(s *ir.Spec) ir.Collection {
+			return synth.MakeACL(s, synth.Options{SingleACL: single})
+		},
 	}
 }
 
-func TestSGCSVCompare(t *testing.T) {
+func sgTestCase(folder, configName string) TestCase {
+	return TestCase{
+		folder:       folder,
+		configName:   configName,
+		expectedName: fmt.Sprintf(defaultExpectedMultipleFormat, "sg"),
+		maker: func(s *ir.Spec) ir.Collection {
+			return synth.MakeSG(s, synth.Options{})
+		},
+	}
+}
+
+func TestACLCSVCompare(t *testing.T) {
 	suite := map[string]TestCase{
-		"sg single connection 1": {folder: "sg_single_conn1"},
-		"sg_testing5":            {folder: "sg_testing2", configName: "config_object.json"},
+		"acl conn1":              aclTestCase("acl_single_conn1", "", false),
+		"acl conn1 single":       aclTestCase("acl_single_conn1", "", true),
+		"acl conn2":              aclTestCase("acl_single_conn2", "", false),
+		"acl conn2 single":       aclTestCase("acl_single_conn2", "", true),
+		"acl duplication":        aclTestCase("acl_dup", "", false),
+		"acl duplication single": aclTestCase("acl_dup", "", true),
+		"acl_testing5":           aclTestCase("acl_testing5", "config_object.json", false),
+		"acl_testing5 single":    aclTestCase("acl_testing5", "config_object.json", true),
+		"sg single connection 1": sgTestCase("sg_single_conn1", ""),
+		"sg_testing2":            sgTestCase("sg_testing2", "config_object.json"),
 	}
 	for testname, c := range suite {
 		testcase := c
-		expectedName := fmt.Sprintf(defaultExpectedMultipleFormat, "sg")
 		t.Run(testname, func(t *testing.T) {
 			s, err := readSpec(c)
 			if err != nil {
 				t.Error(err)
 			}
-			sg := synth.MakeSG(s, synth.Options{})
+			collection := c.maker(s)
 			if err != nil {
 				t.Error(err)
 			}
-			actualCSVString, err := writeCSV(sg)
+			actualCSVString, err := writeCSV(collection)
 			if err != nil {
 				t.Error(err)
 			}
-			expectedFile := testcase.at(testcase.expectedName, expectedName)
+			expectedFile := testcase.at(testcase.expectedName, c.expectedName)
 			expectedCSVString := readExpectedCSV(expectedFile)
 			if expectedCSVString != actualCSVString {
 				t.Errorf("%v != %v", expectedCSVString, actualCSVString)
