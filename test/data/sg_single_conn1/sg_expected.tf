@@ -1,6 +1,6 @@
 # Internal. required-connections[0]: (nif ni3b)->(nif ni2); allowed-protocols[0]
 resource "ibm_is_security_group_rule" "sgrule-A-0" {
-  group     = A-0.id
+  group     = A.id
   direction = "outbound"
   remote    = "10.240.20.4"
   tcp {
@@ -10,7 +10,7 @@ resource "ibm_is_security_group_rule" "sgrule-A-0" {
 }
 # Internal. required-connections[0]: (nif ni3b)->(nif ni2); allowed-protocols[0]
 resource "ibm_is_security_group_rule" "sgrule-B-0" {
-  group     = B-0.id
+  group     = B.id
   direction = "inbound"
   remote    = "10.240.30.4"
   tcp {
