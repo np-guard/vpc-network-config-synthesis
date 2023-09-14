@@ -23,7 +23,7 @@ func sgRule(rule *ir.SecurityGroupRule[ir.CIDR], sgName string) tf.Block {
 	verifyName(sgName)
 	return tf.Block{
 		Name:    "resource",
-		Labels:  []string{quote("ibm_is_security_group_rule"), quote(sgName + "-rule")},
+		Labels:  []string{quote("ibm_is_security_group_rule"), quote("sgrule-" + sgName)},
 		Comment: fmt.Sprintf("# %v", rule.Explanation),
 		Arguments: []tf.Argument{
 			{Name: "group", Value: sgName + ".id"},
@@ -39,7 +39,7 @@ func sgCollection(t *ir.SecurityGroupCollection) *tf.ConfigFile {
 	for _, sgName := range t.SortedSGNames() {
 		rules := t.SGs[sgName].Rules
 		for i := range rules {
-			sgRule := sgRule(&rules[i], string(sgName))
+			sgRule := sgRule(&rules[i], fmt.Sprintf("%v-%v", string(sgName), i))
 			sgRules = append(sgRules, sgRule)
 		}
 	}
