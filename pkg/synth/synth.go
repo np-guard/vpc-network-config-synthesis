@@ -8,19 +8,19 @@ import (
 )
 
 type Options struct {
-	Single bool
+	SingleACL bool
 }
 
 // MakeACL translates Spec to a collection of ACLs
 func MakeACL(s *ir.Spec, opt Options) *ir.ACLCollection {
 	aclSelector := func(target ir.IP) string { return "1" }
-	if !opt.Single {
+	if !opt.SingleACL {
 		aclSelector = s.Defs.SubnetNameFromIP
 	}
 	collections := []*ir.ACLCollection{}
 	for c := range s.Connections {
-		conn := &s.Connections[c]
-		collections = append(collections, GenerateACLCollectionFromConnection(conn, aclSelector))
+		collection := GenerateACLCollectionFromConnection(&s.Connections[c], aclSelector)
+		collections = append(collections, collection)
 	}
 	return ir.MergeACLCollections(collections...)
 }
@@ -32,8 +32,8 @@ func MakeSG(s *ir.Spec, opt Options) *ir.SecurityGroupCollection {
 	}
 	collections := []*ir.SecurityGroupCollection{}
 	for c := range s.Connections {
-		conn := &s.Connections[c]
-		collections = append(collections, GenerateSecurityGroupCollectionFromConnection(conn, sgSelector))
+		collection := GenerateSecurityGroupCollectionFromConnection(&s.Connections[c], sgSelector)
+		collections = append(collections, collection)
 	}
 	return ir.MergeSecurityGroupCollections(collections...)
 }
@@ -47,7 +47,7 @@ func GenerateSecurityGroupCollectionFromConnection(conn *ir.Connection, sgSelect
 
 	result := ir.NewSGCollection()
 
-	if conn.Src.Type != ir.EndpointTypeNif {
+	if !sgTrigger(conn.Src.Type) && !sgTrigger(conn.Dst.Type) {
 		return result
 	}
 
@@ -58,7 +58,11 @@ func GenerateSecurityGroupCollectionFromConnection(conn *ir.Connection, sgSelect
 			}
 
 			for _, trackedProtocol := range conn.TrackedProtocols {
-				reason := explanation{internal: internalSrc && internalDst, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}
+				reason := explanation{
+					internal:         internalSrc && internalDst,
+					connectionOrigin: conn.Origin,
+					protocolOrigin:   trackedProtocol.Origin,
+				}.String()
 
 				if internalSrc {
 					sgSrcName := ir.SecurityGroupName(sgSelector(src))
@@ -68,7 +72,7 @@ func GenerateSecurityGroupCollectionFromConnection(conn *ir.Connection, sgSelect
 						Remote:      ir.CIDR(dst.String()),
 						Direction:   ir.Outbound,
 						Protocol:    trackedProtocol.Protocol,
-						Explanation: reason.String(),
+						Explanation: reason,
 					})
 				}
 				if internalDst {
@@ -79,7 +83,7 @@ func GenerateSecurityGroupCollectionFromConnection(conn *ir.Connection, sgSelect
 						Remote:      ir.CIDR(src.String()),
 						Direction:   ir.Inbound,
 						Protocol:    trackedProtocol.Protocol.InverseDirection(),
-						Explanation: reason.String(),
+						Explanation: reason,
 					})
 				}
 			}
@@ -97,7 +101,7 @@ func GenerateACLCollectionFromConnection(conn *ir.Connection, aclSelector func(t
 		log.Fatalf("ACL: Both source and destination are external for connection %v", *conn)
 	}
 	result := ir.NewACLCollection()
-	if conn.Src.Type == ir.EndpointTypeNif {
+	if !aclTrigger(conn.Src.Type) && !aclTrigger(conn.Dst.Type) {
 		return result
 	}
 	var connectionRules []*ir.ACLRule
@@ -145,4 +149,12 @@ func allowDirectedConnection(src, dst ir.IP, internalSrc, internalDst bool, prot
 		}
 	}
 	return connection
+}
+
+func aclTrigger(e ir.EndpointType) bool {
+	return e == ir.EndpointTypeSubnet || e == ir.EndpointTypeSegment
+}
+
+func sgTrigger(e ir.EndpointType) bool {
+	return e == ir.EndpointTypeNif || e == ir.EndpointTypeInstance
 }

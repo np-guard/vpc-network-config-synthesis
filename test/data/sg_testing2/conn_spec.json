@@ -1,0 +1,66 @@
+{
+    "externals": {
+        "public internet": "0.0.0.0/0"
+    },
+    "required-connections": [
+        {
+            "src": {
+                "name": "public internet",
+                "type": "external"
+            },
+            "dst": {
+                "name": "proxy-ky",
+                "type": "instance"
+            }
+        },
+        {
+            "src": {
+                "name": "proxy-ky",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "fe-ky",
+                "type": "instance"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP",
+                    "min_port": 9000,
+                    "max_port": 9000
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "fe-ky",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "be-ky",
+                "type": "instance"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "be-ky",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "opa-ky",
+                "type": "instance"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP",
+                    "min_port": 8181,
+                    "max_port": 8181
+                }
+            ]
+        }
+    ]
+}

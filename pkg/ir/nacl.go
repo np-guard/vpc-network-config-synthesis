@@ -129,6 +129,10 @@ func (c *ACLCollection) LookupOrCreate(name string) *ACL {
 	return newACL
 }
 
+func (c *ACLCollection) Write(w Writer) error {
+	return w.WriteACL(c)
+}
+
 func (c *ACLCollection) SortedACLSubnets() []string {
 	return utils.SortedKeys(c.ACLs)
 }

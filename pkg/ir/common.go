@@ -20,3 +20,7 @@ type Writer interface {
 	ACLWriter
 	SGWriter
 }
+
+type Collection interface {
+	Write(Writer) error
+}

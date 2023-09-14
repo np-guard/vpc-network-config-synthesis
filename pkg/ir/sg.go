@@ -104,6 +104,10 @@ func MergeSecurityGroupCollections(collections ...*SecurityGroupCollection) *Sec
 	return result
 }
 
+func (c *SecurityGroupCollection) Write(w Writer) error {
+	return w.WriteSG(c)
+}
+
 func (c *SecurityGroupCollection) SortedSGNames() []SecurityGroupName {
 	return utils.SortedKeys(c.SGs)
 }

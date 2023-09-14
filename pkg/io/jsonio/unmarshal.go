@@ -166,6 +166,8 @@ func translateEndpointType(endpointType EndpointType) (ir.EndpointType, error) {
 		return ir.EndpointTypeSubnet, nil
 	case EndpointTypeNif:
 		return ir.EndpointTypeNif, nil
+	case EndpointTypeInstance:
+		return ir.EndpointTypeInstance, nil
 	default:
 		return ir.EndpointTypeSubnet, fmt.Errorf("unsupported endpoint type %v", endpointType)
 	}

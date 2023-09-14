@@ -72,6 +72,7 @@ const (
 	EndpointTypeSegment  EndpointType = "segment"
 	EndpointTypeSubnet   EndpointType = "subnet"
 	EndpointTypeNif      EndpointType = "nif"
+	EndpointTypeInstance EndpointType = "instance"
 	EndpointTypeAny      EndpointType = "any"
 )
 
@@ -98,6 +99,17 @@ func (s *Definitions) Lookup(name string, expectedType EndpointType) (Endpoint, 
 			return Endpoint{}, fmt.Errorf("%v is nif, not %v", name, expectedType)
 		}
 		result = append(result, Endpoint{name, []IP{ip}, actualType})
+	}
+	if nifs, ok := s.InstanceToNifs[name]; ok {
+		actualType := EndpointTypeInstance
+		if expectedType != EndpointTypeAny && expectedType != actualType {
+			return Endpoint{}, fmt.Errorf("%v is instance, not %v", name, expectedType)
+		}
+		ips := []IP{}
+		for _, nif := range nifs {
+			ips = append(ips, s.NifToIP[nif])
+		}
+		result = append(result, Endpoint{name, ips, EndpointTypeNif})
 	}
 	if segment, ok := s.SubnetSegments[name]; ok {
 		actualType := EndpointTypeSegment
