@@ -26,7 +26,7 @@ func value(x interface{}) string {
 	case ir.IP:
 		return quote(v.String())
 	case ir.SGName:
-		return string(v) + ".id"
+		return fmt.Sprintf("ibm_is_security_group.%v.id", v)
 	default:
 		log.Fatalf("invalid terraform value %v", v)
 	}
