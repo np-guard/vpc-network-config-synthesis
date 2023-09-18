@@ -44,6 +44,7 @@ type (
 		Origin fmt.Stringer
 	}
 
+	// ConfigDefs holds definitions that are part of the network architecture
 	ConfigDefs struct {
 		Subnets map[string]IP
 
@@ -54,6 +55,7 @@ type (
 		InstanceToNifs map[string][]string
 	}
 
+	// Definitions adds to ConfigDefs the spec-specific definitions
 	Definitions struct {
 		ConfigDefs
 
