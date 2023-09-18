@@ -1,3 +1,4 @@
+// Package csvio implements output of ACLs and security groups in CSV format
 package csvio
 
 import (

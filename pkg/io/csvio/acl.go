@@ -1,4 +1,3 @@
-// Package csvio implements output of ACLs in CSV format
 package csvio
 
 import (

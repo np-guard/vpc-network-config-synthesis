@@ -1,6 +1,6 @@
 # vpc-network-config-synthesis
 
-Tool for automatic synthesis of VPC network resources.
+Tool for automatic synthesis of VPC network configurations, namely Network ACLs and Security Groups.
 
 * spec_schema.json is the JSON schema for VPC-synthesis
 

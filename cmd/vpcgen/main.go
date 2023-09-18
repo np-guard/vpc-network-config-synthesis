@@ -1,5 +1,5 @@
 /*
-VpcGen reads specification files adhering to spec_schema.json and generates network ACLs
+VpcGen reads specification files adhering to spec_schema.json and generates network ACLs and security groups
 */
 package main
 

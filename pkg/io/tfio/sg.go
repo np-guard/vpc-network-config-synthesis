@@ -1,4 +1,3 @@
-// Package tfio implements output of ACLs in terraform format
 package tfio
 
 import (
