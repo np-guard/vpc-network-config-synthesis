@@ -26,19 +26,16 @@ func MakeACL(s *ir.Spec, opt Options) *ir.ACLCollection {
 }
 
 // MakeSG translates Spec to a collection of security groups
-func MakeSG(s *ir.Spec, opt Options) *ir.SecurityGroupCollection {
-	sgSelector := func(target ir.IP) string {
-		return s.Defs.InstanceFromNif(s.Defs.NifFromIP(target))
-	}
-	collections := []*ir.SecurityGroupCollection{}
+func MakeSG(s *ir.Spec, opt Options) *ir.SGCollection {
+	collections := []*ir.SGCollection{}
 	for c := range s.Connections {
-		collection := GenerateSecurityGroupCollectionFromConnection(&s.Connections[c], sgSelector)
+		collection := GenerateSGCollectionFromConnection(&s.Connections[c], s.Defs.RemoteFromIP)
 		collections = append(collections, collection)
 	}
-	return ir.MergeSecurityGroupCollections(collections...)
+	return ir.MergeSGCollections(collections...)
 }
 
-func GenerateSecurityGroupCollectionFromConnection(conn *ir.Connection, sgSelector func(target ir.IP) string) *ir.SecurityGroupCollection {
+func GenerateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(target ir.IP) ir.RemoteType) *ir.SGCollection {
 	internalSrc := conn.Src.Type != ir.EndpointTypeExternal
 	internalDst := conn.Dst.Type != ir.EndpointTypeExternal
 	if !internalSrc && !internalDst {
@@ -65,22 +62,28 @@ func GenerateSecurityGroupCollectionFromConnection(conn *ir.Connection, sgSelect
 				}.String()
 
 				if internalSrc {
-					sgSrcName := ir.SecurityGroupName(sgSelector(src))
+					sgSrcName, ok := sgSelector(src).(ir.SGName)
+					if !ok {
+						log.Panicf("Source is not security group name: %v", src)
+					}
 					sgSrc := result.LookupOrCreate(sgSrcName)
-					sgSrc.Attached = []ir.SecurityGroupName{sgSrcName}
-					sgSrc.Rules = append(sgSrc.Rules, ir.SecurityGroupRule[ir.CIDR]{
-						Remote:      ir.CIDR(dst.String()),
+					sgSrc.Attached = []ir.SGName{sgSrcName}
+					sgSrc.Rules = append(sgSrc.Rules, ir.SGRule{
+						Remote:      sgSelector(dst),
 						Direction:   ir.Outbound,
 						Protocol:    trackedProtocol.Protocol,
 						Explanation: reason,
 					})
 				}
 				if internalDst {
-					sgDstName := ir.SecurityGroupName(sgSelector(dst))
+					sgDstName, ok := sgSelector(dst).(ir.SGName)
+					if !ok {
+						log.Panicf("Dst is not security group name: %v", dst)
+					}
 					sgDst := result.LookupOrCreate(sgDstName)
-					sgDst.Attached = []ir.SecurityGroupName{sgDstName}
-					sgDst.Rules = append(sgDst.Rules, ir.SecurityGroupRule[ir.CIDR]{
-						Remote:      ir.CIDR(src.String()),
+					sgDst.Attached = []ir.SGName{sgDstName}
+					sgDst.Rules = append(sgDst.Rules, ir.SGRule{
+						Remote:      sgSelector(src),
 						Direction:   ir.Inbound,
 						Protocol:    trackedProtocol.Protocol.InverseDirection(),
 						Explanation: reason,

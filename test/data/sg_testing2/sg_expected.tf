@@ -2,7 +2,7 @@
 resource "ibm_is_security_group_rule" "sgrule-be-ky-0" {
   group     = be-ky.id
   direction = "inbound"
-  remote    = "10.240.2.5"
+  remote    = fe-ky.id
   tcp {
   }
 }
@@ -10,7 +10,7 @@ resource "ibm_is_security_group_rule" "sgrule-be-ky-0" {
 resource "ibm_is_security_group_rule" "sgrule-be-ky-1" {
   group     = be-ky.id
   direction = "outbound"
-  remote    = "10.240.2.4"
+  remote    = opa-ky.id
   tcp {
   }
 }
@@ -18,7 +18,7 @@ resource "ibm_is_security_group_rule" "sgrule-be-ky-1" {
 resource "ibm_is_security_group_rule" "sgrule-fe-ky-0" {
   group     = fe-ky.id
   direction = "inbound"
-  remote    = "10.240.1.4"
+  remote    = proxy-ky.id
   tcp {
   }
 }
@@ -26,7 +26,7 @@ resource "ibm_is_security_group_rule" "sgrule-fe-ky-0" {
 resource "ibm_is_security_group_rule" "sgrule-fe-ky-1" {
   group     = fe-ky.id
   direction = "outbound"
-  remote    = "10.240.2.6"
+  remote    = be-ky.id
   tcp {
   }
 }
@@ -34,7 +34,7 @@ resource "ibm_is_security_group_rule" "sgrule-fe-ky-1" {
 resource "ibm_is_security_group_rule" "sgrule-opa-ky-0" {
   group     = opa-ky.id
   direction = "inbound"
-  remote    = "10.240.2.6"
+  remote    = be-ky.id
   tcp {
   }
 }
@@ -48,7 +48,7 @@ resource "ibm_is_security_group_rule" "sgrule-proxy-ky-0" {
 resource "ibm_is_security_group_rule" "sgrule-proxy-ky-1" {
   group     = proxy-ky.id
   direction = "outbound"
-  remote    = "10.240.2.5"
+  remote    = fe-ky.id
   tcp {
   }
 }

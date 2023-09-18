@@ -172,6 +172,16 @@ func (s *ConfigDefs) InstanceFromNif(nifName string) string {
 	return inverseLookupMulti(s.InstanceToNifs, nifName, fmt.Sprintf("<unknown instance %v>", nifName))
 }
 
+func (s *ConfigDefs) RemoteFromIP(ip IP) RemoteType {
+	if ip.String() == "0.0.0.0" {
+		return ip
+	}
+	if ip.String() == "0.0.0.0/0" {
+		return ip
+	}
+	return SGName(s.InstanceFromNif(s.NifFromIP(ip)))
+}
+
 type Reader interface {
 	ReadSpec(filename string, defs *ConfigDefs) (*Spec, error)
 }

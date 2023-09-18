@@ -18,38 +18,38 @@ const (
 	SGResourceFileShareMountTarget SGResource = "fsme"
 )
 
-type SecurityGroupName string
+type SGName string
 
-func (s SecurityGroupName) String() string {
+func (s SGName) String() string {
 	return string(s)
 }
 
 type RemoteType interface {
 	fmt.Stringer
-	IP | CIDR | SecurityGroupName
+	// IP | CIDR | SGName
 }
 
-type SecurityGroupRule[T RemoteType] struct {
+type SGRule struct {
 	Direction   Direction
-	Remote      T
+	Remote      RemoteType
 	Protocol    Protocol
 	Explanation string
 }
 
-type SecurityGroup struct {
-	Rules    []SecurityGroupRule[CIDR]
-	Attached []SecurityGroupName
+type SG struct {
+	Rules    []SGRule
+	Attached []SGName
 }
 
-type SecurityGroupCollection struct {
-	SGs map[SecurityGroupName]*SecurityGroup
+type SGCollection struct {
+	SGs map[SGName]*SG
 }
 
 type SGWriter interface {
-	WriteSG(*SecurityGroupCollection) error
+	WriteSG(*SGCollection) error
 }
 
-func (r *SecurityGroupRule[CIDR]) isRedundant(rules []SecurityGroupRule[CIDR]) bool {
+func (r *SGRule) isRedundant(rules []SGRule) bool {
 	for i := range rules {
 		if rules[i].mustSupersede(r) {
 			return true
@@ -58,7 +58,7 @@ func (r *SecurityGroupRule[CIDR]) isRedundant(rules []SecurityGroupRule[CIDR]) b
 	return false
 }
 
-func (r *SecurityGroupRule[CIDR]) mustSupersede(other *SecurityGroupRule[CIDR]) bool {
+func (r *SGRule) mustSupersede(other *SGRule) bool {
 	otherExplanation := other.Explanation
 	other.Explanation = r.Explanation
 	res := reflect.DeepEqual(r, other)
@@ -66,32 +66,32 @@ func (r *SecurityGroupRule[CIDR]) mustSupersede(other *SecurityGroupRule[CIDR]) 
 	return res
 }
 
-func NewSecurityGroup() *SecurityGroup {
-	return &SecurityGroup{Rules: []SecurityGroupRule[CIDR]{}, Attached: []SecurityGroupName{}}
+func NewSG() *SG {
+	return &SG{Rules: []SGRule{}, Attached: []SGName{}}
 }
 
-func NewSGCollection() *SecurityGroupCollection {
-	return &SecurityGroupCollection{SGs: map[SecurityGroupName]*SecurityGroup{}}
+func NewSGCollection() *SGCollection {
+	return &SGCollection{SGs: map[SGName]*SG{}}
 }
 
-func (c *SecurityGroupCollection) LookupOrCreate(name SecurityGroupName) *SecurityGroup {
+func (c *SGCollection) LookupOrCreate(name SGName) *SG {
 	acl, ok := c.SGs[name]
 	if ok {
 		return acl
 	}
-	newSG := NewSecurityGroup()
+	newSG := NewSG()
 	c.SGs[name] = newSG
 	return newSG
 }
 
-func (a *SecurityGroup) Add(rule *SecurityGroupRule[CIDR]) {
+func (a *SG) Add(rule *SGRule) {
 	if rule.isRedundant(a.Rules) {
 		return
 	}
 	a.Rules = append(a.Rules, *rule)
 }
 
-func MergeSecurityGroupCollections(collections ...*SecurityGroupCollection) *SecurityGroupCollection {
+func MergeSGCollections(collections ...*SGCollection) *SGCollection {
 	result := NewSGCollection()
 	for _, c := range collections {
 		for a := range c.SGs {
@@ -104,10 +104,10 @@ func MergeSecurityGroupCollections(collections ...*SecurityGroupCollection) *Sec
 	return result
 }
 
-func (c *SecurityGroupCollection) Write(w Writer) error {
+func (c *SGCollection) Write(w Writer) error {
 	return w.WriteSG(c)
 }
 
-func (c *SecurityGroupCollection) SortedSGNames() []SecurityGroupName {
+func (c *SGCollection) SortedSGNames() []SGName {
 	return utils.SortedKeys(c.SGs)
 }

@@ -72,7 +72,7 @@ func sgTestCase(folder, configName string) TestCase {
 	}
 }
 
-func TestACLCSVCompare(t *testing.T) {
+func TestCSVCompare(t *testing.T) {
 	suite := map[string]TestCase{
 		"acl conn1":              aclTestCase("acl_single_conn1", "", false),
 		"acl conn1 single":       aclTestCase("acl_single_conn1", "", true),

@@ -6,7 +6,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-func (w *Writer) WriteSG(collection *ir.SecurityGroupCollection) error {
+func (w *Writer) WriteSG(collection *ir.SGCollection) error {
 	if err := w.w.Write(sgHeader()); err != nil {
 		return err
 	}
@@ -30,7 +30,7 @@ func sgHeader() []string {
 	}
 }
 
-func makeSGRow[T ir.RemoteType](rule *ir.SecurityGroupRule[T], sgName ir.SecurityGroupName) []string {
+func makeSGRow(rule *ir.SGRule, sgName ir.SGName) []string {
 	return []string{
 		string(sgName),
 		direction(rule.Direction),
@@ -41,7 +41,7 @@ func makeSGRow[T ir.RemoteType](rule *ir.SecurityGroupRule[T], sgName ir.Securit
 	}
 }
 
-func makeSGTable(t *ir.SecurityGroup, sgName ir.SecurityGroupName) [][]string {
+func makeSGTable(t *ir.SG, sgName ir.SGName) [][]string {
 	rules := t.Rules
 	rows := make([][]string, len(rules))
 	for i := range rules {
