@@ -137,7 +137,7 @@ func readSpec(c *TestCase) (s *ir.Spec, err error) {
 }
 
 func shrinkWhitespace(s string) string {
-	return regexp.MustCompile(`\s+`).ReplaceAllString(s, " ")
+	return regexp.MustCompile(`[ \t]+`).ReplaceAllString(s, " ")
 }
 
 func write(collection ir.Collection, outputFormat string) (text string, err error) {

@@ -37,15 +37,15 @@ func value(x interface{}) string {
 func sgProtocol(t ir.Protocol, d ir.Direction) []tf.Block {
 	switch p := t.(type) {
 	case ir.TCPUDP:
-		var targetPort ir.PortRange
+		var remotePort ir.PortRange
 		if d == ir.Inbound {
-			targetPort = p.PortRangePair.DstPort
+			remotePort = p.PortRangePair.SrcPort
 		} else {
-			targetPort = p.PortRangePair.SrcPort
+			remotePort = p.PortRangePair.DstPort
 		}
 		return []tf.Block{{
 			Name:      strings.ToLower(string(p.Protocol)),
-			Arguments: portRange(targetPort, "port"),
+			Arguments: portRange(remotePort, "port"),
 		}}
 	case ir.ICMP:
 		return []tf.Block{{
