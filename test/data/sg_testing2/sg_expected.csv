@@ -1,8 +1,8 @@
 SG,Direction,Protocol,Target Type,Target,Value,Description
 be-ky,Inbound,TCP,fe-ky,any port,Internal. required-connections[2]: (instance fe-ky)->(instance be-ky); allowed-protocols[0]
-be-ky,Outbound,TCP,opa-ky,any port,Internal. required-connections[3]: (instance be-ky)->(instance opa-ky); allowed-protocols[0]
-fe-ky,Inbound,TCP,proxy-ky,any port,Internal. required-connections[1]: (instance proxy-ky)->(instance fe-ky); allowed-protocols[0]
+be-ky,Outbound,TCP,opa-ky,ports 8181-8181,Internal. required-connections[3]: (instance be-ky)->(instance opa-ky); allowed-protocols[0]
+fe-ky,Inbound,TCP,proxy-ky,ports 9000-9000,Internal. required-connections[1]: (instance proxy-ky)->(instance fe-ky); allowed-protocols[0]
 fe-ky,Outbound,TCP,be-ky,any port,Internal. required-connections[2]: (instance fe-ky)->(instance be-ky); allowed-protocols[0]
-opa-ky,Inbound,TCP,be-ky,any port,Internal. required-connections[3]: (instance be-ky)->(instance opa-ky); allowed-protocols[0]
+opa-ky,Inbound,TCP,be-ky,ports 8181-8181,Internal. required-connections[3]: (instance be-ky)->(instance opa-ky); allowed-protocols[0]
 proxy-ky,Inbound,ALL,0.0.0.0/0,,External. required-connections[0]: (external public internet)->(instance proxy-ky); allowed-protocols[0]
-proxy-ky,Outbound,TCP,fe-ky,any port,Internal. required-connections[1]: (instance proxy-ky)->(instance fe-ky); allowed-protocols[0]
+proxy-ky,Outbound,TCP,fe-ky,ports 9000-9000,Internal. required-connections[1]: (instance proxy-ky)->(instance fe-ky); allowed-protocols[0]

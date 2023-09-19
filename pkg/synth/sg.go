@@ -49,12 +49,13 @@ func GenerateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(tar
 					}
 					sgSrc := result.LookupOrCreate(sgSrcName)
 					sgSrc.Attached = []ir.SGName{sgSrcName}
-					sgSrc.Rules = append(sgSrc.Rules, ir.SGRule{
+					rule := ir.SGRule{
 						Remote:      sgSelector(dst),
 						Direction:   ir.Outbound,
 						Protocol:    trackedProtocol.Protocol,
 						Explanation: reason,
-					})
+					}
+					sgSrc.Rules = append(sgSrc.Rules, rule)
 				}
 				if internalDst {
 					sgDstName, ok := sgSelector(dst).(ir.SGName)
@@ -63,12 +64,13 @@ func GenerateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(tar
 					}
 					sgDst := result.LookupOrCreate(sgDstName)
 					sgDst.Attached = []ir.SGName{sgDstName}
-					sgDst.Rules = append(sgDst.Rules, ir.SGRule{
+					rule := ir.SGRule{
 						Remote:      sgSelector(src),
 						Direction:   ir.Inbound,
 						Protocol:    trackedProtocol.Protocol.InverseDirection(),
 						Explanation: reason,
-					})
+					}
+					sgDst.Rules = append(sgDst.Rules, rule)
 				}
 			}
 		}

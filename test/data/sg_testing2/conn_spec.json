@@ -25,8 +25,8 @@
             "allowed-protocols": [
                 {
                     "protocol": "TCP",
-                    "min_port": 9000,
-                    "max_port": 9000
+                    "min_destination_port": 9000,
+                    "max_destination_port": 9000
                 }
             ]
         },
@@ -57,8 +57,8 @@
             "allowed-protocols": [
                 {
                     "protocol": "TCP",
-                    "min_port": 8181,
-                    "max_port": 8181
+                    "min_destination_port": 8181,
+                    "max_destination_port": 8181
                 }
             ]
         }
