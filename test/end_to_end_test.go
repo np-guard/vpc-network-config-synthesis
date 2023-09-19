@@ -5,25 +5,28 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/csvio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/jsonio"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/tfio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/synth"
 )
 
 const (
-	dataFolder                    = "data"
-	defaultSpecName               = "conn_spec.json"
-	defaultExpectedSingleFormat   = "%v_single_expected.csv"
-	defaultExpectedMultipleFormat = "%v_expected.csv"
+	dataFolder                  = "data"
+	defaultSpecName             = "conn_spec.json"
+	defaultExpectedSingleFormat = "%v_single_expected.%v"
+	defaultExpectedFormat       = "%v_expected.%v"
 )
 
 type TestCase struct {
 	folder       string
 	specName     string
 	expectedName string
+	outputFormat string
 	configName   string
 	maker        func(s *ir.Spec) ir.Collection
 }
@@ -40,32 +43,34 @@ func (c *TestCase) at(name, otherwise string) string {
 }
 
 func TestACLCIDR(t *testing.T) {
-	_, err := readSpec(TestCase{folder: "acl_cidr"})
+	_, err := readSpec(&TestCase{folder: "acl_cidr"})
 	if err == nil || err.Error() != "unsupported endpoint type cidr" {
 		t.Errorf("No failure for unsupported type; got %v", err)
 	}
 }
 
-func aclTestCase(folder, configName string, single bool) TestCase {
-	expectedFormat := defaultExpectedMultipleFormat
+func aclTestCase(folder, configName, outputFormat string, single bool) TestCase {
+	expectedFormat := defaultExpectedFormat
 	if single {
 		expectedFormat = defaultExpectedSingleFormat
 	}
 	return TestCase{
 		folder:       folder,
 		configName:   configName,
-		expectedName: fmt.Sprintf(expectedFormat, "nacl"),
+		outputFormat: outputFormat,
+		expectedName: fmt.Sprintf(expectedFormat, "nacl", outputFormat),
 		maker: func(s *ir.Spec) ir.Collection {
 			return synth.MakeACL(s, synth.Options{SingleACL: single})
 		},
 	}
 }
 
-func sgTestCase(folder, configName string) TestCase {
+func sgTestCase(folder, configName, outputFormat string) TestCase {
 	return TestCase{
 		folder:       folder,
 		configName:   configName,
-		expectedName: fmt.Sprintf(defaultExpectedMultipleFormat, "sg"),
+		outputFormat: outputFormat,
+		expectedName: fmt.Sprintf(defaultExpectedFormat, "sg", outputFormat),
 		maker: func(s *ir.Spec) ir.Collection {
 			return synth.MakeSG(s, synth.Options{})
 		},
@@ -74,42 +79,50 @@ func sgTestCase(folder, configName string) TestCase {
 
 func TestCSVCompare(t *testing.T) {
 	suite := map[string]TestCase{
-		"acl conn1":              aclTestCase("acl_single_conn1", "", false),
-		"acl conn1 single":       aclTestCase("acl_single_conn1", "", true),
-		"acl conn2":              aclTestCase("acl_single_conn2", "", false),
-		"acl conn2 single":       aclTestCase("acl_single_conn2", "", true),
-		"acl duplication":        aclTestCase("acl_dup", "", false),
-		"acl duplication single": aclTestCase("acl_dup", "", true),
-		"acl_testing5":           aclTestCase("acl_testing5", "config_object.json", false),
-		"acl_testing5 single":    aclTestCase("acl_testing5", "config_object.json", true),
-		"sg single connection 1": sgTestCase("sg_single_conn1", ""),
-		"sg_testing2":            sgTestCase("sg_testing2", "config_object.json"),
+		"acl duplication csv":        aclTestCase("acl_dup", "", "csv", false),
+		"acl duplication single csv": aclTestCase("acl_dup", "", "csv", true),
+		"acl conn1 csv":              aclTestCase("acl_single_conn1", "", "csv", false),
+		"acl conn1 single csv":       aclTestCase("acl_single_conn1", "", "csv", true),
+		"acl conn1 tf":               aclTestCase("acl_single_conn1", "", "tf", false),
+		"acl conn1 single tf":        aclTestCase("acl_single_conn1", "", "tf", true),
+		"acl conn2 csv":              aclTestCase("acl_single_conn2", "", "csv", false),
+		"acl conn2 single csv":       aclTestCase("acl_single_conn2", "", "csv", true),
+		"acl conn2 tf":               aclTestCase("acl_single_conn2", "", "tf", false),
+		"acl conn2 single tf":        aclTestCase("acl_single_conn2", "", "tf", true),
+		"acl_testing5 csv":           aclTestCase("acl_testing5", "config_object.json", "csv", false),
+		"acl_testing5 tf":            aclTestCase("acl_testing5", "config_object.json", "tf", false),
+		"acl_testing5 single csv":    aclTestCase("acl_testing5", "config_object.json", "csv", true),
+		"acl_testing5 single tf":     aclTestCase("acl_testing5", "config_object.json", "tf", true),
+		"sg single connection 1 csv": sgTestCase("sg_single_conn1", "", "csv"),
+		"sg single connection 1 tf":  sgTestCase("sg_single_conn1", "", "tf"),
+		"sg_testing2 csv":            sgTestCase("sg_testing2", "config_object.json", "csv"),
+		"sg_testing2 tf":             sgTestCase("sg_testing2", "config_object.json", "tf"),
 	}
-	for testname, c := range suite {
-		testcase := c
+	for testname := range suite {
+		testcase := suite[testname]
 		t.Run(testname, func(t *testing.T) {
-			s, err := readSpec(c)
+			s, err := readSpec(&testcase)
 			if err != nil {
 				t.Error(err)
 			}
-			collection := c.maker(s)
+			collection := testcase.maker(s)
 			if err != nil {
 				t.Error(err)
 			}
-			actualCSVString, err := writeCSV(collection)
+			actual, err := write(collection, testcase.outputFormat)
 			if err != nil {
 				t.Error(err)
 			}
-			expectedFile := testcase.at(testcase.expectedName, c.expectedName)
-			expectedCSVString := readExpectedCSV(expectedFile)
-			if expectedCSVString != actualCSVString {
-				t.Errorf("%v != %v", expectedCSVString, actualCSVString)
+			expectedFile := testcase.at(testcase.expectedName, testcase.expectedName)
+			expected := readExpectedFile(expectedFile)
+			if expected != actual {
+				t.Errorf("%v != %v", expected, actual)
 			}
 		})
 	}
 }
 
-func readSpec(c TestCase) (s *ir.Spec, err error) {
+func readSpec(c *TestCase) (s *ir.Spec, err error) {
 	reader := jsonio.NewReader()
 
 	var defs *ir.ConfigDefs
@@ -123,20 +136,29 @@ func readSpec(c TestCase) (s *ir.Spec, err error) {
 	return reader.ReadSpec(c.at(c.specName, defaultSpecName), defs)
 }
 
-func writeCSV(collection ir.Collection) (csvString string, err error) {
+func shrinkWhitespace(s string) string {
+	return regexp.MustCompile(`\s+`).ReplaceAllString(s, " ")
+}
+
+func write(collection ir.Collection, outputFormat string) (text string, err error) {
 	buf := new(bytes.Buffer)
-	writer := csvio.NewWriter(buf)
+	var writer ir.Writer
+	if outputFormat == "csv" {
+		writer = csvio.NewWriter(buf)
+	} else {
+		writer = tfio.NewWriter(buf)
+	}
 	err = collection.Write(writer)
 	if err != nil {
 		return "", err
 	}
-	return buf.String(), nil
+	return shrinkWhitespace(buf.String()), nil
 }
 
-func readExpectedCSV(filename string) string {
+func readExpectedFile(filename string) string {
 	buf, err := os.ReadFile(filename)
 	if err != nil {
 		log.Panicf("Bad test: %v", err)
 	}
-	return string(buf)
+	return shrinkWhitespace(string(buf))
 }

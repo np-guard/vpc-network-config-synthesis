@@ -3,6 +3,7 @@ package tfio
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/tfio/tf"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
@@ -33,6 +34,30 @@ func value(x interface{}) string {
 	return ""
 }
 
+func sgProtocol(t ir.Protocol, d ir.Direction) []tf.Block {
+	switch p := t.(type) {
+	case ir.TCPUDP:
+		var targetPort ir.PortRange
+		if d == ir.Inbound {
+			targetPort = p.PortRangePair.DstPort
+		} else {
+			targetPort = p.PortRangePair.SrcPort
+		}
+		return []tf.Block{{
+			Name:      strings.ToLower(string(p.Protocol)),
+			Arguments: portRange(targetPort, "port"),
+		}}
+	case ir.ICMP:
+		return []tf.Block{{
+			Name:      "icmp",
+			Arguments: codeTypeArguments(p.ICMPCodeType),
+		}}
+	case ir.AnyProtocol:
+		return []tf.Block{}
+	}
+	return nil
+}
+
 func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) tf.Block {
 	ruleName := fmt.Sprintf("sgrule-%v-%v", sgName, i)
 	verifyName(ruleName)
@@ -45,7 +70,7 @@ func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) tf.Block {
 			{Name: "direction", Value: quote(direction(rule.Direction))},
 			{Name: "remote", Value: value(rule.Remote)},
 		},
-		Blocks: protocol(rule.Protocol),
+		Blocks: sgProtocol(rule.Protocol, rule.Direction),
 	}
 }
 

@@ -3,6 +3,7 @@ package tfio
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/tfio/tf"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
@@ -19,6 +20,27 @@ func (w *Writer) WriteACL(c *ir.ACLCollection) error {
 	return err
 }
 
+func aclProtocol(t ir.Protocol) []tf.Block {
+	switch p := t.(type) {
+	case ir.TCPUDP:
+		return []tf.Block{{
+			Name: strings.ToLower(string(p.Protocol)),
+			Arguments: append(
+				portRange(p.PortRangePair.DstPort, "port"),
+				portRange(p.PortRangePair.SrcPort, "source_port")...,
+			),
+		}}
+	case ir.ICMP:
+		return []tf.Block{{
+			Name:      "icmp",
+			Arguments: codeTypeArguments(p.ICMPCodeType),
+		}}
+	case ir.AnyProtocol:
+		return []tf.Block{}
+	}
+	return nil
+}
+
 func aclRule(rule *ir.ACLRule, name string) tf.Block {
 	verifyName(name)
 	arguments := []tf.Argument{
@@ -31,7 +53,7 @@ func aclRule(rule *ir.ACLRule, name string) tf.Block {
 	return tf.Block{Name: "rules",
 		Comment:   fmt.Sprintf("# %v", rule.Explanation),
 		Arguments: arguments,
-		Blocks:    protocol(rule.Protocol),
+		Blocks:    aclProtocol(rule.Protocol),
 	}
 }
 

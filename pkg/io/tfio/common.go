@@ -8,7 +8,6 @@ import (
 	"log"
 	"regexp"
 	"strconv"
-	"strings"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/tfio/tf"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
@@ -23,46 +22,26 @@ func NewWriter(w io.Writer) *Writer {
 	return &Writer{w: bufio.NewWriter(w)}
 }
 
-func portRangePair(t ir.PortRangePair, name string) tf.Block {
+func portRange(r ir.PortRange, prefix string) []tf.Argument {
 	var arguments []tf.Argument
-	if t.DstPort.Min != ir.DefaultMinPort {
-		arguments = append(arguments, tf.Argument{Name: "port_min", Value: strconv.Itoa(t.DstPort.Min)})
+	if r.Min != ir.DefaultMinPort {
+		arguments = append(arguments, tf.Argument{Name: prefix + "_min", Value: strconv.Itoa(r.Min)})
 	}
-	if t.DstPort.Max != ir.DefaultMaxPort {
-		arguments = append(arguments, tf.Argument{Name: "port_max", Value: strconv.Itoa(t.DstPort.Max)})
+	if r.Max != ir.DefaultMaxPort {
+		arguments = append(arguments, tf.Argument{Name: prefix + "_max", Value: strconv.Itoa(r.Max)})
 	}
-	if t.SrcPort.Min != ir.DefaultMinPort {
-		arguments = append(arguments, tf.Argument{Name: "source_port_min", Value: strconv.Itoa(t.SrcPort.Min)})
-	}
-	if t.SrcPort.Max != ir.DefaultMaxPort {
-		arguments = append(arguments, tf.Argument{Name: "source_port_max", Value: strconv.Itoa(t.SrcPort.Max)})
-	}
-	return tf.Block{
-		Name:      name,
-		Arguments: arguments,
-	}
+	return arguments
 }
 
-func protocol(t ir.Protocol) []tf.Block {
-	switch p := t.(type) {
-	case ir.TCPUDP:
-		return []tf.Block{portRangePair(p.PortRangePair, strings.ToLower(string(p.Protocol)))}
-	case ir.ICMP:
-		var arguments []tf.Argument
-		if p.ICMPCodeType != nil {
-			arguments = append(arguments, tf.Argument{Name: "type", Value: strconv.Itoa(p.Type)})
-			if p.Code != nil {
-				arguments = append(arguments, tf.Argument{Name: "code", Value: strconv.Itoa(*p.Code)})
-			}
+func codeTypeArguments(ct *ir.ICMPCodeType) []tf.Argument {
+	var arguments []tf.Argument
+	if ct != nil {
+		arguments = append(arguments, tf.Argument{Name: "type", Value: strconv.Itoa(ct.Type)})
+		if ct.Code != nil {
+			arguments = append(arguments, tf.Argument{Name: "code", Value: strconv.Itoa(*ct.Code)})
 		}
-		return []tf.Block{{
-			Name:      "icmp",
-			Arguments: arguments,
-		}}
-	case ir.AnyProtocol:
-		return []tf.Block{}
 	}
-	return nil
+	return arguments
 }
 
 func quote(s string) string {
