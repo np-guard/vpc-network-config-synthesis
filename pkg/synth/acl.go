@@ -33,7 +33,7 @@ func GenerateACLCollectionFromConnection(conn *ir.Connection, aclSelector func(t
 		log.Fatalf("ACL: Both source and destination are external for connection %v", *conn)
 	}
 	result := ir.NewACLCollection()
-	if !aclTrigger(conn.Src.Type) && !aclTrigger(conn.Dst.Type) {
+	if !endpointRelevantToACL(conn.Src.Type) && !endpointRelevantToACL(conn.Dst.Type) {
 		return result
 	}
 	var connectionRules []*ir.ACLRule
@@ -83,6 +83,6 @@ func allowDirectedConnection(src, dst ir.IP, internalSrc, internalDst bool, prot
 	return connection
 }
 
-func aclTrigger(e ir.EndpointType) bool {
+func endpointRelevantToACL(e ir.EndpointType) bool {
 	return e == ir.EndpointTypeSubnet || e == ir.EndpointTypeSegment
 }

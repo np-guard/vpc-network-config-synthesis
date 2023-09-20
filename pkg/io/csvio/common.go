@@ -33,15 +33,6 @@ func direction(d ir.Direction) string {
 	return "Outbound"
 }
 
-func port(p ir.PortRange) string {
-	switch {
-	case p.Min == ir.DefaultMinPort && p.Max == ir.DefaultMaxPort:
-		return "any port"
-	default:
-		return fmt.Sprintf("ports %v-%v", p.Min, p.Max)
-	}
-}
-
 func printICMPTypeCode(protocol ir.Protocol) string {
 	p, ok := protocol.(ir.ICMP)
 	if !ok {

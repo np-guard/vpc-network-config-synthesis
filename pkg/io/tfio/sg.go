@@ -23,7 +23,7 @@ func (w *Writer) WriteSG(c *ir.SGCollection) error {
 func value(x interface{}) string {
 	switch v := x.(type) {
 	case ir.CIDR:
-		return quote(string(v))
+		return quote(v.String())
 	case ir.IP:
 		return quote(v.String())
 	case ir.SGName:

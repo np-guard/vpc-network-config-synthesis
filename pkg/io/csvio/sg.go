@@ -1,6 +1,7 @@
 package csvio
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
@@ -35,7 +36,7 @@ func makeSGRow(rule *ir.SGRule, sgName ir.SGName) []string {
 		string(sgName),
 		direction(rule.Direction),
 		printProtocolName(rule.Protocol),
-		rule.Remote.String(),
+		sgRemote(rule.Remote),
 		printValue(rule.Protocol, rule.Direction == ir.Inbound),
 		rule.Explanation,
 	}
@@ -50,18 +51,48 @@ func makeSGTable(t *ir.SG, sgName ir.SGName) [][]string {
 	return rows
 }
 
+func sGPort(p ir.PortRange) string {
+	switch {
+	case p.Min == ir.DefaultMinPort && p.Max == ir.DefaultMaxPort:
+		return "any port"
+	default:
+		return fmt.Sprintf("Ports %v-%v", p.Min, p.Max)
+	}
+}
+
+func sgRemote(r ir.RemoteType) string {
+	switch tr := r.(type) {
+	case ir.IP:
+		s := tr.String()
+		if s == ir.AnyIP {
+			return "Any IP"
+		}
+	case ir.CIDR:
+		s := tr.String()
+		if s == ir.AnyCIDR {
+			return "Any CIDR"
+		}
+		return s
+	case ir.SGName:
+		return tr.String()
+	default:
+		log.Panicf("Impossible remote %v (%T)", r, r)
+	}
+	return ""
+}
+
 func printValue(protocol ir.Protocol, isSource bool) string {
 	switch p := protocol.(type) {
 	case ir.ICMP:
 		return printICMPTypeCode(protocol)
 	case ir.TCPUDP:
-		var portString string
+		var r ir.PortRange
 		if isSource {
-			portString = port(p.PortRangePair.SrcPort)
+			r = p.PortRangePair.SrcPort
 		} else {
-			portString = port(p.PortRangePair.DstPort)
+			r = p.PortRangePair.DstPort
 		}
-		return portString
+		return sGPort(r)
 	case ir.AnyProtocol:
 		return ""
 	default:

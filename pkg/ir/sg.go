@@ -15,7 +15,7 @@ const (
 	SGResourceLoadBalancer         SGResource = "loadbalancer"
 	SGResourceVPE                  SGResource = "vpe"
 	SGResourceVPNServer            SGResource = "vpn"
-	SGResourceFileShareMountTarget SGResource = "fsme"
+	SGResourceFileShareMountTarget SGResource = "fsmt"
 )
 
 type SGName string
@@ -75,9 +75,9 @@ func NewSGCollection() *SGCollection {
 }
 
 func (c *SGCollection) LookupOrCreate(name SGName) *SG {
-	acl, ok := c.SGs[name]
+	sg, ok := c.SGs[name]
 	if ok {
-		return acl
+		return sg
 	}
 	newSG := NewSG()
 	c.SGs[name] = newSG

@@ -175,10 +175,10 @@ func (s *ConfigDefs) InstanceFromNif(nifName string) string {
 }
 
 func (s *ConfigDefs) RemoteFromIP(ip IP) RemoteType {
-	if ip.String() == "0.0.0.0" {
+	if ip.String() == AnyIP {
 		return ip
 	}
-	if ip.String() == "0.0.0.0/0" {
+	if ip.String() == AnyCIDR {
 		return ip
 	}
 	return SGName(s.InstanceFromNif(s.NifFromIP(ip)))

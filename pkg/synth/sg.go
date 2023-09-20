@@ -25,7 +25,7 @@ func GenerateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(tar
 
 	result := ir.NewSGCollection()
 
-	if !sgTrigger(conn.Src.Type) && !sgTrigger(conn.Dst.Type) {
+	if !endpointRelevantToSG(conn.Src.Type) && !endpointRelevantToSG(conn.Dst.Type) {
 		return result
 	}
 
@@ -79,6 +79,6 @@ func GenerateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(tar
 	return result
 }
 
-func sgTrigger(e ir.EndpointType) bool {
+func endpointRelevantToSG(e ir.EndpointType) bool {
 	return e == ir.EndpointTypeNif || e == ir.EndpointTypeInstance
 }

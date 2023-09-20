@@ -17,6 +17,15 @@ func makeACLTable(t *ir.ACL, subnet string) [][]string {
 	return rows
 }
 
+func ACLPort(p ir.PortRange) string {
+	switch {
+	case p.Min == ir.DefaultMinPort && p.Max == ir.DefaultMaxPort:
+		return "any port" //nolint:goconst // independent decision for SG and ACL
+	default:
+		return fmt.Sprintf("ports %v-%v", p.Min, p.Max)
+	}
+}
+
 // Write prints an entire collection of acls as a single CSV table.
 func (w *Writer) WriteACL(collection *ir.ACLCollection) error {
 	if err := w.w.Write(aclHeader()); err != nil {
@@ -54,20 +63,20 @@ func aclHeader() []string {
 
 func printIP(ip ir.IP, protocol ir.Protocol, isSource bool) string {
 	ipString := ip.String()
-	if ipString == "0.0.0.0/0" {
-		ipString = "Any IP"
+	if ipString == ir.AnyCIDR {
+		ipString = "Any IP" //nolint:goconst // independent decision for SG and ACL
 	}
 	switch p := protocol.(type) {
 	case ir.ICMP:
 		return ipString
 	case ir.TCPUDP:
-		var portString string
+		var r ir.PortRange
 		if isSource {
-			portString = port(p.PortRangePair.SrcPort)
+			r = p.PortRangePair.SrcPort
 		} else {
-			portString = port(p.PortRangePair.DstPort)
+			r = p.PortRangePair.DstPort
 		}
-		return fmt.Sprintf("%v, %v", ipString, portString)
+		return fmt.Sprintf("%v, %v", ipString, ACLPort(r))
 	case ir.AnyProtocol:
 		return ipString
 	default:
