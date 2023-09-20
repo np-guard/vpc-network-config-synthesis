@@ -39,12 +39,12 @@
                 "name": "private-segment",
                 "type": "segment"
             },
+            "bidirectional": true,
             "allowed-protocols": [
                 {
                     "protocol": "UDP",
                     "min_destination_port": 80,
-                    "max_destination_port": 80,
-                    "bidirectional": true
+                    "max_destination_port": 80
                 }
             ]
         },
@@ -57,12 +57,12 @@
                 "name": "edge-segment",
                 "type": "segment"
             },
+            "bidirectional": false,
             "allowed-protocols": [
                 {
                     "protocol": "TCP",
                     "min_destination_port": 443,
-                    "max_destination_port": 443,
-                    "bidirectional": false
+                    "max_destination_port": 443
                 }
             ]
         }

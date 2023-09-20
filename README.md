@@ -1,6 +1,6 @@
 # vpc-network-config-synthesis
 
-Tool for automatic synthesis of VPC network resources.
+Tool for automatic synthesis of VPC network configurations, namely Network ACLs and Security Groups.
 
 * spec_schema.json is the JSON schema for VPC-synthesis
 
@@ -19,7 +19,9 @@ make test
 Run:
 
 ```
-bin\vpcgen.exe -config test\data\acl_testing5\config_object.json test\data\acl_testing5\conn_spec.json
+bin\vpcgen.exe -target=acl -config test\data\acl_testing5\config_object.json test\data\acl_testing5\conn_spec.json
+
+bin\vpcgen -target=sg -config test\data\sg_testing2\config_object.json test\data\sg_testing2\conn_spec.json
 ```
 
 ## Code generation

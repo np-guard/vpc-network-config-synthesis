@@ -1,5 +1,5 @@
 /*
-VpcGen reads specification files adhering to spec_schema.json and generates network ACLs
+VpcGen reads specification files adhering to spec_schema.json and generates network ACLs and security groups
 */
 package main
 
@@ -19,6 +19,14 @@ import (
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/synth"
+)
+
+// Output targets
+const (
+	aclTarget       = "acl"
+	sgTarget        = "sg"
+	singleaclTarget = "singleacl"
+	defaultTarget   = aclTarget
 )
 
 // Output formats
@@ -84,14 +92,18 @@ func pickReader(format string) (ir.Reader, error) {
 }
 
 func main() {
-	configFilename := flag.String("config", "", "JSON file containing config spec")
-	single := flag.Bool("single", false, "If true, create a single ACL; by default, create one ACL per subnet")
-	inputFormat := flag.String("inputfmt", jsonInputFormat, fmt.Sprintf("Input format. Must be %q", jsonInputFormat))
+	configFilename := flag.String("config", "",
+		"JSON file containing config spec")
+	target := flag.String("target", defaultTarget,
+		fmt.Sprintf("Target resource to generate. One of %q, %q, %q.", aclTarget, sgTarget, singleaclTarget))
+	inputFormat := flag.String("inputfmt", jsonInputFormat,
+		fmt.Sprintf("Input format. Must be %q", jsonInputFormat))
 	outputFormat := flag.String("fmt", "",
 		fmt.Sprintf("Output format. One of %q, %q; must not contradict output file suffix.", tfOutputFormat, csvOutputFormat))
-	outputFile := flag.String("o", "", "Output to file")
+	outputFile := flag.String("o", "",
+		"Output to file")
 	flag.Usage = func() {
-		_, _ = fmt.Fprintf(os.Stderr, `VpcGen translates connectivity spec to network ACLs.
+		_, _ = fmt.Fprintf(os.Stderr, `VpcGen translates connectivity spec to network ACLs and security groups.
 Usage:
 	%s [flags] SPEC_FILE
 
@@ -129,26 +141,30 @@ Flags:
 		log.Fatal(err)
 	}
 
-	var subnets map[string]ir.IP
+	var defs *ir.ConfigDefs
 	if *configFilename != "" {
-		subnets, err = jsonio.ReadSubnetMap(*configFilename)
+		defs, err = jsonio.ReadDefs(*configFilename)
 		if err != nil {
 			log.Fatalf("could not parse config file %v: %v", *configFilename, err)
 		}
 	}
 
-	model, err := reader.ReadSpec(connectivityFilename, subnets)
+	model, err := reader.ReadSpec(connectivityFilename, defs)
 	if err != nil {
 		log.Fatalf("Could not parse connectivity file %s: %s", connectivityFilename, err)
 	}
-
-	opts := synth.Options{
-		Single: *single,
-	}
-	finalACL := synth.MakeACL(model, opts)
-
-	if err = writer.Write(finalACL); err != nil {
-		log.Fatal(err)
+	if *target == sgTarget {
+		if err = writer.WriteSG(synth.MakeSG(model, synth.Options{})); err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		opts := synth.Options{
+			SingleACL: *target == singleaclTarget,
+		}
+		acl := synth.MakeACL(model, opts)
+		if err = writer.WriteACL(acl); err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	if *outputFile == "" {

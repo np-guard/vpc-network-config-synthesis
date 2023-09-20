@@ -3,7 +3,6 @@ package ir
 
 import (
 	"fmt"
-	"strings"
 )
 
 type (
@@ -11,8 +10,7 @@ type (
 		// Required connections
 		Connections []Connection
 
-		// Mapping from CIDR to subnet name
-		SubnetNames map[IP]string
+		Defs Definitions
 	}
 
 	Connection struct {
@@ -45,8 +43,20 @@ type (
 		Origin fmt.Stringer
 	}
 
-	Definitions struct {
+	// ConfigDefs holds definitions that are part of the network architecture
+	ConfigDefs struct {
 		Subnets map[string]IP
+
+		// Network interface name to IP address
+		NifToIP map[string]IP
+
+		// Instance is a collection of NIFs
+		InstanceToNifs map[string][]string
+	}
+
+	// Definitions adds to ConfigDefs the spec-specific definitions
+	Definitions struct {
+		ConfigDefs
 
 		// Segments are a way for users to create aggregations.
 		SubnetSegments map[string][]string
@@ -62,62 +72,99 @@ const (
 	EndpointTypeExternal EndpointType = "external"
 	EndpointTypeSegment  EndpointType = "segment"
 	EndpointTypeSubnet   EndpointType = "subnet"
+	EndpointTypeNif      EndpointType = "nif"
+	EndpointTypeInstance EndpointType = "instance"
 	EndpointTypeAny      EndpointType = "any"
 )
 
-func (s *Definitions) Lookup(name string, expectedType EndpointType) (Endpoint, error) {
-	var result []Endpoint
-	if ip, ok := s.Externals[name]; ok {
-		actualType := EndpointTypeExternal
-		if expectedType != EndpointTypeAny && expectedType != actualType {
-			return Endpoint{}, fmt.Errorf("%v is external, not %v", name, expectedType)
+func (s *Definitions) Lookup(t EndpointType, name string) (Endpoint, error) {
+	switch t {
+	case EndpointTypeExternal:
+		if ip, ok := s.Externals[name]; ok {
+			return Endpoint{name, []IP{ip}, t}, nil
 		}
-		result = append(result, Endpoint{name, []IP{ip}, actualType})
-	}
-	if ip, ok := s.Subnets[name]; ok {
-		actualType := EndpointTypeSubnet
-		if expectedType != EndpointTypeAny && expectedType != EndpointTypeSubnet {
-			return Endpoint{}, fmt.Errorf("%v is subnet, not %v", name, expectedType)
+	case EndpointTypeSubnet:
+		if ip, ok := s.Subnets[name]; ok {
+			return Endpoint{name, []IP{ip}, t}, nil
 		}
-		result = append(result, Endpoint{name, []IP{ip}, actualType})
-	}
-	if segment, ok := s.SubnetSegments[name]; ok {
-		actualType := EndpointTypeSegment
-		if expectedType != EndpointTypeAny && expectedType != actualType {
-			return Endpoint{}, fmt.Errorf("%v is segment, not %v", name, expectedType)
+	case EndpointTypeNif:
+		if ip, ok := s.NifToIP[name]; ok {
+			return Endpoint{name, []IP{ip}, t}, nil
 		}
-		actualType = EndpointTypeSubnet
-		var ips []IP
-		for _, subnetName := range segment {
-			subnet, err := s.Lookup(subnetName, actualType)
-			if err != nil {
-				return Endpoint{}, err
+	case EndpointTypeInstance:
+		if nifs, ok := s.InstanceToNifs[name]; ok {
+			ips := []IP{}
+			for _, nifName := range nifs {
+				nif, err := s.Lookup(EndpointTypeNif, nifName)
+				if err != nil {
+					return Endpoint{}, fmt.Errorf("%w while looking up nif %v for instance %v", err, nifName, name)
+				}
+				ips = append(ips, nif.Values...)
 			}
-			ips = append(ips, subnet.Values...)
+			return Endpoint{name, ips, EndpointTypeNif}, nil
 		}
-		result = append(result, Endpoint{name, ips, actualType})
-	}
-	if len(result) > 1 {
-		var possibleTypes []string
-		for i := range result {
-			possibleTypes[i] = string(result[i].Type)
+	case EndpointTypeSegment:
+		if segment, ok := s.SubnetSegments[name]; ok {
+			var ips []IP
+			for _, subnetName := range segment {
+				subnet, err := s.Lookup(EndpointTypeSubnet, subnetName)
+				if err != nil {
+					return Endpoint{}, fmt.Errorf("%w while looking up subnet %v for segment %v", err, subnet, name)
+				}
+				ips = append(ips, subnet.Values...)
+			}
+			return Endpoint{name, ips, EndpointTypeSubnet}, nil
 		}
-		return Endpoint{}, fmt.Errorf("%v is ambiguous: may be either one of %v", name, strings.Join(possibleTypes, ", "))
+	default:
+		return Endpoint{}, fmt.Errorf("invalid type %v (endpoint %v)", t, name)
 	}
-	if len(result) == 0 {
-		return Endpoint{}, fmt.Errorf("%v is not a valid %v", name, expectedType)
-	}
-	return result[0], nil
+	return Endpoint{}, fmt.Errorf("%v %v not found", t, name)
 }
 
-func (s *Definitions) InverseSubnetMap() map[IP]string {
-	result := make(map[IP]string, len(s.Subnets))
-	for k, v := range s.Subnets {
-		result[v] = k
+func inverseLookup[K, V comparable](m map[K]V, x V) (result K, ok bool) {
+	for k, v := range m {
+		if v == x {
+			return k, true
+		}
 	}
-	return result
+	return
+}
+
+func inverseLookupMulti[K, V comparable](m map[K][]V, x V) (result K, ok bool) {
+	for k, vs := range m {
+		for _, v := range vs {
+			if v == x {
+				return k, true
+			}
+		}
+	}
+	return
+}
+
+func (s *ConfigDefs) SubnetNameFromIP(ip IP) (string, bool) {
+	return inverseLookup(s.Subnets, ip)
+}
+
+func (s *ConfigDefs) NifFromIP(ip IP) (string, bool) {
+	return inverseLookup(s.NifToIP, ip)
+}
+
+func (s *ConfigDefs) InstanceFromNif(nifName string) (string, bool) {
+	return inverseLookupMulti(s.InstanceToNifs, nifName)
+}
+
+func (s *ConfigDefs) RemoteFromIP(ip IP) RemoteType {
+	nif, ok := s.NifFromIP(ip)
+	if !ok {
+		return ip
+	}
+	instance, ok := s.InstanceFromNif(nif)
+	if !ok {
+		return SGName(fmt.Sprintf("<unknown instance %v>", nif))
+	}
+	return SGName(instance)
 }
 
 type Reader interface {
-	ReadSpec(filename string, subnetMap map[string]IP) (*Spec, error)
+	ReadSpec(filename string, defs *ConfigDefs) (*Spec, error)
 }
