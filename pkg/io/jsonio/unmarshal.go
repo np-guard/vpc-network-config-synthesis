@@ -90,7 +90,7 @@ func translateConnection(defs *ir.Definitions, v *SpecRequiredConnectionsElem, c
 	if err != nil {
 		return nil, err
 	}
-	src, err := defs.Lookup(v.Src.Name, srcEndpointType)
+	src, err := defs.Lookup(srcEndpointType, v.Src.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func translateConnection(defs *ir.Definitions, v *SpecRequiredConnectionsElem, c
 	if err != nil {
 		return nil, err
 	}
-	dst, err := defs.Lookup(v.Dst.Name, dstEndpointType)
+	dst, err := defs.Lookup(dstEndpointType, v.Dst.Name)
 	if err != nil {
 		return nil, err
 	}
