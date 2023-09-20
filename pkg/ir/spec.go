@@ -142,46 +142,48 @@ func (s *Definitions) Lookup(name string, expectedType EndpointType) (Endpoint, 
 	return result[0], nil
 }
 
-func inverseLookup[K, V comparable](m map[K]V, x V, notFound K) K {
+func inverseLookup[K, V comparable](m map[K]V, x V) (result K, ok bool) {
 	for k, v := range m {
 		if v == x {
-			return k
+			return k, true
 		}
 	}
-	return notFound
+	return
 }
 
-func inverseLookupMulti[K, V comparable](m map[K][]V, x V, notFound K) K {
+func inverseLookupMulti[K, V comparable](m map[K][]V, x V) (result K, ok bool) {
 	for k, vs := range m {
 		for _, v := range vs {
 			if v == x {
-				return k
+				return k, true
 			}
 		}
 	}
-	return notFound
+	return
 }
 
-func (s *ConfigDefs) SubnetNameFromIP(ip IP) string {
-	return inverseLookup(s.Subnets, ip, fmt.Sprintf("<unknown subnet %v>", ip))
+func (s *ConfigDefs) SubnetNameFromIP(ip IP) (string, bool) {
+	return inverseLookup(s.Subnets, ip)
 }
 
-func (s *ConfigDefs) NifFromIP(ip IP) string {
-	return inverseLookup(s.NifToIP, ip, fmt.Sprintf("<unknown nif %v>", ip))
+func (s *ConfigDefs) NifFromIP(ip IP) (string, bool) {
+	return inverseLookup(s.NifToIP, ip)
 }
 
-func (s *ConfigDefs) InstanceFromNif(nifName string) string {
-	return inverseLookupMulti(s.InstanceToNifs, nifName, fmt.Sprintf("<unknown instance %v>", nifName))
+func (s *ConfigDefs) InstanceFromNif(nifName string) (string, bool) {
+	return inverseLookupMulti(s.InstanceToNifs, nifName)
 }
 
 func (s *ConfigDefs) RemoteFromIP(ip IP) RemoteType {
-	if ip.String() == AnyIP {
+	nif, ok := s.NifFromIP(ip)
+	if !ok {
 		return ip
 	}
-	if ip.String() == AnyCIDR {
-		return ip
+	instance, ok := s.InstanceFromNif(nif)
+	if !ok {
+		return SGName(fmt.Sprintf("<unknown instance %v>", nif))
 	}
-	return SGName(s.InstanceFromNif(s.NifFromIP(ip)))
+	return SGName(instance)
 }
 
 type Reader interface {

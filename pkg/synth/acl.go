@@ -2,6 +2,7 @@
 package synth
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
@@ -13,7 +14,13 @@ type Options struct {
 
 // MakeACL translates Spec to a collection of ACLs
 func MakeACL(s *ir.Spec, opt Options) *ir.ACLCollection {
-	aclSelector := s.Defs.SubnetNameFromIP
+	aclSelector := func(ip ir.IP) string {
+		result, ok := s.Defs.SubnetNameFromIP(ip)
+		if !ok {
+			return fmt.Sprintf("<unknown subnet %v>", ip)
+		}
+		return result
+	}
 	if opt.SingleACL {
 		aclSelector = func(target ir.IP) string { return "1" }
 	}
