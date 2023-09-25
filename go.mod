@@ -3,7 +3,7 @@ module github.com/np-guard/vpc-network-config-synthesis
 go 1.21
 
 require (
-	github.com/np-guard/cloud-resource-collector v0.0.0-20230828132213-7bea6b41e2cf
+	github.com/np-guard/cloud-resource-collector v0.1.0
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 )
 
