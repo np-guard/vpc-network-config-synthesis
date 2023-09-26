@@ -1,7 +1,7 @@
 resource "ibm_is_network_acl" "acl-1" {
   name           = "acl-1"
-  resource_group = var.resource_group_id
-  vpc            = var.vpc_id
+  resource_group = local.acl_synth_resource_group_id
+  vpc            = local.acl_synth_vpc_id
   # Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
   rules {
     name        = "rule0"
