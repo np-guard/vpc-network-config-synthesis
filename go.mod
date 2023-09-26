@@ -8,6 +8,15 @@ require (
 )
 
 require (
+	github.com/agext/levenshtein v1.2.1 // indirect
+	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
+	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
+	github.com/google/go-cmp v0.5.9 // indirect
+	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
+	github.com/zclconf/go-cty v1.13.0 // indirect
+)
+
+require (
 	github.com/IBM-Cloud/container-services-go-sdk v0.0.0-20230118060037-101bda076037 // indirect
 	github.com/IBM/go-sdk-core/v5 v5.14.1 // indirect
 	github.com/IBM/vpc-go-sdk v0.41.0 // indirect
@@ -19,11 +28,12 @@ require (
 	github.com/go-playground/validator/v10 v10.13.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.2 // indirect
+	github.com/hashicorp/hcl/v2 v2.18.0
 	github.com/leodido/go-urn v1.2.3 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	go.mongodb.org/mongo-driver v1.11.4 // indirect
 	golang.org/x/crypto v0.8.0 // indirect
 	golang.org/x/sys v0.12.0 // indirect
-	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/text v0.11.0 // indirect
 )
