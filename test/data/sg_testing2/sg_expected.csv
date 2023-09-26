@@ -1,8 +1,12 @@
 SG,Direction,Protocol,Target Type,Target,Value,Description
+appdata-endpoint-gateway,Inbound,TCP,be-ky,any port,Internal. required-connections[4]: (instance be-ky)->(vpe appdata-endpoint-gateway); allowed-protocols[0]
 be-ky,Inbound,TCP,fe-ky,any port,Internal. required-connections[2]: (instance fe-ky)->(instance be-ky); allowed-protocols[0]
 be-ky,Outbound,TCP,opa-ky,Ports 8181-8181,Internal. required-connections[3]: (instance be-ky)->(instance opa-ky); allowed-protocols[0]
+be-ky,Outbound,TCP,appdata-endpoint-gateway,any port,Internal. required-connections[4]: (instance be-ky)->(vpe appdata-endpoint-gateway); allowed-protocols[0]
 fe-ky,Inbound,TCP,proxy-ky,Ports 9000-9000,Internal. required-connections[1]: (instance proxy-ky)->(instance fe-ky); allowed-protocols[0]
 fe-ky,Outbound,TCP,be-ky,any port,Internal. required-connections[2]: (instance fe-ky)->(instance be-ky); allowed-protocols[0]
 opa-ky,Inbound,TCP,be-ky,Ports 8181-8181,Internal. required-connections[3]: (instance be-ky)->(instance opa-ky); allowed-protocols[0]
+opa-ky,Outbound,TCP,policydb-endpoint-gateway,any port,Internal. required-connections[5]: (instance opa-ky)->(vpe policydb-endpoint-gateway); allowed-protocols[0]
+policydb-endpoint-gateway,Inbound,TCP,opa-ky,any port,Internal. required-connections[5]: (instance opa-ky)->(vpe policydb-endpoint-gateway); allowed-protocols[0]
 proxy-ky,Inbound,ALL,,,External. required-connections[0]: (external public internet)->(instance proxy-ky); allowed-protocols[0]
 proxy-ky,Outbound,TCP,fe-ky,Ports 9000-9000,Internal. required-connections[1]: (instance proxy-ky)->(instance fe-ky); allowed-protocols[0]

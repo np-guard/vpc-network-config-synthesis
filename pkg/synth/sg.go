@@ -80,5 +80,5 @@ func GenerateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(tar
 }
 
 func endpointRelevantToSG(e ir.EndpointType) bool {
-	return e == ir.EndpointTypeNif || e == ir.EndpointTypeInstance
+	return e == ir.EndpointTypeNIF || e == ir.EndpointTypeInstance
 }

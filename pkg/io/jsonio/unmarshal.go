@@ -31,8 +31,8 @@ func (*Reader) ReadSpec(filename string, configDefs *ir.ConfigDefs) (*ir.Spec, e
 	if configDefs == nil {
 		configDefs = &ir.ConfigDefs{
 			Subnets:        translateIPMap(jsonspec.Subnets),
-			NifToIP:        translateIPMap(jsonspec.Nifs),
-			InstanceToNifs: jsonspec.Instances,
+			NIFToIP:        translateIPMap(jsonspec.Nifs),
+			InstanceToNIFs: jsonspec.Instances,
 		}
 	}
 	defs := &ir.Definitions{
@@ -165,9 +165,11 @@ func translateEndpointType(endpointType EndpointType) (ir.EndpointType, error) {
 	case EndpointTypeSubnet:
 		return ir.EndpointTypeSubnet, nil
 	case EndpointTypeNif:
-		return ir.EndpointTypeNif, nil
+		return ir.EndpointTypeNIF, nil
 	case EndpointTypeInstance:
 		return ir.EndpointTypeInstance, nil
+	case EndpointTypeVpe:
+		return ir.EndpointTypeVPE, nil
 	default:
 		return ir.EndpointTypeSubnet, fmt.Errorf("unsupported endpoint type %v", endpointType)
 	}
