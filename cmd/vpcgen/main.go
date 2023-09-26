@@ -96,14 +96,13 @@ func main() {
 		"JSON file containing config spec")
 	target := flag.String("target", defaultTarget,
 		fmt.Sprintf("Target resource to generate. One of %q, %q, %q.", aclTarget, sgTarget, singleaclTarget))
-	inputFormat := flag.String("inputfmt", jsonInputFormat,
-		fmt.Sprintf("Input format. Must be %q", jsonInputFormat))
 	outputFormat := flag.String("fmt", "",
-		fmt.Sprintf("Output format. One of %q, %q; must not contradict output file suffix.", tfOutputFormat, csvOutputFormat))
+		fmt.Sprintf("Output format. One of %q, %q; must not contradict output file suffix. Default: %q", tfOutputFormat,
+			csvOutputFormat, defaultOutputFormat))
 	outputFile := flag.String("o", "",
-		"Output to file")
+		"Output to file. If unspecified, use stdout. If specified, also determines output format.")
 	flag.Usage = func() {
-		_, _ = fmt.Fprintf(os.Stderr, `VpcGen translates connectivity spec to network ACLs and security groups.
+		_, _ = fmt.Fprintf(os.Stderr, `VpcGen translates connectivity spec to network ACLs or Security Groups.
 Usage:
 	%s [flags] SPEC_FILE
 
@@ -136,7 +135,7 @@ Flags:
 		log.Fatal(err)
 	}
 
-	reader, err := pickReader(*inputFormat)
+	reader, err := pickReader(jsonInputFormat)
 	if err != nil {
 		log.Fatal(err)
 	}
