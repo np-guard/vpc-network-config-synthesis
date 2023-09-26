@@ -43,7 +43,7 @@ func ReadDefs(filename string) (*ir.ConfigDefs, error) {
 	for _, subnet := range config.SubnetList {
 		for _, r := range subnet.ReservedIps {
 			if t, ok := r.Target.(*vpcv1.ReservedIPTarget); ok && t != nil && r.Address != nil {
-				if r.ResourceType != nil && *t.ResourceType == "endpoint_gateway" {
+				if r.ResourceType != nil && *t.ResourceType == "endpoint_gateway" && t.Name != nil {
 					vpeToIP[*t.Name] = ir.IPFromString(*r.Address)
 				}
 			}
