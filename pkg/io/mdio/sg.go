@@ -49,6 +49,7 @@ func makeSGRow(rule *ir.SGRule, sgName ir.SGName) []string {
 		string(sgName),
 		direction(rule.Direction),
 		printProtocolName(rule.Protocol),
+		sGRemoteType(rule.Remote),
 		sgRemote(rule.Remote),
 		printValue(rule.Protocol, rule.Direction == ir.Inbound),
 		rule.Explanation,
@@ -72,6 +73,19 @@ func sGPort(p ir.PortRange) string {
 	default:
 		return fmt.Sprintf("Ports %v-%v", p.Min, p.Max)
 	}
+}
+
+func sGRemoteType(t ir.RemoteType) string {
+	switch t.(type) {
+	case ir.IP:
+		return "IP address"
+	case ir.CIDR:
+		return "CIDR block"
+	case ir.SGName:
+		return "Security group"
+	}
+	log.Fatalf("impossible remote type %T", t)
+	return ""
 }
 
 func sgRemote(r ir.RemoteType) string {

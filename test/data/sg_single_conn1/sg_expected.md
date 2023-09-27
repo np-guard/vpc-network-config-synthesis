@@ -1,0 +1,4 @@
+ | SG | Direction | Protocol | Remote type | Remote | Value | Description | 
+ |  :---  |  :---  |  :---  |  :---  |  :---  |  :---  |  :---  | 
+ | A | Outbound | TCP | Security group | B | Ports 443-443 | Internal. required-connections[0]: (nif ni3b)->(nif ni2); allowed-protocols[0] | 
+ | B | Inbound | TCP | Security group | A | Ports 443-443 | Internal. required-connections[0]: (nif ni3b)->(nif ni2); allowed-protocols[0] | 
