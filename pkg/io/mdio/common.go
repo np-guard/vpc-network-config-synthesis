@@ -24,11 +24,8 @@ func NewWriter(w io.Writer) *Writer {
 }
 
 func (w *Writer) writeAll(rows [][]string) error {
-	for i, row := range rows {
+	for _, row := range rows {
 		s := strings.Join(row, " | ")
-		if i > 1 && !strings.HasSuffix(s, "] | ") {
-			log.Fatalf("%q does not end with ']'", s)
-		}
 		printed, err := w.w.WriteString(s + "\n")
 		if err != nil {
 			return err
