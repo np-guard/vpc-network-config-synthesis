@@ -3,6 +3,7 @@ module github.com/np-guard/vpc-network-config-synthesis
 go 1.21
 
 require (
+	github.com/IBM/vpc-go-sdk v0.41.0
 	github.com/np-guard/cloud-resource-collector v0.1.0
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 )
@@ -10,7 +11,6 @@ require (
 require (
 	github.com/IBM-Cloud/container-services-go-sdk v0.0.0-20230118060037-101bda076037 // indirect
 	github.com/IBM/go-sdk-core/v5 v5.14.1 // indirect
-	github.com/IBM/vpc-go-sdk v0.41.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/go-openapi/errors v0.20.3 // indirect
 	github.com/go-openapi/strfmt v0.21.7 // indirect
