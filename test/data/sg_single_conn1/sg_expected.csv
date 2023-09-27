@@ -1,3 +1,3 @@
-SG,Direction,Protocol,Target Type,Target,Value,Description
-A,Outbound,TCP,Security group,B,Ports 443-443,Internal. required-connections[0]: (nif ni3b)->(nif ni2); allowed-protocols[0]
-B,Inbound,TCP,Security group,A,Ports 443-443,Internal. required-connections[0]: (nif ni3b)->(nif ni2); allowed-protocols[0]
+SG,Direction,Target Type,Target,Protocol,Protocol params,Description
+A,Outbound,Security group,B,TCP,Ports 443-443,Internal. required-connections[0]: (nif ni3b)->(nif ni2); allowed-protocols[0]
+B,Inbound,Security group,A,TCP,Ports 443-443,Internal. required-connections[0]: (nif ni3b)->(nif ni2); allowed-protocols[0]

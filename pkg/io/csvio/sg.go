@@ -23,10 +23,10 @@ func sgHeader() []string {
 	return []string{
 		"SG",
 		"Direction",
-		"Protocol",
 		"Target Type",
 		"Target",
-		"Value",
+		"Protocol",
+		"Protocol params",
 		"Description",
 	}
 }
@@ -35,10 +35,10 @@ func makeSGRow(rule *ir.SGRule, sgName ir.SGName) []string {
 	return []string{
 		string(sgName),
 		direction(rule.Direction),
-		printProtocolName(rule.Protocol),
 		sGRemoteType(rule.Remote),
 		sgRemote(rule.Remote),
-		printValue(rule.Protocol, rule.Direction == ir.Inbound),
+		printProtocolName(rule.Protocol),
+		printProtocolParams(rule.Protocol, rule.Direction == ir.Inbound),
 		rule.Explanation,
 	}
 }
@@ -95,7 +95,7 @@ func sgRemote(r ir.RemoteType) string {
 	return ""
 }
 
-func printValue(protocol ir.Protocol, isSource bool) string {
+func printProtocolParams(protocol ir.Protocol, isSource bool) string {
 	switch p := protocol.(type) {
 	case ir.ICMP:
 		return printICMPTypeCode(protocol)
