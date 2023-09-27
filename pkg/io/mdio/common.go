@@ -5,7 +5,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"log"
 	"strconv"
 	"strings"
 
@@ -25,13 +24,9 @@ func NewWriter(w io.Writer) *Writer {
 
 func (w *Writer) writeAll(rows [][]string) error {
 	for _, row := range rows {
-		s := strings.Join(row, " | ")
-		printed, err := w.w.WriteString(s + "\n")
+		_, err := w.w.WriteString(strings.Join(row, " | ") + "\n")
 		if err != nil {
 			return err
-		}
-		if printed != len(s)+1 {
-			log.Fatalf("Expected %v, printed %v", len(s)+1, printed)
 		}
 	}
 	w.w.Flush()
