@@ -59,7 +59,7 @@ func sgProtocol(t ir.Protocol, d ir.Direction) []tf.Block {
 }
 
 func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) tf.Block {
-	ruleName := fmt.Sprintf("sgrule-%v-%v", sgName, i)
+	ruleName := fmt.Sprintf("%v-%v", sgName, i)
 	verifyName(ruleName)
 	return tf.Block{
 		Name:    "resource",
@@ -74,16 +74,30 @@ func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) tf.Block {
 	}
 }
 
+func sg(sgName string) tf.Block {
+	verifyName(sgName)
+	return tf.Block{
+		Name:   "resource", //nolint:revive  // obvious false positive
+		Labels: []string{quote("ibm_is_security_group"), quote(sgName)},
+		Arguments: []tf.Argument{
+			{Name: "name", Value: quote("sg-" + sgName)},
+			{Name: "resource_group", Value: "local.sg_synth_resource_group_id"},
+			{Name: "vpc", Value: "local.sg_synth_vpc_id"},
+		},
+	}
+}
+
 func sgCollection(t *ir.SGCollection) *tf.ConfigFile {
-	var sgRules []tf.Block
+	var resources []tf.Block //nolint:prealloc  // nontrivial to calculate, and an unlikely performance bottleneck
 	for _, sgName := range t.SortedSGNames() {
+		resources = append(resources, sg(sgName.String()))
 		rules := t.SGs[sgName].Rules
 		for i := range rules {
-			sgRule := sgRule(&rules[i], sgName, i)
-			sgRules = append(sgRules, sgRule)
+			rule := sgRule(&rules[i], sgName, i)
+			resources = append(resources, rule)
 		}
 	}
 	return &tf.ConfigFile{
-		Resources: sgRules,
+		Resources: resources,
 	}
 }
