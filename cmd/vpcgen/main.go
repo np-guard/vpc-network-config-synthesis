@@ -15,6 +15,7 @@ import (
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/csvio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/jsonio"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/mdio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/tfio"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
@@ -33,6 +34,7 @@ const (
 const (
 	tfOutputFormat      = "tf"
 	csvOutputFormat     = "csv"
+	mdOutputFormat      = "md"
 	defaultOutputFormat = csvOutputFormat
 )
 
@@ -51,6 +53,8 @@ func inferFormatUsingFilename(filename string) string {
 		return tfOutputFormat
 	case strings.HasSuffix(filename, ".csv"):
 		return csvOutputFormat
+	case strings.HasSuffix(filename, ".md"):
+		return mdOutputFormat
 	default:
 		return ""
 	}
@@ -77,6 +81,8 @@ func pickWriter(format string, w io.Writer) (ir.Writer, error) {
 		return tfio.NewWriter(w), nil
 	case csvOutputFormat:
 		return csvio.NewWriter(w), nil
+	case mdOutputFormat:
+		return mdio.NewWriter(w), nil
 	default:
 		return nil, fmt.Errorf("bad output format: %q", format)
 	}
@@ -97,8 +103,8 @@ func main() {
 	target := flag.String("target", defaultTarget,
 		fmt.Sprintf("Target resource to generate. One of %q, %q, %q.", aclTarget, sgTarget, singleaclTarget))
 	outputFormat := flag.String("fmt", "",
-		fmt.Sprintf("Output format. One of %q, %q; must not contradict output file suffix. Default: %q", tfOutputFormat,
-			csvOutputFormat, defaultOutputFormat))
+		fmt.Sprintf("Output format. One of %q, %q, %q; must not contradict output file suffix. Default: %q",
+			tfOutputFormat, csvOutputFormat, mdOutputFormat, defaultOutputFormat))
 	outputFile := flag.String("o", "",
 		"Output to file. If unspecified, use stdout. If specified, also determines output format.")
 	flag.Usage = func() {
