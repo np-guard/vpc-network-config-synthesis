@@ -48,10 +48,13 @@ type (
 		Subnets map[string]IP
 
 		// Network interface name to IP address
-		NifToIP map[string]IP
+		NIFToIP map[string]IP
 
 		// Instance is a collection of NIFs
-		InstanceToNifs map[string][]string
+		InstanceToNIFs map[string][]string
+
+		// VPEs have a single IP
+		VPEToIP map[string]IP
 	}
 
 	// Definitions adds to ConfigDefs the spec-specific definitions
@@ -72,53 +75,51 @@ const (
 	EndpointTypeExternal EndpointType = "external"
 	EndpointTypeSegment  EndpointType = "segment"
 	EndpointTypeSubnet   EndpointType = "subnet"
-	EndpointTypeNif      EndpointType = "nif"
+	EndpointTypeNIF      EndpointType = "nif"
+	EndpointTypeVPE      EndpointType = "vpe"
 	EndpointTypeInstance EndpointType = "instance"
 	EndpointTypeAny      EndpointType = "any"
 )
 
+func lookupSingle(m map[string]IP, name string, t EndpointType) (Endpoint, error) {
+	if ip, ok := m[name]; ok {
+		return Endpoint{name, []IP{ip}, t}, nil
+	}
+	return Endpoint{}, fmt.Errorf("%v %v not found", t, name)
+}
+
+func (s *Definitions) lookupMulti(m map[string][]string, name string, elemType, containerType EndpointType) (Endpoint, error) {
+	if elems, ok := m[name]; ok {
+		ips := []IP{}
+		for _, elemName := range elems {
+			nif, err := s.Lookup(elemType, elemName)
+			if err != nil {
+				return Endpoint{}, fmt.Errorf("%w while looking up %v %v for instance %v", err, elemType, elemName, name)
+			}
+			ips = append(ips, nif.Values...)
+		}
+		return Endpoint{name, ips, elemType}, nil
+	}
+	return Endpoint{}, fmt.Errorf("container %v %v not found", containerType, name)
+}
+
 func (s *Definitions) Lookup(t EndpointType, name string) (Endpoint, error) {
 	switch t {
 	case EndpointTypeExternal:
-		if ip, ok := s.Externals[name]; ok {
-			return Endpoint{name, []IP{ip}, t}, nil
-		}
+		return lookupSingle(s.Externals, name, t)
 	case EndpointTypeSubnet:
-		if ip, ok := s.Subnets[name]; ok {
-			return Endpoint{name, []IP{ip}, t}, nil
-		}
-	case EndpointTypeNif:
-		if ip, ok := s.NifToIP[name]; ok {
-			return Endpoint{name, []IP{ip}, t}, nil
-		}
+		return lookupSingle(s.Subnets, name, t)
+	case EndpointTypeNIF:
+		return lookupSingle(s.NIFToIP, name, t)
+	case EndpointTypeVPE:
+		return lookupSingle(s.VPEToIP, name, t)
 	case EndpointTypeInstance:
-		if nifs, ok := s.InstanceToNifs[name]; ok {
-			ips := []IP{}
-			for _, nifName := range nifs {
-				nif, err := s.Lookup(EndpointTypeNif, nifName)
-				if err != nil {
-					return Endpoint{}, fmt.Errorf("%w while looking up nif %v for instance %v", err, nifName, name)
-				}
-				ips = append(ips, nif.Values...)
-			}
-			return Endpoint{name, ips, EndpointTypeNif}, nil
-		}
+		return s.lookupMulti(s.InstanceToNIFs, name, EndpointTypeNIF, EndpointTypeInstance)
 	case EndpointTypeSegment:
-		if segment, ok := s.SubnetSegments[name]; ok {
-			var ips []IP
-			for _, subnetName := range segment {
-				subnet, err := s.Lookup(EndpointTypeSubnet, subnetName)
-				if err != nil {
-					return Endpoint{}, fmt.Errorf("%w while looking up subnet %v for segment %v", err, subnet, name)
-				}
-				ips = append(ips, subnet.Values...)
-			}
-			return Endpoint{name, ips, EndpointTypeSubnet}, nil
-		}
+		return s.lookupMulti(s.SubnetSegments, name, EndpointTypeSubnet, EndpointTypeSegment)
 	default:
 		return Endpoint{}, fmt.Errorf("invalid type %v (endpoint %v)", t, name)
 	}
-	return Endpoint{}, fmt.Errorf("%v %v not found", t, name)
 }
 
 func inverseLookup[K, V comparable](m map[K]V, x V) (result K, ok bool) {
@@ -145,24 +146,29 @@ func (s *ConfigDefs) SubnetNameFromIP(ip IP) (string, bool) {
 	return inverseLookup(s.Subnets, ip)
 }
 
-func (s *ConfigDefs) NifFromIP(ip IP) (string, bool) {
-	return inverseLookup(s.NifToIP, ip)
+func (s *ConfigDefs) NIFFromIP(ip IP) (string, bool) {
+	return inverseLookup(s.NIFToIP, ip)
 }
 
-func (s *ConfigDefs) InstanceFromNif(nifName string) (string, bool) {
-	return inverseLookupMulti(s.InstanceToNifs, nifName)
+func (s *ConfigDefs) VPEFromIP(ip IP) (string, bool) {
+	return inverseLookup(s.VPEToIP, ip)
+}
+
+func (s *ConfigDefs) InstanceFromNIF(nifName string) (string, bool) {
+	return inverseLookupMulti(s.InstanceToNIFs, nifName)
 }
 
 func (s *ConfigDefs) RemoteFromIP(ip IP) RemoteType {
-	nif, ok := s.NifFromIP(ip)
-	if !ok {
-		return ip
-	}
-	instance, ok := s.InstanceFromNif(nif)
-	if !ok {
+	if nif, okNIF := s.NIFFromIP(ip); okNIF {
+		if instance, okInstance := s.InstanceFromNIF(nif); okInstance {
+			return SGName(instance)
+		}
 		return SGName(fmt.Sprintf("<unknown instance %v>", nif))
 	}
-	return SGName(instance)
+	if vpe, okVPE := s.VPEFromIP(ip); okVPE {
+		return SGName(vpe)
+	}
+	return ip
 }
 
 type Reader interface {

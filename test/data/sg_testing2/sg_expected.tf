@@ -1,3 +1,16 @@
+resource "ibm_is_security_group" "appdata-endpoint-gateway" {
+  name           = "sg-appdata-endpoint-gateway"
+  resource_group = local.sg_synth_resource_group_id
+  vpc            = local.sg_synth_vpc_id
+}
+# Internal. required-connections[4]: (instance be-ky)->(vpe appdata-endpoint-gateway); allowed-protocols[0]
+resource "ibm_is_security_group_rule" "appdata-endpoint-gateway-0" {
+  group     = ibm_is_security_group.appdata-endpoint-gateway.id
+  direction = "inbound"
+  remote    = ibm_is_security_group.be-ky.id
+  tcp {
+  }
+}
 resource "ibm_is_security_group" "be-ky" {
   name           = "sg-be-ky"
   resource_group = local.sg_synth_resource_group_id
@@ -19,6 +32,14 @@ resource "ibm_is_security_group_rule" "be-ky-1" {
   tcp {
     port_min = 8181
     port_max = 8181
+  }
+}
+# Internal. required-connections[4]: (instance be-ky)->(vpe appdata-endpoint-gateway); allowed-protocols[0]
+resource "ibm_is_security_group_rule" "be-ky-2" {
+  group     = ibm_is_security_group.be-ky.id
+  direction = "outbound"
+  remote    = ibm_is_security_group.appdata-endpoint-gateway.id
+  tcp {
   }
 }
 resource "ibm_is_security_group" "fe-ky" {
@@ -57,6 +78,27 @@ resource "ibm_is_security_group_rule" "opa-ky-0" {
   tcp {
     port_min = 8181
     port_max = 8181
+  }
+}
+# Internal. required-connections[5]: (instance opa-ky)->(vpe policydb-endpoint-gateway); allowed-protocols[0]
+resource "ibm_is_security_group_rule" "opa-ky-1" {
+  group     = ibm_is_security_group.opa-ky.id
+  direction = "outbound"
+  remote    = ibm_is_security_group.policydb-endpoint-gateway.id
+  tcp {
+  }
+}
+resource "ibm_is_security_group" "policydb-endpoint-gateway" {
+  name           = "sg-policydb-endpoint-gateway"
+  resource_group = local.sg_synth_resource_group_id
+  vpc            = local.sg_synth_vpc_id
+}
+# Internal. required-connections[5]: (instance opa-ky)->(vpe policydb-endpoint-gateway); allowed-protocols[0]
+resource "ibm_is_security_group_rule" "policydb-endpoint-gateway-0" {
+  group     = ibm_is_security_group.policydb-endpoint-gateway.id
+  direction = "inbound"
+  remote    = ibm_is_security_group.opa-ky.id
+  tcp {
   }
 }
 resource "ibm_is_security_group" "proxy-ky" {

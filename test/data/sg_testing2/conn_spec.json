@@ -61,6 +61,36 @@
                     "max_destination_port": 8181
                 }
             ]
+        },
+        {
+            "src": {
+                "name": "be-ky",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "appdata-endpoint-gateway",
+                "type": "vpe"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "opa-ky",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "policydb-endpoint-gateway",
+                "type": "vpe"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ]
         }
     ]
 }
