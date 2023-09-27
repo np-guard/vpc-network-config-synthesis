@@ -1,8 +1,8 @@
 # sub1-1-ky [10.240.1.0/24]
 resource "ibm_is_network_acl" "acl-sub1-1-ky" {
   name           = "acl-sub1-1-ky"
-  resource_group = var.resource_group_id
-  vpc            = var.vpc_id
+  resource_group = local.acl_synth_resource_group_id
+  vpc            = local.acl_synth_vpc_id
   # Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
   rules {
     name        = "rule0"
@@ -280,8 +280,8 @@ resource "ibm_is_network_acl" "acl-sub1-1-ky" {
 # sub1-2-ky [10.240.2.0/24]
 resource "ibm_is_network_acl" "acl-sub1-2-ky" {
   name           = "acl-sub1-2-ky"
-  resource_group = var.resource_group_id
-  vpc            = var.vpc_id
+  resource_group = local.acl_synth_resource_group_id
+  vpc            = local.acl_synth_vpc_id
   # Internal. required-connections[3]: (subnet sub1-1-ky)->(subnet sub1-2-ky); allowed-protocols[0]
   rules {
     name        = "rule0"
@@ -327,8 +327,8 @@ resource "ibm_is_network_acl" "acl-sub1-2-ky" {
 # sub1-3-ky [10.240.3.0/24]
 resource "ibm_is_network_acl" "acl-sub1-3-ky" {
   name           = "acl-sub1-3-ky"
-  resource_group = var.resource_group_id
-  vpc            = var.vpc_id
+  resource_group = local.acl_synth_resource_group_id
+  vpc            = local.acl_synth_vpc_id
   # Internal. required-connections[4]: (subnet sub1-1-ky)->(subnet sub1-3-ky); allowed-protocols[0]
   rules {
     name        = "rule0"
@@ -374,8 +374,8 @@ resource "ibm_is_network_acl" "acl-sub1-3-ky" {
 # sub2-1-ky [10.240.64.0/24]
 resource "ibm_is_network_acl" "acl-sub2-1-ky" {
   name           = "acl-sub2-1-ky"
-  resource_group = var.resource_group_id
-  vpc            = var.vpc_id
+  resource_group = local.acl_synth_resource_group_id
+  vpc            = local.acl_synth_vpc_id
   # Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
   rules {
     name        = "rule0"
@@ -653,8 +653,8 @@ resource "ibm_is_network_acl" "acl-sub2-1-ky" {
 # sub2-2-ky [10.240.65.0/24]
 resource "ibm_is_network_acl" "acl-sub2-2-ky" {
   name           = "acl-sub2-2-ky"
-  resource_group = var.resource_group_id
-  vpc            = var.vpc_id
+  resource_group = local.acl_synth_resource_group_id
+  vpc            = local.acl_synth_vpc_id
   # Internal. required-connections[6]: (subnet sub2-1-ky)->(subnet sub2-2-ky); allowed-protocols[0]
   rules {
     name        = "rule0"
@@ -676,8 +676,8 @@ resource "ibm_is_network_acl" "acl-sub2-2-ky" {
 # sub3-1-ky [10.240.128.0/24]
 resource "ibm_is_network_acl" "acl-sub3-1-ky" {
   name           = "acl-sub3-1-ky"
-  resource_group = var.resource_group_id
-  vpc            = var.vpc_id
+  resource_group = local.acl_synth_resource_group_id
+  vpc            = local.acl_synth_vpc_id
   # Internal. required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
   rules {
     name        = "rule0"

@@ -1,8 +1,8 @@
 # subnet1-ky [10.240.10.0/24]
 resource "ibm_is_network_acl" "acl-subnet1-ky" {
   name           = "acl-subnet1-ky"
-  resource_group = var.resource_group_id
-  vpc            = var.vpc_id
+  resource_group = local.acl_synth_resource_group_id
+  vpc            = local.acl_synth_vpc_id
   # Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
   rules {
     name        = "rule0"
@@ -56,8 +56,8 @@ resource "ibm_is_network_acl" "acl-subnet1-ky" {
 # subnet3-ky [10.240.30.0/24]
 resource "ibm_is_network_acl" "acl-subnet3-ky" {
   name           = "acl-subnet3-ky"
-  resource_group = var.resource_group_id
-  vpc            = var.vpc_id
+  resource_group = local.acl_synth_resource_group_id
+  vpc            = local.acl_synth_vpc_id
   # Internal. required-connections[0]: (subnet subnet1-ky)->(subnet subnet3-ky); allowed-protocols[0]
   rules {
     name        = "rule0"
