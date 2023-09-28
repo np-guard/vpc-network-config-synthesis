@@ -1,4 +1,4 @@
-SG,Direction,Target Type,Target,Protocol,Protocol params,Description
+SG,Direction,Remote type,Remote,Protocol,Protocol params,Description
 appdata-endpoint-gateway,Inbound,Security group,be-ky,TCP,any port,Internal. required-connections[4]: (instance be-ky)->(vpe appdata-endpoint-gateway); allowed-protocols[0]
 be-ky,Inbound,Security group,fe-ky,TCP,any port,Internal. required-connections[2]: (instance fe-ky)->(instance be-ky); allowed-protocols[0]
 be-ky,Outbound,Security group,opa-ky,TCP,Ports 8181-8181,Internal. required-connections[3]: (instance be-ky)->(instance opa-ky); allowed-protocols[0]

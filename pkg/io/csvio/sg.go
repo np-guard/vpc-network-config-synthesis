@@ -8,7 +8,7 @@ import (
 )
 
 func (w *Writer) WriteSG(collection *ir.SGCollection) error {
-	if err := w.w.Write(sgHeader()); err != nil {
+	if err := w.w.WriteAll(sgHeader()); err != nil {
 		return err
 	}
 	for _, sgName := range collection.SortedSGNames() {
@@ -19,16 +19,16 @@ func (w *Writer) WriteSG(collection *ir.SGCollection) error {
 	return nil
 }
 
-func sgHeader() []string {
-	return []string{
+func sgHeader() [][]string {
+	return [][]string{{
 		"SG",
 		"Direction",
-		"Target Type",
-		"Target",
+		"Remote type",
+		"Remote",
 		"Protocol",
 		"Protocol params",
 		"Description",
-	}
+	}}
 }
 
 func makeSGRow(rule *ir.SGRule, sgName ir.SGName) []string {
