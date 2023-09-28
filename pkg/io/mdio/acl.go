@@ -76,6 +76,23 @@ func aclHeader() [][]string {
 	}}
 }
 
+func makeACLRow(priority int, rule *ir.ACLRule, aclName, subnet string) []string {
+	return []string{
+		"",
+		aclName,
+		subnet,
+		direction(rule.Direction),
+		strconv.Itoa(priority),
+		action(rule.Action),
+		printProtocolName(rule.Protocol),
+		printIP(rule.Source, rule.Protocol, true),
+		printIP(rule.Destination, rule.Protocol, false),
+		printICMPTypeCode(rule.Protocol),
+		rule.Explanation,
+		"",
+	}
+}
+
 func printIP(ip ir.IP, protocol ir.Protocol, isSource bool) string {
 	ipString := ip.String()
 	if ipString == ir.AnyCIDR {
@@ -98,21 +115,4 @@ func printIP(ip ir.IP, protocol ir.Protocol, isSource bool) string {
 		log.Panicf("Impossible protocol %v", p)
 	}
 	return ""
-}
-
-func makeACLRow(priority int, rule *ir.ACLRule, aclName, subnet string) []string {
-	return []string{
-		"",
-		aclName,
-		subnet,
-		direction(rule.Direction),
-		strconv.Itoa(priority),
-		action(rule.Action),
-		printProtocolName(rule.Protocol),
-		printIP(rule.Source, rule.Protocol, true),
-		printIP(rule.Destination, rule.Protocol, false),
-		printICMPTypeCode(rule.Protocol),
-		rule.Explanation,
-		"",
-	}
 }
