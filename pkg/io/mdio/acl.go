@@ -1,4 +1,4 @@
-package csvio
+package mdio
 
 import (
 	"fmt"
@@ -26,13 +26,13 @@ func ACLPort(p ir.PortRange) string {
 	}
 }
 
-// Write prints an entire collection of acls as a single CSV table.
+// Write prints an entire collection of acls as a single MD table.
 func (w *Writer) WriteACL(collection *ir.ACLCollection) error {
-	if err := w.w.WriteAll(aclHeader()); err != nil {
+	if err := w.writeAll(aclHeader()); err != nil {
 		return err
 	}
 	for _, subnet := range collection.SortedACLSubnets() {
-		if err := w.w.WriteAll(makeACLTable(collection.ACLs[subnet], subnet)); err != nil {
+		if err := w.writeAll(makeACLTable(collection.ACLs[subnet], subnet)); err != nil {
 			return err
 		}
 	}
@@ -48,6 +48,7 @@ func action(a ir.Action) string {
 
 func aclHeader() [][]string {
 	return [][]string{{
+		"",
 		"Acl",
 		"Subnet",
 		"Direction",
@@ -58,11 +59,26 @@ func aclHeader() [][]string {
 		"Destination",
 		"Value",
 		"Description",
+		"",
+	}, {
+		"",
+		leftAlign,
+		leftAlign,
+		leftAlign,
+		leftAlign,
+		leftAlign,
+		leftAlign,
+		leftAlign,
+		leftAlign,
+		leftAlign,
+		leftAlign,
+		"",
 	}}
 }
 
 func makeACLRow(priority int, rule *ir.ACLRule, aclName, subnet string) []string {
 	return []string{
+		"",
 		aclName,
 		subnet,
 		direction(rule.Direction),
@@ -73,6 +89,7 @@ func makeACLRow(priority int, rule *ir.ACLRule, aclName, subnet string) []string
 		printIP(rule.Destination, rule.Protocol, false),
 		printICMPTypeCode(rule.Protocol),
 		rule.Explanation,
+		"",
 	}
 }
 

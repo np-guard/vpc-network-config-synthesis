@@ -1,4 +1,4 @@
-package csvio
+package mdio
 
 import (
 	"fmt"
@@ -8,11 +8,11 @@ import (
 )
 
 func (w *Writer) WriteSG(collection *ir.SGCollection) error {
-	if err := w.w.WriteAll(sgHeader()); err != nil {
+	if err := w.writeAll(sgHeader()); err != nil {
 		return err
 	}
 	for _, sgName := range collection.SortedSGNames() {
-		if err := w.w.WriteAll(makeSGTable(collection.SGs[sgName], sgName)); err != nil {
+		if err := w.writeAll(makeSGTable(collection.SGs[sgName], sgName)); err != nil {
 			return err
 		}
 	}
@@ -21,6 +21,7 @@ func (w *Writer) WriteSG(collection *ir.SGCollection) error {
 
 func sgHeader() [][]string {
 	return [][]string{{
+		"",
 		"SG",
 		"Direction",
 		"Remote type",
@@ -28,11 +29,23 @@ func sgHeader() [][]string {
 		"Protocol",
 		"Protocol params",
 		"Description",
+		"",
+	}, {
+		"",
+		leftAlign,
+		leftAlign,
+		leftAlign,
+		leftAlign,
+		leftAlign,
+		leftAlign,
+		leftAlign,
+		"",
 	}}
 }
 
 func makeSGRow(rule *ir.SGRule, sgName ir.SGName) []string {
 	return []string{
+		"",
 		string(sgName),
 		direction(rule.Direction),
 		sGRemoteType(rule.Remote),
@@ -40,6 +53,7 @@ func makeSGRow(rule *ir.SGRule, sgName ir.SGName) []string {
 		printProtocolName(rule.Protocol),
 		printProtocolParams(rule.Protocol, rule.Direction == ir.Inbound),
 		rule.Explanation,
+		"",
 	}
 }
 
