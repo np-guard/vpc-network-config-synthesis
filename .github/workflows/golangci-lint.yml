@@ -14,13 +14,13 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version: '1.21'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: golangci/golangci-lint-action@v3
   ensure-fmt:
     name: ensure-fmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v4
         with:
           go-version-file: ./go.mod
@@ -43,7 +43,7 @@ jobs:
       - name: Install go-jsonschema
         run: pip install check-jsonschema
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Lint
         run: make lint-json
