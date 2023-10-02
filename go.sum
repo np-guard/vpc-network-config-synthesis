@@ -4,8 +4,8 @@ github.com/IBM-Cloud/container-services-go-sdk v0.0.0-20230118060037-101bda07603
 github.com/IBM/go-sdk-core/v5 v5.5.1/go.mod h1:Sn+z+qTDREQvCr+UFa22TqqfXNxx3o723y8GsfLV8e0=
 github.com/IBM/go-sdk-core/v5 v5.14.1 h1:WR1r0zz+gDW++xzZjF41r9ueY4JyjS2vgZjiYs8lO3c=
 github.com/IBM/go-sdk-core/v5 v5.14.1/go.mod h1:MUvIr/1mgGh198ZXL+ByKz9Qs1JoEh80v/96x8jPXNY=
-github.com/IBM/vpc-go-sdk v0.41.0 h1:Y/V0i5qp3hraD0nHl1EYga9MupSqMJP12vO/OlFqvDk=
-github.com/IBM/vpc-go-sdk v0.41.0/go.mod h1:Ga9hUJYJ6AbQVWL123Mz+/RIi77nv1dhnO4s3c3XdQE=
+github.com/IBM/vpc-go-sdk v0.42.0 h1:fbBeRPoiL7ut1RnZFxRq2eExKxAT7iAyQvaVk9Frni0=
+github.com/IBM/vpc-go-sdk v0.42.0/go.mod h1:kRz9tqPvpHoA/qGrC/qVjTbi4ICuTChpG76L89liGL4=
 github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 h1:DklsrG3dyBCFEj5IhUbnKptjxatkF07cF2ak3yi77so=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
