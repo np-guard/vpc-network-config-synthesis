@@ -6,6 +6,8 @@ import (
 	"os"
 	"reflect"
 	"testing"
+
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
 const examplesDir = "../../../examples/"
@@ -61,7 +63,7 @@ func TestIcmp_UnmarshalJSON(t *testing.T) {
 		{`{"protocol": "ICMP"}`,
 			&Icmp{Protocol: "ICMP", Code: nil, Type: nil}},
 		{`{"protocol": "ICMP", "code": 0, "type": 1}`,
-			&Icmp{Protocol: "ICMP", Code: ptr(0), Type: ptr(1)}},
+			&Icmp{Protocol: "ICMP", Code: utils.Ptr(0), Type: utils.Ptr(1)}},
 	}
 	for _, test := range table {
 		actual := new(Icmp)

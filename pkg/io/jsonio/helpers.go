@@ -2,10 +2,6 @@ package jsonio
 
 import "fmt"
 
-func ptr[T any](t T) *T {
-	return &t
-}
-
 func enterField(field, ctx string, j map[string]interface{}) (resCtx string, res map[string]interface{}) {
 	resCtx = ctx + "." + field
 	res, ok := j[field].(map[string]interface{})

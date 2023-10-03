@@ -8,11 +8,11 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"strings"
 
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/confio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/csvio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/jsonio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/mdio"
@@ -35,6 +35,7 @@ const (
 	tfOutputFormat      = "tf"
 	csvOutputFormat     = "csv"
 	mdOutputFormat      = "md"
+	apiOutputFormat     = "api"
 	defaultOutputFormat = csvOutputFormat
 )
 
@@ -55,6 +56,8 @@ func inferFormatUsingFilename(filename string) string {
 		return csvOutputFormat
 	case strings.HasSuffix(filename, ".md"):
 		return mdOutputFormat
+	case strings.HasSuffix(filename, ".json"):
+		return apiOutputFormat
 	default:
 		return ""
 	}
@@ -75,7 +78,8 @@ func pickOutputFormat(outputFormat, outputFile string) (string, error) {
 	return inferredOutputFormat, nil
 }
 
-func pickWriter(format string, w io.Writer) (ir.Writer, error) {
+func pickWriter(format string, data *bytes.Buffer, connectivityFilename string) (ir.Writer, error) {
+	w := bufio.NewWriter(data)
 	switch format {
 	case tfOutputFormat:
 		return tfio.NewWriter(w), nil
@@ -83,6 +87,8 @@ func pickWriter(format string, w io.Writer) (ir.Writer, error) {
 		return csvio.NewWriter(w), nil
 	case mdOutputFormat:
 		return mdio.NewWriter(w), nil
+	case apiOutputFormat:
+		return confio.NewWriter(w, connectivityFilename)
 	default:
 		return nil, fmt.Errorf("bad output format: %q", format)
 	}
@@ -95,6 +101,20 @@ func pickReader(format string) (ir.Reader, error) {
 	default:
 		return nil, fmt.Errorf("bad input format: %q", format)
 	}
+}
+
+func generate(model *ir.Spec, target string) ir.Collection {
+	switch target {
+	case sgTarget:
+		return synth.MakeSG(model, synth.Options{})
+	case singleaclTarget:
+		return synth.MakeACL(model, synth.Options{SingleACL: true})
+	case aclTarget:
+		return synth.MakeACL(model, synth.Options{SingleACL: false})
+	default:
+		log.Fatalf("Impossible target: %v", target)
+	}
+	return nil
 }
 
 func main() {
@@ -132,15 +152,6 @@ Flags:
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	var data bytes.Buffer
-	w := bufio.NewWriter(&data)
-
-	writer, err := pickWriter(*outputFormat, w)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	reader, err := pickReader(jsonInputFormat)
 	if err != nil {
 		log.Fatal(err)
@@ -148,28 +159,28 @@ Flags:
 
 	var defs *ir.ConfigDefs
 	if *configFilename != "" {
-		defs, err = jsonio.ReadDefs(*configFilename)
+		defs, err = confio.ReadDefs(*configFilename)
 		if err != nil {
 			log.Fatalf("could not parse config file %v: %v", *configFilename, err)
 		}
+	} else if *outputFormat == apiOutputFormat {
+		log.Fatal("-config parameter must be supplied when using -fmt=api or exporting JSON")
 	}
 
 	model, err := reader.ReadSpec(connectivityFilename, defs)
 	if err != nil {
 		log.Fatalf("Could not parse connectivity file %s: %s", connectivityFilename, err)
 	}
-	if *target == sgTarget {
-		if err = writer.WriteSG(synth.MakeSG(model, synth.Options{})); err != nil {
-			log.Fatal(err)
-		}
-	} else {
-		opts := synth.Options{
-			SingleACL: *target == singleaclTarget,
-		}
-		acl := synth.MakeACL(model, opts)
-		if err = writer.WriteACL(acl); err != nil {
-			log.Fatal(err)
-		}
+
+	collection := generate(model, *target)
+
+	var data bytes.Buffer
+	writer, err := pickWriter(*outputFormat, &data, *configFilename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err = collection.Write(writer); err != nil {
+		log.Fatal(err)
 	}
 
 	if *outputFile == "" {

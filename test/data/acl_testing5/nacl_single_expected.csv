@@ -53,7 +53,7 @@ acl-1,1,Outbound,51,Deny,ALL,192.168.0.0/16,172.16.0.0/12,-,"Deny other internal
 acl-1,1,Inbound,52,Deny,ALL,172.16.0.0/12,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 2,1"
 acl-1,1,Outbound,53,Deny,ALL,192.168.0.0/16,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 2,2"
 acl-1,1,Inbound,54,Deny,ALL,192.168.0.0/16,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 2,2"
-acl-1,1,Outbound,55,Allow,ALL,10.240.1.0/24,8.8.8.8,-,External. required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
-acl-1,1,Inbound,56,Allow,ALL,8.8.8.8,10.240.1.0/24,-,External. response to required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
-acl-1,1,Outbound,57,Allow,ALL,10.240.64.0/24,8.8.8.8,-,External. required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
-acl-1,1,Inbound,58,Allow,ALL,8.8.8.8,10.240.64.0/24,-,External. response to required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
+acl-1,1,Outbound,55,Allow,ALL,10.240.1.0/24,8.8.8.8/0,-,External. required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
+acl-1,1,Inbound,56,Allow,ALL,8.8.8.8/0,10.240.1.0/24,-,External. response to required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
+acl-1,1,Outbound,57,Allow,ALL,10.240.64.0/24,8.8.8.8/0,-,External. required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
+acl-1,1,Inbound,58,Allow,ALL,8.8.8.8/0,10.240.64.0/24,-,External. response to required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]

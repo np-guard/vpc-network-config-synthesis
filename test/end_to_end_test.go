@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/confio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/csvio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/jsonio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/tfio"
@@ -127,7 +128,7 @@ func readSpec(c *TestCase) (s *ir.Spec, err error) {
 
 	var defs *ir.ConfigDefs
 	if c.configName != "" {
-		defs, err = jsonio.ReadDefs(c.resolve(c.configName))
+		defs, err = confio.ReadDefs(c.resolve(c.configName))
 		if err != nil {
 			return
 		}

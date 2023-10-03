@@ -1,4 +1,4 @@
-package jsonio
+package confio
 
 import (
 	"encoding/json"
@@ -11,13 +11,21 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-func ReadDefs(filename string) (*ir.ConfigDefs, error) {
+func readModel(filename string) (*configmodel.ResourcesContainerModel, error) {
 	bytes, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-	config := configmodel.ResourcesContainerModel{}
-	err = json.Unmarshal(bytes, &config)
+	model := configmodel.ResourcesContainerModel{}
+	err = json.Unmarshal(bytes, &model)
+	if err != nil {
+		return nil, err
+	}
+	return &model, nil
+}
+
+func ReadDefs(filename string) (*ir.ConfigDefs, error) {
+	config, err := readModel(filename)
 	if err != nil {
 		return nil, err
 	}
