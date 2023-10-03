@@ -1018,6 +1018,307 @@
                 "resource_type": "vpc"
             },
             "tags": []
+        },
+        {
+            "created_at": null,
+            "crn": "fake:crn:1",
+            "href": "fake:href:1",
+            "id": "fake:id:1",
+            "name": "appdata-endpoint-gateway",
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "rules": [
+                {
+                    "direction": "inbound",
+                    "href": "fake:href:2",
+                    "id": "fake:id:2",
+                    "ip_version": "ipv4",
+                    "remote": {
+                        "crn": "fake:crn:1",
+                        "href": "fake:href:1",
+                        "id": "fake:id:1",
+                        "name": "appdata-endpoint-gateway"
+                    },
+                    "port_max": 65535,
+                    "port_min": 1,
+                    "protocol": "tcp"
+                }
+            ],
+            "targets": [],
+            "vpc": {
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc-ky",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": null,
+            "crn": "fake:crn:3",
+            "href": "fake:href:3",
+            "id": "fake:id:3",
+            "name": "be-ky",
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "rules": [
+                {
+                    "direction": "inbound",
+                    "href": "fake:href:4",
+                    "id": "fake:id:4",
+                    "ip_version": "ipv4",
+                    "remote": {
+                        "crn": "fake:crn:3",
+                        "href": "fake:href:3",
+                        "id": "fake:id:3",
+                        "name": "be-ky"
+                    },
+                    "port_max": 65535,
+                    "port_min": 1,
+                    "protocol": "tcp"
+                },
+                {
+                    "direction": "outbound",
+                    "href": "fake:href:5",
+                    "id": "fake:id:5",
+                    "ip_version": "ipv4",
+                    "remote": {
+                        "crn": "fake:crn:3",
+                        "href": "fake:href:3",
+                        "id": "fake:id:3",
+                        "name": "be-ky"
+                    },
+                    "port_max": 8181,
+                    "port_min": 8181,
+                    "protocol": "tcp"
+                },
+                {
+                    "direction": "outbound",
+                    "href": "fake:href:6",
+                    "id": "fake:id:6",
+                    "ip_version": "ipv4",
+                    "remote": {
+                        "crn": "fake:crn:3",
+                        "href": "fake:href:3",
+                        "id": "fake:id:3",
+                        "name": "be-ky"
+                    },
+                    "port_max": 65535,
+                    "port_min": 1,
+                    "protocol": "tcp"
+                }
+            ],
+            "targets": [],
+            "vpc": {
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc-ky",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": null,
+            "crn": "fake:crn:7",
+            "href": "fake:href:7",
+            "id": "fake:id:7",
+            "name": "fe-ky",
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "rules": [
+                {
+                    "direction": "inbound",
+                    "href": "fake:href:8",
+                    "id": "fake:id:8",
+                    "ip_version": "ipv4",
+                    "remote": {
+                        "crn": "fake:crn:7",
+                        "href": "fake:href:7",
+                        "id": "fake:id:7",
+                        "name": "fe-ky"
+                    },
+                    "port_max": 9000,
+                    "port_min": 9000,
+                    "protocol": "tcp"
+                },
+                {
+                    "direction": "outbound",
+                    "href": "fake:href:9",
+                    "id": "fake:id:9",
+                    "ip_version": "ipv4",
+                    "remote": {
+                        "crn": "fake:crn:7",
+                        "href": "fake:href:7",
+                        "id": "fake:id:7",
+                        "name": "fe-ky"
+                    },
+                    "port_max": 65535,
+                    "port_min": 1,
+                    "protocol": "tcp"
+                }
+            ],
+            "targets": [],
+            "vpc": {
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc-ky",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": null,
+            "crn": "fake:crn:10",
+            "href": "fake:href:10",
+            "id": "fake:id:10",
+            "name": "opa-ky",
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "rules": [
+                {
+                    "direction": "inbound",
+                    "href": "fake:href:11",
+                    "id": "fake:id:11",
+                    "ip_version": "ipv4",
+                    "remote": {
+                        "crn": "fake:crn:10",
+                        "href": "fake:href:10",
+                        "id": "fake:id:10",
+                        "name": "opa-ky"
+                    },
+                    "port_max": 8181,
+                    "port_min": 8181,
+                    "protocol": "tcp"
+                },
+                {
+                    "direction": "outbound",
+                    "href": "fake:href:12",
+                    "id": "fake:id:12",
+                    "ip_version": "ipv4",
+                    "remote": {
+                        "crn": "fake:crn:10",
+                        "href": "fake:href:10",
+                        "id": "fake:id:10",
+                        "name": "opa-ky"
+                    },
+                    "port_max": 65535,
+                    "port_min": 1,
+                    "protocol": "tcp"
+                }
+            ],
+            "targets": [],
+            "vpc": {
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc-ky",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": null,
+            "crn": "fake:crn:13",
+            "href": "fake:href:13",
+            "id": "fake:id:13",
+            "name": "policydb-endpoint-gateway",
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "rules": [
+                {
+                    "direction": "inbound",
+                    "href": "fake:href:14",
+                    "id": "fake:id:14",
+                    "ip_version": "ipv4",
+                    "remote": {
+                        "crn": "fake:crn:13",
+                        "href": "fake:href:13",
+                        "id": "fake:id:13",
+                        "name": "policydb-endpoint-gateway"
+                    },
+                    "port_max": 65535,
+                    "port_min": 1,
+                    "protocol": "tcp"
+                }
+            ],
+            "targets": [],
+            "vpc": {
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc-ky",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": null,
+            "crn": "fake:crn:15",
+            "href": "fake:href:15",
+            "id": "fake:id:15",
+            "name": "proxy-ky",
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "rules": [
+                {
+                    "direction": "inbound",
+                    "href": "fake:href:16",
+                    "id": "fake:id:16",
+                    "ip_version": "ipv4",
+                    "remote": {
+                        "crn": "fake:crn:15",
+                        "href": "fake:href:15",
+                        "id": "fake:id:15",
+                        "name": "proxy-ky"
+                    },
+                    "protocol": "all"
+                },
+                {
+                    "direction": "outbound",
+                    "href": "fake:href:17",
+                    "id": "fake:id:17",
+                    "ip_version": "ipv4",
+                    "remote": {
+                        "crn": "fake:crn:15",
+                        "href": "fake:href:15",
+                        "id": "fake:id:15",
+                        "name": "proxy-ky"
+                    },
+                    "port_max": 9000,
+                    "port_min": 9000,
+                    "protocol": "tcp"
+                }
+            ],
+            "targets": [],
+            "vpc": {
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc-ky",
+                "resource_type": "vpc"
+            },
+            "tags": []
         }
     ],
     "endpoint_gateways": [
@@ -1137,7 +1438,8 @@
                     "crn": "crn:148",
                     "href": "href:149",
                     "id": "id:150",
-                    "name": "scone-extended-legible-edition"
+                    "name": "scone-extended-legible-edition",
+                    "resource_type": null
                 }
             },
             "created_at": "2023-08-01T09:31:44.000Z",
@@ -1149,7 +1451,8 @@
                 "crn": "crn:151",
                 "href": "href:152",
                 "id": "id:153",
-                "name": "ibm-centos-7-9-minimal-amd64-8"
+                "name": "ibm-centos-7-9-minimal-amd64-8",
+                "resource_type": null
             },
             "lifecycle_reasons": [],
             "lifecycle_state": "stable",
@@ -1212,7 +1515,8 @@
                         "crn": "crn:148",
                         "href": "href:149",
                         "id": "id:150",
-                        "name": "scone-extended-legible-edition"
+                        "name": "scone-extended-legible-edition",
+                        "resource_type": null
                     }
                 }
             ],
@@ -1281,7 +1585,8 @@
                     "crn": "crn:161",
                     "href": "href:162",
                     "id": "id:163",
-                    "name": "sliver-bouquet-cargo-protozoan"
+                    "name": "sliver-bouquet-cargo-protozoan",
+                    "resource_type": null
                 }
             },
             "created_at": "2023-08-01T09:31:43.000Z",
@@ -1293,7 +1598,8 @@
                 "crn": "crn:151",
                 "href": "href:152",
                 "id": "id:153",
-                "name": "ibm-centos-7-9-minimal-amd64-8"
+                "name": "ibm-centos-7-9-minimal-amd64-8",
+                "resource_type": null
             },
             "lifecycle_reasons": [],
             "lifecycle_state": "stable",
@@ -1356,7 +1662,8 @@
                         "crn": "crn:161",
                         "href": "href:162",
                         "id": "id:163",
-                        "name": "sliver-bouquet-cargo-protozoan"
+                        "name": "sliver-bouquet-cargo-protozoan",
+                        "resource_type": null
                     }
                 }
             ],
@@ -1425,7 +1732,8 @@
                     "crn": "crn:170",
                     "href": "href:171",
                     "id": "id:172",
-                    "name": "cultivate-filing-undesired-divisibly"
+                    "name": "cultivate-filing-undesired-divisibly",
+                    "resource_type": null
                 }
             },
             "created_at": "2023-08-01T09:31:43.000Z",
@@ -1437,7 +1745,8 @@
                 "crn": "crn:151",
                 "href": "href:152",
                 "id": "id:153",
-                "name": "ibm-centos-7-9-minimal-amd64-8"
+                "name": "ibm-centos-7-9-minimal-amd64-8",
+                "resource_type": null
             },
             "lifecycle_reasons": [],
             "lifecycle_state": "stable",
@@ -1500,7 +1809,8 @@
                         "crn": "crn:170",
                         "href": "href:171",
                         "id": "id:172",
-                        "name": "cultivate-filing-undesired-divisibly"
+                        "name": "cultivate-filing-undesired-divisibly",
+                        "resource_type": null
                     }
                 }
             ],
@@ -1569,7 +1879,8 @@
                     "crn": "crn:179",
                     "href": "href:180",
                     "id": "id:181",
-                    "name": "lapel-predefine-magical-conduit"
+                    "name": "lapel-predefine-magical-conduit",
+                    "resource_type": null
                 }
             },
             "created_at": "2023-08-01T09:31:30.000Z",
@@ -1581,7 +1892,8 @@
                 "crn": "crn:151",
                 "href": "href:152",
                 "id": "id:153",
-                "name": "ibm-centos-7-9-minimal-amd64-8"
+                "name": "ibm-centos-7-9-minimal-amd64-8",
+                "resource_type": null
             },
             "lifecycle_reasons": [],
             "lifecycle_state": "stable",
@@ -1644,7 +1956,8 @@
                         "crn": "crn:179",
                         "href": "href:180",
                         "id": "id:181",
-                        "name": "lapel-predefine-magical-conduit"
+                        "name": "lapel-predefine-magical-conduit",
+                        "resource_type": null
                     }
                 }
             ],
