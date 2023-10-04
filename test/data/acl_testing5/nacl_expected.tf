@@ -265,14 +265,14 @@ resource "ibm_is_network_acl" "acl-sub1-1-ky" {
     action      = "allow"
     direction   = "outbound"
     source      = "10.240.1.0/24"
-    destination = "8.8.8.8/0"
+    destination = "8.8.8.8/32"
   }
   # External. response to required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
   rules {
     name        = "rule29"
     action      = "allow"
     direction   = "inbound"
-    source      = "8.8.8.8/0"
+    source      = "8.8.8.8/32"
     destination = "10.240.1.0/24"
   }
 }
@@ -638,14 +638,14 @@ resource "ibm_is_network_acl" "acl-sub2-1-ky" {
     action      = "allow"
     direction   = "outbound"
     source      = "10.240.64.0/24"
-    destination = "8.8.8.8/0"
+    destination = "8.8.8.8/32"
   }
   # External. response to required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
   rules {
     name        = "rule29"
     action      = "allow"
     direction   = "inbound"
-    source      = "8.8.8.8/0"
+    source      = "8.8.8.8/32"
     destination = "10.240.64.0/24"
   }
 }

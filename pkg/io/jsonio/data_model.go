@@ -265,8 +265,8 @@ func (j *EndpointType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Externals are a way for users to name IP addresses or ranges external to the
-// VPC. These are later used in src/dst definitions
+// Externals are a way for users to name CIDRs external to the VPC. These are later
+// used in src/dst definitions
 type SpecExternals map[string]string
 
 // Lightweight way to define instance as a list of interfaces.
@@ -359,8 +359,8 @@ type SpecSegments map[string]struct {
 type SpecSubnets map[string]string
 
 type Spec struct {
-	// Externals are a way for users to name IP addresses or ranges external to the
-	// VPC. These are later used in src/dst definitions
+	// Externals are a way for users to name CIDRs external to the VPC. These are
+	// later used in src/dst definitions
 	Externals SpecExternals `json:"externals,omitempty"`
 
 	// Lightweight way to define instance as a list of interfaces.

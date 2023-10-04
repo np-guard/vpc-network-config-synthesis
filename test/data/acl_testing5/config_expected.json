@@ -2039,7 +2039,7 @@
                         "name": "rule29"
                     },
                     "created_at": null,
-                    "destination": "8.8.8.8/0",
+                    "destination": "8.8.8.8/32",
                     "direction": "outbound",
                     "href": "fake:href:2",
                     "id": "fake:id:2",
@@ -2057,7 +2057,7 @@
                     "id": "fake:id:1",
                     "ip_version": "ipv4",
                     "name": "rule29",
-                    "source": "8.8.8.8/0",
+                    "source": "8.8.8.8/32",
                     "protocol": "all"
                 }
             ],
@@ -2823,7 +2823,7 @@
                         "name": "rule29"
                     },
                     "created_at": null,
-                    "destination": "8.8.8.8/0",
+                    "destination": "8.8.8.8/32",
                     "direction": "outbound",
                     "href": "fake:href:43",
                     "id": "fake:id:43",
@@ -2841,7 +2841,7 @@
                     "id": "fake:id:42",
                     "ip_version": "ipv4",
                     "name": "rule29",
-                    "source": "8.8.8.8/0",
+                    "source": "8.8.8.8/32",
                     "protocol": "all"
                 }
             ],
