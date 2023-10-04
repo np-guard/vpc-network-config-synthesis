@@ -27,7 +27,7 @@
     },
     "externals": {
         "on-prem": "192.0.0.0/16",
-        "weather.com": "104.106.98.205"
+        "weather.com": "104.106.98.205/32"
     },
     "required-connections": [
         {
