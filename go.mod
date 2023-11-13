@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/IBM/vpc-go-sdk v0.42.0
-	github.com/np-guard/cloud-resource-collector v0.1.0
+	github.com/np-guard/cloud-resource-collector v0.2.0
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 )
 
@@ -24,7 +24,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	go.mongodb.org/mongo-driver v1.11.4 // indirect
-	golang.org/x/crypto v0.8.0 // indirect
-	golang.org/x/sys v0.12.0 // indirect
-	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/crypto v0.14.0 // indirect
+	golang.org/x/sys v0.13.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
 )
