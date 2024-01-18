@@ -18,7 +18,7 @@ make test
 ```
 
 
-Run on GitBush:
+Run on Linux environment:
 
 ```commandline
 bin/vpcgen -target=acl -config test/data/acl_testing5/config_object.json test/data/acl_testing5/conn_spec.json
