@@ -74,7 +74,7 @@ func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) tf.Block {
 	}
 }
 
-func sg(sgName string, comment string) tf.Block {
+func sg(sgName, comment string) tf.Block {
 	verifyName(sgName)
 	return tf.Block{
 		Name:    "resource", //nolint:revive  // obvious false positive
@@ -102,7 +102,6 @@ func sgCollection(t *ir.SGCollection) *tf.ConfigFile {
 			rule := sgRule(&rules[i], sgName, i)
 			resources = append(resources, rule)
 		}
-
 	}
 	return &tf.ConfigFile{
 		Resources: resources,
