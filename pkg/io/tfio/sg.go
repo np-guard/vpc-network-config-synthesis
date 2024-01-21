@@ -96,7 +96,7 @@ func sgCollection(t *ir.SGCollection) *tf.ConfigFile {
 		if len(rules) == 0 {
 			continue
 		}
-		comment = fmt.Sprintf("\n### sg attached to %v", sgName)
+		comment = fmt.Sprintf("\n### SG attached to %v", sgName)
 		resources = append(resources, sg(sgName.String(), comment))
 		for i := range rules {
 			rule := sgRule(&rules[i], sgName, i)
