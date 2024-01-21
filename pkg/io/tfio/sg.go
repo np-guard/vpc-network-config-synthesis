@@ -74,11 +74,12 @@ func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) tf.Block {
 	}
 }
 
-func sg(sgName string) tf.Block {
+func sg(sgName string, comment string) tf.Block {
 	verifyName(sgName)
 	return tf.Block{
-		Name:   "resource", //nolint:revive  // obvious false positive
-		Labels: []string{quote("ibm_is_security_group"), quote(sgName)},
+		Name:    "resource", //nolint:revive  // obvious false positive
+		Labels:  []string{quote("ibm_is_security_group"), quote(sgName)},
+		Comment: comment,
 		Arguments: []tf.Argument{
 			{Name: "name", Value: quote("sg-" + sgName)},
 			{Name: "resource_group", Value: "local.sg_synth_resource_group_id"},
@@ -90,12 +91,18 @@ func sg(sgName string) tf.Block {
 func sgCollection(t *ir.SGCollection) *tf.ConfigFile {
 	var resources []tf.Block //nolint:prealloc  // nontrivial to calculate, and an unlikely performance bottleneck
 	for _, sgName := range t.SortedSGNames() {
-		resources = append(resources, sg(sgName.String()))
+		comment := ""
 		rules := t.SGs[sgName].Rules
+		if len(rules) == 0 {
+			continue
+		}
+		comment = fmt.Sprintf("\n### sg attached to %v", sgName)
+		resources = append(resources, sg(sgName.String(), comment))
 		for i := range rules {
 			rule := sgRule(&rules[i], sgName, i)
 			resources = append(resources, rule)
 		}
+
 	}
 	return &tf.ConfigFile{
 		Resources: resources,
