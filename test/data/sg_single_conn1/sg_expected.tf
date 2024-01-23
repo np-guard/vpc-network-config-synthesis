@@ -1,3 +1,4 @@
+### SG attached to A
 resource "ibm_is_security_group" "A" {
   name           = "sg-A"
   resource_group = local.sg_synth_resource_group_id
@@ -13,6 +14,8 @@ resource "ibm_is_security_group_rule" "A-0" {
     port_max = 443
   }
 }
+
+### SG attached to B
 resource "ibm_is_security_group" "B" {
   name           = "sg-B"
   resource_group = local.sg_synth_resource_group_id
