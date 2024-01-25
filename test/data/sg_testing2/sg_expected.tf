@@ -1,3 +1,4 @@
+### SG attached to appdata-endpoint-gateway
 resource "ibm_is_security_group" "appdata-endpoint-gateway" {
   name           = "sg-appdata-endpoint-gateway"
   resource_group = local.sg_synth_resource_group_id
@@ -11,6 +12,8 @@ resource "ibm_is_security_group_rule" "appdata-endpoint-gateway-0" {
   tcp {
   }
 }
+
+### SG attached to be-ky
 resource "ibm_is_security_group" "be-ky" {
   name           = "sg-be-ky"
   resource_group = local.sg_synth_resource_group_id
@@ -42,6 +45,8 @@ resource "ibm_is_security_group_rule" "be-ky-2" {
   tcp {
   }
 }
+
+### SG attached to fe-ky
 resource "ibm_is_security_group" "fe-ky" {
   name           = "sg-fe-ky"
   resource_group = local.sg_synth_resource_group_id
@@ -65,6 +70,8 @@ resource "ibm_is_security_group_rule" "fe-ky-1" {
   tcp {
   }
 }
+
+### SG attached to opa-ky
 resource "ibm_is_security_group" "opa-ky" {
   name           = "sg-opa-ky"
   resource_group = local.sg_synth_resource_group_id
@@ -88,6 +95,8 @@ resource "ibm_is_security_group_rule" "opa-ky-1" {
   tcp {
   }
 }
+
+### SG attached to policydb-endpoint-gateway
 resource "ibm_is_security_group" "policydb-endpoint-gateway" {
   name           = "sg-policydb-endpoint-gateway"
   resource_group = local.sg_synth_resource_group_id
@@ -101,6 +110,8 @@ resource "ibm_is_security_group_rule" "policydb-endpoint-gateway-0" {
   tcp {
   }
 }
+
+### SG attached to proxy-ky
 resource "ibm_is_security_group" "proxy-ky" {
   name           = "sg-proxy-ky"
   resource_group = local.sg_synth_resource_group_id
