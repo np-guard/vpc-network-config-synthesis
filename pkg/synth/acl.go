@@ -2,7 +2,6 @@
 package synth
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
@@ -17,7 +16,7 @@ func MakeACL(s *ir.Spec, opt Options) *ir.ACLCollection {
 	aclSelector := func(ip ir.IP) string {
 		result, ok := s.Defs.SubnetNameFromIP(ip)
 		if !ok {
-			return fmt.Sprintf("<unknown subnet %v>", ip)
+			log.Fatalf("ACL: src/dst of type network interface (or instance) is not supported.")
 		}
 		return result
 	}
