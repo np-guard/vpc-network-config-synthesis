@@ -4,13 +4,13 @@ go 1.21
 
 require (
 	github.com/IBM/vpc-go-sdk v0.47.0
-	github.com/np-guard/cloud-resource-collector v0.3.0
+	github.com/np-guard/cloud-resource-collector v0.5.1
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 )
 
 require (
 	github.com/IBM-Cloud/container-services-go-sdk v0.0.0-20230118060037-101bda076037 // indirect
-	github.com/IBM/go-sdk-core/v5 v5.14.1 // indirect
+	github.com/IBM/go-sdk-core/v5 v5.15.0 // indirect
 	github.com/IBM/networking-go-sdk v0.44.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
