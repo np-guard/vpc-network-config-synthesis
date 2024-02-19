@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/IBM/vpc-go-sdk v0.47.0
-	github.com/np-guard/cloud-resource-collector v0.9.0
+	github.com/np-guard/cloud-resource-collector v0.5.1
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 )
 
