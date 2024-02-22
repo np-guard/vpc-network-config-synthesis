@@ -44,8 +44,8 @@ Install [atombender/go-jsonschema](https://github.com/atombender/go-jsonschema)
 (important: **not** [xeipuuv/gojsonschema](https://github.com/xeipuuv/gojsonschema))
 
 ```commandline
-go get github.com/atombender/go-jsonschema
-go install github.com/atombender/go-jsonschema
+go get github.com/atombender/go-jsonschema/...
+go install github.com/atombender/go-jsonschema@latest
 ```
 
 Then run
