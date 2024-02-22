@@ -40,11 +40,12 @@ bin\vpcgen.exe -target=sg -config test\data\sg_testing2\config_object.json test\
 
 ## Code generation
 
-Install [omissis/go-jsonschema](https://github.com/omissis/go-jsonschema)
+Install [atombender/go-jsonschema](https://github.com/atombender/go-jsonschema)
 (important: **not** [xeipuuv/gojsonschema](https://github.com/xeipuuv/gojsonschema))
 
 ```commandline
-go install github.com/omissis/go-jsonschema
+go get github.com/atombender/go-jsonschema
+go install github.com/atombender/go-jsonschema
 ```
 
 Then run

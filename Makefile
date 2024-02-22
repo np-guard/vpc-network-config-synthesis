@@ -23,7 +23,7 @@ lint-go:
 
 lint-json:
 	@echo -- $@ --
-	check-jsonschema test/data/*/conn_spec.json examples/generic_example.json  --schemafile spec_schema.json
+	check-jsonschema test/data/*/conn_spec.json examples/generic_example.json --schemafile spec_schema.json
 
 lint: lint-go lint-json
 
@@ -31,8 +31,8 @@ precommit: mod fmt lint
 
 pkg/io/jsonio/data_model.go: spec_schema.json
 	@echo -- generate --
-	# Install https://github.com/omissis/go-jsonschema
-	gojsonschema spec_schema.json --package jsonio --struct-name-from-title --tags json --output $@
+	# Install https://github.com/atombender/go-jsonschema
+	go-jsonschema spec_schema.json --package jsonio --struct-name-from-title --tags json --output $@
 	goimports -local $(REPOSITORY) -w $@
 
 generate: pkg/io/jsonio/data_model.go
