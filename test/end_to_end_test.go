@@ -104,15 +104,14 @@ func TestCSVCompare(t *testing.T) {
 		t.Run(testname, func(t *testing.T) {
 			s, err := readSpec(&testcase)
 			if err != nil {
-				t.Error(err)
+				t.Fatal(err)
+				return
 			}
 			collection := testcase.maker(s)
-			if err != nil {
-				t.Error(err)
-			}
 			actual, err := write(collection, testcase.outputFormat)
 			if err != nil {
-				t.Error(err)
+				t.Fatal(err)
+				return
 			}
 			expectedFile := testcase.at(testcase.expectedName, testcase.expectedName)
 			expected := readExpectedFile(expectedFile)
