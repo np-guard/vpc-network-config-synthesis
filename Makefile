@@ -1,7 +1,12 @@
 REPOSITORY := github.com/np-guard/vpc-network-config-synthesis
-EXE := vpcgen.exe
+ifeq ($(OS),Windows_NT)
+    TARGETNAME = vpcgen.exe
+else
+    TARGETNAME = vpcgen
+endif
+TARGET = ./bin/$(TARGETNAME)
 
-./bin/$(EXE): build
+$(TARGET): build
 
 .PHONY: mod fmt lint generate build test jd-test
 
@@ -39,14 +44,14 @@ generate: pkg/io/jsonio/data_model.go
 
 build:
 	@echo -- $@ --
-	CGO_ENABLED=0 go build -o ./bin/$(EXE) ./cmd/vpcgen
+	CGO_ENABLED=0 go build -o $(TARGET) ./cmd/vpcgen
 
 test:
 	@echo -- $@ --
 	go test ./... -v -cover -coverprofile synth.coverprofile
 
-jd-test: ./bin/$(EXE)
+jd-test: $(TARGET)
 	@echo -- $@ --
 	# Install https://github.com/josephburnett/jd
-	./bin/$(EXE) examples/generic_example.json > tmp.json
+	$(TARGET) examples/generic_example.json > tmp.json
 	jd examples/generic_example.json tmp.json
