@@ -142,7 +142,7 @@
             "description": "Segments are a way for users to create aggregations. These can later be used in src/dst fields",
             "type": "object",
             "additionalProperties": {
-                "description": "A segment is a named collection of resources of the same type (subnet, instance, or nif)",
+                "description": "A segment is a named collection of resources of the same type (subnet, cidr, instance, or nif)",
                 "type": "object",
                 "additionalProperties": false,
                 "required": [
@@ -154,6 +154,7 @@
                         "description": "The type of the elements inside the segment",
                         "enum": [
                             "subnet",
+                            "cidr",
                             "instance",
                             "nif"
                         ]

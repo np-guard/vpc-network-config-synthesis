@@ -35,8 +35,22 @@ func (s *Spec) ComputeBlockedSubnets(singleACL bool) {
 				}
 			}
 		}
+		if s.findEndPointInConnections(segments, EndpointTypeSubnet) {
+			continue
+		}
 
-		if !s.findEndPointInConnections(segments, EndpointTypeSubnet) { // EndpointTypeSubnet should be changed to EndpointTypeSegment
+		cidrSements := []string{}                                   // cidr segments which include the subnet
+		for segmentName, cidrSegment := range s.Defs.CidrSegments { // go over cidr segments
+			for _, subnets := range cidrSegment {
+				for _, s := range subnets { // go over the subnets for each cidr
+					if subnet == s {
+						cidrSements = append(cidrSements, segmentName)
+						break
+					}
+				}
+			}
+		}
+		if !s.findEndPointInConnections(cidrSements, EndpointTypeCidr) {
 			blockedSubnets = append(blockedSubnets, subnet)
 		}
 	}
@@ -66,7 +80,7 @@ func (s *Spec) computeBlockedNIFs() []string {
 	var blockedEndPoints []string
 
 	for instance, NIFs := range s.Defs.InstanceToNIFs {
-		if s.findEndPointInConnections([]string{instance}, EndpointTypeNIF) { // EndpointTypeNIF should be changed to EndpointTypeInstance
+		if s.findEndPointInConnections([]string{instance}, EndpointTypeNIF) {
 			continue
 		}
 

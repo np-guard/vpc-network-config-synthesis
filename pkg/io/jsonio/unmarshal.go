@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/np-guard/models/pkg/ipblocks"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
@@ -28,6 +29,12 @@ func (*Reader) ReadSpec(filename string, configDefs *ir.ConfigDefs) (*ir.Spec, e
 		return nil, err
 	}
 
+	cidrSegments := translateSegments(jsonspec.Segments, TypeCidr)
+	finalCidrSegments, err := validateCidrSegments(configDefs, cidrSegments)
+	if err != nil {
+		return nil, err
+	}
+
 	if configDefs == nil {
 		configDefs = &ir.ConfigDefs{
 			Subnets:        translateIPMap(jsonspec.Subnets),
@@ -37,7 +44,8 @@ func (*Reader) ReadSpec(filename string, configDefs *ir.ConfigDefs) (*ir.Spec, e
 	}
 	defs := &ir.Definitions{
 		ConfigDefs:     *configDefs,
-		SubnetSegments: translateSegments(jsonspec.Segments),
+		SubnetSegments: translateSegments(jsonspec.Segments, TypeSubnet),
+		CidrSegments:   finalCidrSegments,
 		Externals:      translateIPMap(jsonspec.Externals),
 	}
 
@@ -58,19 +66,44 @@ func (*Reader) ReadSpec(filename string, configDefs *ir.ConfigDefs) (*ir.Spec, e
 
 func validateSegments(jsonssegments SpecSegments) error {
 	for _, v := range jsonssegments {
-		if v.Type != TypeSubnet {
-			return fmt.Errorf("only subnet segments are supported, not %q", v.Type)
+		if v.Type != TypeSubnet && v.Type != TypeCidr {
+			return fmt.Errorf("only subnet and cidr segments are supported, not %q", v.Type)
 		}
 	}
 	return nil
 }
 
-func translateSegments(jsonssegments SpecSegments) map[string][]string {
+func translateSegments(jsonssegments SpecSegments, segnmentType Type) map[string][]string {
 	result := make(map[string][]string)
 	for k, v := range jsonssegments {
-		result[k] = v.Items
+		if v.Type == segnmentType {
+			result[k] = v.Items
+		}
 	}
 	return result
+}
+
+func validateCidrSegments(configDefs *ir.ConfigDefs, m map[string][]string) (map[string]map[string][]string, error) {
+	finalMap := make(map[string]map[string][]string)
+	for segmentName, segment := range m {
+		segmentMap := make(map[string][]string) // each cidr saves the subnets that are contained in the cidr
+		for _, cidr := range segment {
+			c, err := ipblocks.NewIPBlockFromCidrOrAddress(cidr)
+			if err != nil {
+				return nil, err
+			}
+			if !cidrContainedInVpc(*c, configDefs.AddressPrefixes) {
+				return nil, fmt.Errorf("%s is not contained in the vpc", cidr)
+			}
+			subnets, err := configDefs.SubnetsContainedInCidr(*c)
+			if err != nil {
+				return nil, err
+			}
+			segmentMap[cidr] = subnets
+		}
+		finalMap[segmentName] = segmentMap
+	}
+	return finalMap, nil
 }
 
 func translateIPMap(m map[string]string) map[string]ir.IP {
@@ -220,4 +253,13 @@ func unmarshal(filename string) (*Spec, error) {
 		}
 	}
 	return jsonspec, err
+}
+
+func cidrContainedInVpc(cidr ipblocks.IPBlock, addressPrefixes []ipblocks.IPBlock) bool {
+	for i := range addressPrefixes {
+		if cidr.ContainedIn(&addressPrefixes[i]) {
+			return true
+		}
+	}
+	return false
 }

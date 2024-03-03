@@ -7,6 +7,7 @@ import (
 	"github.com/IBM/vpc-go-sdk/vpcv1"
 
 	configmodel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
+	"github.com/np-guard/models/pkg/ipblocks"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
@@ -58,10 +59,30 @@ func ReadDefs(filename string) (*ir.ConfigDefs, error) {
 		}
 	}
 
+	addressPrefixes, err := computeAddressPrefixes(config)
+	if err != nil {
+		return nil, err
+	}
+
 	return &ir.ConfigDefs{
-		Subnets:        subnetMap,
-		NIFToIP:        nifToIP,
-		InstanceToNIFs: instanceToNIF,
-		VPEToIP:        vpeToIP,
+		Subnets:         subnetMap,
+		NIFToIP:         nifToIP,
+		InstanceToNIFs:  instanceToNIF,
+		VPEToIP:         vpeToIP,
+		AddressPrefixes: addressPrefixes,
 	}, nil
+}
+
+func computeAddressPrefixes(config *configmodel.ResourcesContainerModel) ([]ipblocks.IPBlock, error) {
+	addressPrefixes := make([]ipblocks.IPBlock, 0)
+	for _, vpc := range config.VpcList {
+		for _, addressPrefix := range vpc.AddressPrefixes {
+			ap, err := ipblocks.NewIPBlockFromCidrOrAddress(*addressPrefix.CIDR)
+			if err != nil {
+				return nil, err
+			}
+			addressPrefixes = append(addressPrefixes, *ap)
+		}
+	}
+	return addressPrefixes, nil
 }

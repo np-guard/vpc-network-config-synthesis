@@ -3,6 +3,8 @@ package ir
 
 import (
 	"fmt"
+
+	"github.com/np-guard/models/pkg/ipblocks"
 )
 
 type (
@@ -55,6 +57,9 @@ type (
 
 		// VPEs have a single IP
 		VPEToIP map[string]IP
+
+		// list of VPC's cidrs
+		AddressPrefixes []ipblocks.IPBlock
 	}
 
 	// Definitions adds to ConfigDefs the spec-specific definitions
@@ -63,6 +68,9 @@ type (
 
 		// Segments are a way for users to create aggregations.
 		SubnetSegments map[string][]string
+
+		// key = name of the segment. value = map where its key is the cidr and its value is the contained subnets
+		CidrSegments map[string]map[string][]string
 
 		// Externals are a way for users to name IP addresses or ranges external to the VPC.
 		Externals map[string]IP
@@ -74,6 +82,7 @@ type EndpointType string
 const (
 	EndpointTypeExternal EndpointType = "external"
 	EndpointTypeSegment  EndpointType = "segment"
+	EndpointTypeCidr     EndpointType = "cidr"
 	EndpointTypeSubnet   EndpointType = "subnet"
 	EndpointTypeNIF      EndpointType = "nif"
 	EndpointTypeVPE      EndpointType = "vpe"
@@ -109,6 +118,8 @@ func (s *Definitions) Lookup(t EndpointType, name string) (Endpoint, error) {
 		return lookupSingle(s.Externals, name, t)
 	case EndpointTypeSubnet:
 		return lookupSingle(s.Subnets, name, t)
+	case EndpointTypeCidr:
+		return lookupSingle(s.Subnets, name, t)
 	case EndpointTypeNIF:
 		return lookupSingle(s.NIFToIP, name, t)
 	case EndpointTypeVPE:
@@ -116,7 +127,11 @@ func (s *Definitions) Lookup(t EndpointType, name string) (Endpoint, error) {
 	case EndpointTypeInstance:
 		return s.lookupMulti(s.InstanceToNIFs, name, EndpointTypeNIF, EndpointTypeInstance)
 	case EndpointTypeSegment:
-		return s.lookupMulti(s.SubnetSegments, name, EndpointTypeSubnet, EndpointTypeSegment)
+		if _, ok := s.SubnetSegments[name]; ok { // its a subnet segment
+			return s.lookupMulti(s.SubnetSegments, name, EndpointTypeSubnet, EndpointTypeSegment)
+		} else { // its a cidr segment
+			return Endpoint{name, cidrsAsIPs(s.CidrSegments, name), EndpointTypeCidr}, nil
+		}
 	default:
 		return Endpoint{}, fmt.Errorf("invalid type %v (endpoint %v)", t, name)
 	}
@@ -173,4 +188,26 @@ func (s *ConfigDefs) RemoteFromIP(ip IP) RemoteType {
 
 type Reader interface {
 	ReadSpec(filename string, defs *ConfigDefs) (*Spec, error)
+}
+
+func cidrsAsIPs(cidrSegments map[string]map[string][]string, segmentName string) []IP {
+	retVal := make([]IP, 0)
+	for cidr := range cidrSegments[segmentName] {
+		retVal = append(retVal, IPFromString(cidr))
+	}
+	return retVal
+}
+
+func (s *ConfigDefs) SubnetsContainedInCidr(cidr ipblocks.IPBlock) ([]string, error) {
+	var containedSubnets []string
+	for subnet, ip := range s.Subnets {
+		subnetIPBlock, err := ipblocks.NewIPBlockFromCidrOrAddress(ip.String())
+		if err != nil {
+			return nil, err
+		}
+		if subnetIPBlock.ContainedIn(&cidr) {
+			containedSubnets = append(containedSubnets, subnet)
+		}
+	}
+	return containedSubnets, nil
 }
