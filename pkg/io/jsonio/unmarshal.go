@@ -30,7 +30,7 @@ func (*Reader) ReadSpec(filename string, configDefs *ir.ConfigDefs) (*ir.Spec, e
 	}
 
 	cidrSegments := translateSegments(jsonspec.Segments, TypeCidr)
-	finalCidrSegments, err := validateCidrSegments(configDefs, cidrSegments)
+	finalCidrSegments, err := computeContainedSubentsInCidrSegment(configDefs, cidrSegments)
 	if err != nil {
 		return nil, err
 	}
@@ -73,9 +73,9 @@ func validateSegments(jsonssegments SpecSegments) error {
 	return nil
 }
 
-func translateSegments(jsonssegments SpecSegments, segnmentType Type) map[string][]string {
+func translateSegments(jsonSegments SpecSegments, segnmentType Type) map[string][]string {
 	result := make(map[string][]string)
-	for k, v := range jsonssegments {
+	for k, v := range jsonSegments {
 		if v.Type == segnmentType {
 			result[k] = v.Items
 		}
@@ -83,10 +83,11 @@ func translateSegments(jsonssegments SpecSegments, segnmentType Type) map[string
 	return result
 }
 
-func validateCidrSegments(configDefs *ir.ConfigDefs, m map[string][]string) (map[string]map[string][]string, error) {
+func computeContainedSubentsInCidrSegment(configDefs *ir.ConfigDefs, m map[string][]string) (map[string]map[string][]string, error) {
 	finalMap := make(map[string]map[string][]string)
 	for segmentName, segment := range m {
-		segmentMap := make(map[string][]string) // each cidr saves the subnets that are contained in the cidr
+		// each cidr saves the contained subnets
+		segmentMap := make(map[string][]string)
 		for _, cidr := range segment {
 			c, err := ipblocks.NewIPBlockFromCidrOrAddress(cidr)
 			if err != nil {

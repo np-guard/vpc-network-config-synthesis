@@ -70,8 +70,8 @@ func allowDirectedConnection(s *ir.Spec, src, dst ir.IP, srcEp, dstEp ir.Endpoin
 	protocol ir.Protocol, reason explanation) []*ir.ACLRule {
 	var request, response *ir.Packet
 
-	srcList := epContainedInCidr(s, src, srcEp)
-	dstList := epContainedInCidr(s, dst, dstEp)
+	srcList := endPointsContainedInCidr(s, src, srcEp)
+	dstList := endPointsContainedInCidr(s, dst, dstEp)
 
 	var connection []*ir.ACLRule
 
@@ -110,7 +110,7 @@ func endpointRelevantToACL(e ir.EndpointType) bool {
 	return e == ir.EndpointTypeSubnet || e == ir.EndpointTypeSegment || e == ir.EndpointTypeCidr
 }
 
-func epContainedInCidr(s *ir.Spec, epIP ir.IP, ep ir.Endpoint) []ir.IP {
+func endPointsContainedInCidr(s *ir.Spec, epIP ir.IP, ep ir.Endpoint) []ir.IP {
 	if ep.Type != ir.EndpointTypeCidr {
 		return []ir.IP{epIP}
 	}

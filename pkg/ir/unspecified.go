@@ -26,7 +26,8 @@ func (s *Spec) ComputeBlockedSubnets(singleACL bool) {
 			continue
 		}
 
-		segments := []string{} // segments which include the subnet
+		// subnet segments which include the subnet
+		segments := []string{}
 		for segmentName, segment := range s.Defs.SubnetSegments {
 			for _, s := range segment {
 				if subnet == s {
@@ -39,10 +40,11 @@ func (s *Spec) ComputeBlockedSubnets(singleACL bool) {
 			continue
 		}
 
-		cidrSements := []string{}                                   // cidr segments which include the subnet
-		for segmentName, cidrSegment := range s.Defs.CidrSegments { // go over cidr segments
+		// cidr segments which include the subnet
+		cidrSements := []string{}
+		for segmentName, cidrSegment := range s.Defs.CidrSegments {
 			for _, subnets := range cidrSegment {
-				for _, s := range subnets { // go over the subnets for each cidr
+				for _, s := range subnets {
 					if subnet == s {
 						cidrSements = append(cidrSements, segmentName)
 						break
@@ -92,7 +94,8 @@ func (s *Spec) computeBlockedNIFs() []string {
 			}
 		}
 
-		if len(blockedNIFs) > 0 && len(NIFs) == 1 { // instance has only one NIF which was not found
+		// instance has only one NIF which was not found
+		if len(blockedNIFs) > 0 && len(NIFs) == 1 {
 			blockedEndPoints = append(blockedEndPoints, instance)
 		} else {
 			blockedEndPoints = append(blockedEndPoints, blockedNIFs...)

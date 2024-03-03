@@ -113,6 +113,7 @@ func (s *Definitions) lookupMulti(m map[string][]string, name string, elemType, 
 }
 
 func (s *Definitions) Lookup(t EndpointType, name string) (Endpoint, error) {
+	err := fmt.Errorf("invalid type %v (endpoint %v)", t, name)
 	switch t {
 	case EndpointTypeExternal:
 		return lookupSingle(s.Externals, name, t)
@@ -127,13 +128,15 @@ func (s *Definitions) Lookup(t EndpointType, name string) (Endpoint, error) {
 	case EndpointTypeInstance:
 		return s.lookupMulti(s.InstanceToNIFs, name, EndpointTypeNIF, EndpointTypeInstance)
 	case EndpointTypeSegment:
-		if _, ok := s.SubnetSegments[name]; ok { // its a subnet segment
+		if _, ok := s.SubnetSegments[name]; ok { // subnet segment
 			return s.lookupMulti(s.SubnetSegments, name, EndpointTypeSubnet, EndpointTypeSegment)
-		} else { // its a cidr segment
+		} else if _, ok := s.CidrSegments[name]; ok { // cidr segment
 			return Endpoint{name, cidrsAsIPs(s.CidrSegments, name), EndpointTypeCidr}, nil
+		} else {
+			return Endpoint{}, err
 		}
 	default:
-		return Endpoint{}, fmt.Errorf("invalid type %v (endpoint %v)", t, name)
+		return Endpoint{}, err
 	}
 }
 

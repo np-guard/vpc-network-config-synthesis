@@ -1,0 +1,1738 @@
+{
+    "vpcs": [
+        {
+            "classic_access": false,
+            "created_at": "2024-02-19T07:38:09.000Z",
+            "crn": "crn:1",
+            "cse_source_ips": [
+                {
+                    "ip": {
+                        "address": "10.22.212.118"
+                    },
+                    "zone": {
+                        "href": "href:4",
+                        "name": "us-south-1"
+                    }
+                },
+                {
+                    "ip": {
+                        "address": "10.16.245.44"
+                    },
+                    "zone": {
+                        "href": "href:5",
+                        "name": "us-south-2"
+                    }
+                },
+                {
+                    "ip": {
+                        "address": "10.22.228.12"
+                    },
+                    "zone": {
+                        "href": "href:6",
+                        "name": "us-south-3"
+                    }
+                }
+            ],
+            "default_network_acl": {
+                "crn": "crn:7",
+                "href": "href:8",
+                "id": "id:9",
+                "name": "engraved-wrist-wobbly-coming"
+            },
+            "default_routing_table": {
+                "href": "href:10",
+                "id": "id:11",
+                "name": "reabsorb-ferris-tainted-bagpipe",
+                "resource_type": "routing_table"
+            },
+            "default_security_group": {
+                "crn": "crn:12",
+                "href": "href:13",
+                "id": "id:14",
+                "name": "nephew-glamour-clapping-overcook"
+            },
+            "dns": {
+                "enable_hub": false,
+                "resolution_binding_count": 0,
+                "resolver": {
+                    "servers": [
+                        {
+                            "address": "161.26.0.10"
+                        },
+                        {
+                            "address": "161.26.0.11"
+                        }
+                    ],
+                    "type": "system",
+                    "configuration": "default"
+                }
+            },
+            "health_reasons": null,
+            "health_state": "ok",
+            "href": "href:2",
+            "id": "id:3",
+            "name": "test-vpc-ky",
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "resource_type": "vpc",
+            "status": "available",
+            "region": "us-south",
+            "address_prefixes": [
+                {
+                    "cidr": "10.240.128.0/18",
+                    "created_at": "2024-02-19T07:38:09.000Z",
+                    "has_subnets": true,
+                    "href": "href:17",
+                    "id": "id:18",
+                    "is_default": true,
+                    "name": "unmapped-take-hasty-glamour",
+                    "zone": {
+                        "href": "href:6",
+                        "name": "us-south-3"
+                    }
+                },
+                {
+                    "cidr": "10.240.0.0/18",
+                    "created_at": "2024-02-19T07:38:09.000Z",
+                    "has_subnets": true,
+                    "href": "href:19",
+                    "id": "id:20",
+                    "is_default": true,
+                    "name": "waving-tables-impromptu-obstacle",
+                    "zone": {
+                        "href": "href:4",
+                        "name": "us-south-1"
+                    }
+                },
+                {
+                    "cidr": "10.240.64.0/18",
+                    "created_at": "2024-02-19T07:38:09.000Z",
+                    "has_subnets": true,
+                    "href": "href:21",
+                    "id": "id:22",
+                    "is_default": true,
+                    "name": "conducive-vastly-accustomed-removal",
+                    "zone": {
+                        "href": "href:5",
+                        "name": "us-south-2"
+                    }
+                }
+            ],
+            "tags": []
+        }
+    ],
+    "subnets": [
+        {
+            "available_ipv4_address_count": 251,
+            "created_at": "2024-02-19T07:39:01.000Z",
+            "crn": "crn:23",
+            "href": "href:24",
+            "id": "id:25",
+            "ip_version": "ipv4",
+            "ipv4_cidr_block": "10.240.3.0/24",
+            "name": "sub1-3-ky",
+            "network_acl": {
+                "crn": "crn:26",
+                "href": "href:27",
+                "id": "id:28",
+                "name": "acl1-2-ky"
+            },
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "resource_type": "subnet",
+            "routing_table": {
+                "href": "href:10",
+                "id": "id:11",
+                "name": "reabsorb-ferris-tainted-bagpipe",
+                "resource_type": "routing_table"
+            },
+            "status": "available",
+            "total_ipv4_address_count": 256,
+            "vpc": {
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc-ky",
+                "resource_type": "vpc"
+            },
+            "zone": {
+                "href": "href:4",
+                "name": "us-south-1"
+            },
+            "reserved_ips": [
+                {
+                    "address": "10.240.3.0",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:39:01.000Z",
+                    "href": "href:29",
+                    "id": "id:30",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-network-address",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                },
+                {
+                    "address": "10.240.3.1",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:39:01.000Z",
+                    "href": "href:31",
+                    "id": "id:32",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-default-gateway",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                },
+                {
+                    "address": "10.240.3.2",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:39:01.000Z",
+                    "href": "href:33",
+                    "id": "id:34",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-dns-address",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                },
+                {
+                    "address": "10.240.3.3",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:39:01.000Z",
+                    "href": "href:35",
+                    "id": "id:36",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-reserved-address",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                },
+                {
+                    "address": "10.240.3.255",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:39:01.000Z",
+                    "href": "href:37",
+                    "id": "id:38",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-broadcast-address",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                }
+            ],
+            "tags": []
+        },
+        {
+            "available_ipv4_address_count": 251,
+            "created_at": "2024-02-19T07:38:49.000Z",
+            "crn": "crn:39",
+            "href": "href:40",
+            "id": "id:41",
+            "ip_version": "ipv4",
+            "ipv4_cidr_block": "10.240.2.0/24",
+            "name": "sub1-2-ky",
+            "network_acl": {
+                "crn": "crn:26",
+                "href": "href:27",
+                "id": "id:28",
+                "name": "acl1-2-ky"
+            },
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "resource_type": "subnet",
+            "routing_table": {
+                "href": "href:10",
+                "id": "id:11",
+                "name": "reabsorb-ferris-tainted-bagpipe",
+                "resource_type": "routing_table"
+            },
+            "status": "available",
+            "total_ipv4_address_count": 256,
+            "vpc": {
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc-ky",
+                "resource_type": "vpc"
+            },
+            "zone": {
+                "href": "href:4",
+                "name": "us-south-1"
+            },
+            "reserved_ips": [
+                {
+                    "address": "10.240.2.0",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:49.000Z",
+                    "href": "href:42",
+                    "id": "id:43",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-network-address",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                },
+                {
+                    "address": "10.240.2.1",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:49.000Z",
+                    "href": "href:44",
+                    "id": "id:45",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-default-gateway",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                },
+                {
+                    "address": "10.240.2.2",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:49.000Z",
+                    "href": "href:46",
+                    "id": "id:47",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-dns-address",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                },
+                {
+                    "address": "10.240.2.3",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:49.000Z",
+                    "href": "href:48",
+                    "id": "id:49",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-reserved-address",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                },
+                {
+                    "address": "10.240.2.255",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:49.000Z",
+                    "href": "href:50",
+                    "id": "id:51",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-broadcast-address",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                }
+            ],
+            "tags": []
+        },
+        {
+            "available_ipv4_address_count": 251,
+            "created_at": "2024-02-19T07:38:49.000Z",
+            "crn": "crn:52",
+            "href": "href:53",
+            "id": "id:54",
+            "ip_version": "ipv4",
+            "ipv4_cidr_block": "10.240.64.0/24",
+            "name": "sub2-1-ky",
+            "network_acl": {
+                "crn": "crn:55",
+                "href": "href:56",
+                "id": "id:57",
+                "name": "acl2-1-ky"
+            },
+            "public_gateway": {
+                "crn": "crn:58",
+                "href": "href:59",
+                "id": "id:60",
+                "name": "public-gw2-ky",
+                "resource_type": "public_gateway"
+            },
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "resource_type": "subnet",
+            "routing_table": {
+                "href": "href:10",
+                "id": "id:11",
+                "name": "reabsorb-ferris-tainted-bagpipe",
+                "resource_type": "routing_table"
+            },
+            "status": "available",
+            "total_ipv4_address_count": 256,
+            "vpc": {
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc-ky",
+                "resource_type": "vpc"
+            },
+            "zone": {
+                "href": "href:5",
+                "name": "us-south-2"
+            },
+            "reserved_ips": [
+                {
+                    "address": "10.240.64.0",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:49.000Z",
+                    "href": "href:61",
+                    "id": "id:62",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-network-address",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                },
+                {
+                    "address": "10.240.64.1",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:49.000Z",
+                    "href": "href:63",
+                    "id": "id:64",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-default-gateway",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                },
+                {
+                    "address": "10.240.64.2",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:49.000Z",
+                    "href": "href:65",
+                    "id": "id:66",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-dns-address",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                },
+                {
+                    "address": "10.240.64.3",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:49.000Z",
+                    "href": "href:67",
+                    "id": "id:68",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-reserved-address",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                },
+                {
+                    "address": "10.240.64.255",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:49.000Z",
+                    "href": "href:69",
+                    "id": "id:70",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-broadcast-address",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                }
+            ],
+            "tags": []
+        },
+        {
+            "available_ipv4_address_count": 251,
+            "created_at": "2024-02-19T07:38:37.000Z",
+            "crn": "crn:71",
+            "href": "href:72",
+            "id": "id:73",
+            "ip_version": "ipv4",
+            "ipv4_cidr_block": "10.240.1.0/24",
+            "name": "sub1-1-ky",
+            "network_acl": {
+                "crn": "crn:74",
+                "href": "href:75",
+                "id": "id:76",
+                "name": "acl1-1-ky"
+            },
+            "public_gateway": {
+                "crn": "crn:77",
+                "href": "href:78",
+                "id": "id:79",
+                "name": "public-gw1-ky",
+                "resource_type": "public_gateway"
+            },
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "resource_type": "subnet",
+            "routing_table": {
+                "href": "href:10",
+                "id": "id:11",
+                "name": "reabsorb-ferris-tainted-bagpipe",
+                "resource_type": "routing_table"
+            },
+            "status": "available",
+            "total_ipv4_address_count": 256,
+            "vpc": {
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc-ky",
+                "resource_type": "vpc"
+            },
+            "zone": {
+                "href": "href:4",
+                "name": "us-south-1"
+            },
+            "reserved_ips": [
+                {
+                    "address": "10.240.1.0",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:37.000Z",
+                    "href": "href:80",
+                    "id": "id:81",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-network-address",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                },
+                {
+                    "address": "10.240.1.1",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:37.000Z",
+                    "href": "href:82",
+                    "id": "id:83",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-default-gateway",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                },
+                {
+                    "address": "10.240.1.2",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:37.000Z",
+                    "href": "href:84",
+                    "id": "id:85",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-dns-address",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                },
+                {
+                    "address": "10.240.1.3",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:37.000Z",
+                    "href": "href:86",
+                    "id": "id:87",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-reserved-address",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                },
+                {
+                    "address": "10.240.1.255",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:37.000Z",
+                    "href": "href:88",
+                    "id": "id:89",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-broadcast-address",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                }
+            ],
+            "tags": []
+        },
+        {
+            "available_ipv4_address_count": 251,
+            "created_at": "2024-02-19T07:38:37.000Z",
+            "crn": "crn:90",
+            "href": "href:91",
+            "id": "id:92",
+            "ip_version": "ipv4",
+            "ipv4_cidr_block": "10.240.65.0/24",
+            "name": "sub2-2-ky",
+            "network_acl": {
+                "crn": "crn:93",
+                "href": "href:94",
+                "id": "id:95",
+                "name": "acl2-2-ky"
+            },
+            "public_gateway": {
+                "crn": "crn:58",
+                "href": "href:59",
+                "id": "id:60",
+                "name": "public-gw2-ky",
+                "resource_type": "public_gateway"
+            },
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "resource_type": "subnet",
+            "routing_table": {
+                "href": "href:10",
+                "id": "id:11",
+                "name": "reabsorb-ferris-tainted-bagpipe",
+                "resource_type": "routing_table"
+            },
+            "status": "available",
+            "total_ipv4_address_count": 256,
+            "vpc": {
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc-ky",
+                "resource_type": "vpc"
+            },
+            "zone": {
+                "href": "href:5",
+                "name": "us-south-2"
+            },
+            "reserved_ips": [
+                {
+                    "address": "10.240.65.0",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:37.000Z",
+                    "href": "href:96",
+                    "id": "id:97",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-network-address",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                },
+                {
+                    "address": "10.240.65.1",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:37.000Z",
+                    "href": "href:98",
+                    "id": "id:99",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-default-gateway",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                },
+                {
+                    "address": "10.240.65.2",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:37.000Z",
+                    "href": "href:100",
+                    "id": "id:101",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-dns-address",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                },
+                {
+                    "address": "10.240.65.3",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:37.000Z",
+                    "href": "href:102",
+                    "id": "id:103",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-reserved-address",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                },
+                {
+                    "address": "10.240.65.255",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:37.000Z",
+                    "href": "href:104",
+                    "id": "id:105",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-broadcast-address",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                }
+            ],
+            "tags": []
+        },
+        {
+            "available_ipv4_address_count": 251,
+            "created_at": "2024-02-19T07:38:29.000Z",
+            "crn": "crn:106",
+            "href": "href:107",
+            "id": "id:108",
+            "ip_version": "ipv4",
+            "ipv4_cidr_block": "10.240.128.0/24",
+            "name": "sub3-1-ky",
+            "network_acl": {
+                "crn": "crn:109",
+                "href": "href:110",
+                "id": "id:111",
+                "name": "acl3-1-ky"
+            },
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "resource_type": "subnet",
+            "routing_table": {
+                "href": "href:10",
+                "id": "id:11",
+                "name": "reabsorb-ferris-tainted-bagpipe",
+                "resource_type": "routing_table"
+            },
+            "status": "available",
+            "total_ipv4_address_count": 256,
+            "vpc": {
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc-ky",
+                "resource_type": "vpc"
+            },
+            "zone": {
+                "href": "href:6",
+                "name": "us-south-3"
+            },
+            "reserved_ips": [
+                {
+                    "address": "10.240.128.0",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:29.000Z",
+                    "href": "href:112",
+                    "id": "id:113",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-network-address",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                },
+                {
+                    "address": "10.240.128.1",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:29.000Z",
+                    "href": "href:114",
+                    "id": "id:115",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-default-gateway",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                },
+                {
+                    "address": "10.240.128.2",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:29.000Z",
+                    "href": "href:116",
+                    "id": "id:117",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-dns-address",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                },
+                {
+                    "address": "10.240.128.3",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:29.000Z",
+                    "href": "href:118",
+                    "id": "id:119",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-reserved-address",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                },
+                {
+                    "address": "10.240.128.255",
+                    "auto_delete": false,
+                    "created_at": "2024-02-19T07:38:29.000Z",
+                    "href": "href:120",
+                    "id": "id:121",
+                    "lifecycle_state": "stable",
+                    "name": "ibm-broadcast-address",
+                    "owner": "provider",
+                    "resource_type": "subnet_reserved_ip"
+                }
+            ],
+            "tags": []
+        }
+    ],
+    "public_gateways": [
+        {
+            "created_at": "2024-02-19T07:38:25.000Z",
+            "crn": "crn:58",
+            "floating_ip": {
+                "address": "169.47.93.89",
+                "crn": "crn:122",
+                "href": "href:123",
+                "id": "id:124",
+                "name": "public-gw2-ky"
+            },
+            "href": "href:59",
+            "id": "id:60",
+            "name": "public-gw2-ky",
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "resource_type": "public_gateway",
+            "status": "available",
+            "vpc": {
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc-ky",
+                "resource_type": "vpc"
+            },
+            "zone": {
+                "href": "href:5",
+                "name": "us-south-2"
+            },
+            "tags": []
+        },
+        {
+            "created_at": "2024-02-19T07:38:25.000Z",
+            "crn": "crn:77",
+            "floating_ip": {
+                "address": "52.118.185.188",
+                "crn": "crn:125",
+                "href": "href:126",
+                "id": "id:127",
+                "name": "public-gw1-ky"
+            },
+            "href": "href:78",
+            "id": "id:79",
+            "name": "public-gw1-ky",
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "resource_type": "public_gateway",
+            "status": "available",
+            "vpc": {
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc-ky",
+                "resource_type": "vpc"
+            },
+            "zone": {
+                "href": "href:4",
+                "name": "us-south-1"
+            },
+            "tags": []
+        }
+    ],
+    "floating_ips": [
+        {
+            "address": "52.118.185.188",
+            "created_at": "2024-02-19T07:38:25.000Z",
+            "crn": "crn:125",
+            "href": "href:126",
+            "id": "id:127",
+            "name": "public-gw1-ky",
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "status": "available",
+            "target": {
+                "href": "href:78",
+                "id": "id:79",
+                "name": "public-gw1-ky",
+                "resource_type": "public_gateway",
+                "crn": "crn:77"
+            },
+            "zone": {
+                "href": "href:4",
+                "name": "us-south-1"
+            },
+            "tags": []
+        },
+        {
+            "address": "169.47.93.89",
+            "created_at": "2024-02-19T07:38:24.000Z",
+            "crn": "crn:122",
+            "href": "href:123",
+            "id": "id:124",
+            "name": "public-gw2-ky",
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "status": "available",
+            "target": {
+                "href": "href:59",
+                "id": "id:60",
+                "name": "public-gw2-ky",
+                "resource_type": "public_gateway",
+                "crn": "crn:58"
+            },
+            "zone": {
+                "href": "href:5",
+                "name": "us-south-2"
+            },
+            "tags": []
+        }
+    ],
+    "network_acls": [
+        {
+            "created_at": "2024-02-19T07:38:24.000Z",
+            "crn": "crn:74",
+            "href": "href:75",
+            "id": "id:76",
+            "name": "acl1-1-ky",
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "rules": [
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "href:130",
+                        "id": "id:131",
+                        "name": "o2"
+                    },
+                    "created_at": "2024-02-19T07:38:24.000Z",
+                    "destination": "8.8.8.8/32",
+                    "direction": "outbound",
+                    "href": "href:128",
+                    "id": "id:129",
+                    "ip_version": "ipv4",
+                    "name": "o1",
+                    "source": "10.240.1.0/24",
+                    "destination_port_max": 53,
+                    "destination_port_min": 53,
+                    "protocol": "udp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "href:132",
+                        "id": "id:133",
+                        "name": "o3"
+                    },
+                    "created_at": "2024-02-19T07:38:25.000Z",
+                    "destination": "10.240.2.0/23",
+                    "direction": "outbound",
+                    "href": "href:130",
+                    "id": "id:131",
+                    "ip_version": "ipv4",
+                    "name": "o2",
+                    "source": "10.240.1.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "href:134",
+                        "id": "id:135",
+                        "name": "i1"
+                    },
+                    "created_at": "2024-02-19T07:38:25.000Z",
+                    "destination": "10.240.128.0/24",
+                    "direction": "outbound",
+                    "href": "href:132",
+                    "id": "id:133",
+                    "ip_version": "ipv4",
+                    "name": "o3",
+                    "source": "10.240.1.0/24",
+                    "code": 0,
+                    "protocol": "icmp",
+                    "type": 0
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "href:136",
+                        "id": "id:137",
+                        "name": "i2"
+                    },
+                    "created_at": "2024-02-19T07:38:26.000Z",
+                    "destination": "10.240.1.0/24",
+                    "direction": "inbound",
+                    "href": "href:134",
+                    "id": "id:135",
+                    "ip_version": "ipv4",
+                    "name": "i1",
+                    "source": "8.8.8.8/32",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "udp",
+                    "source_port_max": 53,
+                    "source_port_min": 53
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "href:138",
+                        "id": "id:139",
+                        "name": "i3"
+                    },
+                    "created_at": "2024-02-19T07:38:26.000Z",
+                    "destination": "10.240.1.0/24",
+                    "direction": "inbound",
+                    "href": "href:136",
+                    "id": "id:137",
+                    "ip_version": "ipv4",
+                    "name": "i2",
+                    "source": "10.240.2.0/23",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "created_at": "2024-02-19T07:38:27.000Z",
+                    "destination": "10.240.1.0/24",
+                    "direction": "inbound",
+                    "href": "href:138",
+                    "id": "id:139",
+                    "ip_version": "ipv4",
+                    "name": "i3",
+                    "source": "10.240.128.0/24",
+                    "code": 0,
+                    "protocol": "icmp",
+                    "type": 0
+                }
+            ],
+            "subnets": [
+                {
+                    "crn": "crn:71",
+                    "href": "href:72",
+                    "id": "id:73",
+                    "name": "sub1-1-ky",
+                    "resource_type": "subnet"
+                }
+            ],
+            "vpc": {
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc-ky",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": "2024-02-19T07:38:24.000Z",
+            "crn": "crn:93",
+            "href": "href:94",
+            "id": "id:95",
+            "name": "acl2-2-ky",
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "rules": [
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "href:142",
+                        "id": "id:143",
+                        "name": "i1"
+                    },
+                    "created_at": "2024-02-19T07:38:25.000Z",
+                    "destination": "10.240.64.0/24",
+                    "direction": "outbound",
+                    "href": "href:140",
+                    "id": "id:141",
+                    "ip_version": "ipv4",
+                    "name": "o1",
+                    "source": "10.240.65.0/24",
+                    "protocol": "all"
+                },
+                {
+                    "action": "allow",
+                    "created_at": "2024-02-19T07:38:26.000Z",
+                    "destination": "10.240.65.0/24",
+                    "direction": "inbound",
+                    "href": "href:142",
+                    "id": "id:143",
+                    "ip_version": "ipv4",
+                    "name": "i1",
+                    "source": "10.240.64.0/24",
+                    "protocol": "all"
+                }
+            ],
+            "subnets": [
+                {
+                    "crn": "crn:90",
+                    "href": "href:91",
+                    "id": "id:92",
+                    "name": "sub2-2-ky",
+                    "resource_type": "subnet"
+                }
+            ],
+            "vpc": {
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc-ky",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": "2024-02-19T07:38:24.000Z",
+            "crn": "crn:109",
+            "href": "href:110",
+            "id": "id:111",
+            "name": "acl3-1-ky",
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "rules": [
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "href:146",
+                        "id": "id:147",
+                        "name": "o2"
+                    },
+                    "created_at": "2024-02-19T07:38:24.000Z",
+                    "destination": "10.240.64.0/24",
+                    "direction": "outbound",
+                    "href": "href:144",
+                    "id": "id:145",
+                    "ip_version": "ipv4",
+                    "name": "o1",
+                    "source": "10.240.128.0/24",
+                    "destination_port_max": 443,
+                    "destination_port_min": 443,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "href:148",
+                        "id": "id:149",
+                        "name": "o3"
+                    },
+                    "created_at": "2024-02-19T07:38:25.000Z",
+                    "destination": "10.240.64.0/24",
+                    "direction": "outbound",
+                    "href": "href:146",
+                    "id": "id:147",
+                    "ip_version": "ipv4",
+                    "name": "o2",
+                    "source": "10.240.128.0/24",
+                    "code": 0,
+                    "protocol": "icmp",
+                    "type": 0
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "href:150",
+                        "id": "id:151",
+                        "name": "i1"
+                    },
+                    "created_at": "2024-02-19T07:38:25.000Z",
+                    "destination": "10.240.1.0/24",
+                    "direction": "outbound",
+                    "href": "href:148",
+                    "id": "id:149",
+                    "ip_version": "ipv4",
+                    "name": "o3",
+                    "source": "10.240.128.0/24",
+                    "code": 0,
+                    "protocol": "icmp",
+                    "type": 0
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "href:152",
+                        "id": "id:153",
+                        "name": "i2"
+                    },
+                    "created_at": "2024-02-19T07:38:26.000Z",
+                    "destination": "10.240.128.0/24",
+                    "direction": "inbound",
+                    "href": "href:150",
+                    "id": "id:151",
+                    "ip_version": "ipv4",
+                    "name": "i1",
+                    "source": "10.240.64.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 443,
+                    "source_port_min": 443
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "href:154",
+                        "id": "id:155",
+                        "name": "i3"
+                    },
+                    "created_at": "2024-02-19T07:38:27.000Z",
+                    "destination": "10.240.128.0/24",
+                    "direction": "inbound",
+                    "href": "href:152",
+                    "id": "id:153",
+                    "ip_version": "ipv4",
+                    "name": "i2",
+                    "source": "10.240.64.0/24",
+                    "code": 0,
+                    "protocol": "icmp",
+                    "type": 0
+                },
+                {
+                    "action": "allow",
+                    "created_at": "2024-02-19T07:38:27.000Z",
+                    "destination": "10.240.128.0/24",
+                    "direction": "inbound",
+                    "href": "href:154",
+                    "id": "id:155",
+                    "ip_version": "ipv4",
+                    "name": "i3",
+                    "source": "10.240.1.0/24",
+                    "code": 0,
+                    "protocol": "icmp",
+                    "type": 0
+                }
+            ],
+            "subnets": [
+                {
+                    "crn": "crn:106",
+                    "href": "href:107",
+                    "id": "id:108",
+                    "name": "sub3-1-ky",
+                    "resource_type": "subnet"
+                }
+            ],
+            "vpc": {
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc-ky",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": "2024-02-19T07:38:24.000Z",
+            "crn": "crn:55",
+            "href": "href:56",
+            "id": "id:57",
+            "name": "acl2-1-ky",
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "rules": [
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "href:158",
+                        "id": "id:159",
+                        "name": "o2"
+                    },
+                    "created_at": "2024-02-19T07:38:25.000Z",
+                    "destination": "8.8.8.8/32",
+                    "direction": "outbound",
+                    "href": "href:156",
+                    "id": "id:157",
+                    "ip_version": "ipv4",
+                    "name": "o1",
+                    "source": "10.240.64.0/24",
+                    "destination_port_max": 53,
+                    "destination_port_min": 53,
+                    "protocol": "udp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "href:160",
+                        "id": "id:161",
+                        "name": "o3"
+                    },
+                    "created_at": "2024-02-19T07:38:25.000Z",
+                    "destination": "10.240.65.0/24",
+                    "direction": "outbound",
+                    "href": "href:158",
+                    "id": "id:159",
+                    "ip_version": "ipv4",
+                    "name": "o2",
+                    "source": "10.240.64.0/24",
+                    "protocol": "all"
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "href:162",
+                        "id": "id:163",
+                        "name": "o4"
+                    },
+                    "created_at": "2024-02-19T07:38:26.000Z",
+                    "destination": "10.240.128.0/24",
+                    "direction": "outbound",
+                    "href": "href:160",
+                    "id": "id:161",
+                    "ip_version": "ipv4",
+                    "name": "o3",
+                    "source": "10.240.64.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 443,
+                    "source_port_min": 443
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "href:164",
+                        "id": "id:165",
+                        "name": "i1"
+                    },
+                    "created_at": "2024-02-19T07:38:26.000Z",
+                    "destination": "10.240.128.0/24",
+                    "direction": "outbound",
+                    "href": "href:162",
+                    "id": "id:163",
+                    "ip_version": "ipv4",
+                    "name": "o4",
+                    "source": "10.240.64.0/24",
+                    "code": 0,
+                    "protocol": "icmp",
+                    "type": 0
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "href:166",
+                        "id": "id:167",
+                        "name": "i2"
+                    },
+                    "created_at": "2024-02-19T07:38:27.000Z",
+                    "destination": "10.240.64.0/24",
+                    "direction": "inbound",
+                    "href": "href:164",
+                    "id": "id:165",
+                    "ip_version": "ipv4",
+                    "name": "i1",
+                    "source": "8.8.8.8/32",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "udp",
+                    "source_port_max": 53,
+                    "source_port_min": 53
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "href:168",
+                        "id": "id:169",
+                        "name": "i3"
+                    },
+                    "created_at": "2024-02-19T07:38:28.000Z",
+                    "destination": "10.240.64.0/24",
+                    "direction": "inbound",
+                    "href": "href:166",
+                    "id": "id:167",
+                    "ip_version": "ipv4",
+                    "name": "i2",
+                    "source": "10.240.65.0/24",
+                    "protocol": "all"
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "href:170",
+                        "id": "id:171",
+                        "name": "i4"
+                    },
+                    "created_at": "2024-02-19T07:38:28.000Z",
+                    "destination": "10.240.64.0/24",
+                    "direction": "inbound",
+                    "href": "href:168",
+                    "id": "id:169",
+                    "ip_version": "ipv4",
+                    "name": "i3",
+                    "source": "10.240.128.0/24",
+                    "destination_port_max": 443,
+                    "destination_port_min": 443,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "created_at": "2024-02-19T07:38:29.000Z",
+                    "destination": "10.240.64.0/24",
+                    "direction": "inbound",
+                    "href": "href:170",
+                    "id": "id:171",
+                    "ip_version": "ipv4",
+                    "name": "i4",
+                    "source": "10.240.128.0/24",
+                    "code": 0,
+                    "protocol": "icmp",
+                    "type": 0
+                }
+            ],
+            "subnets": [
+                {
+                    "crn": "crn:52",
+                    "href": "href:53",
+                    "id": "id:54",
+                    "name": "sub2-1-ky",
+                    "resource_type": "subnet"
+                }
+            ],
+            "vpc": {
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc-ky",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": "2024-02-19T07:38:24.000Z",
+            "crn": "crn:26",
+            "href": "href:27",
+            "id": "id:28",
+            "name": "acl1-2-ky",
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "rules": [
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "href:174",
+                        "id": "id:175",
+                        "name": "o2"
+                    },
+                    "created_at": "2024-02-19T07:38:26.000Z",
+                    "destination": "10.240.1.0/24",
+                    "direction": "outbound",
+                    "href": "href:172",
+                    "id": "id:173",
+                    "ip_version": "ipv4",
+                    "name": "o1",
+                    "source": "10.240.2.0/23",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "href:176",
+                        "id": "id:177",
+                        "name": "i1"
+                    },
+                    "created_at": "2024-02-19T07:38:26.000Z",
+                    "destination": "10.240.2.0/23",
+                    "direction": "outbound",
+                    "href": "href:174",
+                    "id": "id:175",
+                    "ip_version": "ipv4",
+                    "name": "o2",
+                    "source": "10.240.2.0/23",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "href:178",
+                        "id": "id:179",
+                        "name": "i2"
+                    },
+                    "created_at": "2024-02-19T07:38:28.000Z",
+                    "destination": "10.240.2.0/23",
+                    "direction": "inbound",
+                    "href": "href:176",
+                    "id": "id:177",
+                    "ip_version": "ipv4",
+                    "name": "i1",
+                    "source": "10.240.1.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "created_at": "2024-02-19T07:38:28.000Z",
+                    "destination": "10.240.2.0/23",
+                    "direction": "inbound",
+                    "href": "href:178",
+                    "id": "id:179",
+                    "ip_version": "ipv4",
+                    "name": "i2",
+                    "source": "10.240.2.0/23",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                }
+            ],
+            "subnets": [
+                {
+                    "crn": "crn:23",
+                    "href": "href:24",
+                    "id": "id:25",
+                    "name": "sub1-3-ky",
+                    "resource_type": "subnet"
+                },
+                {
+                    "crn": "crn:39",
+                    "href": "href:40",
+                    "id": "id:41",
+                    "name": "sub1-2-ky",
+                    "resource_type": "subnet"
+                }
+            ],
+            "vpc": {
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc-ky",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": "2024-02-19T07:38:09.000Z",
+            "crn": "crn:7",
+            "href": "href:8",
+            "id": "id:9",
+            "name": "engraved-wrist-wobbly-coming",
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "rules": [
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "href:182",
+                        "id": "id:183",
+                        "name": "allow-outbound"
+                    },
+                    "created_at": "2024-02-19T07:38:09.000Z",
+                    "destination": "0.0.0.0/0",
+                    "direction": "inbound",
+                    "href": "href:180",
+                    "id": "id:181",
+                    "ip_version": "ipv4",
+                    "name": "allow-inbound",
+                    "source": "0.0.0.0/0",
+                    "protocol": "all"
+                },
+                {
+                    "action": "allow",
+                    "created_at": "2024-02-19T07:38:09.000Z",
+                    "destination": "0.0.0.0/0",
+                    "direction": "outbound",
+                    "href": "href:182",
+                    "id": "id:183",
+                    "ip_version": "ipv4",
+                    "name": "allow-outbound",
+                    "source": "0.0.0.0/0",
+                    "protocol": "all"
+                }
+            ],
+            "subnets": [],
+            "vpc": {
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc-ky",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        }
+    ],
+    "security_groups": [
+        {
+            "created_at": "2024-02-19T07:38:24.000Z",
+            "crn": "crn:184",
+            "href": "href:185",
+            "id": "id:186",
+            "name": "sg1-ky",
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "rules": [
+                {
+                    "direction": "inbound",
+                    "href": "href:187",
+                    "id": "id:188",
+                    "ip_version": "ipv4",
+                    "remote": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
+                    "protocol": "all"
+                },
+                {
+                    "direction": "outbound",
+                    "href": "href:189",
+                    "id": "id:190",
+                    "ip_version": "ipv4",
+                    "remote": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
+                    "protocol": "all"
+                }
+            ],
+            "targets": [],
+            "vpc": {
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc-ky",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": "2024-02-19T07:38:09.000Z",
+            "crn": "crn:12",
+            "href": "href:13",
+            "id": "id:14",
+            "name": "nephew-glamour-clapping-overcook",
+            "resource_group": {
+                "href": "href:15",
+                "id": "id:16",
+                "name": "anonymous"
+            },
+            "rules": [
+                {
+                    "direction": "outbound",
+                    "href": "href:191",
+                    "id": "id:192",
+                    "ip_version": "ipv4",
+                    "remote": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
+                    "protocol": "all"
+                },
+                {
+                    "direction": "inbound",
+                    "href": "href:193",
+                    "id": "id:194",
+                    "ip_version": "ipv4",
+                    "remote": {
+                        "crn": "crn:12",
+                        "href": "href:13",
+                        "id": "id:14",
+                        "name": "nephew-glamour-clapping-overcook"
+                    },
+                    "protocol": "all"
+                }
+            ],
+            "targets": [],
+            "vpc": {
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc-ky",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        }
+    ],
+    "endpoint_gateways": [],
+    "instances": [],
+    "routing_tables": [
+        {
+            "accept_routes_from": [
+                {
+                    "resource_type": "vpn_gateway"
+                },
+                {
+                    "resource_type": "vpn_server"
+                }
+            ],
+            "advertise_routes_to": [],
+            "created_at": "2024-02-19T07:38:09.000Z",
+            "href": "href:10",
+            "id": "id:11",
+            "is_default": true,
+            "lifecycle_state": "stable",
+            "name": "reabsorb-ferris-tainted-bagpipe",
+            "resource_type": "routing_table",
+            "route_direct_link_ingress": false,
+            "route_internet_ingress": false,
+            "route_transit_gateway_ingress": false,
+            "route_vpc_zone_ingress": false,
+            "subnets": [
+                {
+                    "crn": "crn:23",
+                    "href": "href:24",
+                    "id": "id:25",
+                    "name": "sub1-3-ky",
+                    "resource_type": "subnet"
+                },
+                {
+                    "crn": "crn:39",
+                    "href": "href:40",
+                    "id": "id:41",
+                    "name": "sub1-2-ky",
+                    "resource_type": "subnet"
+                },
+                {
+                    "crn": "crn:52",
+                    "href": "href:53",
+                    "id": "id:54",
+                    "name": "sub2-1-ky",
+                    "resource_type": "subnet"
+                },
+                {
+                    "crn": "crn:71",
+                    "href": "href:72",
+                    "id": "id:73",
+                    "name": "sub1-1-ky",
+                    "resource_type": "subnet"
+                },
+                {
+                    "crn": "crn:90",
+                    "href": "href:91",
+                    "id": "id:92",
+                    "name": "sub2-2-ky",
+                    "resource_type": "subnet"
+                },
+                {
+                    "crn": "crn:106",
+                    "href": "href:107",
+                    "id": "id:108",
+                    "name": "sub3-1-ky",
+                    "resource_type": "subnet"
+                }
+            ],
+            "routes": []
+        }
+    ],
+    "load_balancers": [],
+    "transit_connections": null,
+    "transit_gateways": null,
+    "iks_worker_nodes": [],
+    "collector_version": "0.5.1"
+}
