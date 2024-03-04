@@ -127,26 +127,26 @@ func mapToNew(t, code int) int {
 	}
 }
 
-func mapToOld(newCode int) (t int, code int) {
-	switch {
-	case newCode < newRedirect:
-		t = newDestinationUnreachable
-	case newCode < newTimeExceeded:
-		t = newRedirect
-	case newCode < parameterProblem:
-		t = newTimeExceeded
-	case newCode == newEcho:
-		t = echo
-	case newCode == newEchoReply:
-		t = echoReply
-	case newCode == newSourceQuench:
-		t = sourceQuench
-	default:
-		t = newCode
-	}
-	code = newCode - t
-	return
-}
+// func mapToOld(newCode int) (t int, code int) {
+// 	switch {
+// 	case newCode < newRedirect:
+// 		t = newDestinationUnreachable
+// 	case newCode < newTimeExceeded:
+// 		t = newRedirect
+// 	case newCode < parameterProblem:
+// 		t = newTimeExceeded
+// 	case newCode == newEcho:
+// 		t = echo
+// 	case newCode == newEchoReply:
+// 		t = echoReply
+// 	case newCode == newSourceQuench:
+// 		t = sourceQuench
+// 	default:
+// 		t = newCode
+// 	}
+// 	code = newCode - t
+// 	return
+// }
 
 type ICMPSet uint32
 
