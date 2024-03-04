@@ -3,6 +3,7 @@ package ir
 import (
 	"fmt"
 	"log"
+	"math"
 	"slices"
 )
 
@@ -97,4 +98,65 @@ func ValidateICMP(t, c int) error {
 		return fmt.Errorf("ICMP code %v is invalid for ICMP type %v", c, t)
 	}
 	return nil
+}
+
+type ICMPSet struct {
+	destinationUnreachable uint32
+	redirect               uint32
+	timeExceeded           uint32
+	other                  uint32
+}
+
+func isSubset(a, b uint32) bool {
+	return a|b == b
+}
+
+func (s ICMPSet) IsSubset(other ICMPSet) bool {
+	return isSubset(s.destinationUnreachable, other.destinationUnreachable) &&
+		isSubset(s.redirect, other.redirect) &&
+		isSubset(s.timeExceeded, other.timeExceeded) &&
+		isSubset(s.other, other.other)
+}
+
+func (s ICMPSet) Union(other ICMPSet) ICMPSet {
+	return ICMPSet{
+		destinationUnreachable: s.destinationUnreachable | other.destinationUnreachable,
+		redirect:               s.redirect | other.redirect,
+		timeExceeded:           s.timeExceeded | other.timeExceeded,
+		other:                  s.other | other.other,
+	}
+}
+
+const (
+	allDestinationUnreachable = 0b00111111
+	allRedirect               = 0b00001111
+	allTimeExceeded           = 0b00000011
+	allOther                  = 0b11111111
+)
+
+func FromICMP(t ICMP) ICMPSet {
+	if t.ICMPCodeType == nil {
+		return ICMPSet{
+			destinationUnreachable: allDestinationUnreachable,
+			redirect:               allRedirect,
+			timeExceeded:           allTimeExceeded,
+			other:                  allOther,
+		}
+	}
+	res := ICMPSet{}
+	var d uint32 = math.MaxUint32
+	if t.Code != nil {
+		d = 1 << *t.Code
+	}
+	switch t.Type {
+	case destinationUnreachable:
+		res.destinationUnreachable = d & allDestinationUnreachable
+	case redirect:
+		res.redirect = d & allRedirect
+	case timeExceeded:
+		res.timeExceeded = d & allTimeExceeded
+	default:
+		res.other = d & allOther
+	}
+	return res
 }

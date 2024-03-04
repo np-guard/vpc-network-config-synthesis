@@ -75,8 +75,7 @@ func NewSGCollection() *SGCollection {
 }
 
 func (c *SGCollection) LookupOrCreate(name SGName) *SG {
-	sg, ok := c.SGs[name]
-	if ok {
+	if sg, ok := c.SGs[name]; ok {
 		return sg
 	}
 	newSG := NewSG()
