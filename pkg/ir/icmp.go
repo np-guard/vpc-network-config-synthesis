@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"slices"
 )
 
 type ICMPCodeType struct {
@@ -77,86 +76,101 @@ func inverseICMPType(t int) int {
 
 //nolint:revive // magic numbers are fine here
 func ValidateICMP(t, c int) error {
-	possibleCodes := map[int][]int{
-		echoReply:              {0},
-		destinationUnreachable: {0, 1, 2, 3, 4, 5},
-		sourceQuench:           {0},
-		redirect:               {0, 1, 2, 3},
-		echo:                   {0},
-		timeExceeded:           {0, 1},
-		parameterProblem:       {0},
-		timestamp:              {0},
-		timestampReply:         {0},
-		informationRequest:     {0},
-		informationReply:       {0},
+	possibleCodes := map[int]int{
+		echoReply:              0,
+		destinationUnreachable: 5,
+		sourceQuench:           0,
+		redirect:               3,
+		echo:                   0,
+		timeExceeded:           1,
+		parameterProblem:       0,
+		timestamp:              0,
+		timestampReply:         0,
+		informationRequest:     0,
+		informationReply:       0,
 	}
-	options, ok := possibleCodes[t]
+	max, ok := possibleCodes[t]
 	if !ok {
 		return fmt.Errorf("invalid ICMP type %v", t)
 	}
-	if !slices.Contains(options, c) {
+	if c > max {
 		return fmt.Errorf("ICMP code %v is invalid for ICMP type %v", c, t)
 	}
 	return nil
 }
 
-type ICMPSet struct {
-	destinationUnreachable uint32
-	redirect               uint32
-	timeExceeded           uint32
-	other                  uint32
-}
+const (
+	newDestinationUnreachable = 0
+	newRedirect               = 6
+	newTimeExceeded           = 10
+	newEcho                   = 17
+	newEchoReply              = 18
+	newSourceQuench           = 19
+)
 
-func isSubset(a, b uint32) bool {
-	return a|b == b
-}
-
-func (s ICMPSet) IsSubset(other ICMPSet) bool {
-	return isSubset(s.destinationUnreachable, other.destinationUnreachable) &&
-		isSubset(s.redirect, other.redirect) &&
-		isSubset(s.timeExceeded, other.timeExceeded) &&
-		isSubset(s.other, other.other)
-}
-
-func (s ICMPSet) Union(other ICMPSet) ICMPSet {
-	return ICMPSet{
-		destinationUnreachable: s.destinationUnreachable | other.destinationUnreachable,
-		redirect:               s.redirect | other.redirect,
-		timeExceeded:           s.timeExceeded | other.timeExceeded,
-		other:                  s.other | other.other,
+func mapToNew(t, code int) int {
+	switch t {
+	case destinationUnreachable:
+		return newDestinationUnreachable + code
+	case redirect:
+		return newRedirect + code
+	case timeExceeded:
+		return newTimeExceeded + code
+	case echo:
+		return newEcho
+	case echoReply:
+		return newEchoReply
+	case sourceQuench:
+		return newSourceQuench
+	default:
+		return t
 	}
 }
 
+func mapToOld(newCode int) (t int, code int) {
+	switch {
+	case newCode < newRedirect:
+		t = newDestinationUnreachable
+	case newCode < newTimeExceeded:
+		t = newRedirect
+	case newCode < parameterProblem:
+		t = newTimeExceeded
+	case newCode == newEcho:
+		t = echo
+	case newCode == newEchoReply:
+		t = echoReply
+	case newCode == newSourceQuench:
+		t = sourceQuench
+	default:
+		t = newCode
+	}
+	code = newCode - t
+	return
+}
+
+type ICMPSet uint32
+
+func (s ICMPSet) IsSubset(other ICMPSet) bool {
+	return s|other == other
+}
+
+func (s ICMPSet) Union(other ICMPSet) ICMPSet {
+	return s | other
+}
+
 const (
-	allDestinationUnreachable = 0b00111111
-	allRedirect               = 0b00001111
-	allTimeExceeded           = 0b00000011
-	allOther                  = 0b11111111
+	allDestinationUnreachable = 0b00000000000000111111
+	allRedirect               = 0b00000000001111000000
+	allTimeExceeded           = 0b00000000110000000000
+	allOther                  = 0b11111111000000000000
 )
 
 func FromICMP(t ICMP) ICMPSet {
 	if t.ICMPCodeType == nil {
-		return ICMPSet{
-			destinationUnreachable: allDestinationUnreachable,
-			redirect:               allRedirect,
-			timeExceeded:           allTimeExceeded,
-			other:                  allOther,
-		}
+		return allDestinationUnreachable | allRedirect | allTimeExceeded | allOther
 	}
-	res := ICMPSet{}
-	var d uint32 = math.MaxUint32
-	if t.Code != nil {
-		d = 1 << *t.Code
+	if t.Code == nil {
+		return math.MaxUint32
 	}
-	switch t.Type {
-	case destinationUnreachable:
-		res.destinationUnreachable = d & allDestinationUnreachable
-	case redirect:
-		res.redirect = d & allRedirect
-	case timeExceeded:
-		res.timeExceeded = d & allTimeExceeded
-	default:
-		res.other = d & allOther
-	}
-	return res
+	return 1 << mapToNew(t.Type, *t.Code)
 }
