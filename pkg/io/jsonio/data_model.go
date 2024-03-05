@@ -317,6 +317,7 @@ type Type string
 
 var enumValues_Type = []interface{}{
 	"subnet",
+	"cidr",
 	"instance",
 	"nif",
 }
@@ -342,6 +343,7 @@ func (j *Type) UnmarshalJSON(b []byte) error {
 }
 
 const TypeSubnet Type = "subnet"
+const TypeCidr Type = "cidr"
 const TypeInstance Type = "instance"
 const TypeNif Type = "nif"
 

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/np-guard/models/pkg/ipblocks"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
@@ -30,24 +31,32 @@ func (*Reader) ReadSpec(filename string, configDefs *ir.ConfigDefs) (*ir.Spec, e
 
 	if configDefs == nil {
 		configDefs = &ir.ConfigDefs{
-			Subnets:        translateIPMap(jsonspec.Subnets),
-			NIFToIP:        translateIPMap(jsonspec.Nifs),
-			InstanceToNIFs: jsonspec.Instances,
+			Subnets:         translateIPMap(jsonspec.Subnets),
+			NIFToIP:         translateIPMap(jsonspec.Nifs),
+			InstanceToNIFs:  jsonspec.Instances,
+			AddressPrefixes: []ir.CIDR{},
 		}
 	}
+
+	cidrSegments, err := parseCidrSegments(jsonspec.Segments, configDefs)
+	if err != nil {
+		return nil, err
+	}
+
 	defs := &ir.Definitions{
 		ConfigDefs:     *configDefs,
-		SubnetSegments: translateSegments(jsonspec.Segments),
+		SubnetSegments: translateSegments(jsonspec.Segments, TypeSubnet),
+		CidrSegments:   cidrSegments,
 		Externals:      translateIPMap(jsonspec.Externals),
 	}
 
 	var connections []ir.Connection
 	for i := range jsonspec.RequiredConnections {
-		bidiconns, err := translateConnection(defs, &jsonspec.RequiredConnections[i], i)
+		bidiConns, err := translateConnection(defs, &jsonspec.RequiredConnections[i], i)
 		if err != nil {
 			return nil, err
 		}
-		connections = append(connections, bidiconns...)
+		connections = append(connections, bidiConns...)
 	}
 
 	return &ir.Spec{
@@ -56,21 +65,52 @@ func (*Reader) ReadSpec(filename string, configDefs *ir.ConfigDefs) (*ir.Spec, e
 	}, nil
 }
 
-func validateSegments(jsonssegments SpecSegments) error {
-	for _, v := range jsonssegments {
-		if v.Type != TypeSubnet {
-			return fmt.Errorf("only subnet segments are supported, not %q", v.Type)
+func validateSegments(jsonSegments SpecSegments) error {
+	for _, v := range jsonSegments {
+		if v.Type != TypeSubnet && v.Type != TypeCidr {
+			return fmt.Errorf("only subnet and cidr segments are supported, not %q", v.Type)
 		}
 	}
 	return nil
 }
 
-func translateSegments(jsonssegments SpecSegments) map[string][]string {
+func translateSegments(jsonSegments SpecSegments, segmentType Type) map[string][]string {
 	result := make(map[string][]string)
-	for k, v := range jsonssegments {
-		result[k] = v.Items
+	for k, v := range jsonSegments {
+		if v.Type == segmentType {
+			result[k] = v.Items
+		}
 	}
 	return result
+}
+
+func parseCidrSegments(jsonSegments SpecSegments, configDefs *ir.ConfigDefs) (map[string]map[string][]string, error) {
+	cidrSegments := translateSegments(jsonSegments, TypeCidr)
+	finalMap := make(map[string]map[string][]string)
+	for segmentName, segment := range cidrSegments {
+		// each cidr saves the contained subnets
+		segmentMap := make(map[string][]string)
+		for _, cidr := range segment {
+			c, err := ipblocks.NewIPBlockFromCidrOrAddress(cidr)
+			if err != nil {
+				return nil, err
+			}
+			validCidr, err := cidrContainedInVpc(*c, configDefs.AddressPrefixes)
+			if err != nil {
+				return nil, err
+			}
+			if !validCidr {
+				return nil, fmt.Errorf("%s is not contained in the vpc", cidr)
+			}
+			subnets, err := configDefs.SubnetsContainedInCidr(*c)
+			if err != nil {
+				return nil, err
+			}
+			segmentMap[cidr] = subnets
+		}
+		finalMap[segmentName] = segmentMap
+	}
+	return finalMap, nil
 }
 
 func translateIPMap(m map[string]string) map[string]ir.IP {
@@ -131,7 +171,7 @@ func translateProtocols(protocols ProtocolList) ([]ir.TrackedProtocol, error) {
 		case Icmp:
 			if p.Type == nil {
 				if p.Code != nil {
-					return nil, fmt.Errorf("defnining ICMP code for unspecified ICMP type is not allowed")
+					return nil, fmt.Errorf("defining ICMP code for unspecified ICMP type is not allowed")
 				}
 				result[i].Protocol = ir.TrackedProtocol{Protocol: ir.ICMP{}}
 			} else {
@@ -220,4 +260,17 @@ func unmarshal(filename string) (*Spec, error) {
 		}
 	}
 	return jsonspec, err
+}
+
+func cidrContainedInVpc(cidr ipblocks.IPBlock, addressPrefixes []ir.CIDR) (bool, error) {
+	for i := range addressPrefixes {
+		addressPrefix, err := ipblocks.NewIPBlockFromCidrOrAddress(addressPrefixes[i].String())
+		if err != nil {
+			return false, err
+		}
+		if cidr.ContainedIn(addressPrefix) {
+			return true, nil
+		}
+	}
+	return false, nil
 }

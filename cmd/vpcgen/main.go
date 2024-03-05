@@ -106,7 +106,7 @@ func pickReader(format string) (ir.Reader, error) {
 func generate(model *ir.Spec, target string) ir.Collection {
 	switch target {
 	case sgTarget:
-		model.ComputeBlockedEndPoints()
+		model.ComputeBlockedEndpoints()
 		return synth.MakeSG(model, synth.Options{})
 	case singleaclTarget:
 		model.ComputeBlockedSubnets(true)
