@@ -39,7 +39,7 @@ resource "ibm_is_network_acl" "acl-1" {
     name        = "rule4"
     action      = "allow"
     direction   = "outbound"
-    source      = "10.240.3.0/24"
+    source      = "10.240.2.0/24"
     destination = "10.240.1.0/24"
   }
   # Internal. response to required-connections[2]: (segment cidrSegment1)->(segment need-dns); allowed-protocols[0]
@@ -48,14 +48,14 @@ resource "ibm_is_network_acl" "acl-1" {
     action      = "allow"
     direction   = "inbound"
     source      = "10.240.1.0/24"
-    destination = "10.240.3.0/24"
+    destination = "10.240.2.0/24"
   }
   # Internal. required-connections[2]: (segment cidrSegment1)->(segment need-dns); allowed-protocols[0]
   rules {
     name        = "rule6"
     action      = "allow"
     direction   = "outbound"
-    source      = "10.240.2.0/24"
+    source      = "10.240.3.0/24"
     destination = "10.240.1.0/24"
   }
   # Internal. response to required-connections[2]: (segment cidrSegment1)->(segment need-dns); allowed-protocols[0]
@@ -64,7 +64,7 @@ resource "ibm_is_network_acl" "acl-1" {
     action      = "allow"
     direction   = "inbound"
     source      = "10.240.1.0/24"
-    destination = "10.240.2.0/24"
+    destination = "10.240.3.0/24"
   }
   # Internal. required-connections[2]: (segment cidrSegment1)->(segment need-dns); allowed-protocols[0]
   rules {
@@ -87,7 +87,7 @@ resource "ibm_is_network_acl" "acl-1" {
     name        = "rule10"
     action      = "allow"
     direction   = "outbound"
-    source      = "10.240.3.0/24"
+    source      = "10.240.2.0/24"
     destination = "10.240.64.0/24"
   }
   # Internal. response to required-connections[2]: (segment cidrSegment1)->(segment need-dns); allowed-protocols[0]
@@ -96,14 +96,14 @@ resource "ibm_is_network_acl" "acl-1" {
     action      = "allow"
     direction   = "inbound"
     source      = "10.240.64.0/24"
-    destination = "10.240.3.0/24"
+    destination = "10.240.2.0/24"
   }
   # Internal. required-connections[2]: (segment cidrSegment1)->(segment need-dns); allowed-protocols[0]
   rules {
     name        = "rule12"
     action      = "allow"
     direction   = "outbound"
-    source      = "10.240.2.0/24"
+    source      = "10.240.3.0/24"
     destination = "10.240.64.0/24"
   }
   # Internal. response to required-connections[2]: (segment cidrSegment1)->(segment need-dns); allowed-protocols[0]
@@ -112,7 +112,7 @@ resource "ibm_is_network_acl" "acl-1" {
     action      = "allow"
     direction   = "inbound"
     source      = "10.240.64.0/24"
-    destination = "10.240.2.0/24"
+    destination = "10.240.3.0/24"
   }
   # Internal. required-connections[2]: (segment cidrSegment1)->(segment need-dns); allowed-protocols[0]
   rules {

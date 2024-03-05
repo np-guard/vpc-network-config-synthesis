@@ -3,6 +3,7 @@ package ir
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/np-guard/models/pkg/ipblocks"
 )
@@ -212,5 +213,6 @@ func (s *ConfigDefs) SubnetsContainedInCidr(cidr ipblocks.IPBlock) ([]string, er
 			containedSubnets = append(containedSubnets, subnet)
 		}
 	}
+	sort.Strings(containedSubnets)
 	return containedSubnets, nil
 }

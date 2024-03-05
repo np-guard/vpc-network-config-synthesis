@@ -59,7 +59,7 @@ func ReadDefs(filename string) (*ir.ConfigDefs, error) {
 		}
 	}
 
-	addressPrefixes, err := computeAddressPrefixes(config)
+	addressPrefixes, err := parseAddressPrefixes(config)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func ReadDefs(filename string) (*ir.ConfigDefs, error) {
 	}, nil
 }
 
-func computeAddressPrefixes(config *configmodel.ResourcesContainerModel) ([]ipblocks.IPBlock, error) {
+func parseAddressPrefixes(config *configmodel.ResourcesContainerModel) ([]ipblocks.IPBlock, error) {
 	addressPrefixes := make([]ipblocks.IPBlock, 0)
 	for _, vpc := range config.VpcList {
 		for _, addressPrefix := range vpc.AddressPrefixes {
