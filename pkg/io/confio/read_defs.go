@@ -72,17 +72,3 @@ func ReadDefs(filename string) (*ir.ConfigDefs, error) {
 		AddressPrefixes: addressPrefixes,
 	}, nil
 }
-
-/*func parseAddressPrefixes(config *configmodel.ResourcesContainerModel) ([]ir.CIDR, error) {
-	addressPrefixes := make([]ir.CIDR, 0)
-	for _, vpc := range config.VpcList {
-		for _, addressPrefix := range vpc.AddressPrefixes {
-			ap, err := ipblocks.NewIPBlockFromCidrOrAddress(*addressPrefix.CIDR)
-			if err != nil {
-				return nil, err
-			}
-			addressPrefixes = append(addressPrefixes, *ap)
-		}
-	}
-	return addressPrefixes, nil
-}*/
