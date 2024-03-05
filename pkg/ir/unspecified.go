@@ -22,7 +22,7 @@ func (s *Spec) ComputeBlockedSubnets(singleACL bool) {
 	var blockedSubnets []string
 
 	for subnet := range s.Defs.Subnets {
-		if s.findEndPointInConnections([]string{subnet}, EndpointTypeSubnet) {
+		if s.findEndpointInConnections([]string{subnet}, EndpointTypeSubnet) {
 			continue
 		}
 
@@ -36,7 +36,7 @@ func (s *Spec) ComputeBlockedSubnets(singleACL bool) {
 				}
 			}
 		}
-		if s.findEndPointInConnections(segments, EndpointTypeSubnet) {
+		if s.findEndpointInConnections(segments, EndpointTypeSubnet) {
 			continue
 		}
 
@@ -52,26 +52,25 @@ func (s *Spec) ComputeBlockedSubnets(singleACL bool) {
 				}
 			}
 		}
-		if !s.findEndPointInConnections(cidrSements, EndpointTypeCidr) {
+		if !s.findEndpointInConnections(cidrSements, EndpointTypeCidr) {
 			blockedSubnets = append(blockedSubnets, subnet)
 		}
 	}
 	printUnspecifiedWarning(warning, blockedSubnets)
 }
 
-func (s *Spec) ComputeBlockedEndPoints() {
+func (s *Spec) ComputeBlockedEndpoints() {
 	warning := warningUnspecifiedSG
 
-	blockedEndPoints := s.computeBlockedNIFs()
-	blockedEndPoints = append(blockedEndPoints, s.computeBlockedVPEs()...)
+	blockedEndpoints := append(s.computeBlockedNIFs(), s.computeBlockedVPEs()...)
 
-	printUnspecifiedWarning(warning, blockedEndPoints)
+	printUnspecifiedWarning(warning, blockedEndpoints)
 }
 
 func (s *Spec) computeBlockedVPEs() []string {
 	var blockedVPEs []string
 	for vpe := range s.Defs.VPEToIP {
-		if !s.findEndPointInConnections([]string{vpe}, EndpointTypeVPE) {
+		if !s.findEndpointInConnections([]string{vpe}, EndpointTypeVPE) {
 			blockedVPEs = append(blockedVPEs, vpe)
 		}
 	}
@@ -79,32 +78,32 @@ func (s *Spec) computeBlockedVPEs() []string {
 }
 
 func (s *Spec) computeBlockedNIFs() []string {
-	var blockedEndPoints []string
+	var blockedEndpoints []string
 
 	for instance, NIFs := range s.Defs.InstanceToNIFs {
-		if s.findEndPointInConnections([]string{instance}, EndpointTypeNIF) {
+		if s.findEndpointInConnections([]string{instance}, EndpointTypeNIF) {
 			continue
 		}
 
 		// instance is not in spec. look for its NIFs
 		var blockedNIFs []string
 		for _, nif := range NIFs {
-			if !s.findEndPointInConnections([]string{nif}, EndpointTypeNIF) {
+			if !s.findEndpointInConnections([]string{nif}, EndpointTypeNIF) {
 				blockedNIFs = append(blockedNIFs, nif)
 			}
 		}
 
 		// instance has only one NIF which was not found
 		if len(blockedNIFs) > 0 && len(NIFs) == 1 {
-			blockedEndPoints = append(blockedEndPoints, instance)
+			blockedEndpoints = append(blockedEndpoints, instance)
 		} else {
-			blockedEndPoints = append(blockedEndPoints, blockedNIFs...)
+			blockedEndpoints = append(blockedEndpoints, blockedNIFs...)
 		}
 	}
-	return blockedEndPoints
+	return blockedEndpoints
 }
 
-func (s *Spec) findEndPointInConnections(endPoints []string, epType EndpointType) bool {
+func (s *Spec) findEndpointInConnections(endPoints []string, epType EndpointType) bool {
 	// The slice of strings represents all endpoints that include the endpoint we are looking for
 	for c := range s.Connections {
 		for _, ep := range endPoints {
@@ -119,8 +118,8 @@ func (s *Spec) findEndPointInConnections(endPoints []string, epType EndpointType
 	return false
 }
 
-func printUnspecifiedWarning(warning string, blockedEndPoints []string) {
-	if len(blockedEndPoints) > 0 {
-		log.Println(warning, strings.Join(blockedEndPoints, ", "))
+func printUnspecifiedWarning(warning string, blockedEndpoints []string) {
+	if len(blockedEndpoints) > 0 {
+		log.Println(warning, strings.Join(blockedEndpoints, ", "))
 	}
 }

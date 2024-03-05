@@ -60,7 +60,7 @@ type (
 		VPEToIP map[string]IP
 
 		// list of VPC's cidrs
-		AddressPrefixes []ipblocks.IPBlock
+		AddressPrefixes []CIDR
 	}
 
 	// Definitions adds to ConfigDefs the spec-specific definitions

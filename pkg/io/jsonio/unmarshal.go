@@ -29,19 +29,21 @@ func (*Reader) ReadSpec(filename string, configDefs *ir.ConfigDefs) (*ir.Spec, e
 		return nil, err
 	}
 
+	if configDefs == nil {
+		configDefs = &ir.ConfigDefs{
+			Subnets:         translateIPMap(jsonspec.Subnets),
+			NIFToIP:         translateIPMap(jsonspec.Nifs),
+			InstanceToNIFs:  jsonspec.Instances,
+			AddressPrefixes: []ir.CIDR{},
+		}
+	}
+
 	cidrSegments := translateSegments(jsonspec.Segments, TypeCidr)
 	finalCidrSegments, err := subnetsInCidrSegment(configDefs, cidrSegments)
 	if err != nil {
 		return nil, err
 	}
 
-	if configDefs == nil {
-		configDefs = &ir.ConfigDefs{
-			Subnets:        translateIPMap(jsonspec.Subnets),
-			NIFToIP:        translateIPMap(jsonspec.Nifs),
-			InstanceToNIFs: jsonspec.Instances,
-		}
-	}
 	defs := &ir.Definitions{
 		ConfigDefs:     *configDefs,
 		SubnetSegments: translateSegments(jsonspec.Segments, TypeSubnet),
@@ -51,11 +53,11 @@ func (*Reader) ReadSpec(filename string, configDefs *ir.ConfigDefs) (*ir.Spec, e
 
 	var connections []ir.Connection
 	for i := range jsonspec.RequiredConnections {
-		bidiconns, err := translateConnection(defs, &jsonspec.RequiredConnections[i], i)
+		bidiConns, err := translateConnection(defs, &jsonspec.RequiredConnections[i], i)
 		if err != nil {
 			return nil, err
 		}
-		connections = append(connections, bidiconns...)
+		connections = append(connections, bidiConns...)
 	}
 
 	return &ir.Spec{
@@ -64,8 +66,8 @@ func (*Reader) ReadSpec(filename string, configDefs *ir.ConfigDefs) (*ir.Spec, e
 	}, nil
 }
 
-func validateSegments(jsonssegments SpecSegments) error {
-	for _, v := range jsonssegments {
+func validateSegments(jsonSegments SpecSegments) error {
+	for _, v := range jsonSegments {
 		if v.Type != TypeSubnet && v.Type != TypeCidr {
 			return fmt.Errorf("only subnet and cidr segments are supported, not %q", v.Type)
 		}
@@ -73,10 +75,10 @@ func validateSegments(jsonssegments SpecSegments) error {
 	return nil
 }
 
-func translateSegments(jsonSegments SpecSegments, segnmentType Type) map[string][]string {
+func translateSegments(jsonSegments SpecSegments, segmentType Type) map[string][]string {
 	result := make(map[string][]string)
 	for k, v := range jsonSegments {
-		if v.Type == segnmentType {
+		if v.Type == segmentType {
 			result[k] = v.Items
 		}
 	}
@@ -93,7 +95,11 @@ func subnetsInCidrSegment(configDefs *ir.ConfigDefs, m map[string][]string) (map
 			if err != nil {
 				return nil, err
 			}
-			if !cidrContainedInVpc(*c, configDefs.AddressPrefixes) {
+			validCidr, err := cidrContainedInVpc(*c, configDefs.AddressPrefixes)
+			if err != nil {
+				return nil, err
+			}
+			if !validCidr {
 				return nil, fmt.Errorf("%s is not contained in the vpc", cidr)
 			}
 			subnets, err := configDefs.SubnetsContainedInCidr(*c)
@@ -165,7 +171,7 @@ func translateProtocols(protocols ProtocolList) ([]ir.TrackedProtocol, error) {
 		case Icmp:
 			if p.Type == nil {
 				if p.Code != nil {
-					return nil, fmt.Errorf("defnining ICMP code for unspecified ICMP type is not allowed")
+					return nil, fmt.Errorf("defining ICMP code for unspecified ICMP type is not allowed")
 				}
 				result[i].Protocol = ir.TrackedProtocol{Protocol: ir.ICMP{}}
 			} else {
@@ -256,11 +262,15 @@ func unmarshal(filename string) (*Spec, error) {
 	return jsonspec, err
 }
 
-func cidrContainedInVpc(cidr ipblocks.IPBlock, addressPrefixes []ipblocks.IPBlock) bool {
+func cidrContainedInVpc(cidr ipblocks.IPBlock, addressPrefixes []ir.CIDR) (bool, error) {
 	for i := range addressPrefixes {
-		if cidr.ContainedIn(&addressPrefixes[i]) {
-			return true
+		addressPrefix, err := ipblocks.NewIPBlockFromCidrOrAddress(addressPrefixes[i].String())
+		if err != nil {
+			return false, err
+		}
+		if cidr.ContainedIn(addressPrefix) {
+			return true, nil
 		}
 	}
-	return false
+	return false, nil
 }

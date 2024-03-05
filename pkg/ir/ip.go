@@ -18,4 +18,8 @@ func (s CIDR) String() string {
 	return s.string
 }
 
+func CidrFromString(s string) CIDR {
+	return CIDR{s}
+}
+
 const AnyCIDR = "0.0.0.0/0"
