@@ -41,18 +41,18 @@ func (s *Spec) ComputeBlockedSubnets(singleACL bool) {
 		}
 
 		// cidr segments which include the subnet
-		cidrSements := []string{}
+		cidrSegments := []string{}
 		for segmentName, cidrSegment := range s.Defs.CidrSegments {
 			for _, subnets := range cidrSegment {
 				for _, s := range subnets {
 					if subnet == s {
-						cidrSements = append(cidrSements, segmentName)
+						cidrSegments = append(cidrSegments, segmentName)
 						break
 					}
 				}
 			}
 		}
-		if !s.findEndpointInConnections(cidrSements, EndpointTypeCidr) {
+		if !s.findEndpointInConnections(cidrSegments, EndpointTypeCidr) {
 			blockedSubnets = append(blockedSubnets, subnet)
 		}
 	}
@@ -103,10 +103,10 @@ func (s *Spec) computeBlockedNIFs() []string {
 	return blockedEndpoints
 }
 
-func (s *Spec) findEndpointInConnections(endPoints []string, epType EndpointType) bool {
+func (s *Spec) findEndpointInConnections(endpoints []string, epType EndpointType) bool {
 	// The slice of strings represents all endpoints that include the endpoint we are looking for
 	for c := range s.Connections {
-		for _, ep := range endPoints {
+		for _, ep := range endpoints {
 			if s.Connections[c].Src.Type == epType && ep == s.Connections[c].Src.Name {
 				return true
 			}

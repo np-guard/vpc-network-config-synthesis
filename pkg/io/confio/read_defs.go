@@ -6,16 +6,17 @@ import (
 
 	"github.com/IBM/vpc-go-sdk/vpcv1"
 
-	configmodel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
+	configModel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
+
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-func readModel(filename string) (*configmodel.ResourcesContainerModel, error) {
+func readModel(filename string) (*configModel.ResourcesContainerModel, error) {
 	bytes, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-	model := configmodel.ResourcesContainerModel{}
+	model := configModel.ResourcesContainerModel{}
 	err = json.Unmarshal(bytes, &model)
 	if err != nil {
 		return nil, err
