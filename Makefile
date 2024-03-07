@@ -1,7 +1,9 @@
 REPOSITORY := github.com/np-guard/vpc-network-config-synthesis
 ifeq ($(OS),Windows_NT)
-    TARGETNAME = vpcgen.exe
+    SETCGO = set
+	TARGETNAME = vpcgen.exe
 else
+	SETCGO =
     TARGETNAME = vpcgen
 endif
 TARGET = ./bin/$(TARGETNAME)
@@ -44,7 +46,7 @@ generate: pkg/io/jsonio/data_model.go
 
 build:
 	@echo -- $@ --
-	CGO_ENABLED=0 go build -o $(TARGET) ./cmd/vpcgen
+	$(SETCGO) CGO_ENABLED=0 go build -o $(TARGET) ./cmd/vpcgen
 
 test:
 	@echo -- $@ --
