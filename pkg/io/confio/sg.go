@@ -5,7 +5,7 @@ import (
 
 	"github.com/IBM/vpc-go-sdk/vpcv1"
 
-	configmodel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
+	configModel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
@@ -60,13 +60,13 @@ func makeSGRuleItem(rule *ir.SGRule, i int, sgRemoteRef *vpcv1.SecurityGroupRule
 	}
 }
 
-func makeSGItem(sg *ir.SG, sgRemoteRef *vpcv1.SecurityGroupRuleRemoteSecurityGroupReference) *configmodel.SecurityGroup {
+func makeSGItem(sg *ir.SG, sgRemoteRef *vpcv1.SecurityGroupRuleRemoteSecurityGroupReference) *configModel.SecurityGroup {
 	ruleItems := make([]vpcv1.SecurityGroupRuleIntf, len(sg.Rules))
 	for i := range sg.Rules {
 		ruleItems[i] = makeSGRuleItem(&sg.Rules[i], i, sgRemoteRef)
 	}
 
-	result := configmodel.NewSecurityGroup(&vpcv1.SecurityGroup{
+	result := configModel.NewSecurityGroup(&vpcv1.SecurityGroup{
 		ID:      sgRemoteRef.ID,
 		CRN:     sgRemoteRef.CRN,
 		Href:    sgRemoteRef.Href,
@@ -78,11 +78,11 @@ func makeSGItem(sg *ir.SG, sgRemoteRef *vpcv1.SecurityGroupRuleRemoteSecurityGro
 	return result
 }
 
-func updateSG(model *configmodel.ResourcesContainerModel, collection *ir.SGCollection) error {
+func updateSG(model *configModel.ResourcesContainerModel, collection *ir.SGCollection) error {
 	vpc := model.SubnetList[0].VPC
 	resourceGroup := model.SubnetList[0].ResourceGroup
-	for _, sgname := range collection.SortedSGNames() {
-		sg := collection.SGs[sgname]
+	for _, sgName := range collection.SortedSGNames() {
+		sg := collection.SGs[sgName]
 		if sg == nil {
 			continue
 		}
@@ -91,13 +91,13 @@ func updateSG(model *configmodel.ResourcesContainerModel, collection *ir.SGColle
 			ID:   ref.ID,
 			CRN:  ref.CRN,
 			Href: ref.Href,
-			Name: utils.Ptr(sgname.String()),
+			Name: utils.Ptr(sgName.String()),
 		}
 		sgItem := makeSGItem(sg, sgRemoteRef)
 		sgItem.ResourceGroup = resourceGroup
 		sgItem.VPC = vpc
 
-		sgref := vpcv1.SecurityGroupReference{
+		sgRef := vpcv1.SecurityGroupReference{
 			Name: sgRemoteRef.Name,
 			Href: sgRemoteRef.Href,
 			ID:   sgRemoteRef.ID,
@@ -109,7 +109,7 @@ func updateSG(model *configmodel.ResourcesContainerModel, collection *ir.SGColle
 			for _, instance := range model.InstanceList {
 				if *instance.Name == string(attached) {
 					for j := range instance.NetworkInterfaces {
-						instance.NetworkInterfaces[j].SecurityGroups = []vpcv1.SecurityGroupReference{sgref}
+						instance.NetworkInterfaces[j].SecurityGroups = []vpcv1.SecurityGroupReference{sgRef}
 					}
 					break
 				}

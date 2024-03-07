@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/np-guard/models/pkg/ipblocks"
+
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
@@ -19,40 +20,40 @@ func NewReader() *Reader {
 }
 
 func (*Reader) ReadSpec(filename string, configDefs *ir.ConfigDefs) (*ir.Spec, error) {
-	jsonspec, err := unmarshal(filename)
+	jsonSpec, err := unmarshal(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	err = validateSegments(jsonspec.Segments)
+	err = validateSegments(jsonSpec.Segments)
 	if err != nil {
 		return nil, err
 	}
 
 	if configDefs == nil {
 		configDefs = &ir.ConfigDefs{
-			Subnets:         translateIPMap(jsonspec.Subnets),
-			NIFToIP:         translateIPMap(jsonspec.Nifs),
-			InstanceToNIFs:  jsonspec.Instances,
+			Subnets:         translateIPMap(jsonSpec.Subnets),
+			NIFToIP:         translateIPMap(jsonSpec.Nifs),
+			InstanceToNIFs:  jsonSpec.Instances,
 			AddressPrefixes: []ir.CIDR{},
 		}
 	}
 
-	cidrSegments, err := parseCidrSegments(jsonspec.Segments, configDefs)
+	cidrSegments, err := parseCidrSegments(jsonSpec.Segments, configDefs)
 	if err != nil {
 		return nil, err
 	}
 
 	defs := &ir.Definitions{
 		ConfigDefs:     *configDefs,
-		SubnetSegments: translateSegments(jsonspec.Segments, TypeSubnet),
+		SubnetSegments: translateSegments(jsonSpec.Segments, TypeSubnet),
 		CidrSegments:   cidrSegments,
-		Externals:      translateIPMap(jsonspec.Externals),
+		Externals:      translateIPMap(jsonSpec.Externals),
 	}
 
 	var connections []ir.Connection
-	for i := range jsonspec.RequiredConnections {
-		bidiConns, err := translateConnection(defs, &jsonspec.RequiredConnections[i], i)
+	for i := range jsonSpec.RequiredConnections {
+		bidiConns, err := translateConnection(defs, &jsonSpec.RequiredConnections[i], i)
 		if err != nil {
 			return nil, err
 		}
@@ -221,13 +222,13 @@ func unmarshal(filename string) (*Spec, error) {
 	if err != nil {
 		return nil, err
 	}
-	jsonspec := new(Spec)
-	err = json.Unmarshal(bytes, jsonspec)
+	jsonSpec := new(Spec)
+	err = json.Unmarshal(bytes, jsonSpec)
 	if err != nil {
 		return nil, err
 	}
-	for i := range jsonspec.RequiredConnections {
-		conn := &jsonspec.RequiredConnections[i]
+	for i := range jsonSpec.RequiredConnections {
+		conn := &jsonSpec.RequiredConnections[i]
 		if conn.AllowedProtocols == nil {
 			conn.AllowedProtocols = ProtocolList{AnyProtocol{}}
 		} else {
@@ -259,7 +260,7 @@ func unmarshal(filename string) (*Spec, error) {
 			}
 		}
 	}
-	return jsonspec, err
+	return jsonSpec, err
 }
 
 func cidrContainedInVpc(cidr ipblocks.IPBlock, addressPrefixes []ir.CIDR) (bool, error) {

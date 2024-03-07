@@ -4,13 +4,13 @@ import (
 	"bufio"
 	"io"
 
-	configmodel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
+	configModel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 )
 
 // Writer implements ir.Writer
 type Writer struct {
 	w     *bufio.Writer
-	model *configmodel.ResourcesContainerModel
+	model *configModel.ResourcesContainerModel
 }
 
 func NewWriter(w io.Writer, inputFilename string) (*Writer, error) {

@@ -6,7 +6,7 @@ import (
 
 	"github.com/IBM/vpc-go-sdk/vpcv1"
 
-	configmodel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
+	configModel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
@@ -80,7 +80,7 @@ func makeACLRuleItem(rule *ir.ACLRule, current,
 	}
 }
 
-func makeACLItem(acl *ir.ACL, subnet *vpcv1.SubnetReference) *configmodel.NetworkACL {
+func makeACLItem(acl *ir.ACL, subnet *vpcv1.SubnetReference) *configModel.NetworkACL {
 	ruleItems := make([]vpcv1.NetworkACLRuleItemIntf, len(acl.Rules()))
 	rules := acl.Rules()
 
@@ -98,7 +98,7 @@ func makeACLItem(acl *ir.ACL, subnet *vpcv1.SubnetReference) *configmodel.Networ
 	}
 
 	ref := allocateRef()
-	result := configmodel.NewNetworkACL(&vpcv1.NetworkACL{
+	result := configModel.NewNetworkACL(&vpcv1.NetworkACL{
 		ID:      ref.ID,
 		CRN:     ref.CRN,
 		Href:    ref.Href,
@@ -110,7 +110,7 @@ func makeACLItem(acl *ir.ACL, subnet *vpcv1.SubnetReference) *configmodel.Networ
 	return result
 }
 
-func findSubnet(model *configmodel.ResourcesContainerModel, name string) int {
+func findSubnet(model *configModel.ResourcesContainerModel, name string) int {
 	for i, subnet := range model.SubnetList {
 		if subnet.Name != nil && *subnet.Name == name {
 			return i
@@ -119,7 +119,7 @@ func findSubnet(model *configmodel.ResourcesContainerModel, name string) int {
 	return -1
 }
 
-func updateACL(model *configmodel.ResourcesContainerModel, collection *ir.ACLCollection) error {
+func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCollection) error {
 	vpc := model.SubnetList[0].VPC
 	resourceGroup := model.SubnetList[0].ResourceGroup
 	for _, subnetName := range collection.SortedACLSubnets() {

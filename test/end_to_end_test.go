@@ -103,21 +103,21 @@ func TestCSVCompare(t *testing.T) {
 		"sg_testing2 csv":              sgTestCase("sg_testing2", "config_object.json", "csv"),
 		"sg_testing2 tf":               sgTestCase("sg_testing2", "config_object.json", "tf"),
 	}
-	for testname := range suite {
-		testcase := suite[testname]
-		t.Run(testname, func(t *testing.T) {
-			s, err := readSpec(&testcase)
+	for testName := range suite {
+		testCase := suite[testName]
+		t.Run(testName, func(t *testing.T) {
+			s, err := readSpec(&testCase)
 			if err != nil {
 				t.Fatal(err)
 				return
 			}
-			collection := testcase.maker(s)
-			actual, err := write(collection, testcase.outputFormat)
+			collection := testCase.maker(s)
+			actual, err := write(collection, testCase.outputFormat)
 			if err != nil {
 				t.Fatal(err)
 				return
 			}
-			expectedFile := testcase.at(testcase.expectedName, testcase.expectedName)
+			expectedFile := testCase.at(testCase.expectedName, testCase.expectedName)
 			expected := readExpectedFile(expectedFile)
 			if expected != actual {
 				t.Errorf("%v != %v", expected, actual)
