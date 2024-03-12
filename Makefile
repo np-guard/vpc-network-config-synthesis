@@ -1,10 +1,10 @@
 REPOSITORY := github.com/np-guard/vpc-network-config-synthesis
 ifeq ($(OS),Windows_NT)
-    SETCGO = set
+	SETCGO = SET
 	TARGETNAME = vpcgen.exe
 else
 	SETCGO =
-    TARGETNAME = vpcgen
+	TARGETNAME = vpcgen
 endif
 TARGET = ./bin/$(TARGETNAME)
 
