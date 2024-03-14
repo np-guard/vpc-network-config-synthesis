@@ -9,7 +9,7 @@ const (
 	commonWarningACL            = "The following subnets do not have required connections; "
 	warningUnspecifiedACL       = commonWarningACL + "no ACLs were generated for them: "
 	warningUnspecifiedSingleACL = commonWarningACL + "the generated ACL will block all traffic: "
-	warningUnspecifiedSG        = "The following resources do not have required connections; no SGs were generated for them: "
+	warningUnspecifiedSG        = "The following endpoints do not have required connections; no SGs were generated for them: "
 )
 
 func (s *Spec) ComputeBlockedSubnets(singleACL bool) {
