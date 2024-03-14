@@ -94,16 +94,16 @@ func TestAnyProtocol_UnmarshalJSON(t *testing.T) {
 	}
 }
 
-func TestEndpoint_UnmarshalJSON(t *testing.T) {
-	table := make([]TestItem[*Endpoint], 7)
+func TestResource_UnmarshalJSON(t *testing.T) {
+	table := make([]TestItem[*Resource], 7)
 	for i, tp := range []string{"external", "segment", "subnet", "instance", "nif", "cidr", "vpe"} {
 		name := fmt.Sprintf("ep-%v", i)
 		js := fmt.Sprintf(`{"name": "%v", "type": "%v"}`, name, tp)
-		endpoint := Endpoint{Name: name, Type: EndpointType(tp)}
-		table[i] = TestItem[*Endpoint]{js, &endpoint}
+		resource := Resource{Name: name, Type: ResourceType(tp)}
+		table[i] = TestItem[*Resource]{js, &resource}
 	}
 	for _, test := range table {
-		actual := new(Endpoint)
+		actual := new(Resource)
 		err := json.Unmarshal([]byte(test.input), actual)
 		if err != nil {
 			t.Fatalf(`Unmarshal %v returns %v`, test.input, err)
@@ -202,34 +202,34 @@ func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 	for i, conn := range spec.RequiredConnections {
 		ctx, jsonConn := enterArray[map[string]interface{}](i, ctx, jsonConnArray)
 		{
-			ctx, jsonConnEndpoint := enterField("src", ctx, jsonConn)
-			endpoint := conn.Src
+			ctx, jsonConnResource := enterField("src", ctx, jsonConn)
+			resource := conn.Src
 			{
-				ctx, jsonConnEndpointType := enter[string]("type", ctx, jsonConnEndpoint)
-				if string(endpoint.Type) != jsonConnEndpointType {
-					t.Fatalf(`%v: %v != %v`, ctx, endpoint.Type, jsonConnEndpointType)
+				ctx, jsonConnResourceType := enter[string]("type", ctx, jsonConnResource)
+				if string(resource.Type) != jsonConnResourceType {
+					t.Fatalf(`%v: %v != %v`, ctx, resource.Type, jsonConnResourceType)
 				}
 			}
 			{
-				ctx, jsonConnEndpointName := enter[string]("name", ctx, jsonConnEndpoint)
-				if endpoint.Name != jsonConnEndpointName {
-					t.Fatalf(`%v: %v != %v`, ctx, endpoint.Name, jsonConnEndpointName)
+				ctx, jsonConnResourceName := enter[string]("name", ctx, jsonConnResource)
+				if resource.Name != jsonConnResourceName {
+					t.Fatalf(`%v: %v != %v`, ctx, resource.Name, jsonConnResourceName)
 				}
 			}
 		}
 		{
-			ctx, jsonConnEndpoint := enterField("dst", ctx, jsonConn)
-			endpoint := conn.Dst
+			ctx, jsonConnResource := enterField("dst", ctx, jsonConn)
+			resource := conn.Dst
 			{
-				ctx, jsonConnEndpointType := enter[string]("type", ctx, jsonConnEndpoint)
-				if string(endpoint.Type) != jsonConnEndpointType {
-					t.Fatalf(`%v: %v != %v`, ctx, endpoint.Type, jsonConnEndpointType)
+				ctx, jsonConnResourceType := enter[string]("type", ctx, jsonConnResource)
+				if string(resource.Type) != jsonConnResourceType {
+					t.Fatalf(`%v: %v != %v`, ctx, resource.Type, jsonConnResourceType)
 				}
 			}
 			{
-				ctx, jsonConnEndpointName := enter[string]("name", ctx, jsonConnEndpoint)
-				if endpoint.Name != jsonConnEndpointName {
-					t.Fatalf(`%v: %v != %v`, ctx, endpoint.Name, jsonConnEndpointName)
+				ctx, jsonConnResourceName := enter[string]("name", ctx, jsonConnResource)
+				if resource.Name != jsonConnResourceName {
+					t.Fatalf(`%v: %v != %v`, ctx, resource.Name, jsonConnResourceName)
 				}
 			}
 		}

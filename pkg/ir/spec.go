@@ -17,11 +17,11 @@ type (
 	}
 
 	Connection struct {
-		// Egress endpoint
-		Src Endpoint
+		// Egress resource
+		Src Resource
 
-		// Ingress endpoint
-		Dst Endpoint
+		// Ingress resource
+		Dst Resource
 
 		// Allowed protocols
 		TrackedProtocols []TrackedProtocol
@@ -30,15 +30,15 @@ type (
 		Origin fmt.Stringer
 	}
 
-	Endpoint struct {
-		// Symbolic name of endpoint, if available
+	Resource struct {
+		// Symbolic name of resource, if available
 		Name string
 
 		// list of CIDR / Ip addresses.
 		Values []IP
 
-		// Type of endpoint
-		Type EndpointType
+		// Type of resource
+		Type ResourceType
 	}
 
 	TrackedProtocol struct {
@@ -78,66 +78,66 @@ type (
 	}
 )
 
-type EndpointType string
+type ResourceType string
 
 const (
-	EndpointTypeExternal EndpointType = "external"
-	EndpointTypeSegment  EndpointType = "segment"
-	EndpointTypeCidr     EndpointType = "cidr"
-	EndpointTypeSubnet   EndpointType = "subnet"
-	EndpointTypeNIF      EndpointType = "nif"
-	EndpointTypeVPE      EndpointType = "vpe"
-	EndpointTypeInstance EndpointType = "instance"
-	EndpointTypeAny      EndpointType = "any"
+	ResourceTypeExternal ResourceType = "external"
+	ResourceTypeSegment  ResourceType = "segment"
+	ResourceTypeCidr     ResourceType = "cidr"
+	ResourceTypeSubnet   ResourceType = "subnet"
+	ResourceTypeNIF      ResourceType = "nif"
+	ResourceTypeVPE      ResourceType = "vpe"
+	ResourceTypeInstance ResourceType = "instance"
+	ResourceTypeAny      ResourceType = "any"
 )
 
-func lookupSingle(m map[string]IP, name string, t EndpointType) (Endpoint, error) {
+func lookupSingle(m map[string]IP, name string, t ResourceType) (Resource, error) {
 	if ip, ok := m[name]; ok {
-		return Endpoint{name, []IP{ip}, t}, nil
+		return Resource{name, []IP{ip}, t}, nil
 	}
-	return Endpoint{}, fmt.Errorf("%v %v not found", t, name)
+	return Resource{}, fmt.Errorf("%v %v not found", t, name)
 }
 
-func (s *Definitions) lookupMulti(m map[string][]string, name string, elemType, containerType EndpointType) (Endpoint, error) {
+func (s *Definitions) lookupMulti(m map[string][]string, name string, elemType, containerType ResourceType) (Resource, error) {
 	if elems, ok := m[name]; ok {
 		ips := []IP{}
 		for _, elemName := range elems {
 			nif, err := s.Lookup(elemType, elemName)
 			if err != nil {
-				return Endpoint{}, fmt.Errorf("%w while looking up %v %v for instance %v", err, elemType, elemName, name)
+				return Resource{}, fmt.Errorf("%w while looking up %v %v for instance %v", err, elemType, elemName, name)
 			}
 			ips = append(ips, nif.Values...)
 		}
-		return Endpoint{name, ips, elemType}, nil
+		return Resource{name, ips, elemType}, nil
 	}
-	return Endpoint{}, fmt.Errorf("container %v %v not found", containerType, name)
+	return Resource{}, fmt.Errorf("container %v %v not found", containerType, name)
 }
 
-func (s *Definitions) Lookup(t EndpointType, name string) (Endpoint, error) {
-	err := fmt.Errorf("invalid type %v (endpoint %v)", t, name)
+func (s *Definitions) Lookup(t ResourceType, name string) (Resource, error) {
+	err := fmt.Errorf("invalid type %v (resource %v)", t, name)
 	switch t {
-	case EndpointTypeExternal:
+	case ResourceTypeExternal:
 		return lookupSingle(s.Externals, name, t)
-	case EndpointTypeSubnet:
+	case ResourceTypeSubnet:
 		return lookupSingle(s.Subnets, name, t)
-	case EndpointTypeCidr:
+	case ResourceTypeCidr:
 		return lookupSingle(s.Subnets, name, t)
-	case EndpointTypeNIF:
+	case ResourceTypeNIF:
 		return lookupSingle(s.NIFToIP, name, t)
-	case EndpointTypeVPE:
+	case ResourceTypeVPE:
 		return lookupSingle(s.VPEToIP, name, t)
-	case EndpointTypeInstance:
-		return s.lookupMulti(s.InstanceToNIFs, name, EndpointTypeNIF, EndpointTypeInstance)
-	case EndpointTypeSegment:
+	case ResourceTypeInstance:
+		return s.lookupMulti(s.InstanceToNIFs, name, ResourceTypeNIF, ResourceTypeInstance)
+	case ResourceTypeSegment:
 		if _, ok := s.SubnetSegments[name]; ok { // subnet segment
-			return s.lookupMulti(s.SubnetSegments, name, EndpointTypeSubnet, EndpointTypeSegment)
+			return s.lookupMulti(s.SubnetSegments, name, ResourceTypeSubnet, ResourceTypeSegment)
 		} else if _, ok := s.CidrSegments[name]; ok { // cidr segment
-			return Endpoint{name, cidrsAsIPs(s.CidrSegments, name), EndpointTypeCidr}, nil
+			return Resource{name, cidrsAsIPs(s.CidrSegments, name), ResourceTypeCidr}, nil
 		} else {
-			return Endpoint{}, err
+			return Resource{}, err
 		}
 	default:
-		return Endpoint{}, err
+		return Resource{}, err
 	}
 }
 

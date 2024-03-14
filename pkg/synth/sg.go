@@ -17,15 +17,15 @@ func MakeSG(s *ir.Spec, opt Options) *ir.SGCollection {
 }
 
 func GenerateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(target ir.IP) ir.RemoteType) *ir.SGCollection {
-	internalSrc := conn.Src.Type != ir.EndpointTypeExternal
-	internalDst := conn.Dst.Type != ir.EndpointTypeExternal
+	internalSrc := conn.Src.Type != ir.ResourceTypeExternal
+	internalDst := conn.Dst.Type != ir.ResourceTypeExternal
 	if !internalSrc && !internalDst {
 		log.Fatalf("SG: Both source and destination are external for connection %v", *conn)
 	}
 
 	result := ir.NewSGCollection()
 
-	if !endpointRelevantToSG(conn.Src.Type) && !endpointRelevantToSG(conn.Dst.Type) {
+	if !resourceRelevantToSG(conn.Src.Type) && !resourceRelevantToSG(conn.Dst.Type) {
 		return result
 	}
 
@@ -79,6 +79,6 @@ func GenerateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(tar
 	return result
 }
 
-func endpointRelevantToSG(e ir.EndpointType) bool {
-	return e == ir.EndpointTypeNIF || e == ir.EndpointTypeInstance
+func resourceRelevantToSG(e ir.ResourceType) bool {
+	return e == ir.ResourceTypeNIF || e == ir.ResourceTypeInstance
 }

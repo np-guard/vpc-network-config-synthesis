@@ -127,27 +127,27 @@ func translateConnection(defs *ir.Definitions, v *SpecRequiredConnectionsElem, c
 	if err != nil {
 		return nil, err
 	}
-	srcEndpointType, err := translateEndpointType(v.Src.Type)
+	srcResourceType, err := translateResourceType(v.Src.Type)
 	if err != nil {
 		return nil, err
 	}
-	src, err := defs.Lookup(srcEndpointType, v.Src.Name)
+	src, err := defs.Lookup(srcResourceType, v.Src.Name)
 	if err != nil {
 		return nil, err
 	}
-	dstEndpointType, err := translateEndpointType(v.Dst.Type)
+	dstResourceType, err := translateResourceType(v.Dst.Type)
 	if err != nil {
 		return nil, err
 	}
-	dst, err := defs.Lookup(dstEndpointType, v.Dst.Name)
+	dst, err := defs.Lookup(dstResourceType, v.Dst.Name)
 	if err != nil {
 		return nil, err
 	}
 
 	origin := connectionOrigin{
 		connectionIndex: connectionIndex,
-		srcName:         endpointName(v.Src),
-		dstName:         endpointName(v.Dst),
+		srcName:         resourceName(v.Src),
+		dstName:         resourceName(v.Dst),
 	}
 	out := ir.Connection{Src: src, Dst: dst, TrackedProtocols: p, Origin: origin}
 	if v.Bidirectional {
@@ -197,22 +197,22 @@ func translateProtocols(protocols ProtocolList) ([]ir.TrackedProtocol, error) {
 	return result, nil
 }
 
-func translateEndpointType(endpointType EndpointType) (ir.EndpointType, error) {
-	switch endpointType {
-	case EndpointTypeExternal:
-		return ir.EndpointTypeExternal, nil
-	case EndpointTypeSegment:
-		return ir.EndpointTypeSegment, nil
-	case EndpointTypeSubnet:
-		return ir.EndpointTypeSubnet, nil
-	case EndpointTypeNif:
-		return ir.EndpointTypeNIF, nil
-	case EndpointTypeInstance:
-		return ir.EndpointTypeInstance, nil
-	case EndpointTypeVpe:
-		return ir.EndpointTypeVPE, nil
+func translateResourceType(resourceType ResourceType) (ir.ResourceType, error) {
+	switch resourceType {
+	case ResourceTypeExternal:
+		return ir.ResourceTypeExternal, nil
+	case ResourceTypeSegment:
+		return ir.ResourceTypeSegment, nil
+	case ResourceTypeSubnet:
+		return ir.ResourceTypeSubnet, nil
+	case ResourceTypeNif:
+		return ir.ResourceTypeNIF, nil
+	case ResourceTypeInstance:
+		return ir.ResourceTypeInstance, nil
+	case ResourceTypeVpe:
+		return ir.ResourceTypeVPE, nil
 	default:
-		return ir.EndpointTypeSubnet, fmt.Errorf("unsupported endpoint type %v", endpointType)
+		return ir.ResourceTypeSubnet, fmt.Errorf("unsupported resource type %v", resourceType)
 	}
 }
 
