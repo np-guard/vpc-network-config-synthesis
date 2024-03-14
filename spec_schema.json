@@ -108,16 +108,16 @@
                 "$ref": "#/$defs/protocol"
             }
         },
-        "endpoint": {
+        "resource": {
             "type": "object",
             "additionalProperties": false,
             "properties": {
                 "name": {
-                    "description": "Name of endpoint",
+                    "description": "Name of resource",
                     "type": "string"
                 },
                 "type": {
-                    "description": "Type of endpoint",
+                    "description": "Type of resource",
                     "enum": [
                         "external",
                         "segment",
@@ -215,12 +215,12 @@
                 ],
                 "properties": {
                     "src": {
-                        "description": "In unidirectional connection, this is the egress endpoint",
-                        "$ref": "#/$defs/endpoint"
+                        "description": "In unidirectional connection, this is the egress resource",
+                        "$ref": "#/$defs/resource"
                     },
                     "dst": {
-                        "description": "In unidirectional connection, this is the ingress endpoint",
-                        "$ref": "#/$defs/endpoint"
+                        "description": "In unidirectional connection, this is the ingress resource",
+                        "$ref": "#/$defs/resource"
                     },
                     "bidirectional": {
                         "description": "If true, allow both connections from src to dst and connections from dst to src",

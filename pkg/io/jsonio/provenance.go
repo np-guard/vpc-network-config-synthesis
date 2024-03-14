@@ -9,8 +9,8 @@ type connectionOrigin struct {
 	inverse         bool
 }
 
-func endpointName(endpoint Endpoint) string {
-	return fmt.Sprintf("(%v %v)", endpoint.Type, endpoint.Name)
+func resourceName(resource Resource) string {
+	return fmt.Sprintf("(%v %v)", resource.Type, resource.Name)
 }
 
 func (o connectionOrigin) String() string {

@@ -45,7 +45,7 @@ func (c *TestCase) at(name, otherwise string) string {
 
 func TestACLCIDR(t *testing.T) {
 	_, err := readSpec(&TestCase{folder: "acl_cidr"})
-	if err == nil || err.Error() != "unsupported endpoint type cidr" {
+	if err == nil || err.Error() != "unsupported resource type cidr" {
 		t.Errorf("No failure for unsupported type; got %v", err)
 	}
 }

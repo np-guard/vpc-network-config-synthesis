@@ -32,20 +32,20 @@ func MakeACL(s *ir.Spec, opt Options) *ir.ACLCollection {
 }
 
 func GenerateACLCollectionFromConnection(s *ir.Spec, conn *ir.Connection, aclSelector func(target ir.IP) string) *ir.ACLCollection {
-	internalSrc := conn.Src.Type != ir.EndpointTypeExternal
-	internalDst := conn.Dst.Type != ir.EndpointTypeExternal
+	internalSrc := conn.Src.Type != ir.ResourceTypeExternal
+	internalDst := conn.Dst.Type != ir.ResourceTypeExternal
 	internal := internalSrc && internalDst
 	if !internalSrc && !internalDst {
 		log.Fatalf("ACL: Both source and destination are external for connection %v", *conn)
 	}
 	result := ir.NewACLCollection()
-	if !endpointRelevantToACL(conn.Src.Type) && !endpointRelevantToACL(conn.Dst.Type) {
+	if !resourceRelevantToACL(conn.Src.Type) && !resourceRelevantToACL(conn.Dst.Type) {
 		return result
 	}
 	var connectionRules []*ir.ACLRule
 	for _, src := range conn.Src.Values {
 		for _, dst := range conn.Dst.Values {
-			if src == dst && conn.Src.Type != ir.EndpointTypeCidr && conn.Dst.Type != ir.EndpointTypeCidr {
+			if src == dst && conn.Src.Type != ir.ResourceTypeCidr && conn.Dst.Type != ir.ResourceTypeCidr {
 				continue
 			}
 			for _, trackedProtocol := range conn.TrackedProtocols {
@@ -66,12 +66,12 @@ func GenerateACLCollectionFromConnection(s *ir.Spec, conn *ir.Connection, aclSel
 	return result
 }
 
-func allowDirectedConnection(s *ir.Spec, src, dst ir.IP, srcEp, dstEp ir.Endpoint, internalSrc, internalDst bool,
+func allowDirectedConnection(s *ir.Spec, src, dst ir.IP, srcEp, dstEp ir.Resource, internalSrc, internalDst bool,
 	protocol ir.Protocol, reason explanation) []*ir.ACLRule {
 	var request, response *ir.Packet
 
-	srcList := endPointsContainedInCidr(s, src, srcEp)
-	dstList := endPointsContainedInCidr(s, dst, dstEp)
+	srcList := resourcesContainedInCidr(s, src, srcEp)
+	dstList := resourcesContainedInCidr(s, dst, dstEp)
 
 	var connection []*ir.ACLRule
 
@@ -106,12 +106,12 @@ func allowDirectedConnection(s *ir.Spec, src, dst ir.IP, srcEp, dstEp ir.Endpoin
 	return connection
 }
 
-func endpointRelevantToACL(e ir.EndpointType) bool {
-	return e == ir.EndpointTypeSubnet || e == ir.EndpointTypeSegment || e == ir.EndpointTypeCidr
+func resourceRelevantToACL(e ir.ResourceType) bool {
+	return e == ir.ResourceTypeSubnet || e == ir.ResourceTypeSegment || e == ir.ResourceTypeCidr
 }
 
-func endPointsContainedInCidr(s *ir.Spec, epIP ir.IP, ep ir.Endpoint) []ir.IP {
-	if ep.Type != ir.EndpointTypeCidr {
+func resourcesContainedInCidr(s *ir.Spec, epIP ir.IP, ep ir.Resource) []ir.IP {
+	if ep.Type != ir.ResourceTypeCidr {
 		return []ir.IP{epIP}
 	}
 	retVal := make([]ir.IP, 0)                             // list of subnet IPs contained in the cidr
