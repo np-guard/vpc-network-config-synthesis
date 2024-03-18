@@ -1,6 +1,10 @@
 package jsonio
 
-import "fmt"
+import (
+	"fmt"
+
+	spec "github.com/np-guard/models/pkg/model"
+)
 
 type connectionOrigin struct {
 	connectionIndex int
@@ -9,7 +13,7 @@ type connectionOrigin struct {
 	inverse         bool
 }
 
-func resourceName(resource Resource) string {
+func resourceName(resource spec.Resource) string {
 	return fmt.Sprintf("(%v %v)", resource.Type, resource.Name)
 }
 

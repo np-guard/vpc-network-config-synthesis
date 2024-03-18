@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/np-guard/models/pkg/ipblocks"
+	"github.com/np-guard/models/pkg/ipblock"
 )
 
 type (
@@ -202,10 +202,10 @@ func cidrsAsIPs(cidrSegments map[string]map[string][]string, segmentName string)
 	return retVal
 }
 
-func (s *ConfigDefs) SubnetsContainedInCidr(cidr ipblocks.IPBlock) ([]string, error) {
+func (s *ConfigDefs) SubnetsContainedInCidr(cidr ipblock.IPBlock) ([]string, error) {
 	var containedSubnets []string
 	for subnet, ip := range s.Subnets {
-		subnetIPBlock, err := ipblocks.NewIPBlockFromCidrOrAddress(ip.String())
+		subnetIPBlock, err := ipblock.FromCidr(ip.String())
 		if err != nil {
 			return nil, err
 		}

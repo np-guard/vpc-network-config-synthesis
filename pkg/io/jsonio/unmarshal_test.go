@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"testing"
 
+	spec "github.com/np-guard/models/pkg/model"
+
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
@@ -36,18 +38,18 @@ func readFile(t *testing.T, filename string) map[string]interface{} {
 }
 
 func TestTcpUdp_UnmarshalJSON(t *testing.T) {
-	table := []TestItem[*TcpUdp]{
+	table := []TestItem[*spec.TcpUdp]{
 		{`{"protocol": "TCP"}`,
-			&TcpUdp{Protocol: "TCP",
+			&spec.TcpUdp{Protocol: "TCP",
 				MinDestinationPort: minPort, MaxDestinationPort: maxPort,
 				MinSourcePort: minPort, MaxSourcePort: maxPort}},
 		{`{"protocol": "UDP", "min_destination_port": 433, "max_destination_port": 433}`,
-			&TcpUdp{Protocol: "UDP",
+			&spec.TcpUdp{Protocol: "UDP",
 				MinDestinationPort: 433, MaxDestinationPort: 433,
 				MinSourcePort: minPort, MaxSourcePort: maxPort}},
 	}
 	for _, test := range table {
-		actual := new(TcpUdp)
+		actual := new(spec.TcpUdp)
 		err := json.Unmarshal([]byte(test.input), actual)
 		if err != nil {
 			t.Fatalf(`Unmarshal %q returns %v`, test.input, err)
@@ -59,14 +61,14 @@ func TestTcpUdp_UnmarshalJSON(t *testing.T) {
 }
 
 func TestIcmp_UnmarshalJSON(t *testing.T) {
-	table := []TestItem[*Icmp]{
+	table := []TestItem[*spec.Icmp]{
 		{`{"protocol": "ICMP"}`,
-			&Icmp{Protocol: "ICMP", Code: nil, Type: nil}},
+			&spec.Icmp{Protocol: "ICMP", Code: nil, Type: nil}},
 		{`{"protocol": "ICMP", "code": 0, "type": 1}`,
-			&Icmp{Protocol: "ICMP", Code: utils.Ptr(0), Type: utils.Ptr(1)}},
+			&spec.Icmp{Protocol: "ICMP", Code: utils.Ptr(0), Type: utils.Ptr(1)}},
 	}
 	for _, test := range table {
-		actual := new(Icmp)
+		actual := new(spec.Icmp)
 		err := json.Unmarshal([]byte(test.input), actual)
 		if err != nil {
 			t.Fatalf(`Unmarshal %v returns %v`, test.input, err)
@@ -78,12 +80,12 @@ func TestIcmp_UnmarshalJSON(t *testing.T) {
 }
 
 func TestAnyProtocol_UnmarshalJSON(t *testing.T) {
-	table := []TestItem[*AnyProtocol]{
+	table := []TestItem[*spec.AnyProtocol]{
 		{`{"protocol": "ANY"}`,
-			&AnyProtocol{Protocol: "ANY"}},
+			&spec.AnyProtocol{Protocol: "ANY"}},
 	}
 	for _, test := range table {
-		actual := new(AnyProtocol)
+		actual := new(spec.AnyProtocol)
 		err := json.Unmarshal([]byte(test.input), actual)
 		if err != nil {
 			t.Fatalf(`Unmarshal %v returns %v`, test.input, err)
@@ -95,15 +97,15 @@ func TestAnyProtocol_UnmarshalJSON(t *testing.T) {
 }
 
 func TestResource_UnmarshalJSON(t *testing.T) {
-	table := make([]TestItem[*Resource], 7)
+	table := make([]TestItem[*spec.Resource], 7)
 	for i, tp := range []string{"external", "segment", "subnet", "instance", "nif", "cidr", "vpe"} {
 		name := fmt.Sprintf("ep-%v", i)
 		js := fmt.Sprintf(`{"name": "%v", "type": "%v"}`, name, tp)
-		resource := Resource{Name: name, Type: ResourceType(tp)}
-		table[i] = TestItem[*Resource]{js, &resource}
+		resource := spec.Resource{Name: name, Type: spec.ResourceType(tp)}
+		table[i] = TestItem[*spec.Resource]{js, &resource}
 	}
 	for _, test := range table {
-		actual := new(Resource)
+		actual := new(spec.Resource)
 		err := json.Unmarshal([]byte(test.input), actual)
 		if err != nil {
 			t.Fatalf(`Unmarshal %v returns %v`, test.input, err)
@@ -124,15 +126,15 @@ func TestUnmarshalSpecSegments(t *testing.T) {
 
 	jsonSpec := readFile(t, filename)
 
-	spec, err := unmarshal(filename)
+	s, err := unmarshal(filename)
 	if err != nil {
 		t.Fatalf(`Unmarshal %v returns %v`, filename, err)
 	}
 	ctx, jsonSegmentMap := enter[map[string]interface{}]("segments", ctx, jsonSpec)
-	if len(spec.Segments) != len(jsonSegmentMap) {
-		t.Fatalf(`len(%v): %v != %v`, ctx, len(spec.Segments), len(jsonSegmentMap))
+	if len(s.Segments) != len(jsonSegmentMap) {
+		t.Fatalf(`len(%v): %v != %v`, ctx, len(s.Segments), len(jsonSegmentMap))
 	}
-	for field, segment := range spec.Segments {
+	for field, segment := range s.Segments {
 		ctx, jsonSegment := enter[map[string]interface{}](field, ctx, jsonSegmentMap)
 		{
 			ctx, jsonType := enter[string]("type", ctx, jsonSegment)
@@ -165,15 +167,15 @@ func TestUnmarshalSpecExternals(t *testing.T) {
 
 	jsonSpec := readFile(t, filename)
 
-	spec, err := unmarshal(filename)
+	s, err := unmarshal(filename)
 	if err != nil {
 		t.Fatalf(`Unmarshal %v returns %v`, filename, err)
 	}
 	ctx, jsonExtMap := enter[map[string]interface{}]("externals", ctx, jsonSpec)
-	if len(spec.Externals) != len(jsonExtMap) {
-		t.Fatalf(`len(%v): %v != %v`, ctx, len(spec.Externals), len(jsonExtMap))
+	if len(s.Externals) != len(jsonExtMap) {
+		t.Fatalf(`len(%v): %v != %v`, ctx, len(s.Externals), len(jsonExtMap))
 	}
-	for field, value := range spec.Externals {
+	for field, value := range s.Externals {
 		ctx, jsonExt := enter[string](field, ctx, jsonExtMap)
 		if value != jsonExt {
 			t.Fatalf(`%v: %v != %v`, ctx, value, jsonExt)
@@ -191,15 +193,15 @@ func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 
 	jsonSpec := readFile(t, filename)
 
-	spec, err := unmarshal(filename)
+	s, err := unmarshal(filename)
 	if err != nil {
 		t.Fatalf(`Unmarshal %v returns %v`, filename, err)
 	}
 	ctx, jsonConnArray := enter[[]interface{}]("required-connections", ctx, jsonSpec)
-	if len(spec.RequiredConnections) != len(jsonConnArray) {
-		t.Fatalf(`len(%v): %v != %v`, ctx, len(spec.RequiredConnections), len(jsonConnArray))
+	if len(s.RequiredConnections) != len(jsonConnArray) {
+		t.Fatalf(`len(%v): %v != %v`, ctx, len(s.RequiredConnections), len(jsonConnArray))
 	}
-	for i, conn := range spec.RequiredConnections {
+	for i, conn := range s.RequiredConnections {
 		ctx, jsonConn := enterArray[map[string]interface{}](i, ctx, jsonConnArray)
 		{
 			ctx, jsonConnResource := enterField("src", ctx, jsonConn)
@@ -247,7 +249,7 @@ func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 			for j, protocol := range conn.AllowedProtocols {
 				ctx, jsonProtocol := enterArray[map[string]interface{}](j, ctx, jsonConnAllowedProtocols)
 				switch p := protocol.(type) {
-				case TcpUdp:
+				case spec.TcpUdp:
 					{
 						ctx, jsonProtocolName := enter[string]("protocol", ctx, jsonProtocol)
 						if string(p.Protocol) != jsonProtocolName {
@@ -266,7 +268,7 @@ func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 							t.Fatalf(`%v: %v != %v`, ctx, p.MaxDestinationPort, jsonProtocolPort)
 						}
 					}
-				case Icmp:
+				case spec.Icmp:
 					{
 						ctx, jsonProtocolName := enter[string]("protocol", ctx, jsonProtocol)
 						if string(p.Protocol) != jsonProtocolName {
@@ -285,7 +287,7 @@ func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 							t.Fatalf(`%v: %v != %v`, ctx, p.Code, jsonProtocolCode)
 						}
 					}
-				case AnyProtocol:
+				case spec.AnyProtocol:
 					t.Fatalf("Unsupported")
 				default:
 					t.Fatalf("Bad protocol %v", p)
