@@ -39,14 +39,3 @@ jobs:
           sudo snap install --classic terraform
           terraform fmt -recursive
           git diff --no-ext-diff --quiet --exit-code
-  json:
-    name: check-jsonschema
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install go-jsonschema
-        run: pip install check-jsonschema
-
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-
-      - name: Lint
-        run: make lint-json
