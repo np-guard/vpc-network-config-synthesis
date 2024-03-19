@@ -3,7 +3,7 @@ package jsonio
 import (
 	"fmt"
 
-	spec "github.com/np-guard/models/pkg/model"
+	"github.com/np-guard/models/pkg/spec"
 )
 
 type connectionOrigin struct {

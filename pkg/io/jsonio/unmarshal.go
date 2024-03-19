@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/np-guard/models/pkg/ipblock"
-	spec "github.com/np-guard/models/pkg/model"
+	"github.com/np-guard/models/pkg/spec"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
