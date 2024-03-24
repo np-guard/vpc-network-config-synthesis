@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/np-guard/models/pkg/ipblocks"
+	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/spec"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
@@ -46,7 +47,7 @@ func (*Reader) ReadSpec(filename string, configDefs *ir.ConfigDefs) (*ir.Spec, e
 
 	defs := &ir.Definitions{
 		ConfigDefs:     *configDefs,
-		SubnetSegments: translateSegments(jsonSpec.Segments, TypeSubnet),
+		SubnetSegments: translateSegments(jsonSpec.Segments, spec.TypeSubnet),
 		CidrSegments:   cidrSegments,
 		Externals:      translateIPMap(jsonSpec.Externals),
 	}
@@ -66,16 +67,16 @@ func (*Reader) ReadSpec(filename string, configDefs *ir.ConfigDefs) (*ir.Spec, e
 	}, nil
 }
 
-func validateSegments(jsonSegments SpecSegments) error {
+func validateSegments(jsonSegments spec.SpecSegments) error {
 	for _, v := range jsonSegments {
-		if v.Type != TypeSubnet && v.Type != TypeCidr {
+		if v.Type != spec.TypeSubnet && v.Type != spec.TypeCidr {
 			return fmt.Errorf("only subnet and cidr segments are supported, not %q", v.Type)
 		}
 	}
 	return nil
 }
 
-func translateSegments(jsonSegments SpecSegments, segmentType Type) map[string][]string {
+func translateSegments(jsonSegments spec.SpecSegments, segmentType spec.Type) map[string][]string {
 	result := make(map[string][]string)
 	for k, v := range jsonSegments {
 		if v.Type == segmentType {
@@ -85,14 +86,14 @@ func translateSegments(jsonSegments SpecSegments, segmentType Type) map[string][
 	return result
 }
 
-func parseCidrSegments(jsonSegments SpecSegments, configDefs *ir.ConfigDefs) (map[string]map[string][]string, error) {
-	cidrSegments := translateSegments(jsonSegments, TypeCidr)
+func parseCidrSegments(jsonSegments spec.SpecSegments, configDefs *ir.ConfigDefs) (map[string]map[string][]string, error) {
+	cidrSegments := translateSegments(jsonSegments, spec.TypeCidr)
 	finalMap := make(map[string]map[string][]string)
 	for segmentName, segment := range cidrSegments {
 		// each cidr saves the contained subnets
 		segmentMap := make(map[string][]string)
 		for _, cidr := range segment {
-			c, err := ipblocks.NewIPBlockFromCidrOrAddress(cidr)
+			c, err := ipblock.FromCidr(cidr)
 			if err != nil {
 				return nil, err
 			}
@@ -122,7 +123,7 @@ func translateIPMap(m map[string]string) map[string]ir.IP {
 	return res
 }
 
-func translateConnection(defs *ir.Definitions, v *SpecRequiredConnectionsElem, connectionIndex int) ([]ir.Connection, error) {
+func translateConnection(defs *ir.Definitions, v *spec.SpecRequiredConnectionsElem, connectionIndex int) ([]ir.Connection, error) {
 	p, err := translateProtocols(v.AllowedProtocols)
 	if err != nil {
 		return nil, err
@@ -159,17 +160,17 @@ func translateConnection(defs *ir.Definitions, v *SpecRequiredConnectionsElem, c
 	return []ir.Connection{out}, nil
 }
 
-func translateProtocols(protocols ProtocolList) ([]ir.TrackedProtocol, error) {
+func translateProtocols(protocols spec.ProtocolList) ([]ir.TrackedProtocol, error) {
 	var result = make([]ir.TrackedProtocol, len(protocols))
 	for i, _p := range protocols {
 		result[i].Origin = protocolOrigin{protocolIndex: i}
 		switch p := _p.(type) {
-		case AnyProtocol:
+		case spec.AnyProtocol:
 			if len(protocols) != 1 {
 				return nil, fmt.Errorf("when allowing any protocol, no more protocols can be defined")
 			}
 			result[i].Protocol = ir.AnyProtocol{}
-		case Icmp:
+		case spec.Icmp:
 			if p.Type == nil {
 				if p.Code != nil {
 					return nil, fmt.Errorf("defining ICMP code for unspecified ICMP type is not allowed")
@@ -182,7 +183,7 @@ func translateProtocols(protocols ProtocolList) ([]ir.TrackedProtocol, error) {
 				}
 				result[i].Protocol = ir.ICMP{ICMPCodeType: &ir.ICMPCodeType{Type: *p.Type, Code: p.Code}}
 			}
-		case TcpUdp:
+		case spec.TcpUdp:
 			result[i].Protocol = ir.TCPUDP{
 				Protocol: ir.TransportLayerProtocolName(p.Protocol),
 				PortRangePair: ir.PortRangePair{
@@ -197,19 +198,19 @@ func translateProtocols(protocols ProtocolList) ([]ir.TrackedProtocol, error) {
 	return result, nil
 }
 
-func translateResourceType(resourceType ResourceType) (ir.ResourceType, error) {
+func translateResourceType(resourceType spec.ResourceType) (ir.ResourceType, error) {
 	switch resourceType {
-	case ResourceTypeExternal:
+	case spec.ResourceTypeExternal:
 		return ir.ResourceTypeExternal, nil
-	case ResourceTypeSegment:
+	case spec.ResourceTypeSegment:
 		return ir.ResourceTypeSegment, nil
-	case ResourceTypeSubnet:
+	case spec.ResourceTypeSubnet:
 		return ir.ResourceTypeSubnet, nil
-	case ResourceTypeNif:
+	case spec.ResourceTypeNif:
 		return ir.ResourceTypeNIF, nil
-	case ResourceTypeInstance:
+	case spec.ResourceTypeInstance:
 		return ir.ResourceTypeInstance, nil
-	case ResourceTypeVpe:
+	case spec.ResourceTypeVpe:
 		return ir.ResourceTypeVPE, nil
 	default:
 		return ir.ResourceTypeSubnet, fmt.Errorf("unsupported resource type %v", resourceType)
@@ -217,12 +218,12 @@ func translateResourceType(resourceType ResourceType) (ir.ResourceType, error) {
 }
 
 // unmarshal returns a Spec struct given a file adhering to spec_schema.input
-func unmarshal(filename string) (*Spec, error) {
+func unmarshal(filename string) (*spec.Spec, error) {
 	bytes, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-	jsonSpec := new(Spec)
+	jsonSpec := new(spec.Spec)
 	err = json.Unmarshal(bytes, jsonSpec)
 	if err != nil {
 		return nil, err
@@ -230,7 +231,7 @@ func unmarshal(filename string) (*Spec, error) {
 	for i := range jsonSpec.RequiredConnections {
 		conn := &jsonSpec.RequiredConnections[i]
 		if conn.AllowedProtocols == nil {
-			conn.AllowedProtocols = ProtocolList{AnyProtocol{}}
+			conn.AllowedProtocols = spec.ProtocolList{spec.AnyProtocol{}}
 		} else {
 			for j := range conn.AllowedProtocols {
 				p := conn.AllowedProtocols[j].(map[string]interface{})
@@ -240,15 +241,15 @@ func unmarshal(filename string) (*Spec, error) {
 				}
 				switch p["protocol"] {
 				case "ANY":
-					var result AnyProtocol
+					var result spec.AnyProtocol
 					err = json.Unmarshal(bytes, &result)
 					conn.AllowedProtocols[j] = result
 				case "TCP", "UDP":
-					var result TcpUdp
+					var result spec.TcpUdp
 					err = json.Unmarshal(bytes, &result)
 					conn.AllowedProtocols[j] = result
 				case "ICMP":
-					var result Icmp
+					var result spec.Icmp
 					err = json.Unmarshal(bytes, &result)
 					conn.AllowedProtocols[j] = result
 				default:
@@ -263,9 +264,9 @@ func unmarshal(filename string) (*Spec, error) {
 	return jsonSpec, err
 }
 
-func cidrContainedInVpc(cidr ipblocks.IPBlock, addressPrefixes []ir.CIDR) (bool, error) {
+func cidrContainedInVpc(cidr ipblock.IPBlock, addressPrefixes []ir.CIDR) (bool, error) {
 	for i := range addressPrefixes {
-		addressPrefix, err := ipblocks.NewIPBlockFromCidrOrAddress(addressPrefixes[i].String())
+		addressPrefix, err := ipblock.FromCidr(addressPrefixes[i].String())
 		if err != nil {
 			return false, err
 		}
