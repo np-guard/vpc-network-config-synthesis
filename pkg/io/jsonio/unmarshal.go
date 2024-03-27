@@ -31,23 +31,22 @@ func (*Reader) ReadSpec(filename string, configDefs *ir.ConfigDefs) (*ir.Spec, e
 		return nil, err
 	}
 
-	if configDefs == nil {
-		configDefs = &ir.ConfigDefs{
-			Subnets:         translateIPMap(jsonSpec.Subnets),
-			NIFToIP:         translateIPMap(jsonSpec.Nifs),
-			InstanceToNIFs:  jsonSpec.Instances,
-			AddressPrefixes: []ir.CIDR{},
-		}
-	}
+	subnetSegments := translateSegments(jsonSpec.Segments, spec.TypeSubnet)
 
 	cidrSegments, err := parseCidrSegments(jsonSpec.Segments, configDefs)
 	if err != nil {
 		return nil, err
 	}
 
+	// replace to fully qualified name
+	jsonSpec, subnetSegments, err = replaceResourcesName(jsonSpec, subnetSegments, configDefs)
+	if err != nil {
+		return nil, err
+	}
+
 	defs := &ir.Definitions{
 		ConfigDefs:     *configDefs,
-		SubnetSegments: translateSegments(jsonSpec.Segments, spec.TypeSubnet),
+		SubnetSegments: subnetSegments,
 		CidrSegments:   cidrSegments,
 		Externals:      translateIPMap(jsonSpec.Externals),
 	}
@@ -76,43 +75,122 @@ func validateSegments(jsonSegments spec.SpecSegments) error {
 	return nil
 }
 
-func translateSegments(jsonSegments spec.SpecSegments, segmentType spec.Type) map[string][]string {
-	result := make(map[string][]string)
+func translateSegments(jsonSegments spec.SpecSegments, segmentType spec.Type) map[string][]ir.ID {
+	result := make(map[string][]ir.ID)
 	for k, v := range jsonSegments {
-		if v.Type == segmentType {
-			result[k] = v.Items
+		if v.Type == spec.TypeSubnet {
+			subnets := make([]ir.ID, 0)
+			for _, item := range v.Items {
+				subnets = append(subnets, ir.ID(item))
+			}
+			result[k] = subnets
 		}
 	}
 	return result
 }
 
-func parseCidrSegments(jsonSegments spec.SpecSegments, configDefs *ir.ConfigDefs) (map[string]map[string][]string, error) {
+func parseCidrSegments(jsonSegments spec.SpecSegments, configDefs *ir.ConfigDefs) (map[string]map[ir.CIDR]ir.CIDRDetails, error) {
 	cidrSegments := translateSegments(jsonSegments, spec.TypeCidr)
-	finalMap := make(map[string]map[string][]string)
+	cidrSegmentsMapping := make(map[string]map[ir.CIDR]ir.CIDRDetails)
 	for segmentName, segment := range cidrSegments {
 		// each cidr saves the contained subnets
-		segmentMap := make(map[string][]string)
+		segmentMapping := make(map[ir.CIDR]ir.CIDRDetails)
 		for _, cidr := range segment {
-			c, err := ipblock.FromCidr(cidr)
+			c, err := ipblock.FromCidr(string(cidr))
 			if err != nil {
 				return nil, err
 			}
-			validCidr, err := cidrContainedInVpc(*c, configDefs.AddressPrefixes)
+			vpcs, err := overlappingVpcs(*c, configDefs.VPCs)
 			if err != nil {
 				return nil, err
-			}
-			if !validCidr {
-				return nil, fmt.Errorf("%s is not contained in the vpc", cidr)
 			}
 			subnets, err := configDefs.SubnetsContainedInCidr(*c)
 			if err != nil {
 				return nil, err
 			}
-			segmentMap[cidr] = subnets
+			cidrDetails := ir.CIDRDetails{
+				ContainedSubnets: subnets,
+				OverlappingVPCs:  vpcs,
+			}
+
+			segmentMapping[ir.CidrFromString(string(cidr))] = cidrDetails
 		}
-		finalMap[segmentName] = segmentMap
+		cidrSegmentsMapping[segmentName] = segmentMapping
 	}
-	return finalMap, nil
+	return cidrSegmentsMapping, nil
+}
+
+func overlappingVpcs(cidr ipblock.IPBlock, vpcs map[ir.ID]ir.VPCDetails) ([]ir.ID, error) {
+	result := make([]ir.ID, 0)
+	for vpcName, vpcDetails := range vpcs {
+		for _, addressPrefix := range vpcDetails.AddressPrefixes {
+			addressPrefixIP, err := ipblock.FromCidr(addressPrefix.String())
+			if err != nil {
+				return nil, err
+			}
+			if !addressPrefixIP.Intersect(&cidr).IsEmpty() {
+				result = append(result, vpcName)
+			}
+		}
+	}
+	return result, nil
+}
+
+func replaceResourcesName(jsonSpec *spec.Spec, subnetSegments map[string][]ir.ID, config *ir.ConfigDefs) (*spec.Spec, map[string][]ir.ID, error) {
+	var err error
+	subnetsCache, ambiguousSubnets := inverseMapToFullyQualifiedName(config.Subnets)
+	nifsCache, ambiguousNifs := inverseMapToFullyQualifiedName(config.NIFs)
+	instancesCache, ambiguousInstances := inverseMapToFullyQualifiedName(config.Instances)
+	vpeEndpointsCache, ambiguousVpeEndpoints := inverseMapToFullyQualifiedName(config.VPEEndpoints)
+
+	// go over subnetSegments
+	for segmentName, subnets := range subnetSegments {
+		subnetsNames := make([]ir.ID, 0)
+		for _, subnet := range subnets {
+			fullyQualifiedName, err := replaceResourceName(subnetsCache, ambiguousSubnets, string(subnet), spec.ResourceTypeSubnet)
+			if err != nil {
+				return nil, nil, err
+			}
+			subnetsNames = append(subnetsNames, ir.ID(fullyQualifiedName))
+		}
+		subnetSegments[segmentName] = subnetsNames
+	}
+
+	// go over Spec
+	for i, conn := range jsonSpec.RequiredConnections {
+		fullyQualifiedSrc := conn.Src.Name
+		switch conn.Src.Type {
+		case spec.ResourceTypeSubnet:
+			fullyQualifiedSrc, err = replaceResourceName(subnetsCache, ambiguousSubnets, conn.Src.Name, spec.ResourceTypeSubnet)
+		case spec.ResourceTypeNif:
+			fullyQualifiedSrc, err = replaceResourceName(nifsCache, ambiguousNifs, conn.Src.Name, spec.ResourceTypeNif)
+		case spec.ResourceTypeInstance:
+			fullyQualifiedSrc, err = replaceResourceName(instancesCache, ambiguousInstances, conn.Src.Name, spec.ResourceTypeInstance)
+		case spec.ResourceTypeVpe:
+			fullyQualifiedSrc, err = replaceResourceName(vpeEndpointsCache, ambiguousVpeEndpoints, conn.Src.Name, spec.ResourceTypeVpe)
+		}
+		if err != nil {
+			return nil, nil, err
+		}
+		jsonSpec.RequiredConnections[i].Src.Name = fullyQualifiedSrc
+
+		fullyQualifiedDst := conn.Dst.Name
+		switch conn.Dst.Type {
+		case spec.ResourceTypeSubnet:
+			fullyQualifiedDst, err = replaceResourceName(subnetsCache, ambiguousSubnets, conn.Dst.Name, spec.ResourceTypeSubnet)
+		case spec.ResourceTypeNif:
+			fullyQualifiedDst, err = replaceResourceName(nifsCache, ambiguousNifs, conn.Dst.Name, spec.ResourceTypeNif)
+		case spec.ResourceTypeInstance:
+			fullyQualifiedDst, err = replaceResourceName(instancesCache, ambiguousInstances, conn.Dst.Name, spec.ResourceTypeInstance)
+		case spec.ResourceTypeVpe:
+			fullyQualifiedDst, err = replaceResourceName(vpeEndpointsCache, ambiguousVpeEndpoints, conn.Dst.Name, spec.ResourceTypeVpe)
+		}
+		if err != nil {
+			return nil, nil, err
+		}
+		jsonSpec.RequiredConnections[i].Src.Name = fullyQualifiedDst
+	}
+	return jsonSpec, subnetSegments, nil
 }
 
 func translateIPMap(m map[string]string) map[string]ir.IP {
@@ -264,15 +342,33 @@ func unmarshal(filename string) (*spec.Spec, error) {
 	return jsonSpec, err
 }
 
-func cidrContainedInVpc(cidr ipblock.IPBlock, addressPrefixes []ir.CIDR) (bool, error) {
-	for i := range addressPrefixes {
-		addressPrefix, err := ipblock.FromCidr(addressPrefixes[i].String())
-		if err != nil {
-			return false, err
+func inverseMapToFullyQualifiedName[T ir.Named](m map[ir.ID]T) (map[string]ir.ID, map[string]struct{}) {
+	ambiguous := make(map[string]struct{})
+	cache := make(map[string]ir.ID)
+
+	for _, nif := range m {
+		if _, ok := ambiguous[nif.Name()]; ok {
+			continue
 		}
-		if cidr.ContainedIn(addressPrefix) {
-			return true, nil
+		if uniqueName, ok := cache[nif.Name()]; !ok {
+			cache[nif.Name()] = uniqueName
+		} else {
+			delete(cache, nif.Name())
+			ambiguous[nif.Name()] = struct{}{}
 		}
 	}
-	return false, nil
+	return cache, ambiguous
+}
+
+func replaceResourceName(cache map[string]ir.ID, ambiguous map[string]struct{}, resourceName string, resourceType spec.ResourceType) (string, error) {
+	if len(ir.ScopingComponents(resourceName)) == 1 {
+		return resourceName, nil
+	}
+	if val, ok := cache[resourceName]; ok {
+		return string(val), nil
+	}
+	if _, ok := ambiguous[resourceName]; ok {
+		return "", fmt.Errorf("Ambiguity error for resource named %s", resourceName)
+	}
+	return "", fmt.Errorf("Unknown resource type %q named %s", resourceType, resourceName)
 }

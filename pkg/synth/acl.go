@@ -13,15 +13,15 @@ type Options struct {
 
 // MakeACL translates Spec to a collection of ACLs
 func MakeACL(s *ir.Spec, opt Options) *ir.ACLCollection {
-	aclSelector := func(ip ir.IP) string {
-		result, ok := s.Defs.SubnetNameFromIP(ip)
+	aclSelector := func(cidr ir.CIDR) string {
+		result, ok := s.Defs.SubnetNameFromCidr(cidr)
 		if !ok {
 			log.Fatalf("ACL: src/dst of type network interface (or instance) is not supported.")
 		}
 		return result
 	}
 	if opt.SingleACL {
-		aclSelector = func(target ir.IP) string { return "1" }
+		aclSelector = func(target ir.CIDR) string { return "1" }
 	}
 	collections := []*ir.ACLCollection{}
 	for c := range s.Connections {
@@ -31,7 +31,7 @@ func MakeACL(s *ir.Spec, opt Options) *ir.ACLCollection {
 	return ir.MergeACLCollections(collections...)
 }
 
-func GenerateACLCollectionFromConnection(s *ir.Spec, conn *ir.Connection, aclSelector func(target ir.IP) string) *ir.ACLCollection {
+func GenerateACLCollectionFromConnection(s *ir.Spec, conn *ir.Connection, aclSelector func(target ir.CIDR) string) *ir.ACLCollection {
 	internalSrc := conn.Src.Type != ir.ResourceTypeExternal
 	internalDst := conn.Dst.Type != ir.ResourceTypeExternal
 	internal := internalSrc && internalDst
@@ -43,8 +43,8 @@ func GenerateACLCollectionFromConnection(s *ir.Spec, conn *ir.Connection, aclSel
 		return result
 	}
 	var connectionRules []*ir.ACLRule
-	for _, src := range conn.Src.Values {
-		for _, dst := range conn.Dst.Values {
+	for _, src := range conn.Src.CIDRs {
+		for _, dst := range conn.Dst.CIDRs {
 			if src == dst && conn.Src.Type != ir.ResourceTypeCidr && conn.Dst.Type != ir.ResourceTypeCidr {
 				continue
 			}
@@ -56,7 +56,7 @@ func GenerateACLCollectionFromConnection(s *ir.Spec, conn *ir.Connection, aclSel
 		}
 	}
 	for _, rule := range connectionRules {
-		acl := result.LookupOrCreate(aclSelector(rule.Target()))
+		acl := result.LookupOrCreate(aclSelector(ir.CidrFromIP(rule.Target())))
 		if internal {
 			acl.AppendInternal(rule)
 		} else {
@@ -66,7 +66,7 @@ func GenerateACLCollectionFromConnection(s *ir.Spec, conn *ir.Connection, aclSel
 	return result
 }
 
-func allowDirectedConnection(s *ir.Spec, src, dst ir.IP, srcEp, dstEp ir.Resource, internalSrc, internalDst bool,
+func allowDirectedConnection(s *ir.Spec, src, dst ir.CIDR, srcEp, dstEp ir.Resource, internalSrc, internalDst bool,
 	protocol ir.Protocol, reason explanation) []*ir.ACLRule {
 	var request, response *ir.Packet
 
@@ -76,28 +76,28 @@ func allowDirectedConnection(s *ir.Spec, src, dst ir.IP, srcEp, dstEp ir.Resourc
 	var connection []*ir.ACLRule
 
 	if internalSrc {
-		for _, srcIP := range srcList {
-			if srcIP == dst {
+		for _, srcCidr := range srcList {
+			if srcCidr == dst {
 				continue
 			}
-			request = &ir.Packet{Src: srcIP, Dst: dst, Protocol: protocol, Explanation: reason.String()}
+			request = &ir.Packet{Src: ir.IPFromCidr(srcCidr), Dst: ir.IPFromCidr(dst), Protocol: protocol, Explanation: reason.String()}
 			connection = append(connection, ir.AllowSend(*request))
 			if inverseProtocol := protocol.InverseDirection(); inverseProtocol != nil {
-				response = &ir.Packet{Src: dst, Dst: srcIP, Protocol: inverseProtocol, Explanation: reason.response().String()}
+				response = &ir.Packet{Src: ir.IPFromCidr(dst), Dst: ir.IPFromCidr(srcCidr), Protocol: inverseProtocol, Explanation: reason.response().String()}
 				connection = append(connection, ir.AllowReceive(*response))
 			}
 		}
 	}
 
 	if internalDst {
-		for _, dstIP := range dstList {
-			if src == dstIP {
+		for _, dstCidr := range dstList {
+			if src == dstCidr {
 				continue
 			}
-			request = &ir.Packet{Src: src, Dst: dstIP, Protocol: protocol, Explanation: reason.String()}
+			request = &ir.Packet{Src: ir.IPFromCidr(src), Dst: ir.IPFromCidr(dstCidr), Protocol: protocol, Explanation: reason.String()}
 			connection = append(connection, ir.AllowReceive(*request))
 			if inverseProtocol := protocol.InverseDirection(); inverseProtocol != nil {
-				response = &ir.Packet{Src: dstIP, Dst: src, Protocol: inverseProtocol, Explanation: reason.response().String()}
+				response = &ir.Packet{Src: ir.IPFromCidr(dstCidr), Dst: ir.IPFromCidr(src), Protocol: inverseProtocol, Explanation: reason.response().String()}
 				connection = append(connection, ir.AllowSend(*response))
 			}
 		}
@@ -110,14 +110,14 @@ func resourceRelevantToACL(e ir.ResourceType) bool {
 	return e == ir.ResourceTypeSubnet || e == ir.ResourceTypeSegment || e == ir.ResourceTypeCidr
 }
 
-func resourcesContainedInCidr(s *ir.Spec, epIP ir.IP, ep ir.Resource) []ir.IP {
-	if ep.Type != ir.ResourceTypeCidr {
-		return []ir.IP{epIP}
+func resourcesContainedInCidr(s *ir.Spec, resourceCidr ir.CIDR, resource ir.Resource) []ir.CIDR {
+	if resource.Type != ir.ResourceTypeCidr {
+		return []ir.CIDR{resourceCidr}
 	}
-	retVal := make([]ir.IP, 0)                             // list of subnet IPs contained in the cidr
-	subnets := s.Defs.CidrSegments[ep.Name][epIP.String()] // list of subnets contained in the cidr
-	for _, subnet := range subnets {
-		retVal = append(retVal, s.Defs.Subnets[subnet])
+	retVal := make([]ir.CIDR, 0)                                    // list of subnet CIDRs contained in the cidr
+	cidrDetails := s.Defs.CidrSegments[resource.Name][resourceCidr] // list of subnets contained in the resourcesContainedInCidr
+	for _, subnet := range cidrDetails.ContainedSubnets {
+		retVal = append(retVal, s.Defs.Subnets[subnet].CIDR)
 	}
 
 	return retVal

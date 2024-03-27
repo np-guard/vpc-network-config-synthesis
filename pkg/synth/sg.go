@@ -29,8 +29,8 @@ func GenerateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(tar
 		return result
 	}
 
-	for _, src := range conn.Src.Values {
-		for _, dst := range conn.Dst.Values {
+	for _, src := range conn.Src.IPs {
+		for _, dst := range conn.Dst.IPs {
 			if src == dst {
 				continue
 			}
