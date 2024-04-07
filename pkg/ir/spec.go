@@ -4,11 +4,15 @@ package ir
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/np-guard/models/pkg/ipblock"
 )
 
 type (
+	NamedEntity string
+	ID          string
+
 	Spec struct {
 		// Required connections
 		Connections []Connection
@@ -48,19 +52,17 @@ type (
 
 	// ConfigDefs holds definitions that are part of the network architecture
 	ConfigDefs struct {
-		Subnets map[string]IP
+		VPCs map[ID]VPCDetails
 
-		// Network interface name to IP address
-		NIFToIP map[string]IP
+		Subnets map[ID]SubnetDetails
 
-		// Instance is a collection of NIFs
-		InstanceToNIFs map[string][]string
+		NIFs map[ID]NifDetails
 
-		// VPEs have a single IP
-		VPEToIP map[string]IP
+		Instances map[ID]InstanceDetails
 
-		// list of VPC's cidrs
-		AddressPrefixes []CIDR
+		VPEEndpoints map[ID]VPEEndpointDetails
+
+		VPEs map[ID]VPEDetails
 	}
 
 	// Definitions adds to ConfigDefs the spec-specific definitions
@@ -68,15 +70,89 @@ type (
 		ConfigDefs
 
 		// Segments are a way for users to create aggregations.
-		SubnetSegments map[string][]string
+		SubnetSegments map[string][]ID
 
-		// key = name of the segment. value = map where its key is the cidr and its value is the contained subnets
-		CidrSegments map[string]map[string][]string
+		// Cidr segment might contain some cidrs
+		CidrSegments map[string]map[CIDR]CIDRDetails
 
 		// Externals are a way for users to name IP addresses or ranges external to the VPC.
-		Externals map[string]IP
+		Externals map[ID]ExternalDetails
+	}
+
+	VPCDetails struct {
+		AddressPrefixes []CIDR
+		// tg
+		// lb
+	}
+
+	SubnetDetails struct {
+		NamedEntity
+		CIDR IP
+		VPC  ID
+	}
+
+	NifDetails struct {
+		NamedEntity
+		IP       IP
+		Instance ID
+	}
+
+	InstanceDetails struct {
+		NamedEntity
+		VPC  ID
+		Nifs []ID
+	}
+
+	VPEEndpointDetails struct {
+		NamedEntity
+		IP      IP
+		VPEName ID
+		Subnet  ID
+	}
+
+	VPEDetails struct {
+		NamedEntity
+		ReservedIPs []ID
+		VPC         ID
+	}
+
+	CIDRDetails struct {
+		ContainedSubnets []ID
+		OverlappingVPCs  []ID
+	}
+
+	ExternalDetails struct {
+		IP IP
+	}
+
+	Named interface {
+		Name() string
+	}
+
+	NWResource interface {
+		Address() IP
 	}
 )
+
+func (n NamedEntity) Name() string {
+	return string(n)
+}
+
+func (s SubnetDetails) Address() IP {
+	return s.CIDR
+}
+
+func (n NifDetails) Address() IP {
+	return n.IP
+}
+
+func (v VPEEndpointDetails) Address() IP {
+	return v.IP
+}
+
+func (e ExternalDetails) Address() IP {
+	return e.IP
+}
 
 type ResourceType string
 
@@ -91,26 +167,41 @@ const (
 	ResourceTypeAny      ResourceType = "any"
 )
 
-func lookupSingle(m map[string]IP, name string, t ResourceType) (Resource, error) {
-	if ip, ok := m[name]; ok {
-		return Resource{name, []IP{ip}, t}, nil
+func lookupSingle[T NWResource](m map[ID]T, name string, t ResourceType) (Resource, error) {
+	if details, ok := m[ID(name)]; ok {
+		return Resource{name, []IP{details.Address()}, t}, nil
 	}
 	return Resource{}, fmt.Errorf("%v %v not found", t, name)
 }
 
-func (s *Definitions) lookupMulti(m map[string][]string, name string, elemType, containerType ResourceType) (Resource, error) {
-	if elems, ok := m[name]; ok {
+func (s *Definitions) lookupInstance(name string) (Resource, error) {
+	if instanceDetails, ok := s.Instances[ID(name)]; ok {
 		ips := []IP{}
-		for _, elemName := range elems {
-			nif, err := s.Lookup(elemType, elemName)
+		for _, elemName := range instanceDetails.Nifs {
+			nif, err := s.Lookup(ResourceTypeNIF, string(elemName))
 			if err != nil {
-				return Resource{}, fmt.Errorf("%w while looking up %v %v for instance %v", err, elemType, elemName, name)
+				return Resource{}, fmt.Errorf("%w while looking up %v %v for instance %v", err, ResourceTypeNIF, elemName, name)
 			}
 			ips = append(ips, nif.Values...)
 		}
-		return Resource{name, ips, elemType}, nil
+		return Resource{name, ips, ResourceTypeNIF}, nil
 	}
-	return Resource{}, fmt.Errorf("container %v %v not found", containerType, name)
+	return Resource{}, containerNotFoundError(name, ResourceTypeInstance)
+}
+
+func (s *Definitions) lookupSubnetSegment(name string) (Resource, error) {
+	ips := []IP{}
+	if subnets, ok := s.SubnetSegments[name]; ok {
+		for _, subnetName := range subnets {
+			subnet, err := s.Lookup(ResourceTypeSubnet, string(subnetName))
+			if err != nil {
+				return Resource{}, fmt.Errorf("%w while looking up %v %v for subnet %v", err, ResourceTypeSubnet, subnetName, name)
+			}
+			ips = append(ips, subnet.Values...)
+		}
+		return Resource{name, ips, ResourceTypeSubnet}, nil
+	}
+	return Resource{}, containerNotFoundError(name, ResourceTypeSegment)
 }
 
 func (s *Definitions) Lookup(t ResourceType, name string) (Resource, error) {
@@ -123,14 +214,14 @@ func (s *Definitions) Lookup(t ResourceType, name string) (Resource, error) {
 	case ResourceTypeCidr:
 		return lookupSingle(s.Subnets, name, t)
 	case ResourceTypeNIF:
-		return lookupSingle(s.NIFToIP, name, t)
+		return lookupSingle(s.NIFs, name, t)
 	case ResourceTypeVPE:
-		return lookupSingle(s.VPEToIP, name, t)
+		return lookupSingle(s.VPEEndpoints, name, t)
 	case ResourceTypeInstance:
-		return s.lookupMulti(s.InstanceToNIFs, name, ResourceTypeNIF, ResourceTypeInstance)
+		return s.lookupInstance(name)
 	case ResourceTypeSegment:
 		if _, ok := s.SubnetSegments[name]; ok { // subnet segment
-			return s.lookupMulti(s.SubnetSegments, name, ResourceTypeSubnet, ResourceTypeSegment)
+			return s.lookupSubnetSegment(name)
 		} else if _, ok := s.CidrSegments[name]; ok { // cidr segment
 			return Resource{name, cidrsAsIPs(s.CidrSegments, name), ResourceTypeCidr}, nil
 		} else {
@@ -141,24 +232,24 @@ func (s *Definitions) Lookup(t ResourceType, name string) (Resource, error) {
 	}
 }
 
-func inverseLookup[K, V comparable](m map[K]V, x V) (result K, ok bool) {
-	for k, v := range m {
-		if v == x {
-			return k, true
+func inverseLookup[T NWResource](m map[ID]T, ip IP) (result string, ok bool) {
+	for name, details := range m {
+		if details.Address() == ip {
+			return string(name), true
 		}
 	}
-	return
+	return "", false
 }
 
-func inverseLookupMulti[K, V comparable](m map[K][]V, x V) (result K, ok bool) {
-	for k, vs := range m {
-		for _, v := range vs {
-			if v == x {
-				return k, true
+func inverseLookupInstance(m map[ID]InstanceDetails, name string) (result string, ok bool) {
+	for instanceName, instanceDetails := range m {
+		for _, nif := range instanceDetails.Nifs {
+			if string(nif) == name {
+				return string(instanceName), true
 			}
 		}
 	}
-	return
+	return "", false
 }
 
 func (s *ConfigDefs) SubnetNameFromIP(ip IP) (string, bool) {
@@ -166,15 +257,15 @@ func (s *ConfigDefs) SubnetNameFromIP(ip IP) (string, bool) {
 }
 
 func (s *ConfigDefs) NIFFromIP(ip IP) (string, bool) {
-	return inverseLookup(s.NIFToIP, ip)
+	return inverseLookup(s.NIFs, ip)
 }
 
 func (s *ConfigDefs) VPEFromIP(ip IP) (string, bool) {
-	return inverseLookup(s.VPEToIP, ip)
+	return inverseLookup(s.VPEEndpoints, ip)
 }
 
 func (s *ConfigDefs) InstanceFromNIF(nifName string) (string, bool) {
-	return inverseLookupMulti(s.InstanceToNIFs, nifName)
+	return inverseLookupInstance(s.Instances, nifName)
 }
 
 func (s *ConfigDefs) RemoteFromIP(ip IP) RemoteType {
@@ -194,25 +285,41 @@ type Reader interface {
 	ReadSpec(filename string, defs *ConfigDefs) (*Spec, error)
 }
 
-func cidrsAsIPs(cidrSegments map[string]map[string][]string, segmentName string) []IP {
+func cidrsAsIPs(cidrSegments map[string]map[CIDR]CIDRDetails, segmentName string) []IP {
 	retVal := make([]IP, 0)
 	for cidr := range cidrSegments[segmentName] {
-		retVal = append(retVal, IPFromString(cidr))
+		retVal = append(retVal, IPFromCidr(cidr))
 	}
 	return retVal
 }
 
-func (s *ConfigDefs) SubnetsContainedInCidr(cidr ipblock.IPBlock) ([]string, error) {
+func (s *ConfigDefs) SubnetsContainedInCidr(cidr ipblock.IPBlock) ([]ID, error) {
 	var containedSubnets []string
-	for subnet, ip := range s.Subnets {
-		subnetIPBlock, err := ipblock.FromCidr(ip.String())
+	for subnet, details := range s.Subnets {
+		subnetIPBlock, err := ipblock.FromCidrOrAddress(details.CIDR.String())
 		if err != nil {
 			return nil, err
 		}
 		if subnetIPBlock.ContainedIn(&cidr) {
-			containedSubnets = append(containedSubnets, subnet)
+			containedSubnets = append(containedSubnets, string(subnet))
 		}
 	}
 	sort.Strings(containedSubnets)
-	return containedSubnets, nil
+	return ConvertStringToIDSlice(containedSubnets), nil
+}
+
+func ConvertStringToIDSlice(s []string) []ID {
+	result := make([]ID, len(s))
+	for i, val := range s {
+		result[i] = ID(val)
+	}
+	return result
+}
+
+func ScopingComponents(s string) []string {
+	return strings.Split(s, "/")
+}
+
+func containerNotFoundError(name string, resource ResourceType) error {
+	return fmt.Errorf("container %v %v not found", ResourceTypeSegment, name)
 }

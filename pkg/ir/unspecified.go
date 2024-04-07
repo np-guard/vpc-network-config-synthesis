@@ -22,7 +22,7 @@ func (s *Spec) ComputeBlockedSubnets(singleACL bool) {
 	var blockedSubnets []string
 
 	for subnet := range s.Defs.Subnets {
-		if s.findResourceInConnections([]string{subnet}, ResourceTypeSubnet) {
+		if s.findResourceInConnections([]string{string(subnet)}, ResourceTypeSubnet) {
 			continue
 		}
 
@@ -43,8 +43,8 @@ func (s *Spec) ComputeBlockedSubnets(singleACL bool) {
 		// cidr segments which include the subnet
 		cidrSegments := []string{}
 		for segmentName, cidrSegment := range s.Defs.CidrSegments {
-			for _, subnets := range cidrSegment {
-				for _, s := range subnets {
+			for _, cidrDetails := range cidrSegment {
+				for _, s := range cidrDetails.ContainedSubnets {
 					if subnet == s {
 						cidrSegments = append(cidrSegments, segmentName)
 						break
@@ -53,7 +53,7 @@ func (s *Spec) ComputeBlockedSubnets(singleACL bool) {
 			}
 		}
 		if !s.findResourceInConnections(cidrSegments, ResourceTypeCidr) {
-			blockedSubnets = append(blockedSubnets, subnet)
+			blockedSubnets = append(blockedSubnets, string(subnet))
 		}
 	}
 	printUnspecifiedWarning(warning, blockedSubnets)
@@ -69,9 +69,9 @@ func (s *Spec) ComputeBlockedResources() {
 
 func (s *Spec) computeBlockedVPEs() []string {
 	var blockedVPEs []string
-	for vpe := range s.Defs.VPEToIP {
-		if !s.findResourceInConnections([]string{vpe}, ResourceTypeVPE) {
-			blockedVPEs = append(blockedVPEs, vpe)
+	for vpe := range s.Defs.VPEEndpoints {
+		if !s.findResourceInConnections([]string{string(vpe)}, ResourceTypeVPE) {
+			blockedVPEs = append(blockedVPEs, string(vpe))
 		}
 	}
 	return blockedVPEs
@@ -79,23 +79,22 @@ func (s *Spec) computeBlockedVPEs() []string {
 
 func (s *Spec) computeBlockedNIFs() []string {
 	var blockedResources []string
-
-	for instance, NIFs := range s.Defs.InstanceToNIFs {
-		if s.findResourceInConnections([]string{instance}, ResourceTypeNIF) {
+	for instanceName, instanceDetails := range s.Defs.Instances {
+		if s.findResourceInConnections([]string{string(instanceName)}, ResourceTypeNIF) {
 			continue
 		}
 
 		// instance is not in spec. look for its NIFs
 		var blockedNIFs []string
-		for _, nif := range NIFs {
-			if !s.findResourceInConnections([]string{nif}, ResourceTypeNIF) {
-				blockedNIFs = append(blockedNIFs, nif)
+		for _, nif := range instanceDetails.Nifs {
+			if !s.findResourceInConnections([]string{string(nif)}, ResourceTypeNIF) {
+				blockedNIFs = append(blockedNIFs, string(nif))
 			}
 		}
 
 		// instance has only one NIF which was not found
-		if len(blockedNIFs) > 0 && len(NIFs) == 1 {
-			blockedResources = append(blockedResources, instance)
+		if len(blockedNIFs) > 0 && len(instanceDetails.Nifs) == 1 {
+			blockedResources = append(blockedResources, string(instanceName))
 		} else {
 			blockedResources = append(blockedResources, blockedNIFs...)
 		}

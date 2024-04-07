@@ -9,7 +9,7 @@
         }
     },
     "externals": {
-        "dns": "8.8.8.8/32"
+        "dns": "8.8.8.8"
     },
     "required-connections": [
         {
@@ -20,14 +20,7 @@
             "dst": {
                 "name": "need-dns",
                 "type": "segment"
-            },
-            "allowed-protocols": [
-                {
-                    "protocol": "TCP",
-                    "min_destination_port": 443,
-                    "max_destination_port": 443
-                }
-            ]
+            }
         },
         {
             "src": {
@@ -37,7 +30,14 @@
             "dst": {
                 "name": "dns",
                 "type": "external"
-            }
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "UDP",
+                    "min_destination_port": 53,
+                    "max_destination_port": 53
+                }
+            ]
         },
         {
             "src": {
@@ -51,12 +51,13 @@
             "allowed-protocols": [
                 {
                     "protocol": "ICMP",
-                    "type": 8,
+                    "type": 0,
                     "code": 0
                 }
             ]
         },
         {
+            "bidirectional": true,
             "src": {
                 "name": "sub1-1-ky",
                 "type": "subnet"
@@ -65,7 +66,6 @@
                 "name": "sub1-2-ky",
                 "type": "subnet"
             },
-            "bidirectional": true,
             "allowed-protocols": [
                 {
                     "protocol": "TCP"
@@ -73,6 +73,7 @@
             ]
         },
         {
+            "bidirectional": true,
             "src": {
                 "name": "sub1-1-ky",
                 "type": "subnet"
@@ -81,7 +82,6 @@
                 "name": "sub1-3-ky",
                 "type": "subnet"
             },
-            "bidirectional": true,
             "allowed-protocols": [
                 {
                     "protocol": "TCP"
@@ -89,6 +89,7 @@
             ]
         },
         {
+            "bidirectional": true,
             "src": {
                 "name": "sub1-2-ky",
                 "type": "subnet"
@@ -97,7 +98,6 @@
                 "name": "sub1-3-ky",
                 "type": "subnet"
             },
-            "bidirectional": true,
             "allowed-protocols": [
                 {
                     "protocol": "TCP"
@@ -105,6 +105,7 @@
             ]
         },
         {
+            "bidirectional": true,
             "src": {
                 "name": "sub2-1-ky",
                 "type": "subnet"
@@ -113,7 +114,6 @@
                 "name": "sub2-2-ky",
                 "type": "subnet"
             },
-            "bidirectional": true,
             "allowed-protocols": [
                 {
                     "protocol": "ANY"

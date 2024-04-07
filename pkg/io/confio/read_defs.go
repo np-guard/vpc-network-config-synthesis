@@ -2,6 +2,7 @@ package confio
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 
 	"github.com/IBM/vpc-go-sdk/vpcv1"
@@ -9,7 +10,11 @@ import (
 	configModel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
+
+	"github.com/np-guard/models/pkg/ipblock"
 )
+
+const EndpointVPE string = "endpoint_gateway"
 
 func readModel(filename string) (*configModel.ResourcesContainerModel, error) {
 	bytes, err := os.ReadFile(filename)
@@ -30,46 +35,142 @@ func ReadDefs(filename string) (*ir.ConfigDefs, error) {
 		return nil, err
 	}
 
-	subnetMap := make(map[string]ir.IP)
-	for _, subnet := range config.SubnetList {
-		subnetMap[*subnet.Name] = ir.IPFromString(*subnet.Ipv4CIDRBlock)
+	instances, nifs := parseInstancesNifs(config)
+	vpes, vpeEndpoints := parseVPEs(config)
+	vpcs := parseVPCs(config)
+	err = validateVpcs(vpcs)
+	if err != nil {
+		return nil, err
 	}
 
-	nifToIP := make(map[string]ir.IP)
-	instanceToNIF := make(map[string][]string)
-	for _, instance := range config.InstanceList {
-		nifs := make([]string, len(instance.NetworkInterfaces))
-		for i := range instance.NetworkInterfaces {
-			nif := &instance.NetworkInterfaces[i]
-			nifs[i] = *nif.Name
-			nifToIP[*nif.Name] = ir.IPFromString(*nif.PrimaryIP.Address)
+	return &ir.ConfigDefs{
+		VPCs:         vpcs,
+		Subnets:      parseSubnets(config),
+		NIFs:         nifs,
+		Instances:    instances,
+		VPEEndpoints: vpeEndpoints,
+		VPEs:         vpes,
+	}, nil
+}
+
+func parseVPCs(config *configModel.ResourcesContainerModel) map[ir.ID]ir.VPCDetails {
+	VPCs := make(map[ir.ID]ir.VPCDetails)
+	for _, vpc := range config.VpcList {
+		addressPrefixes := make([]ir.CIDR, 0)
+		for _, addressPrefix := range vpc.AddressPrefixes {
+			addressPrefixes = append(addressPrefixes, ir.CidrFromString(*addressPrefix.CIDR))
 		}
-		instanceToNIF[*instance.Name] = nifs
+		VPCs[ir.ID(*vpc.Name)] = ir.VPCDetails{AddressPrefixes: addressPrefixes}
+	}
+	return VPCs
+}
+
+func parseSubnets(config *configModel.ResourcesContainerModel) map[ir.ID]ir.SubnetDetails {
+	subnets := make(map[ir.ID]ir.SubnetDetails)
+	for _, subnet := range config.SubnetList {
+		uniqueName := ir.ID(scopingString(*subnet.VPC.Name, *subnet.Name))
+		subnetDetails := ir.SubnetDetails{
+			NamedEntity: ir.NamedEntity(*subnet.Name),
+			VPC:         ir.ID(*subnet.VPC.Name),
+			CIDR:        ir.IPFromString(*subnet.Ipv4CIDRBlock),
+		}
+		subnets[uniqueName] = subnetDetails
+	}
+	return subnets
+}
+
+func parseInstancesNifs(config *configModel.ResourcesContainerModel) (instances map[ir.ID]ir.InstanceDetails,
+	nifs map[ir.ID]ir.NifDetails) {
+	instances = make(map[ir.ID]ir.InstanceDetails)
+	nifs = make(map[ir.ID]ir.NifDetails)
+	for _, instance := range config.InstanceList {
+		instanceUniqueName := scopingString(*instance.VPC.Name, *instance.Name)
+		instanceNifs := make([]ir.ID, len(instance.NetworkInterfaces))
+		for i := range instance.NetworkInterfaces {
+			nifUniqueName := scopingString(instanceUniqueName, *instance.NetworkInterfaces[i].Name)
+			nifDetails := ir.NifDetails{
+				NamedEntity: ir.NamedEntity(*instance.NetworkInterfaces[i].Name),
+				Instance:    ir.ID(scopingString(*instance.VPC.Name, *instance.Name)),
+				IP:          ir.IPFromString(*instance.NetworkInterfaces[i].PrimaryIP.Address),
+			}
+			nifs[ir.ID(nifUniqueName)] = nifDetails
+			instanceNifs[i] = ir.ID(nifUniqueName)
+		}
+		instanceDetails := ir.InstanceDetails{
+			NamedEntity: ir.NamedEntity(*instance.Name),
+			VPC:         ir.ID(*instance.VPC.Name),
+			Nifs:        instanceNifs,
+		}
+		instances[ir.ID(instanceUniqueName)] = instanceDetails
+	}
+	return instances, nifs
+}
+
+func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]ir.VPEDetails, vpeEndpoints map[ir.ID]ir.VPEEndpointDetails) {
+	vpes = make(map[ir.ID]ir.VPEDetails)
+	vpeEndpoints = make(map[ir.ID]ir.VPEEndpointDetails)
+
+	for _, vpe := range config.EndpointGWList {
+		if *vpe.ResourceType == EndpointVPE {
+			uniqueVpeName := scopingString(*vpe.VPC.Name, *vpe.Name)
+			vpeDetails := ir.VPEDetails{
+				NamedEntity: ir.NamedEntity(*vpe.Name),
+				ReservedIPs: []ir.ID{},
+				VPC:         ir.ID(*vpe.VPC.Name),
+			}
+			vpes[ir.ID(uniqueVpeName)] = vpeDetails
+		}
 	}
 
-	vpeToIP := make(map[string]ir.IP)
 	for _, subnet := range config.SubnetList {
 		for _, r := range subnet.ReservedIps {
 			if t, ok := r.Target.(*vpcv1.ReservedIPTarget); ok && t != nil && r.Address != nil {
-				if r.ResourceType != nil && *t.ResourceType == "endpoint_gateway" && t.Name != nil {
-					vpeToIP[*t.Name] = ir.IPFromString(*r.Address)
+				if r.ResourceType != nil && *t.ResourceType == EndpointVPE && t.Name != nil {
+					uniqueVpeEndpointName := scopingString(string(vpes[ir.ID(scopingString(*subnet.VPC.Name, *t.Name))].NamedEntity), *r.Name)
+					vpeEndpointDetails := ir.VPEEndpointDetails{
+						NamedEntity: ir.NamedEntity(*r.Name),
+						VPEName:     ir.ID(scopingString(*subnet.VPC.Name, *t.Name)),
+						Subnet:      ir.ID(scopingString(*subnet.VPC.Name, *subnet.Name)),
+						IP:          ir.IPFromString(*r.Address),
+					}
+					vpeEndpoints[ir.ID(uniqueVpeEndpointName)] = vpeEndpointDetails
+					vpe := vpes[ir.ID(scopingString(*subnet.VPC.Name, *t.Name))]
+					vpe.ReservedIPs = append(vpe.ReservedIPs, ir.ID(uniqueVpeEndpointName))
+					vpes[ir.ID(*t.Name)] = vpe
 				}
 			}
 		}
 	}
 
-	addressPrefixes := make([]ir.CIDR, 0)
-	for _, vpc := range config.VpcList {
-		for _, addressPrefix := range vpc.AddressPrefixes {
-			addressPrefixes = append(addressPrefixes, ir.CidrFromString(*addressPrefix.CIDR))
+	return vpes, vpeEndpoints
+}
+
+func validateVpcs(vpcs map[ir.ID]ir.VPCDetails) error {
+	for vpcName1, vpcDetails1 := range vpcs {
+		for vpcName2, vpcDetails2 := range vpcs {
+			if vpcName1 == vpcName2 {
+				continue
+			}
+			for _, addressPrefix1 := range vpcDetails1.AddressPrefixes {
+				for _, addressPrefix2 := range vpcDetails2.AddressPrefixes {
+					address1, err := ipblock.FromCidr(addressPrefix1.String())
+					if err != nil {
+						return err
+					}
+					address2, err := ipblock.FromCidr(addressPrefix2.String())
+					if err != nil {
+						return err
+					}
+					if !address1.Intersect(address2).IsEmpty() {
+						return fmt.Errorf("vpcs %s and %s are overlapping", string(vpcName1), string(vpcName2))
+					}
+				}
+			}
 		}
 	}
+	return nil
+}
 
-	return &ir.ConfigDefs{
-		Subnets:         subnetMap,
-		NIFToIP:         nifToIP,
-		InstanceToNIFs:  instanceToNIF,
-		VPEToIP:         vpeToIP,
-		AddressPrefixes: addressPrefixes,
-	}, nil
+func scopingString(s1, s2 string) string {
+	return s1 + "/" + s2
 }
