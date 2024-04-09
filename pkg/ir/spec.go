@@ -112,7 +112,7 @@ type (
 
 	VPEDetails struct {
 		NamedEntity
-		ReservedIPs []ID
+		VPEEndpoint []ID
 		VPC         ID
 	}
 

@@ -115,7 +115,7 @@ func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]ir.V
 			uniqueVpeName := scopingString(*vpe.VPC.Name, *vpe.Name)
 			vpeDetails := ir.VPEDetails{
 				NamedEntity: ir.NamedEntity(*vpe.Name),
-				ReservedIPs: []ir.ID{},
+				VPEEndpoint: []ir.ID{},
 				VPC:         ir.ID(*vpe.VPC.Name),
 			}
 			vpes[ir.ID(uniqueVpeName)] = vpeDetails
@@ -126,17 +126,19 @@ func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]ir.V
 		for _, r := range subnet.ReservedIps {
 			if t, ok := r.Target.(*vpcv1.ReservedIPTarget); ok && t != nil && r.Address != nil {
 				if r.ResourceType != nil && *t.ResourceType == EndpointVPE && t.Name != nil {
-					uniqueVpeEndpointName := scopingString(string(vpes[ir.ID(scopingString(*subnet.VPC.Name, *t.Name))].NamedEntity), *r.Name)
+					VPEName := ir.ID(scopingString(*subnet.VPC.Name, *t.Name))
+					subnetName := ir.ID(scopingString(*subnet.VPC.Name, *subnet.Name))
+					uniqueVpeEndpointName := scopingString(string(subnetName), *r.Name)
 					vpeEndpointDetails := ir.VPEEndpointDetails{
 						NamedEntity: ir.NamedEntity(*r.Name),
-						VPEName:     ir.ID(scopingString(*subnet.VPC.Name, *t.Name)),
-						Subnet:      ir.ID(scopingString(*subnet.VPC.Name, *subnet.Name)),
+						VPEName:     VPEName,
+						Subnet:      subnetName,
 						IP:          ir.IPFromString(*r.Address),
 					}
 					vpeEndpoints[ir.ID(uniqueVpeEndpointName)] = vpeEndpointDetails
-					vpe := vpes[ir.ID(scopingString(*subnet.VPC.Name, *t.Name))]
-					vpe.ReservedIPs = append(vpe.ReservedIPs, ir.ID(uniqueVpeEndpointName))
-					vpes[ir.ID(*t.Name)] = vpe
+					vpe := vpes[VPEName]
+					vpe.VPEEndpoint = append(vpe.VPEEndpoint, ir.ID(uniqueVpeEndpointName))
+					vpes[VPEName] = vpe
 				}
 			}
 		}
