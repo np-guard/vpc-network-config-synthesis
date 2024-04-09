@@ -130,7 +130,7 @@ resource "ibm_is_network_acl" "acl-1" {
     source      = "10.240.64.0/24"
     destination = "10.240.2.0/23"
   }
-  # Internal. required-connections[3]: (segment cidrSegment2)->(subnet sub3-1-ky); allowed-protocols[0]
+  # Internal. required-connections[3]: (segment cidrSegment2)->(subnet test-vpc-ky/sub3-1-ky); allowed-protocols[0]
   rules {
     name        = "rule16"
     action      = "allow"
@@ -140,7 +140,7 @@ resource "ibm_is_network_acl" "acl-1" {
     tcp {
     }
   }
-  # Internal. response to required-connections[3]: (segment cidrSegment2)->(subnet sub3-1-ky); allowed-protocols[0]
+  # Internal. response to required-connections[3]: (segment cidrSegment2)->(subnet test-vpc-ky/sub3-1-ky); allowed-protocols[0]
   rules {
     name        = "rule17"
     action      = "allow"
@@ -150,7 +150,7 @@ resource "ibm_is_network_acl" "acl-1" {
     tcp {
     }
   }
-  # Internal. required-connections[3]: (segment cidrSegment2)->(subnet sub3-1-ky); allowed-protocols[0]
+  # Internal. required-connections[3]: (segment cidrSegment2)->(subnet test-vpc-ky/sub3-1-ky); allowed-protocols[0]
   rules {
     name        = "rule18"
     action      = "allow"
@@ -160,7 +160,7 @@ resource "ibm_is_network_acl" "acl-1" {
     tcp {
     }
   }
-  # Internal. response to required-connections[3]: (segment cidrSegment2)->(subnet sub3-1-ky); allowed-protocols[0]
+  # Internal. response to required-connections[3]: (segment cidrSegment2)->(subnet test-vpc-ky/sub3-1-ky); allowed-protocols[0]
   rules {
     name        = "rule19"
     action      = "allow"
@@ -170,7 +170,7 @@ resource "ibm_is_network_acl" "acl-1" {
     tcp {
     }
   }
-  # Internal. required-connections[3]: (segment cidrSegment2)->(subnet sub3-1-ky); allowed-protocols[0]
+  # Internal. required-connections[3]: (segment cidrSegment2)->(subnet test-vpc-ky/sub3-1-ky); allowed-protocols[0]
   rules {
     name        = "rule20"
     action      = "allow"
@@ -180,7 +180,7 @@ resource "ibm_is_network_acl" "acl-1" {
     tcp {
     }
   }
-  # Internal. response to required-connections[3]: (segment cidrSegment2)->(subnet sub3-1-ky); allowed-protocols[0]
+  # Internal. response to required-connections[3]: (segment cidrSegment2)->(subnet test-vpc-ky/sub3-1-ky); allowed-protocols[0]
   rules {
     name        = "rule21"
     action      = "allow"

@@ -3,8 +3,8 @@
         "need-dns": {
             "type": "subnet",
             "items": [
-                "sub1-1-ky",
-                "sub2-1-ky"
+                "sub1-1",
+                "sub2-1"
             ]
         }
     },
@@ -45,7 +45,7 @@
                 "type": "segment"
             },
             "dst": {
-                "name": "sub3-1-ky",
+                "name": "sub3-1",
                 "type": "subnet"
             },
             "allowed-protocols": [
@@ -59,11 +59,11 @@
         {
             "bidirectional": true,
             "src": {
-                "name": "sub1-1-ky",
+                "name": "sub1-1",
                 "type": "subnet"
             },
             "dst": {
-                "name": "sub1-2-ky",
+                "name": "sub1-2",
                 "type": "subnet"
             },
             "allowed-protocols": [
@@ -75,11 +75,11 @@
         {
             "bidirectional": true,
             "src": {
-                "name": "sub1-1-ky",
+                "name": "sub1-1",
                 "type": "subnet"
             },
             "dst": {
-                "name": "sub1-3-ky",
+                "name": "sub1-3",
                 "type": "subnet"
             },
             "allowed-protocols": [
@@ -91,11 +91,11 @@
         {
             "bidirectional": true,
             "src": {
-                "name": "sub1-2-ky",
+                "name": "sub1-2",
                 "type": "subnet"
             },
             "dst": {
-                "name": "sub1-3-ky",
+                "name": "sub1-3",
                 "type": "subnet"
             },
             "allowed-protocols": [
@@ -107,11 +107,11 @@
         {
             "bidirectional": true,
             "src": {
-                "name": "sub2-1-ky",
+                "name": "sub2-1",
                 "type": "subnet"
             },
             "dst": {
-                "name": "sub2-2-ky",
+                "name": "sub2-2",
                 "type": "subnet"
             },
             "allowed-protocols": [
@@ -122,11 +122,11 @@
         },
         {
             "src": {
-                "name": "sub3-1-ky",
+                "name": "sub3-1",
                 "type": "subnet"
             },
             "dst": {
-                "name": "sub2-1-ky",
+                "name": "sub2-1",
                 "type": "subnet"
             },
             "allowed-protocols": [

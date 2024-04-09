@@ -1,0 +1,19 @@
+{
+    "required-connections": [
+        {
+            "src": {
+                "name": "fe",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "be",
+                "type": "instance"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ]
+        }
+    ]
+}

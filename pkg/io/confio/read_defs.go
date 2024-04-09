@@ -128,7 +128,7 @@ func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]ir.V
 				if r.ResourceType != nil && *t.ResourceType == EndpointVPE && t.Name != nil {
 					VPEName := ir.ID(scopingString(*subnet.VPC.Name, *t.Name))
 					subnetName := ir.ID(scopingString(*subnet.VPC.Name, *subnet.Name))
-					uniqueVpeEndpointName := scopingString(string(subnetName), *r.Name)
+					uniqueVpeEndpointName := scopingString(string(VPEName), *r.Name)
 					vpeEndpointDetails := ir.VPEEndpointDetails{
 						NamedEntity: ir.NamedEntity(*r.Name),
 						VPEName:     VPEName,

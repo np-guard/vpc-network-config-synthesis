@@ -1,6 +1,6 @@
-# sub1-1-ky [10.240.1.0/24]
-resource "ibm_is_network_acl" "acl-sub1-1-ky" {
-  name           = "acl-sub1-1-ky"
+# testacl5-vpc/sub1-1 [10.240.1.0/24]
+resource "ibm_is_network_acl" "acl-testacl5-vpc/sub1-1" {
+  name           = "acl-testacl5-vpc/sub1-1"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_vpc_id
   # Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
@@ -10,10 +10,6 @@ resource "ibm_is_network_acl" "acl-sub1-1-ky" {
     direction   = "outbound"
     source      = "10.240.1.0/24"
     destination = "10.240.64.0/24"
-    tcp {
-      port_min = 443
-      port_max = 443
-    }
   }
   # Internal. response to required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
   rules {
@@ -22,62 +18,34 @@ resource "ibm_is_network_acl" "acl-sub1-1-ky" {
     direction   = "inbound"
     source      = "10.240.64.0/24"
     destination = "10.240.1.0/24"
-    tcp {
-      source_port_min = 443
-      source_port_max = 443
-    }
   }
-  # Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
+  # Internal. required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
   rules {
     name        = "rule2"
-    action      = "allow"
-    direction   = "inbound"
-    source      = "10.240.64.0/24"
-    destination = "10.240.1.0/24"
-    tcp {
-      port_min = 443
-      port_max = 443
-    }
-  }
-  # Internal. response to required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
-  rules {
-    name        = "rule3"
-    action      = "allow"
-    direction   = "outbound"
-    source      = "10.240.1.0/24"
-    destination = "10.240.64.0/24"
-    tcp {
-      source_port_min = 443
-      source_port_max = 443
-    }
-  }
-  # Internal. required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
-  rules {
-    name        = "rule4"
     action      = "allow"
     direction   = "outbound"
     source      = "10.240.1.0/24"
     destination = "10.240.128.0/24"
     icmp {
-      type = 8
+      type = 0
       code = 0
     }
   }
-  # Internal. response to required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
+  # Internal. response to required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
   rules {
-    name        = "rule5"
+    name        = "rule3"
     action      = "allow"
     direction   = "inbound"
     source      = "10.240.128.0/24"
     destination = "10.240.1.0/24"
     icmp {
-      type = 0
+      type = 8
       code = 0
     }
   }
-  # Internal. required-connections[3]: (subnet sub1-1-ky)->(subnet sub1-2-ky); allowed-protocols[0]
+  # Internal. required-connections[3]: (subnet testacl5-vpc/sub1-1)->(subnet testacl5-vpc/sub1-2); allowed-protocols[0]
   rules {
-    name        = "rule6"
+    name        = "rule4"
     action      = "allow"
     direction   = "outbound"
     source      = "10.240.1.0/24"
@@ -85,9 +53,9 @@ resource "ibm_is_network_acl" "acl-sub1-1-ky" {
     tcp {
     }
   }
-  # Internal. response to required-connections[3]: (subnet sub1-1-ky)->(subnet sub1-2-ky); allowed-protocols[0]
+  # Internal. response to required-connections[3]: (subnet testacl5-vpc/sub1-1)->(subnet testacl5-vpc/sub1-2); allowed-protocols[0]
   rules {
-    name        = "rule7"
+    name        = "rule5"
     action      = "allow"
     direction   = "inbound"
     source      = "10.240.2.0/24"
@@ -95,9 +63,9 @@ resource "ibm_is_network_acl" "acl-sub1-1-ky" {
     tcp {
     }
   }
-  # Internal. required-connections[4]: (subnet sub1-1-ky)->(subnet sub1-3-ky); allowed-protocols[0]
+  # Internal. required-connections[4]: (subnet testacl5-vpc/sub1-1)->(subnet testacl5-vpc/sub1-3); allowed-protocols[0]
   rules {
-    name        = "rule8"
+    name        = "rule6"
     action      = "allow"
     direction   = "outbound"
     source      = "10.240.1.0/24"
@@ -105,9 +73,9 @@ resource "ibm_is_network_acl" "acl-sub1-1-ky" {
     tcp {
     }
   }
-  # Internal. response to required-connections[4]: (subnet sub1-1-ky)->(subnet sub1-3-ky); allowed-protocols[0]
+  # Internal. response to required-connections[4]: (subnet testacl5-vpc/sub1-1)->(subnet testacl5-vpc/sub1-3); allowed-protocols[0]
   rules {
-    name        = "rule9"
+    name        = "rule7"
     action      = "allow"
     direction   = "inbound"
     source      = "10.240.3.0/24"
@@ -117,7 +85,7 @@ resource "ibm_is_network_acl" "acl-sub1-1-ky" {
   }
   # Deny other internal communication; see rfc1918#3; item 0,0
   rules {
-    name        = "rule10"
+    name        = "rule8"
     action      = "deny"
     direction   = "outbound"
     source      = "10.0.0.0/8"
@@ -125,87 +93,87 @@ resource "ibm_is_network_acl" "acl-sub1-1-ky" {
   }
   # Deny other internal communication; see rfc1918#3; item 0,0
   rules {
-    name        = "rule11"
+    name        = "rule9"
     action      = "deny"
     direction   = "inbound"
     source      = "10.0.0.0/8"
     destination = "10.0.0.0/8"
   }
   # Deny other internal communication; see rfc1918#3; item 0,1
+  rules {
+    name        = "rule10"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "10.0.0.0/8"
+    destination = "172.16.0.0/12"
+  }
+  # Deny other internal communication; see rfc1918#3; item 0,1
+  rules {
+    name        = "rule11"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "172.16.0.0/12"
+    destination = "10.0.0.0/8"
+  }
+  # Deny other internal communication; see rfc1918#3; item 0,2
   rules {
     name        = "rule12"
     action      = "deny"
     direction   = "outbound"
     source      = "10.0.0.0/8"
-    destination = "172.16.0.0/12"
-  }
-  # Deny other internal communication; see rfc1918#3; item 0,1
-  rules {
-    name        = "rule13"
-    action      = "deny"
-    direction   = "inbound"
-    source      = "172.16.0.0/12"
-    destination = "10.0.0.0/8"
-  }
-  # Deny other internal communication; see rfc1918#3; item 0,2
-  rules {
-    name        = "rule14"
-    action      = "deny"
-    direction   = "outbound"
-    source      = "10.0.0.0/8"
     destination = "192.168.0.0/16"
   }
   # Deny other internal communication; see rfc1918#3; item 0,2
   rules {
-    name        = "rule15"
+    name        = "rule13"
     action      = "deny"
     direction   = "inbound"
     source      = "192.168.0.0/16"
     destination = "10.0.0.0/8"
   }
   # Deny other internal communication; see rfc1918#3; item 1,0
+  rules {
+    name        = "rule14"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "172.16.0.0/12"
+    destination = "10.0.0.0/8"
+  }
+  # Deny other internal communication; see rfc1918#3; item 1,0
+  rules {
+    name        = "rule15"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "10.0.0.0/8"
+    destination = "172.16.0.0/12"
+  }
+  # Deny other internal communication; see rfc1918#3; item 1,1
   rules {
     name        = "rule16"
     action      = "deny"
     direction   = "outbound"
     source      = "172.16.0.0/12"
-    destination = "10.0.0.0/8"
+    destination = "172.16.0.0/12"
   }
-  # Deny other internal communication; see rfc1918#3; item 1,0
+  # Deny other internal communication; see rfc1918#3; item 1,1
   rules {
     name        = "rule17"
     action      = "deny"
     direction   = "inbound"
-    source      = "10.0.0.0/8"
+    source      = "172.16.0.0/12"
     destination = "172.16.0.0/12"
   }
-  # Deny other internal communication; see rfc1918#3; item 1,1
+  # Deny other internal communication; see rfc1918#3; item 1,2
   rules {
     name        = "rule18"
     action      = "deny"
     direction   = "outbound"
     source      = "172.16.0.0/12"
-    destination = "172.16.0.0/12"
-  }
-  # Deny other internal communication; see rfc1918#3; item 1,1
-  rules {
-    name        = "rule19"
-    action      = "deny"
-    direction   = "inbound"
-    source      = "172.16.0.0/12"
-    destination = "172.16.0.0/12"
-  }
-  # Deny other internal communication; see rfc1918#3; item 1,2
-  rules {
-    name        = "rule20"
-    action      = "deny"
-    direction   = "outbound"
-    source      = "172.16.0.0/12"
     destination = "192.168.0.0/16"
   }
   # Deny other internal communication; see rfc1918#3; item 1,2
   rules {
-    name        = "rule21"
+    name        = "rule19"
     action      = "deny"
     direction   = "inbound"
     source      = "192.168.0.0/16"
@@ -213,7 +181,7 @@ resource "ibm_is_network_acl" "acl-sub1-1-ky" {
   }
   # Deny other internal communication; see rfc1918#3; item 2,0
   rules {
-    name        = "rule22"
+    name        = "rule20"
     action      = "deny"
     direction   = "outbound"
     source      = "192.168.0.0/16"
@@ -221,7 +189,7 @@ resource "ibm_is_network_acl" "acl-sub1-1-ky" {
   }
   # Deny other internal communication; see rfc1918#3; item 2,0
   rules {
-    name        = "rule23"
+    name        = "rule21"
     action      = "deny"
     direction   = "inbound"
     source      = "10.0.0.0/8"
@@ -229,7 +197,7 @@ resource "ibm_is_network_acl" "acl-sub1-1-ky" {
   }
   # Deny other internal communication; see rfc1918#3; item 2,1
   rules {
-    name        = "rule24"
+    name        = "rule22"
     action      = "deny"
     direction   = "outbound"
     source      = "192.168.0.0/16"
@@ -237,7 +205,7 @@ resource "ibm_is_network_acl" "acl-sub1-1-ky" {
   }
   # Deny other internal communication; see rfc1918#3; item 2,1
   rules {
-    name        = "rule25"
+    name        = "rule23"
     action      = "deny"
     direction   = "inbound"
     source      = "172.16.0.0/12"
@@ -245,7 +213,7 @@ resource "ibm_is_network_acl" "acl-sub1-1-ky" {
   }
   # Deny other internal communication; see rfc1918#3; item 2,2
   rules {
-    name        = "rule26"
+    name        = "rule24"
     action      = "deny"
     direction   = "outbound"
     source      = "192.168.0.0/16"
@@ -253,7 +221,7 @@ resource "ibm_is_network_acl" "acl-sub1-1-ky" {
   }
   # Deny other internal communication; see rfc1918#3; item 2,2
   rules {
-    name        = "rule27"
+    name        = "rule25"
     action      = "deny"
     direction   = "inbound"
     source      = "192.168.0.0/16"
@@ -261,28 +229,24 @@ resource "ibm_is_network_acl" "acl-sub1-1-ky" {
   }
   # External. required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
   rules {
-    name        = "rule28"
+    name        = "rule26"
     action      = "allow"
     direction   = "outbound"
     source      = "10.240.1.0/24"
-    destination = "8.8.8.8/32"
-  }
-  # External. response to required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
-  rules {
-    name        = "rule29"
-    action      = "allow"
-    direction   = "inbound"
-    source      = "8.8.8.8/32"
-    destination = "10.240.1.0/24"
+    destination = "8.8.8.8"
+    udp {
+      port_min = 53
+      port_max = 53
+    }
   }
 }
 
-# sub1-2-ky [10.240.2.0/24]
-resource "ibm_is_network_acl" "acl-sub1-2-ky" {
-  name           = "acl-sub1-2-ky"
+# testacl5-vpc/sub1-2 [10.240.2.0/24]
+resource "ibm_is_network_acl" "acl-testacl5-vpc/sub1-2" {
+  name           = "acl-testacl5-vpc/sub1-2"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_vpc_id
-  # Internal. required-connections[3]: (subnet sub1-1-ky)->(subnet sub1-2-ky); allowed-protocols[0]
+  # Internal. required-connections[3]: (subnet testacl5-vpc/sub1-1)->(subnet testacl5-vpc/sub1-2); allowed-protocols[0]
   rules {
     name        = "rule0"
     action      = "allow"
@@ -292,7 +256,7 @@ resource "ibm_is_network_acl" "acl-sub1-2-ky" {
     tcp {
     }
   }
-  # Internal. response to required-connections[3]: (subnet sub1-1-ky)->(subnet sub1-2-ky); allowed-protocols[0]
+  # Internal. response to required-connections[3]: (subnet testacl5-vpc/sub1-1)->(subnet testacl5-vpc/sub1-2); allowed-protocols[0]
   rules {
     name        = "rule1"
     action      = "allow"
@@ -302,7 +266,7 @@ resource "ibm_is_network_acl" "acl-sub1-2-ky" {
     tcp {
     }
   }
-  # Internal. required-connections[5]: (subnet sub1-2-ky)->(subnet sub1-3-ky); allowed-protocols[0]
+  # Internal. required-connections[5]: (subnet testacl5-vpc/sub1-2)->(subnet testacl5-vpc/sub1-3); allowed-protocols[0]
   rules {
     name        = "rule2"
     action      = "allow"
@@ -312,7 +276,7 @@ resource "ibm_is_network_acl" "acl-sub1-2-ky" {
     tcp {
     }
   }
-  # Internal. response to required-connections[5]: (subnet sub1-2-ky)->(subnet sub1-3-ky); allowed-protocols[0]
+  # Internal. response to required-connections[5]: (subnet testacl5-vpc/sub1-2)->(subnet testacl5-vpc/sub1-3); allowed-protocols[0]
   rules {
     name        = "rule3"
     action      = "allow"
@@ -324,12 +288,12 @@ resource "ibm_is_network_acl" "acl-sub1-2-ky" {
   }
 }
 
-# sub1-3-ky [10.240.3.0/24]
-resource "ibm_is_network_acl" "acl-sub1-3-ky" {
-  name           = "acl-sub1-3-ky"
+# testacl5-vpc/sub1-3 [10.240.3.0/24]
+resource "ibm_is_network_acl" "acl-testacl5-vpc/sub1-3" {
+  name           = "acl-testacl5-vpc/sub1-3"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_vpc_id
-  # Internal. required-connections[4]: (subnet sub1-1-ky)->(subnet sub1-3-ky); allowed-protocols[0]
+  # Internal. required-connections[4]: (subnet testacl5-vpc/sub1-1)->(subnet testacl5-vpc/sub1-3); allowed-protocols[0]
   rules {
     name        = "rule0"
     action      = "allow"
@@ -339,7 +303,7 @@ resource "ibm_is_network_acl" "acl-sub1-3-ky" {
     tcp {
     }
   }
-  # Internal. response to required-connections[4]: (subnet sub1-1-ky)->(subnet sub1-3-ky); allowed-protocols[0]
+  # Internal. response to required-connections[4]: (subnet testacl5-vpc/sub1-1)->(subnet testacl5-vpc/sub1-3); allowed-protocols[0]
   rules {
     name        = "rule1"
     action      = "allow"
@@ -349,7 +313,7 @@ resource "ibm_is_network_acl" "acl-sub1-3-ky" {
     tcp {
     }
   }
-  # Internal. required-connections[5]: (subnet sub1-2-ky)->(subnet sub1-3-ky); allowed-protocols[0]
+  # Internal. required-connections[5]: (subnet testacl5-vpc/sub1-2)->(subnet testacl5-vpc/sub1-3); allowed-protocols[0]
   rules {
     name        = "rule2"
     action      = "allow"
@@ -359,7 +323,7 @@ resource "ibm_is_network_acl" "acl-sub1-3-ky" {
     tcp {
     }
   }
-  # Internal. response to required-connections[5]: (subnet sub1-2-ky)->(subnet sub1-3-ky); allowed-protocols[0]
+  # Internal. response to required-connections[5]: (subnet testacl5-vpc/sub1-2)->(subnet testacl5-vpc/sub1-3); allowed-protocols[0]
   rules {
     name        = "rule3"
     action      = "allow"
@@ -371,9 +335,9 @@ resource "ibm_is_network_acl" "acl-sub1-3-ky" {
   }
 }
 
-# sub2-1-ky [10.240.64.0/24]
-resource "ibm_is_network_acl" "acl-sub2-1-ky" {
-  name           = "acl-sub2-1-ky"
+# testacl5-vpc/sub2-1 [10.240.64.0/24]
+resource "ibm_is_network_acl" "acl-testacl5-vpc/sub2-1" {
+  name           = "acl-testacl5-vpc/sub2-1"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_vpc_id
   # Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
@@ -383,10 +347,6 @@ resource "ibm_is_network_acl" "acl-sub2-1-ky" {
     direction   = "inbound"
     source      = "10.240.1.0/24"
     destination = "10.240.64.0/24"
-    tcp {
-      port_min = 443
-      port_max = 443
-    }
   }
   # Internal. response to required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
   rules {
@@ -395,78 +355,50 @@ resource "ibm_is_network_acl" "acl-sub2-1-ky" {
     direction   = "outbound"
     source      = "10.240.64.0/24"
     destination = "10.240.1.0/24"
-    tcp {
-      source_port_min = 443
-      source_port_max = 443
-    }
   }
-  # Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
+  # Internal. required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
   rules {
     name        = "rule2"
-    action      = "allow"
-    direction   = "outbound"
-    source      = "10.240.64.0/24"
-    destination = "10.240.1.0/24"
-    tcp {
-      port_min = 443
-      port_max = 443
-    }
-  }
-  # Internal. response to required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
-  rules {
-    name        = "rule3"
-    action      = "allow"
-    direction   = "inbound"
-    source      = "10.240.1.0/24"
-    destination = "10.240.64.0/24"
-    tcp {
-      source_port_min = 443
-      source_port_max = 443
-    }
-  }
-  # Internal. required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
-  rules {
-    name        = "rule4"
     action      = "allow"
     direction   = "outbound"
     source      = "10.240.64.0/24"
     destination = "10.240.128.0/24"
     icmp {
-      type = 8
+      type = 0
       code = 0
     }
   }
-  # Internal. response to required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
+  # Internal. response to required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
   rules {
-    name        = "rule5"
+    name        = "rule3"
     action      = "allow"
     direction   = "inbound"
     source      = "10.240.128.0/24"
     destination = "10.240.64.0/24"
     icmp {
-      type = 0
+      type = 8
       code = 0
     }
   }
-  # Internal. required-connections[6]: (subnet sub2-1-ky)->(subnet sub2-2-ky); allowed-protocols[0]
+  # Internal. required-connections[6]: (subnet testacl5-vpc/sub2-1)->(subnet testacl5-vpc/sub2-2); allowed-protocols[0]
   rules {
-    name        = "rule6"
+    name        = "rule4"
     action      = "allow"
     direction   = "outbound"
     source      = "10.240.64.0/24"
     destination = "10.240.65.0/24"
   }
-  # Internal. response to required-connections[6]: (subnet sub2-1-ky)->(subnet sub2-2-ky); allowed-protocols[0]
+  # Internal. response to required-connections[6]: (subnet testacl5-vpc/sub2-1)->(subnet testacl5-vpc/sub2-2); allowed-protocols[0]
   rules {
-    name        = "rule7"
+    name        = "rule5"
     action      = "allow"
     direction   = "inbound"
     source      = "10.240.65.0/24"
     destination = "10.240.64.0/24"
   }
-  # Internal. required-connections[7]: (subnet sub3-1-ky)->(subnet sub2-1-ky); allowed-protocols[0]
+  # Internal. required-connections[7]: (subnet testacl5-vpc/sub3-1)->(subnet testacl5-vpc/sub2-1); allowed-protocols[0]
   rules {
-    name        = "rule8"
+    name        = "rule6"
     action      = "allow"
     direction   = "inbound"
     source      = "10.240.128.0/24"
@@ -476,9 +408,9 @@ resource "ibm_is_network_acl" "acl-sub2-1-ky" {
       port_max = 443
     }
   }
-  # Internal. response to required-connections[7]: (subnet sub3-1-ky)->(subnet sub2-1-ky); allowed-protocols[0]
+  # Internal. response to required-connections[7]: (subnet testacl5-vpc/sub3-1)->(subnet testacl5-vpc/sub2-1); allowed-protocols[0]
   rules {
-    name        = "rule9"
+    name        = "rule7"
     action      = "allow"
     direction   = "outbound"
     source      = "10.240.64.0/24"
@@ -490,7 +422,7 @@ resource "ibm_is_network_acl" "acl-sub2-1-ky" {
   }
   # Deny other internal communication; see rfc1918#3; item 0,0
   rules {
-    name        = "rule10"
+    name        = "rule8"
     action      = "deny"
     direction   = "outbound"
     source      = "10.0.0.0/8"
@@ -498,87 +430,87 @@ resource "ibm_is_network_acl" "acl-sub2-1-ky" {
   }
   # Deny other internal communication; see rfc1918#3; item 0,0
   rules {
-    name        = "rule11"
+    name        = "rule9"
     action      = "deny"
     direction   = "inbound"
     source      = "10.0.0.0/8"
     destination = "10.0.0.0/8"
   }
   # Deny other internal communication; see rfc1918#3; item 0,1
+  rules {
+    name        = "rule10"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "10.0.0.0/8"
+    destination = "172.16.0.0/12"
+  }
+  # Deny other internal communication; see rfc1918#3; item 0,1
+  rules {
+    name        = "rule11"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "172.16.0.0/12"
+    destination = "10.0.0.0/8"
+  }
+  # Deny other internal communication; see rfc1918#3; item 0,2
   rules {
     name        = "rule12"
     action      = "deny"
     direction   = "outbound"
     source      = "10.0.0.0/8"
-    destination = "172.16.0.0/12"
-  }
-  # Deny other internal communication; see rfc1918#3; item 0,1
-  rules {
-    name        = "rule13"
-    action      = "deny"
-    direction   = "inbound"
-    source      = "172.16.0.0/12"
-    destination = "10.0.0.0/8"
-  }
-  # Deny other internal communication; see rfc1918#3; item 0,2
-  rules {
-    name        = "rule14"
-    action      = "deny"
-    direction   = "outbound"
-    source      = "10.0.0.0/8"
     destination = "192.168.0.0/16"
   }
   # Deny other internal communication; see rfc1918#3; item 0,2
   rules {
-    name        = "rule15"
+    name        = "rule13"
     action      = "deny"
     direction   = "inbound"
     source      = "192.168.0.0/16"
     destination = "10.0.0.0/8"
   }
   # Deny other internal communication; see rfc1918#3; item 1,0
+  rules {
+    name        = "rule14"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "172.16.0.0/12"
+    destination = "10.0.0.0/8"
+  }
+  # Deny other internal communication; see rfc1918#3; item 1,0
+  rules {
+    name        = "rule15"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "10.0.0.0/8"
+    destination = "172.16.0.0/12"
+  }
+  # Deny other internal communication; see rfc1918#3; item 1,1
   rules {
     name        = "rule16"
     action      = "deny"
     direction   = "outbound"
     source      = "172.16.0.0/12"
-    destination = "10.0.0.0/8"
+    destination = "172.16.0.0/12"
   }
-  # Deny other internal communication; see rfc1918#3; item 1,0
+  # Deny other internal communication; see rfc1918#3; item 1,1
   rules {
     name        = "rule17"
     action      = "deny"
     direction   = "inbound"
-    source      = "10.0.0.0/8"
+    source      = "172.16.0.0/12"
     destination = "172.16.0.0/12"
   }
-  # Deny other internal communication; see rfc1918#3; item 1,1
+  # Deny other internal communication; see rfc1918#3; item 1,2
   rules {
     name        = "rule18"
     action      = "deny"
     direction   = "outbound"
     source      = "172.16.0.0/12"
-    destination = "172.16.0.0/12"
-  }
-  # Deny other internal communication; see rfc1918#3; item 1,1
-  rules {
-    name        = "rule19"
-    action      = "deny"
-    direction   = "inbound"
-    source      = "172.16.0.0/12"
-    destination = "172.16.0.0/12"
-  }
-  # Deny other internal communication; see rfc1918#3; item 1,2
-  rules {
-    name        = "rule20"
-    action      = "deny"
-    direction   = "outbound"
-    source      = "172.16.0.0/12"
     destination = "192.168.0.0/16"
   }
   # Deny other internal communication; see rfc1918#3; item 1,2
   rules {
-    name        = "rule21"
+    name        = "rule19"
     action      = "deny"
     direction   = "inbound"
     source      = "192.168.0.0/16"
@@ -586,7 +518,7 @@ resource "ibm_is_network_acl" "acl-sub2-1-ky" {
   }
   # Deny other internal communication; see rfc1918#3; item 2,0
   rules {
-    name        = "rule22"
+    name        = "rule20"
     action      = "deny"
     direction   = "outbound"
     source      = "192.168.0.0/16"
@@ -594,7 +526,7 @@ resource "ibm_is_network_acl" "acl-sub2-1-ky" {
   }
   # Deny other internal communication; see rfc1918#3; item 2,0
   rules {
-    name        = "rule23"
+    name        = "rule21"
     action      = "deny"
     direction   = "inbound"
     source      = "10.0.0.0/8"
@@ -602,7 +534,7 @@ resource "ibm_is_network_acl" "acl-sub2-1-ky" {
   }
   # Deny other internal communication; see rfc1918#3; item 2,1
   rules {
-    name        = "rule24"
+    name        = "rule22"
     action      = "deny"
     direction   = "outbound"
     source      = "192.168.0.0/16"
@@ -610,7 +542,7 @@ resource "ibm_is_network_acl" "acl-sub2-1-ky" {
   }
   # Deny other internal communication; see rfc1918#3; item 2,1
   rules {
-    name        = "rule25"
+    name        = "rule23"
     action      = "deny"
     direction   = "inbound"
     source      = "172.16.0.0/12"
@@ -618,7 +550,7 @@ resource "ibm_is_network_acl" "acl-sub2-1-ky" {
   }
   # Deny other internal communication; see rfc1918#3; item 2,2
   rules {
-    name        = "rule26"
+    name        = "rule24"
     action      = "deny"
     direction   = "outbound"
     source      = "192.168.0.0/16"
@@ -626,7 +558,7 @@ resource "ibm_is_network_acl" "acl-sub2-1-ky" {
   }
   # Deny other internal communication; see rfc1918#3; item 2,2
   rules {
-    name        = "rule27"
+    name        = "rule25"
     action      = "deny"
     direction   = "inbound"
     source      = "192.168.0.0/16"
@@ -634,28 +566,24 @@ resource "ibm_is_network_acl" "acl-sub2-1-ky" {
   }
   # External. required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
   rules {
-    name        = "rule28"
+    name        = "rule26"
     action      = "allow"
     direction   = "outbound"
     source      = "10.240.64.0/24"
-    destination = "8.8.8.8/32"
-  }
-  # External. response to required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
-  rules {
-    name        = "rule29"
-    action      = "allow"
-    direction   = "inbound"
-    source      = "8.8.8.8/32"
-    destination = "10.240.64.0/24"
+    destination = "8.8.8.8"
+    udp {
+      port_min = 53
+      port_max = 53
+    }
   }
 }
 
-# sub2-2-ky [10.240.65.0/24]
-resource "ibm_is_network_acl" "acl-sub2-2-ky" {
-  name           = "acl-sub2-2-ky"
+# testacl5-vpc/sub2-2 [10.240.65.0/24]
+resource "ibm_is_network_acl" "acl-testacl5-vpc/sub2-2" {
+  name           = "acl-testacl5-vpc/sub2-2"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_vpc_id
-  # Internal. required-connections[6]: (subnet sub2-1-ky)->(subnet sub2-2-ky); allowed-protocols[0]
+  # Internal. required-connections[6]: (subnet testacl5-vpc/sub2-1)->(subnet testacl5-vpc/sub2-2); allowed-protocols[0]
   rules {
     name        = "rule0"
     action      = "allow"
@@ -663,7 +591,7 @@ resource "ibm_is_network_acl" "acl-sub2-2-ky" {
     source      = "10.240.64.0/24"
     destination = "10.240.65.0/24"
   }
-  # Internal. response to required-connections[6]: (subnet sub2-1-ky)->(subnet sub2-2-ky); allowed-protocols[0]
+  # Internal. response to required-connections[6]: (subnet testacl5-vpc/sub2-1)->(subnet testacl5-vpc/sub2-2); allowed-protocols[0]
   rules {
     name        = "rule1"
     action      = "allow"
@@ -673,12 +601,12 @@ resource "ibm_is_network_acl" "acl-sub2-2-ky" {
   }
 }
 
-# sub3-1-ky [10.240.128.0/24]
-resource "ibm_is_network_acl" "acl-sub3-1-ky" {
-  name           = "acl-sub3-1-ky"
+# testacl5-vpc/sub3-1 [10.240.128.0/24]
+resource "ibm_is_network_acl" "acl-testacl5-vpc/sub3-1" {
+  name           = "acl-testacl5-vpc/sub3-1"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_vpc_id
-  # Internal. required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
+  # Internal. required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
   rules {
     name        = "rule0"
     action      = "allow"
@@ -686,11 +614,11 @@ resource "ibm_is_network_acl" "acl-sub3-1-ky" {
     source      = "10.240.1.0/24"
     destination = "10.240.128.0/24"
     icmp {
-      type = 8
+      type = 0
       code = 0
     }
   }
-  # Internal. response to required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
+  # Internal. response to required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
   rules {
     name        = "rule1"
     action      = "allow"
@@ -698,11 +626,11 @@ resource "ibm_is_network_acl" "acl-sub3-1-ky" {
     source      = "10.240.128.0/24"
     destination = "10.240.1.0/24"
     icmp {
-      type = 0
+      type = 8
       code = 0
     }
   }
-  # Internal. required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
+  # Internal. required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
   rules {
     name        = "rule2"
     action      = "allow"
@@ -710,11 +638,11 @@ resource "ibm_is_network_acl" "acl-sub3-1-ky" {
     source      = "10.240.64.0/24"
     destination = "10.240.128.0/24"
     icmp {
-      type = 8
+      type = 0
       code = 0
     }
   }
-  # Internal. response to required-connections[2]: (segment need-dns)->(subnet sub3-1-ky); allowed-protocols[0]
+  # Internal. response to required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
   rules {
     name        = "rule3"
     action      = "allow"
@@ -722,11 +650,11 @@ resource "ibm_is_network_acl" "acl-sub3-1-ky" {
     source      = "10.240.128.0/24"
     destination = "10.240.64.0/24"
     icmp {
-      type = 0
+      type = 8
       code = 0
     }
   }
-  # Internal. required-connections[7]: (subnet sub3-1-ky)->(subnet sub2-1-ky); allowed-protocols[0]
+  # Internal. required-connections[7]: (subnet testacl5-vpc/sub3-1)->(subnet testacl5-vpc/sub2-1); allowed-protocols[0]
   rules {
     name        = "rule4"
     action      = "allow"
@@ -738,7 +666,7 @@ resource "ibm_is_network_acl" "acl-sub3-1-ky" {
       port_max = 443
     }
   }
-  # Internal. response to required-connections[7]: (subnet sub3-1-ky)->(subnet sub2-1-ky); allowed-protocols[0]
+  # Internal. response to required-connections[7]: (subnet testacl5-vpc/sub3-1)->(subnet testacl5-vpc/sub2-1); allowed-protocols[0]
   rules {
     name        = "rule5"
     action      = "allow"

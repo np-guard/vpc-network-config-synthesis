@@ -79,12 +79,18 @@ func TestCSVCompare(t *testing.T) {
 		"acl_testing5 tf":              aclTestCase("acl_testing5", "tf", false),
 		"acl_testing5 single csv":      aclTestCase("acl_testing5", "csv", true),
 		"acl_testing5 single tf":       aclTestCase("acl_testing5", "tf", true),
+		"acl_single_conn csv":          aclTestCase("acl_single_conn", "csv", false),
+		"acl_single_conn tf":           aclTestCase("acl_single_conn", "tf", false),
+		"acl_single_conn single csv":   aclTestCase("acl_single_conn", "csv", true),
+		"acl_single_conn single tf":    aclTestCase("acl_single_conn", "tf", true),
 		"acl_cidr_segments csv":        aclTestCase("acl_cidr_segments", "csv", false),
 		"acl_cidr_segments tf":         aclTestCase("acl_cidr_segments", "tf", false),
 		"acl_cidr_segments single csv": aclTestCase("acl_cidr_segments", "csv", true),
 		"acl_cidr_segments single tf":  aclTestCase("acl_cidr_segments", "tf", true),
-		"sg_testing2 csv":              sgTestCase("sg_testing2", "csv"),
-		"sg_testing2 tf":               sgTestCase("sg_testing2", "tf"),
+		"sg_testing3 csv":              sgTestCase("sg_testing3", "csv"),
+		"sg_testing3 tf":               sgTestCase("sg_testing3", "tf"),
+		"sg_single_conn csv":           sgTestCase("sg_single_conn", "csv"),
+		"sg_single_conn tf":            sgTestCase("sg_single_conn", "tf"),
 	}
 	for testName := range suite {
 		testCase := suite[testName]
