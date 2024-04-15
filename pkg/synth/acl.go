@@ -1,3 +1,8 @@
+/*
+Copyright 2023- IBM Inc. All Rights Reserved.
+SPDX-License-Identifier: Apache-2.0
+*/
+
 // Package synth generates Network ACLs that collectively enable the connectivity described in a global specification.
 package synth
 

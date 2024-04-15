@@ -1,3 +1,8 @@
+/*
+Copyright 2023- IBM Inc. All Rights Reserved.
+SPDX-License-Identifier: Apache-2.0
+*/
+
 // Package mdio implements output of ACLs and security groups in CSV format
 package mdio
 

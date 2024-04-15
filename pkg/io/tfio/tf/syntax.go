@@ -1,3 +1,8 @@
+/*
+Copyright 2023- IBM Inc. All Rights Reserved.
+SPDX-License-Identifier: Apache-2.0
+*/
+
 // Package tf represents the general syntax of terraform files
 package tf
 
