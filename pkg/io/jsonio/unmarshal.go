@@ -210,6 +210,10 @@ func translateConnection(defs *ir.Definitions, v *spec.SpecRequiredConnectionsEl
 	if err != nil {
 		return nil, err
 	}
+	err = defs.ValidateConnection(src, dst)
+	if err != nil {
+		return nil, err
+	}
 
 	origin := connectionOrigin{
 		connectionIndex: connectionIndex,

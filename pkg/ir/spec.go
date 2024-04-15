@@ -232,6 +232,19 @@ func (s *Definitions) Lookup(t ResourceType, name string) (Resource, error) {
 	}
 }
 
+func (s *Definitions) ValidateConnection(src, dst Resource) error {
+	err := fmt.Errorf("there is a only support in connections within same vpc")
+	srcVPCs := []ID{}
+	dstVPCs := []ID{}
+	if len(srcVPCs) != 1 || len(dstVPCs) != 1 {
+		return err
+	}
+	if srcVPCs[0] != dstVPCs[0] {
+		return err
+	}
+	return nil
+}
+
 func inverseLookup[T NWResource](m map[ID]T, ip IP) (result string, ok bool) {
 	for name, details := range m {
 		if details.Address() == ip {
