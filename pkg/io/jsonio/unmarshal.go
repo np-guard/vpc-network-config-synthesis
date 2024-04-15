@@ -1,3 +1,8 @@
+/*
+Copyright 2023- IBM Inc. All Rights Reserved.
+SPDX-License-Identifier: Apache-2.0
+*/
+
 // Package jsonio handles global specification written in a JSON file, as described by spec_schema.input
 package jsonio
 
