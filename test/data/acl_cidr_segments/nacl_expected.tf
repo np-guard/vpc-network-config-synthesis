@@ -1,6 +1,6 @@
-# test-vpc-ky/sub1-1-ky [10.240.1.0/24]
-resource "ibm_is_network_acl" "acl-test-vpc-ky/sub1-1-ky" {
-  name           = "acl-test-vpc-ky/sub1-1-ky"
+# test-vpc-ky_sub1-1-ky [10.240.1.0/24]
+resource "ibm_is_network_acl" "acl-test-vpc-ky_sub1-1-ky" {
+  name           = "acl-test-vpc-ky_sub1-1-ky"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_vpc_id
   # Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
@@ -193,9 +193,9 @@ resource "ibm_is_network_acl" "acl-test-vpc-ky/sub1-1-ky" {
   }
 }
 
-# test-vpc-ky/sub1-2-ky [10.240.2.0/24]
-resource "ibm_is_network_acl" "acl-test-vpc-ky/sub1-2-ky" {
-  name           = "acl-test-vpc-ky/sub1-2-ky"
+# test-vpc-ky_sub1-2-ky [10.240.2.0/24]
+resource "ibm_is_network_acl" "acl-test-vpc-ky_sub1-2-ky" {
+  name           = "acl-test-vpc-ky_sub1-2-ky"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_vpc_id
   # Internal. required-connections[2]: (segment cidrSegment1)->(segment need-dns); allowed-protocols[0]
@@ -232,9 +232,9 @@ resource "ibm_is_network_acl" "acl-test-vpc-ky/sub1-2-ky" {
   }
 }
 
-# test-vpc-ky/sub1-3-ky [10.240.3.0/24]
-resource "ibm_is_network_acl" "acl-test-vpc-ky/sub1-3-ky" {
-  name           = "acl-test-vpc-ky/sub1-3-ky"
+# test-vpc-ky_sub1-3-ky [10.240.3.0/24]
+resource "ibm_is_network_acl" "acl-test-vpc-ky_sub1-3-ky" {
+  name           = "acl-test-vpc-ky_sub1-3-ky"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_vpc_id
   # Internal. required-connections[2]: (segment cidrSegment1)->(segment need-dns); allowed-protocols[0]
@@ -271,9 +271,9 @@ resource "ibm_is_network_acl" "acl-test-vpc-ky/sub1-3-ky" {
   }
 }
 
-# test-vpc-ky/sub2-1-ky [10.240.64.0/24]
-resource "ibm_is_network_acl" "acl-test-vpc-ky/sub2-1-ky" {
-  name           = "acl-test-vpc-ky/sub2-1-ky"
+# test-vpc-ky_sub2-1-ky [10.240.64.0/24]
+resource "ibm_is_network_acl" "acl-test-vpc-ky_sub2-1-ky" {
+  name           = "acl-test-vpc-ky_sub2-1-ky"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_vpc_id
   # Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
@@ -308,7 +308,7 @@ resource "ibm_is_network_acl" "acl-test-vpc-ky/sub2-1-ky" {
     source      = "10.240.64.0/24"
     destination = "10.240.2.0/23"
   }
-  # Internal. required-connections[3]: (segment cidrSegment2)->(subnet test-vpc-ky/sub3-1-ky); allowed-protocols[0]
+  # Internal. required-connections[3]: (segment cidrSegment2)->(subnet test-vpc-ky_sub3-1-ky); allowed-protocols[0]
   rules {
     name        = "rule4"
     action      = "allow"
@@ -318,7 +318,7 @@ resource "ibm_is_network_acl" "acl-test-vpc-ky/sub2-1-ky" {
     tcp {
     }
   }
-  # Internal. response to required-connections[3]: (segment cidrSegment2)->(subnet test-vpc-ky/sub3-1-ky); allowed-protocols[0]
+  # Internal. response to required-connections[3]: (segment cidrSegment2)->(subnet test-vpc-ky_sub3-1-ky); allowed-protocols[0]
   rules {
     name        = "rule5"
     action      = "allow"
@@ -486,12 +486,12 @@ resource "ibm_is_network_acl" "acl-test-vpc-ky/sub2-1-ky" {
   }
 }
 
-# test-vpc-ky/sub2-2-ky [10.240.65.0/24]
-resource "ibm_is_network_acl" "acl-test-vpc-ky/sub2-2-ky" {
-  name           = "acl-test-vpc-ky/sub2-2-ky"
+# test-vpc-ky_sub2-2-ky [10.240.65.0/24]
+resource "ibm_is_network_acl" "acl-test-vpc-ky_sub2-2-ky" {
+  name           = "acl-test-vpc-ky_sub2-2-ky"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_vpc_id
-  # Internal. required-connections[3]: (segment cidrSegment2)->(subnet test-vpc-ky/sub3-1-ky); allowed-protocols[0]
+  # Internal. required-connections[3]: (segment cidrSegment2)->(subnet test-vpc-ky_sub3-1-ky); allowed-protocols[0]
   rules {
     name        = "rule0"
     action      = "allow"
@@ -501,7 +501,7 @@ resource "ibm_is_network_acl" "acl-test-vpc-ky/sub2-2-ky" {
     tcp {
     }
   }
-  # Internal. response to required-connections[3]: (segment cidrSegment2)->(subnet test-vpc-ky/sub3-1-ky); allowed-protocols[0]
+  # Internal. response to required-connections[3]: (segment cidrSegment2)->(subnet test-vpc-ky_sub3-1-ky); allowed-protocols[0]
   rules {
     name        = "rule1"
     action      = "allow"
@@ -513,12 +513,12 @@ resource "ibm_is_network_acl" "acl-test-vpc-ky/sub2-2-ky" {
   }
 }
 
-# test-vpc-ky/sub3-1-ky [10.240.128.0/24]
-resource "ibm_is_network_acl" "acl-test-vpc-ky/sub3-1-ky" {
-  name           = "acl-test-vpc-ky/sub3-1-ky"
+# test-vpc-ky_sub3-1-ky [10.240.128.0/24]
+resource "ibm_is_network_acl" "acl-test-vpc-ky_sub3-1-ky" {
+  name           = "acl-test-vpc-ky_sub3-1-ky"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_vpc_id
-  # Internal. required-connections[3]: (segment cidrSegment2)->(subnet test-vpc-ky/sub3-1-ky); allowed-protocols[0]
+  # Internal. required-connections[3]: (segment cidrSegment2)->(subnet test-vpc-ky_sub3-1-ky); allowed-protocols[0]
   rules {
     name        = "rule0"
     action      = "allow"
@@ -528,7 +528,7 @@ resource "ibm_is_network_acl" "acl-test-vpc-ky/sub3-1-ky" {
     tcp {
     }
   }
-  # Internal. response to required-connections[3]: (segment cidrSegment2)->(subnet test-vpc-ky/sub3-1-ky); allowed-protocols[0]
+  # Internal. response to required-connections[3]: (segment cidrSegment2)->(subnet test-vpc-ky_sub3-1-ky); allowed-protocols[0]
   rules {
     name        = "rule1"
     action      = "allow"

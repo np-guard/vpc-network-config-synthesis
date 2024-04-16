@@ -238,9 +238,14 @@ func (s *Definitions) Lookup(t ResourceType, name string) (Resource, error) {
 }
 
 func (s *Definitions) ValidateConnection(src, dst Resource) error {
-	err := fmt.Errorf("there is a only support in connections within same vpc")
-	srcVPCs := []ID{}
-	dstVPCs := []ID{}
+	srcVPCs, err := s.getVPCs(src)
+	if err != nil {
+		return ConnAcrossVPCsError()
+	}
+	dstVPCs, err := s.getVPCs(dst)
+	if err != nil {
+		return ConnAcrossVPCsError()
+	}
 	if len(srcVPCs) != 1 || len(dstVPCs) != 1 {
 		return err
 	}
@@ -335,9 +340,48 @@ func ConvertStringToIDSlice(s []string) []ID {
 }
 
 func ScopingComponents(s string) []string {
-	return strings.Split(s, "/")
+	return strings.Split(s, "_")
 }
 
 func containerNotFoundError(name string, resource ResourceType) error {
 	return fmt.Errorf("container %v %v not found", ResourceTypeSegment, name)
+}
+
+func ConnAcrossVPCsError() error {
+	return fmt.Errorf("only connections within same vpc are supported")
+}
+
+func (s ConfigDefs) getVPCs(r Resource) ([]ID, error) {
+	vpcs := make([]ID, 0)
+
+	// convert address to IPBlock
+	if len(r.Values) == 0 {
+		return vpcs, nil
+	}
+	addresses, err := ipblock.FromCidrOrAddress(r.Values[0].String())
+	if err != nil {
+		return nil, err
+	}
+	for _, address := range r.Values {
+		currAddress, err := ipblock.FromCidrOrAddress(address.String())
+		if err != nil {
+			return nil, err
+		}
+		addresses = addresses.Union(currAddress)
+	}
+
+	for vpcName, vpcDetails := range s.VPCs {
+		for _, addressPrefix := range vpcDetails.AddressPrefixes {
+			iAddressPrefix, err := ipblock.FromCidrOrAddress(addressPrefix.String())
+			if err != nil {
+				return nil, err
+			}
+			if !addresses.Intersect(iAddressPrefix).IsEmpty() {
+				vpcs = append(vpcs, vpcName)
+				break
+			}
+		}
+	}
+
+	return vpcs, nil
 }
