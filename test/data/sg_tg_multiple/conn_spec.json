@@ -1,0 +1,31 @@
+{
+    "required-connections": [
+        {
+            "src": {
+                "name": "vsi0-subnet0",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "vsi1-subnet4",
+                "type": "instance"
+            }
+        },
+        {
+            "src": {
+                "name": "vsi0-subnet20",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "vsi2-subnet20",
+                "type": "instance"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP",
+                    "min_destination_port": 53,
+                    "max_destination_port": 53
+                }
+            ]
+        }
+    ]
+}

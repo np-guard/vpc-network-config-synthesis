@@ -238,19 +238,19 @@ func (s *Definitions) Lookup(t ResourceType, name string) (Resource, error) {
 }
 
 func (s *Definitions) ValidateConnection(src, dst Resource) error {
+	if src.Type == ResourceTypeExternal || dst.Type == ResourceTypeExternal {
+		return nil
+	}
 	srcVPCs, err := s.getVPCs(src)
 	if err != nil {
-		return ConnAcrossVPCsError()
+		return err
 	}
 	dstVPCs, err := s.getVPCs(dst)
 	if err != nil {
-		return ConnAcrossVPCsError()
-	}
-	if len(srcVPCs) != 1 || len(dstVPCs) != 1 {
 		return err
 	}
-	if srcVPCs[0] != dstVPCs[0] {
-		return err
+	if len(srcVPCs) != 1 || len(dstVPCs) != 1 || srcVPCs[0] != dstVPCs[0] {
+		return fmt.Errorf("only connections within same vpc are supported")
 	}
 	return nil
 }
@@ -345,10 +345,6 @@ func ScopingComponents(s string) []string {
 
 func containerNotFoundError(name string, resource ResourceType) error {
 	return fmt.Errorf("container %v %v not found", ResourceTypeSegment, name)
-}
-
-func ConnAcrossVPCsError() error {
-	return fmt.Errorf("only connections within same vpc are supported")
 }
 
 func (s ConfigDefs) getVPCs(r Resource) ([]ID, error) {

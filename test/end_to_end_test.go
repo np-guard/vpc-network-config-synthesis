@@ -92,10 +92,14 @@ func TestCSVCompare(t *testing.T) {
 		"acl_cidr_segments tf":         aclTestCase("acl_cidr_segments", "tf", false),
 		"acl_cidr_segments single csv": aclTestCase("acl_cidr_segments", "csv", true),
 		"acl_cidr_segments single tf":  aclTestCase("acl_cidr_segments", "tf", true),
+		"acl_tg_multiple tf":           aclTestCase("acl_tg_multiple", "tf", false),
+		"acl_tg_multiple single tf":    aclTestCase("acl_tg_multiple", "tf", true),
 		"sg_testing3 csv":              sgTestCase("sg_testing3", "csv"),
 		"sg_testing3 tf":               sgTestCase("sg_testing3", "tf"),
 		"sg_single_conn csv":           sgTestCase("sg_single_conn", "csv"),
 		"sg_single_conn tf":            sgTestCase("sg_single_conn", "tf"),
+		"sg_tg_multiple csv":           sgTestCase("sg_tg_multiple", "csv"),
+		"sg_tg_multiple tf":            sgTestCase("sg_tg_multiple", "tf"),
 	}
 	for testName := range suite {
 		testCase := suite[testName]

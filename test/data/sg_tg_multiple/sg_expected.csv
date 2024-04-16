@@ -1,0 +1,5 @@
+SG,Direction,Remote type,Remote,Protocol,Protocol params,Description
+test-vpc0_vsi0-subnet0,Outbound,Security group,test-vpc0_vsi1-subnet4,ALL,,Internal. required-connections[0]: (instance test-vpc0_vsi0-subnet0)->(instance test-vpc0_vsi1-subnet4); allowed-protocols[0]
+test-vpc0_vsi1-subnet4,Inbound,Security group,test-vpc0_vsi0-subnet0,ALL,,Internal. required-connections[0]: (instance test-vpc0_vsi0-subnet0)->(instance test-vpc0_vsi1-subnet4); allowed-protocols[0]
+test-vpc2_vsi0-subnet20,Outbound,Security group,test-vpc2_vsi2-subnet20,TCP,Ports 53-53,Internal. required-connections[1]: (instance test-vpc2_vsi0-subnet20)->(instance test-vpc2_vsi2-subnet20); allowed-protocols[0]
+test-vpc2_vsi2-subnet20,Inbound,Security group,test-vpc2_vsi0-subnet20,TCP,Ports 53-53,Internal. required-connections[1]: (instance test-vpc2_vsi0-subnet20)->(instance test-vpc2_vsi2-subnet20); allowed-protocols[0]
