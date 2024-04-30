@@ -96,6 +96,7 @@ func parseInstancesNifs(config *configModel.ResourcesContainerModel) (instances 
 			nifDetails := ir.NifDetails{
 				NamedEntity: ir.NamedEntity(*instance.NetworkInterfaces[i].Name),
 				Instance:    ir.ID(scopingString(*instance.VPC.Name, *instance.Name)),
+				VPC:         ir.ID(*instance.VPC.Name),
 				IP:          ir.IPFromString(*instance.NetworkInterfaces[i].PrimaryIP.Address),
 			}
 			nifs[ir.ID(nifUniqueName)] = nifDetails
@@ -139,6 +140,7 @@ func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]ir.V
 						VPEName:     VPEName,
 						Subnet:      subnetName,
 						IP:          ir.IPFromString(*r.Address),
+						VPC:         vpes[VPEName].VPC,
 					}
 					vpeEndpoints[ir.ID(uniqueVpeEndpointName)] = vpeEndpointDetails
 					vpe := vpes[VPEName]

@@ -119,8 +119,9 @@ func resourcesContainedInCidr(s *ir.Spec, epIP ir.IP, ep ir.Resource) []ir.IP {
 	if ep.Type != ir.ResourceTypeCidr {
 		return []ir.IP{epIP}
 	}
-	retVal := make([]ir.IP, 0)                                       // list of subnet IPs contained in the cidr
-	cidrDetails := s.Defs.CidrSegments[ep.Name][ir.CidrFromIP(epIP)] // list of subnets contained in the cidr
+	retVal := make([]ir.IP, 0)
+	cidrSegmentDetails := s.Defs.CidrSegments[ir.ID(ep.Name)]
+	cidrDetails := cidrSegmentDetails.Cidrs[ir.CidrFromIP(epIP)]
 	for _, subnet := range cidrDetails.ContainedSubnets {
 		retVal = append(retVal, s.Defs.Subnets[subnet].Address())
 	}

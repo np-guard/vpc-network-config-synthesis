@@ -33,10 +33,10 @@ func (s *Spec) ComputeBlockedSubnets(singleACL bool) {
 
 		// subnet segments which include the subnet
 		segments := []string{}
-		for segmentName, segment := range s.Defs.SubnetSegments {
-			for _, s := range segment {
+		for segmentName, segmentDetails := range s.Defs.SubnetSegments {
+			for _, s := range segmentDetails.Subnets {
 				if subnet == s {
-					segments = append(segments, segmentName)
+					segments = append(segments, string(segmentName))
 					break
 				}
 			}
@@ -47,17 +47,17 @@ func (s *Spec) ComputeBlockedSubnets(singleACL bool) {
 
 		// cidr segments which include the subnet
 		cidrSegments := []string{}
-		for segmentName, cidrSegment := range s.Defs.CidrSegments {
-			for _, cidrDetails := range cidrSegment {
+		for segmentName, cidrSegmentDetails := range s.Defs.CidrSegments {
+			for _, cidrDetails := range cidrSegmentDetails.Cidrs {
 				for _, s := range cidrDetails.ContainedSubnets {
 					if subnet == s {
-						cidrSegments = append(cidrSegments, segmentName)
+						cidrSegments = append(cidrSegments, string(segmentName))
 						break
 					}
 				}
 			}
 		}
-		if !s.findResourceInConnections(cidrSegments, ResourceTypeCidr) {
+		if !s.findResourceInConnections(cidrSegments, ResourceTypeSubnet) {
 			blockedSubnets = append(blockedSubnets, string(subnet))
 		}
 	}

@@ -44,14 +44,14 @@ func (*Reader) ReadSpec(filename string, configDefs *ir.ConfigDefs) (*ir.Spec, e
 	}
 
 	// replace to fully qualified name
-	jsonSpec, subnetSegments, err = replaceResourcesName(jsonSpec, subnetSegments, configDefs)
+	jsonSpec, finalSubnetSegments, err := replaceResourcesName(jsonSpec, subnetSegments, configDefs)
 	if err != nil {
 		return nil, err
 	}
 
 	defs := &ir.Definitions{
 		ConfigDefs:     *configDefs,
-		SubnetSegments: subnetSegments,
+		SubnetSegments: finalSubnetSegments,
 		CidrSegments:   cidrSegments,
 		Externals:      translateExternals(jsonSpec.Externals),
 	}
@@ -80,6 +80,7 @@ func validateSegments(jsonSegments spec.SpecSegments) error {
 	return nil
 }
 
+// read segments from conn-spec file
 func translateSegments(jsonSegments spec.SpecSegments, segmentType spec.Type) map[string][]string {
 	result := make(map[string][]string)
 	for k, v := range jsonSegments {
@@ -99,9 +100,9 @@ func parseSubnetSegments(jsonSegments spec.SpecSegments) map[string][]ir.ID {
 	return result
 }
 
-func parseCidrSegments(jsonSegments spec.SpecSegments, configDefs *ir.ConfigDefs) (map[string]map[ir.CIDR]ir.CIDRDetails, error) {
+func parseCidrSegments(jsonSegments spec.SpecSegments, configDefs *ir.ConfigDefs) (map[ir.ID]ir.CidrSegmentDetails, error) {
 	cidrSegments := translateSegments(jsonSegments, spec.TypeCidr)
-	finalMap := make(map[string]map[ir.CIDR]ir.CIDRDetails)
+	finalMap := make(map[ir.ID]ir.CidrSegmentDetails)
 	for segmentName, segment := range cidrSegments {
 		// each cidr saves the contained subnets
 		segmentMap := make(map[ir.CIDR]ir.CIDRDetails)
@@ -123,11 +124,15 @@ func parseCidrSegments(jsonSegments spec.SpecSegments, configDefs *ir.ConfigDefs
 				ContainedSubnets: subnets,
 			}
 		}
-		finalMap[segmentName] = segmentMap
+		cidrSegmentDetails := ir.CidrSegmentDetails{
+			Cidrs: segmentMap,
+		}
+		finalMap[ir.ID(segmentName)] = cidrSegmentDetails
 	}
 	return finalMap, nil
 }
 
+// read externals from conn-spec
 func translateExternals(m map[string]string) map[ir.ID]ir.ExternalDetails {
 	res := make(map[ir.ID]ir.ExternalDetails)
 	for k, v := range m {
@@ -136,24 +141,28 @@ func translateExternals(m map[string]string) map[ir.ID]ir.ExternalDetails {
 	return res
 }
 
+// replace all resources names in conn-spec to fully qualified name
 func replaceResourcesName(jsonSpec *spec.Spec, subnetSegments map[string][]ir.ID,
-	config *ir.ConfigDefs) (*spec.Spec, map[string][]ir.ID, error) {
+	config *ir.ConfigDefs) (*spec.Spec, map[ir.ID]ir.SubnetSegmentDetails, error) {
 	subnetsCache, ambiguousSubnets := inverseMapToFullyQualifiedName(config.Subnets)
 	nifsCache, ambiguousNifs := inverseMapToFullyQualifiedName(config.NIFs)
 	instancesCache, ambiguousInstances := inverseMapToFullyQualifiedName(config.Instances)
 	vpeEndpointsCache, ambiguousVpeEndpoints := inverseMapToFullyQualifiedName(config.VPEEndpoints)
 
 	// go over subnetSegments
+	finalSubnetSegments := make(map[ir.ID]ir.SubnetSegmentDetails)
 	for segmentName, subnets := range subnetSegments {
 		subnetsNames := make([]ir.ID, 0)
+		VPCs := make([]ir.ID, 0)
 		for _, subnet := range subnets {
 			fullyQualifiedName, err := replaceResourceName(subnetsCache, ambiguousSubnets, string(subnet), spec.ResourceTypeSubnet)
 			if err != nil {
 				return nil, nil, err
 			}
 			subnetsNames = append(subnetsNames, ir.ID(fullyQualifiedName))
+			VPCs = append(VPCs, config.Subnets[ir.ID(fullyQualifiedName)].VPC)
 		}
-		subnetSegments[segmentName] = subnetsNames
+		finalSubnetSegments[ir.ID(segmentName)] = ir.SubnetSegmentDetails{Subnets: subnetsNames, OverlappingVPCs: ir.UniqueIDValues(VPCs)}
 	}
 
 	var err error
@@ -191,7 +200,7 @@ func replaceResourcesName(jsonSpec *spec.Spec, subnetSegments map[string][]ir.ID
 		}
 		jsonSpec.RequiredConnections[i].Dst.Name = fullyQualifiedDst
 	}
-	return jsonSpec, subnetSegments, nil
+	return jsonSpec, finalSubnetSegments, nil
 }
 
 func translateConnection(defs *ir.Definitions, v *spec.SpecRequiredConnectionsElem, connectionIndex int) ([]ir.Connection, error) {
@@ -207,6 +216,7 @@ func translateConnection(defs *ir.Definitions, v *spec.SpecRequiredConnectionsEl
 	if err != nil {
 		return nil, err
 	}
+	srcVPCs := defs.GetVPCs(srcResourceType, v.Src.Name)
 	dstResourceType, err := translateResourceType(v.Dst.Type)
 	if err != nil {
 		return nil, err
@@ -215,7 +225,8 @@ func translateConnection(defs *ir.Definitions, v *spec.SpecRequiredConnectionsEl
 	if err != nil {
 		return nil, err
 	}
-	err = defs.ValidateConnection(src, dst)
+	dstVPCs := defs.GetVPCs(srcResourceType, v.Src.Name)
+	err = defs.ValidateConnection(srcVPCs, dstVPCs)
 	if err != nil {
 		return nil, err
 	}

@@ -75,10 +75,10 @@ type (
 		ConfigDefs
 
 		// Segments are a way for users to create aggregations.
-		SubnetSegments map[string][]ID
+		SubnetSegments map[ID]SubnetSegmentDetails
 
 		// Cidr segment might contain some cidrs
-		CidrSegments map[string]map[CIDR]CIDRDetails
+		CidrSegments map[ID]CidrSegmentDetails
 
 		// Externals are a way for users to name IP addresses or ranges external to the VPC.
 		Externals map[ID]ExternalDetails
@@ -99,6 +99,7 @@ type (
 	NifDetails struct {
 		NamedEntity
 		IP       IP
+		VPC      ID
 		Instance ID
 	}
 
@@ -113,12 +114,22 @@ type (
 		IP      IP
 		VPEName ID
 		Subnet  ID
+		VPC     ID
 	}
 
 	VPEDetails struct {
 		NamedEntity
 		VPEEndpoint []ID
 		VPC         ID
+	}
+
+	SubnetSegmentDetails struct {
+		Subnets         []ID
+		OverlappingVPCs []ID
+	}
+
+	CidrSegmentDetails struct {
+		Cidrs map[CIDR]CIDRDetails
 	}
 
 	CIDRDetails struct {
@@ -136,6 +147,10 @@ type (
 
 	NWResource interface {
 		Address() IP
+	}
+
+	VPC1 interface {
+		getVPC() []ID
 	}
 )
 
@@ -159,6 +174,34 @@ func (e ExternalDetails) Address() IP {
 	return e.IP
 }
 
+func (s SubnetDetails) getVPC() []ID {
+	return []ID{s.VPC}
+}
+
+func (n NifDetails) getVPC() []ID {
+	return []ID{n.VPC}
+}
+
+func (i InstanceDetails) getVPC() []ID {
+	return []ID{i.VPC}
+}
+
+func (v VPEEndpointDetails) getVPC() []ID {
+	return []ID{v.VPC}
+}
+
+func (s SubnetSegmentDetails) getVPC() []ID {
+	return s.OverlappingVPCs
+}
+
+func (c CidrSegmentDetails) getVPC() []ID {
+	result := make([]ID, 0)
+	for _, cidrDetails := range c.Cidrs {
+		result = append(result, cidrDetails.OverlappingVPCs...)
+	}
+	return UniqueIDValues(result)
+}
+
 type ResourceType string
 
 const (
@@ -171,6 +214,10 @@ const (
 	ResourceTypeInstance ResourceType = "instance"
 	ResourceTypeAny      ResourceType = "any"
 )
+
+func getVPCss[T VPC1](m map[ID]T, name string) []ID {
+	return m[ID(name)].getVPC()
+}
 
 func lookupSingle[T NWResource](m map[ID]T, name string, t ResourceType) (Resource, error) {
 	if details, ok := m[ID(name)]; ok {
@@ -196,13 +243,30 @@ func (s *Definitions) lookupInstance(name string) (Resource, error) {
 
 func (s *Definitions) lookupSubnetSegment(name string) (Resource, error) {
 	ips := []IP{}
-	if subnets, ok := s.SubnetSegments[name]; ok {
-		for _, subnetName := range subnets {
+	if subnetSegmentDetails, ok := s.SubnetSegments[ID(name)]; ok {
+		for _, subnetName := range subnetSegmentDetails.Subnets {
 			subnet, err := s.Lookup(ResourceTypeSubnet, string(subnetName))
 			if err != nil {
-				return Resource{}, fmt.Errorf("%w while looking up %v %v for subnet %v", err, ResourceTypeSubnet, subnetName, name)
+				return Resource{}, subnetNotFoundError(name, err)
 			}
 			ips = append(ips, subnet.Values...)
+		}
+		return Resource{name, ips, ResourceTypeSubnet}, nil
+	}
+	return Resource{}, containerNotFoundError(name, ResourceTypeSegment)
+}
+
+func (s *Definitions) lookupCidrSegment(name string) (Resource, error) {
+	ips := []IP{}
+	if cidrSegmentDetails, ok := s.CidrSegments[ID(name)]; ok {
+		for _, cidrDetails := range cidrSegmentDetails.Cidrs {
+			for _, subnetName := range cidrDetails.ContainedSubnets {
+				subnet, err := s.Lookup(ResourceTypeSubnet, string(subnetName))
+				if err != nil {
+					return Resource{}, subnetNotFoundError(name, err)
+				}
+				ips = append(ips, subnet.Values...)
+			}
 		}
 		return Resource{name, ips, ResourceTypeSubnet}, nil
 	}
@@ -225,10 +289,10 @@ func (s *Definitions) Lookup(t ResourceType, name string) (Resource, error) {
 	case ResourceTypeInstance:
 		return s.lookupInstance(name)
 	case ResourceTypeSegment:
-		if _, ok := s.SubnetSegments[name]; ok { // subnet segment
+		if _, ok := s.SubnetSegments[ID(name)]; ok { // subnet segment
 			return s.lookupSubnetSegment(name)
-		} else if _, ok := s.CidrSegments[name]; ok { // cidr segment
-			return Resource{name, cidrsAsIPs(s.CidrSegments, name), ResourceTypeCidr}, nil
+		} else if _, ok := s.CidrSegments[ID(name)]; ok { // cidr segment
+			return s.lookupCidrSegment(name)
 		} else {
 			return Resource{}, err
 		}
@@ -237,17 +301,33 @@ func (s *Definitions) Lookup(t ResourceType, name string) (Resource, error) {
 	}
 }
 
-func (s *Definitions) ValidateConnection(src, dst Resource) error {
-	if src.Type == ResourceTypeExternal || dst.Type == ResourceTypeExternal {
+func (s *Definitions) GetVPCs(t ResourceType, name string) []ID {
+	switch t {
+	case ResourceTypeExternal:
+		return []ID{}
+	case ResourceTypeSubnet:
+		return getVPCss(s.Subnets, name)
+	case ResourceTypeNIF:
+		return getVPCss(s.NIFs, name)
+	case ResourceTypeVPE:
+		return getVPCss(s.VPEEndpoints, name)
+	case ResourceTypeInstance:
+		return getVPCss(s.Instances, name)
+	case ResourceTypeSegment:
+		if _, ok := s.SubnetSegments[ID(name)]; ok { // subnet segment
+			return getVPCss(s.SubnetSegments, name)
+		} else {
+			return getVPCss(s.CidrSegments, name)
+		}
+
+	default:
+		return []ID{}
+	}
+}
+
+func (s *Definitions) ValidateConnection(srcVPCs, dstVPCs []ID) error {
+	if len(srcVPCs) == 0 || len(dstVPCs) == 0 { // src or dst is an external resource
 		return nil
-	}
-	srcVPCs, err := s.getVPCs(src)
-	if err != nil {
-		return err
-	}
-	dstVPCs, err := s.getVPCs(dst)
-	if err != nil {
-		return err
 	}
 	if len(srcVPCs) != 1 || len(dstVPCs) != 1 || srcVPCs[0] != dstVPCs[0] {
 		return fmt.Errorf("only connections within same vpc are supported")
@@ -308,14 +388,6 @@ type Reader interface {
 	ReadSpec(filename string, defs *ConfigDefs) (*Spec, error)
 }
 
-func cidrsAsIPs(cidrSegments map[string]map[CIDR]CIDRDetails, segmentName string) []IP {
-	retVal := make([]IP, 0)
-	for cidr := range cidrSegments[segmentName] {
-		retVal = append(retVal, IPFromCidr(cidr))
-	}
-	return retVal
-}
-
 func (s *ConfigDefs) SubnetsContainedInCidr(cidr ipblock.IPBlock) ([]ID, error) {
 	var containedSubnets []string
 	for subnet, details := range s.Subnets {
@@ -347,37 +419,20 @@ func containerNotFoundError(name string, resource ResourceType) error {
 	return fmt.Errorf("container %v %v not found", ResourceTypeSegment, name)
 }
 
-func (s ConfigDefs) getVPCs(r Resource) ([]ID, error) {
-	vpcs := make([]ID, 0)
+func subnetNotFoundError(name string, err error) error {
+	return fmt.Errorf("%w while looking up for subnet %v", err, name)
+}
 
-	// convert address to IPBlock
-	if len(r.Values) == 0 {
-		return vpcs, nil
-	}
-	addresses, err := ipblock.FromCidrOrAddress(r.Values[0].String())
-	if err != nil {
-		return nil, err
-	}
-	for _, address := range r.Values {
-		currAddress, err := ipblock.FromCidrOrAddress(address.String())
-		if err != nil {
-			return nil, err
-		}
-		addresses = addresses.Union(currAddress)
-	}
+func UniqueIDValues(s []ID) []ID {
+	result := make([]ID, 0)
+	seenValues := make(map[ID]struct{})
 
-	for vpcName, vpcDetails := range s.VPCs {
-		for _, addressPrefix := range vpcDetails.AddressPrefixes {
-			iAddressPrefix, err := ipblock.FromCidrOrAddress(addressPrefix.String())
-			if err != nil {
-				return nil, err
-			}
-			if !addresses.Intersect(iAddressPrefix).IsEmpty() {
-				vpcs = append(vpcs, vpcName)
-				break
-			}
+	for _, item := range s {
+		if _, seen := seenValues[item]; !seen {
+			seenValues[item] = struct{}{}
+			result = append(result, item)
 		}
 	}
 
-	return vpcs, nil
+	return result
 }
