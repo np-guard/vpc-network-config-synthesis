@@ -149,7 +149,7 @@ type (
 		Address() IP
 	}
 
-	VPC1 interface {
+	ResourceVpc interface {
 		getVPC() []ID
 	}
 )
@@ -215,7 +215,7 @@ const (
 	ResourceTypeAny      ResourceType = "any"
 )
 
-func getVPCss[T VPC1](m map[ID]T, name string) []ID {
+func getResourceVPCs[T ResourceVpc](m map[ID]T, name string) []ID {
 	return m[ID(name)].getVPC()
 }
 
@@ -295,23 +295,23 @@ func (s *Definitions) Lookup(t ResourceType, name string) (Resource, error) {
 	}
 }
 
-func (s *Definitions) GetVPCs(t ResourceType, name string) []ID {
+func (s *Definitions) GetResourceOverlappingVPCs(t ResourceType, name string) []ID {
 	switch t {
 	case ResourceTypeExternal:
 		return []ID{}
 	case ResourceTypeSubnet:
-		return getVPCss(s.Subnets, name)
+		return getResourceVPCs(s.Subnets, name)
 	case ResourceTypeNIF:
-		return getVPCss(s.NIFs, name)
+		return getResourceVPCs(s.NIFs, name)
 	case ResourceTypeVPE:
-		return getVPCss(s.VPEEndpoints, name)
+		return getResourceVPCs(s.VPEEndpoints, name)
 	case ResourceTypeInstance:
-		return getVPCss(s.Instances, name)
+		return getResourceVPCs(s.Instances, name)
 	case ResourceTypeSegment:
 		if _, ok := s.SubnetSegments[ID(name)]; ok { // subnet segment
-			return getVPCss(s.SubnetSegments, name)
+			return getResourceVPCs(s.SubnetSegments, name)
 		} else {
-			return getVPCss(s.CidrSegments, name)
+			return getResourceVPCs(s.CidrSegments, name)
 		}
 
 	default:
