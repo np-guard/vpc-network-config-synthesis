@@ -1,0 +1,61 @@
+Acl,Subnet,Direction,Rule priority,Allow or deny,Protocol,Source,Destination,Value,Description
+acl-test-vpc-ky_sub1-1-ky,test-vpc-ky_sub1-1-ky,Outbound,1,Allow,ALL,10.240.1.0/24,10.240.64.0/24,-,Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
+acl-test-vpc-ky_sub1-1-ky,test-vpc-ky_sub1-1-ky,Inbound,2,Allow,ALL,10.240.64.0/24,10.240.1.0/24,-,Internal. response to required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
+acl-test-vpc-ky_sub1-1-ky,test-vpc-ky_sub1-1-ky,Inbound,3,Allow,ALL,10.240.2.0/23,10.240.1.0/24,-,Internal. required-connections[2]: (segment cidrSegment1)->(segment need-dns); allowed-protocols[0]
+acl-test-vpc-ky_sub1-1-ky,test-vpc-ky_sub1-1-ky,Outbound,4,Allow,ALL,10.240.1.0/24,10.240.2.0/23,-,Internal. response to required-connections[2]: (segment cidrSegment1)->(segment need-dns); allowed-protocols[0]
+acl-test-vpc-ky_sub1-1-ky,test-vpc-ky_sub1-1-ky,Outbound,5,Deny,ALL,10.0.0.0/8,10.0.0.0/8,-,"Deny other internal communication; see rfc1918#3; item 0,0"
+acl-test-vpc-ky_sub1-1-ky,test-vpc-ky_sub1-1-ky,Inbound,6,Deny,ALL,10.0.0.0/8,10.0.0.0/8,-,"Deny other internal communication; see rfc1918#3; item 0,0"
+acl-test-vpc-ky_sub1-1-ky,test-vpc-ky_sub1-1-ky,Outbound,7,Deny,ALL,10.0.0.0/8,172.16.0.0/12,-,"Deny other internal communication; see rfc1918#3; item 0,1"
+acl-test-vpc-ky_sub1-1-ky,test-vpc-ky_sub1-1-ky,Inbound,8,Deny,ALL,172.16.0.0/12,10.0.0.0/8,-,"Deny other internal communication; see rfc1918#3; item 0,1"
+acl-test-vpc-ky_sub1-1-ky,test-vpc-ky_sub1-1-ky,Outbound,9,Deny,ALL,10.0.0.0/8,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 0,2"
+acl-test-vpc-ky_sub1-1-ky,test-vpc-ky_sub1-1-ky,Inbound,10,Deny,ALL,192.168.0.0/16,10.0.0.0/8,-,"Deny other internal communication; see rfc1918#3; item 0,2"
+acl-test-vpc-ky_sub1-1-ky,test-vpc-ky_sub1-1-ky,Outbound,11,Deny,ALL,172.16.0.0/12,10.0.0.0/8,-,"Deny other internal communication; see rfc1918#3; item 1,0"
+acl-test-vpc-ky_sub1-1-ky,test-vpc-ky_sub1-1-ky,Inbound,12,Deny,ALL,10.0.0.0/8,172.16.0.0/12,-,"Deny other internal communication; see rfc1918#3; item 1,0"
+acl-test-vpc-ky_sub1-1-ky,test-vpc-ky_sub1-1-ky,Outbound,13,Deny,ALL,172.16.0.0/12,172.16.0.0/12,-,"Deny other internal communication; see rfc1918#3; item 1,1"
+acl-test-vpc-ky_sub1-1-ky,test-vpc-ky_sub1-1-ky,Inbound,14,Deny,ALL,172.16.0.0/12,172.16.0.0/12,-,"Deny other internal communication; see rfc1918#3; item 1,1"
+acl-test-vpc-ky_sub1-1-ky,test-vpc-ky_sub1-1-ky,Outbound,15,Deny,ALL,172.16.0.0/12,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 1,2"
+acl-test-vpc-ky_sub1-1-ky,test-vpc-ky_sub1-1-ky,Inbound,16,Deny,ALL,192.168.0.0/16,172.16.0.0/12,-,"Deny other internal communication; see rfc1918#3; item 1,2"
+acl-test-vpc-ky_sub1-1-ky,test-vpc-ky_sub1-1-ky,Outbound,17,Deny,ALL,192.168.0.0/16,10.0.0.0/8,-,"Deny other internal communication; see rfc1918#3; item 2,0"
+acl-test-vpc-ky_sub1-1-ky,test-vpc-ky_sub1-1-ky,Inbound,18,Deny,ALL,10.0.0.0/8,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 2,0"
+acl-test-vpc-ky_sub1-1-ky,test-vpc-ky_sub1-1-ky,Outbound,19,Deny,ALL,192.168.0.0/16,172.16.0.0/12,-,"Deny other internal communication; see rfc1918#3; item 2,1"
+acl-test-vpc-ky_sub1-1-ky,test-vpc-ky_sub1-1-ky,Inbound,20,Deny,ALL,172.16.0.0/12,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 2,1"
+acl-test-vpc-ky_sub1-1-ky,test-vpc-ky_sub1-1-ky,Outbound,21,Deny,ALL,192.168.0.0/16,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 2,2"
+acl-test-vpc-ky_sub1-1-ky,test-vpc-ky_sub1-1-ky,Inbound,22,Deny,ALL,192.168.0.0/16,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 2,2"
+acl-test-vpc-ky_sub1-1-ky,test-vpc-ky_sub1-1-ky,Outbound,23,Allow,UDP,"10.240.1.0/24, any port","8.8.8.8, ports 53-53",-,External. required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
+acl-test-vpc-ky_sub1-2-ky,test-vpc-ky_sub1-2-ky,Outbound,1,Allow,ALL,10.240.2.0/24,10.240.1.0/24,-,Internal. required-connections[2]: (segment cidrSegment1)->(segment need-dns); allowed-protocols[0]
+acl-test-vpc-ky_sub1-2-ky,test-vpc-ky_sub1-2-ky,Inbound,2,Allow,ALL,10.240.1.0/24,10.240.2.0/24,-,Internal. response to required-connections[2]: (segment cidrSegment1)->(segment need-dns); allowed-protocols[0]
+acl-test-vpc-ky_sub1-2-ky,test-vpc-ky_sub1-2-ky,Outbound,3,Allow,ALL,10.240.2.0/24,10.240.64.0/24,-,Internal. required-connections[2]: (segment cidrSegment1)->(segment need-dns); allowed-protocols[0]
+acl-test-vpc-ky_sub1-2-ky,test-vpc-ky_sub1-2-ky,Inbound,4,Allow,ALL,10.240.64.0/24,10.240.2.0/24,-,Internal. response to required-connections[2]: (segment cidrSegment1)->(segment need-dns); allowed-protocols[0]
+acl-test-vpc-ky_sub1-3-ky,test-vpc-ky_sub1-3-ky,Outbound,1,Allow,ALL,10.240.3.0/24,10.240.1.0/24,-,Internal. required-connections[2]: (segment cidrSegment1)->(segment need-dns); allowed-protocols[0]
+acl-test-vpc-ky_sub1-3-ky,test-vpc-ky_sub1-3-ky,Inbound,2,Allow,ALL,10.240.1.0/24,10.240.3.0/24,-,Internal. response to required-connections[2]: (segment cidrSegment1)->(segment need-dns); allowed-protocols[0]
+acl-test-vpc-ky_sub1-3-ky,test-vpc-ky_sub1-3-ky,Outbound,3,Allow,ALL,10.240.3.0/24,10.240.64.0/24,-,Internal. required-connections[2]: (segment cidrSegment1)->(segment need-dns); allowed-protocols[0]
+acl-test-vpc-ky_sub1-3-ky,test-vpc-ky_sub1-3-ky,Inbound,4,Allow,ALL,10.240.64.0/24,10.240.3.0/24,-,Internal. response to required-connections[2]: (segment cidrSegment1)->(segment need-dns); allowed-protocols[0]
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Inbound,1,Allow,ALL,10.240.1.0/24,10.240.64.0/24,-,Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Outbound,2,Allow,ALL,10.240.64.0/24,10.240.1.0/24,-,Internal. response to required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Inbound,3,Allow,ALL,10.240.2.0/23,10.240.64.0/24,-,Internal. required-connections[2]: (segment cidrSegment1)->(segment need-dns); allowed-protocols[0]
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Outbound,4,Allow,ALL,10.240.64.0/24,10.240.2.0/23,-,Internal. response to required-connections[2]: (segment cidrSegment1)->(segment need-dns); allowed-protocols[0]
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Outbound,5,Allow,TCP,"10.240.64.0/24, any port","10.240.128.0/24, any port",-,Internal. required-connections[3]: (segment cidrSegment2)->(subnet test-vpc-ky_sub3-1-ky); allowed-protocols[0]
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Inbound,6,Allow,TCP,"10.240.128.0/24, any port","10.240.64.0/24, any port",-,Internal. response to required-connections[3]: (segment cidrSegment2)->(subnet test-vpc-ky_sub3-1-ky); allowed-protocols[0]
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Outbound,7,Deny,ALL,10.0.0.0/8,10.0.0.0/8,-,"Deny other internal communication; see rfc1918#3; item 0,0"
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Inbound,8,Deny,ALL,10.0.0.0/8,10.0.0.0/8,-,"Deny other internal communication; see rfc1918#3; item 0,0"
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Outbound,9,Deny,ALL,10.0.0.0/8,172.16.0.0/12,-,"Deny other internal communication; see rfc1918#3; item 0,1"
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Inbound,10,Deny,ALL,172.16.0.0/12,10.0.0.0/8,-,"Deny other internal communication; see rfc1918#3; item 0,1"
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Outbound,11,Deny,ALL,10.0.0.0/8,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 0,2"
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Inbound,12,Deny,ALL,192.168.0.0/16,10.0.0.0/8,-,"Deny other internal communication; see rfc1918#3; item 0,2"
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Outbound,13,Deny,ALL,172.16.0.0/12,10.0.0.0/8,-,"Deny other internal communication; see rfc1918#3; item 1,0"
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Inbound,14,Deny,ALL,10.0.0.0/8,172.16.0.0/12,-,"Deny other internal communication; see rfc1918#3; item 1,0"
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Outbound,15,Deny,ALL,172.16.0.0/12,172.16.0.0/12,-,"Deny other internal communication; see rfc1918#3; item 1,1"
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Inbound,16,Deny,ALL,172.16.0.0/12,172.16.0.0/12,-,"Deny other internal communication; see rfc1918#3; item 1,1"
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Outbound,17,Deny,ALL,172.16.0.0/12,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 1,2"
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Inbound,18,Deny,ALL,192.168.0.0/16,172.16.0.0/12,-,"Deny other internal communication; see rfc1918#3; item 1,2"
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Outbound,19,Deny,ALL,192.168.0.0/16,10.0.0.0/8,-,"Deny other internal communication; see rfc1918#3; item 2,0"
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Inbound,20,Deny,ALL,10.0.0.0/8,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 2,0"
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Outbound,21,Deny,ALL,192.168.0.0/16,172.16.0.0/12,-,"Deny other internal communication; see rfc1918#3; item 2,1"
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Inbound,22,Deny,ALL,172.16.0.0/12,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 2,1"
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Outbound,23,Deny,ALL,192.168.0.0/16,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 2,2"
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Inbound,24,Deny,ALL,192.168.0.0/16,192.168.0.0/16,-,"Deny other internal communication; see rfc1918#3; item 2,2"
+acl-test-vpc-ky_sub2-1-ky,test-vpc-ky_sub2-1-ky,Outbound,25,Allow,UDP,"10.240.64.0/24, any port","8.8.8.8, ports 53-53",-,External. required-connections[1]: (segment need-dns)->(external dns); allowed-protocols[0]
+acl-test-vpc-ky_sub2-2-ky,test-vpc-ky_sub2-2-ky,Outbound,1,Allow,TCP,"10.240.65.0/24, any port","10.240.128.0/24, any port",-,Internal. required-connections[3]: (segment cidrSegment2)->(subnet test-vpc-ky_sub3-1-ky); allowed-protocols[0]
+acl-test-vpc-ky_sub2-2-ky,test-vpc-ky_sub2-2-ky,Inbound,2,Allow,TCP,"10.240.128.0/24, any port","10.240.65.0/24, any port",-,Internal. response to required-connections[3]: (segment cidrSegment2)->(subnet test-vpc-ky_sub3-1-ky); allowed-protocols[0]
+acl-test-vpc-ky_sub3-1-ky,test-vpc-ky_sub3-1-ky,Inbound,1,Allow,TCP,"10.240.64.0/18, any port","10.240.128.0/24, any port",-,Internal. required-connections[3]: (segment cidrSegment2)->(subnet test-vpc-ky_sub3-1-ky); allowed-protocols[0]
+acl-test-vpc-ky_sub3-1-ky,test-vpc-ky_sub3-1-ky,Outbound,2,Allow,TCP,"10.240.128.0/24, any port","10.240.64.0/18, any port",-,Internal. response to required-connections[3]: (segment cidrSegment2)->(subnet test-vpc-ky_sub3-1-ky); allowed-protocols[0]

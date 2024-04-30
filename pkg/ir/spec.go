@@ -247,7 +247,7 @@ func (s *Definitions) lookupSubnetSegment(name string) (Resource, error) {
 		for _, subnetName := range subnetSegmentDetails.Subnets {
 			subnet, err := s.Lookup(ResourceTypeSubnet, string(subnetName))
 			if err != nil {
-				return Resource{}, subnetNotFoundError(name, err)
+				return Resource{}, fmt.Errorf("%w while looking up %v %v for subnet %v", err, ResourceTypeSubnet, subnetName, name)
 			}
 			ips = append(ips, subnet.Values...)
 		}
@@ -259,14 +259,8 @@ func (s *Definitions) lookupSubnetSegment(name string) (Resource, error) {
 func (s *Definitions) lookupCidrSegment(name string) (Resource, error) {
 	ips := []IP{}
 	if cidrSegmentDetails, ok := s.CidrSegments[ID(name)]; ok {
-		for _, cidrDetails := range cidrSegmentDetails.Cidrs {
-			for _, subnetName := range cidrDetails.ContainedSubnets {
-				subnet, err := s.Lookup(ResourceTypeSubnet, string(subnetName))
-				if err != nil {
-					return Resource{}, subnetNotFoundError(name, err)
-				}
-				ips = append(ips, subnet.Values...)
-			}
+		for cidr := range cidrSegmentDetails.Cidrs {
+			ips = append(ips, IPFromCidr(cidr))
 		}
 		return Resource{name, ips, ResourceTypeSubnet}, nil
 	}
@@ -417,10 +411,6 @@ func ScopingComponents(s string) []string {
 
 func containerNotFoundError(name string, resource ResourceType) error {
 	return fmt.Errorf("container %v %v not found", ResourceTypeSegment, name)
-}
-
-func subnetNotFoundError(name string, err error) error {
-	return fmt.Errorf("%w while looking up for subnet %v", err, name)
 }
 
 func UniqueIDValues(s []ID) []ID {

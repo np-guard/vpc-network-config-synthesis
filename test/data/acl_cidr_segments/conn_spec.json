@@ -1,0 +1,81 @@
+{
+    "segments": {
+        "need-dns": {
+            "type": "subnet",
+            "items": [
+                "sub1-1-ky",
+                "sub2-1-ky"
+            ]
+        },
+        "cidrSegment1": {
+            "type": "cidr",
+            "items": [
+                "10.240.2.0/23"
+            ]
+        },
+        "cidrSegment2": {
+            "type": "cidr",
+            "items": [
+                "10.240.64.0/18"
+            ]
+        }
+    },
+    "externals": {
+        "dns": "8.8.8.8"
+    },
+    "required-connections": [
+        {
+            "src": {
+                "name": "need-dns",
+                "type": "segment"
+            },
+            "dst": {
+                "name": "need-dns",
+                "type": "segment"
+            }
+        },
+        {
+            "src": {
+                "name": "need-dns",
+                "type": "segment"
+            },
+            "dst": {
+                "name": "dns",
+                "type": "external"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "UDP",
+                    "min_destination_port": 53,
+                    "max_destination_port": 53
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "cidrSegment1",
+                "type": "segment"
+            },
+            "dst": {
+                "name": "need-dns",
+                "type": "segment"
+            }
+        },
+        {
+            "bidirectional": true,
+            "src": {
+                "name": "cidrSegment2",
+                "type": "segment"
+            },
+            "dst": {
+                "name": "sub3-1-ky",
+                "type": "subnet"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ]
+        }
+    ]
+}
