@@ -58,20 +58,20 @@ func ReadDefs(filename string) (*ir.ConfigDefs, error) {
 	}, nil
 }
 
-func parseVPCs(config *configModel.ResourcesContainerModel) map[ir.ID]ir.VPCDetails {
-	VPCs := make(map[ir.ID]ir.VPCDetails)
+func parseVPCs(config *configModel.ResourcesContainerModel) map[ir.ID]*ir.VPCDetails {
+	VPCs := make(map[ir.ID]*ir.VPCDetails)
 	for _, vpc := range config.VpcList {
 		addressPrefixes := make([]ir.CIDR, 0)
 		for _, addressPrefix := range vpc.AddressPrefixes {
 			addressPrefixes = append(addressPrefixes, ir.CidrFromString(*addressPrefix.CIDR))
 		}
-		VPCs[ir.ID(*vpc.Name)] = ir.VPCDetails{AddressPrefixes: addressPrefixes}
+		VPCs[ir.ID(*vpc.Name)] = &ir.VPCDetails{AddressPrefixes: addressPrefixes}
 	}
 	return VPCs
 }
 
-func parseSubnets(config *configModel.ResourcesContainerModel) map[ir.ID]ir.SubnetDetails {
-	subnets := make(map[ir.ID]ir.SubnetDetails)
+func parseSubnets(config *configModel.ResourcesContainerModel) map[ir.ID]*ir.SubnetDetails {
+	subnets := make(map[ir.ID]*ir.SubnetDetails)
 	for _, subnet := range config.SubnetList {
 		uniqueName := ir.ID(scopingString(*subnet.VPC.Name, *subnet.Name))
 		subnetDetails := ir.SubnetDetails{
@@ -79,15 +79,15 @@ func parseSubnets(config *configModel.ResourcesContainerModel) map[ir.ID]ir.Subn
 			VPC:         ir.ID(*subnet.VPC.Name),
 			CIDR:        ir.IPFromString(*subnet.Ipv4CIDRBlock),
 		}
-		subnets[uniqueName] = subnetDetails
+		subnets[uniqueName] = &subnetDetails
 	}
 	return subnets
 }
 
-func parseInstancesNifs(config *configModel.ResourcesContainerModel) (instances map[ir.ID]ir.InstanceDetails,
-	nifs map[ir.ID]ir.NifDetails) {
-	instances = make(map[ir.ID]ir.InstanceDetails)
-	nifs = make(map[ir.ID]ir.NifDetails)
+func parseInstancesNifs(config *configModel.ResourcesContainerModel) (instances map[ir.ID]*ir.InstanceDetails,
+	nifs map[ir.ID]*ir.NifDetails) {
+	instances = make(map[ir.ID]*ir.InstanceDetails)
+	nifs = make(map[ir.ID]*ir.NifDetails)
 	for _, instance := range config.InstanceList {
 		instanceUniqueName := scopingString(*instance.VPC.Name, *instance.Name)
 		instanceNifs := make([]ir.ID, len(instance.NetworkInterfaces))
@@ -99,7 +99,7 @@ func parseInstancesNifs(config *configModel.ResourcesContainerModel) (instances 
 				VPC:         ir.ID(*instance.VPC.Name),
 				IP:          ir.IPFromString(*instance.NetworkInterfaces[i].PrimaryIP.Address),
 			}
-			nifs[ir.ID(nifUniqueName)] = nifDetails
+			nifs[ir.ID(nifUniqueName)] = &nifDetails
 			instanceNifs[i] = ir.ID(nifUniqueName)
 		}
 		instanceDetails := ir.InstanceDetails{
@@ -107,14 +107,14 @@ func parseInstancesNifs(config *configModel.ResourcesContainerModel) (instances 
 			VPC:         ir.ID(*instance.VPC.Name),
 			Nifs:        instanceNifs,
 		}
-		instances[ir.ID(instanceUniqueName)] = instanceDetails
+		instances[ir.ID(instanceUniqueName)] = &instanceDetails
 	}
 	return instances, nifs
 }
 
-func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]ir.VPEDetails, vpeEndpoints map[ir.ID]ir.VPEEndpointDetails) {
-	vpes = make(map[ir.ID]ir.VPEDetails)
-	vpeEndpoints = make(map[ir.ID]ir.VPEEndpointDetails)
+func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]*ir.VPEDetails, vpeEndpoints map[ir.ID]*ir.VPEEndpointDetails) {
+	vpes = make(map[ir.ID]*ir.VPEDetails)
+	vpeEndpoints = make(map[ir.ID]*ir.VPEEndpointDetails)
 
 	for _, vpe := range config.EndpointGWList {
 		if *vpe.ResourceType == EndpointVPE {
@@ -124,7 +124,7 @@ func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]ir.V
 				VPEEndpoint: []ir.ID{},
 				VPC:         ir.ID(*vpe.VPC.Name),
 			}
-			vpes[ir.ID(uniqueVpeName)] = vpeDetails
+			vpes[ir.ID(uniqueVpeName)] = &vpeDetails
 		}
 	}
 
@@ -142,7 +142,7 @@ func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]ir.V
 						IP:          ir.IPFromString(*r.Address),
 						VPC:         vpes[VPEName].VPC,
 					}
-					vpeEndpoints[ir.ID(uniqueVpeEndpointName)] = vpeEndpointDetails
+					vpeEndpoints[ir.ID(uniqueVpeEndpointName)] = &vpeEndpointDetails
 					vpe := vpes[VPEName]
 					vpe.VPEEndpoint = append(vpe.VPEEndpoint, ir.ID(uniqueVpeEndpointName))
 					vpes[VPEName] = vpe
@@ -154,7 +154,7 @@ func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]ir.V
 	return vpes, vpeEndpoints
 }
 
-func validateVpcs(vpcs map[ir.ID]ir.VPCDetails) error {
+func validateVpcs(vpcs map[ir.ID]*ir.VPCDetails) error {
 	for vpcName1, vpcDetails1 := range vpcs {
 		for vpcName2, vpcDetails2 := range vpcs {
 			if vpcName1 == vpcName2 {

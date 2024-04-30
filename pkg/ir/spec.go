@@ -57,17 +57,17 @@ type (
 
 	// ConfigDefs holds definitions that are part of the network architecture
 	ConfigDefs struct {
-		VPCs map[ID]VPCDetails
+		VPCs map[ID]*VPCDetails
 
-		Subnets map[ID]SubnetDetails
+		Subnets map[ID]*SubnetDetails
 
-		NIFs map[ID]NifDetails
+		NIFs map[ID]*NifDetails
 
-		Instances map[ID]InstanceDetails
+		Instances map[ID]*InstanceDetails
 
-		VPEEndpoints map[ID]VPEEndpointDetails
+		VPEEndpoints map[ID]*VPEEndpointDetails
 
-		VPEs map[ID]VPEDetails
+		VPEs map[ID]*VPEDetails
 	}
 
 	// Definitions adds to ConfigDefs the spec-specific definitions
@@ -75,13 +75,13 @@ type (
 		ConfigDefs
 
 		// Segments are a way for users to create aggregations.
-		SubnetSegments map[ID]SubnetSegmentDetails
+		SubnetSegments map[ID]*SubnetSegmentDetails
 
 		// Cidr segment might contain some cidrs
-		CidrSegments map[ID]CidrSegmentDetails
+		CidrSegments map[ID]*CidrSegmentDetails
 
 		// Externals are a way for users to name IP addresses or ranges external to the VPC.
-		Externals map[ID]ExternalDetails
+		Externals map[ID]*ExternalDetails
 	}
 
 	VPCDetails struct {
@@ -154,47 +154,47 @@ type (
 	}
 )
 
-func (n NamedEntity) Name() string {
-	return string(n)
+func (n *NamedEntity) Name() string {
+	return string(*n)
 }
 
-func (s SubnetDetails) Address() IP {
+func (s *SubnetDetails) Address() IP {
 	return s.CIDR
 }
 
-func (n NifDetails) Address() IP {
+func (n *NifDetails) Address() IP {
 	return n.IP
 }
 
-func (v VPEEndpointDetails) Address() IP {
+func (v *VPEEndpointDetails) Address() IP {
 	return v.IP
 }
 
-func (e ExternalDetails) Address() IP {
+func (e *ExternalDetails) Address() IP {
 	return e.IP
 }
 
-func (s SubnetDetails) getVPC() []ID {
+func (s *SubnetDetails) getVPC() []ID {
 	return []ID{s.VPC}
 }
 
-func (n NifDetails) getVPC() []ID {
+func (n *NifDetails) getVPC() []ID {
 	return []ID{n.VPC}
 }
 
-func (i InstanceDetails) getVPC() []ID {
+func (i *InstanceDetails) getVPC() []ID {
 	return []ID{i.VPC}
 }
 
-func (v VPEEndpointDetails) getVPC() []ID {
+func (v *VPEEndpointDetails) getVPC() []ID {
 	return []ID{v.VPC}
 }
 
-func (s SubnetSegmentDetails) getVPC() []ID {
+func (s *SubnetSegmentDetails) getVPC() []ID {
 	return s.OverlappingVPCs
 }
 
-func (c CidrSegmentDetails) getVPC() []ID {
+func (c *CidrSegmentDetails) getVPC() []ID {
 	result := make([]ID, 0)
 	for _, cidrDetails := range c.Cidrs {
 		result = append(result, cidrDetails.OverlappingVPCs...)
@@ -338,7 +338,7 @@ func inverseLookup[T NWResource](m map[ID]T, ip IP) (result string, ok bool) {
 	return "", false
 }
 
-func inverseLookupInstance(m map[ID]InstanceDetails, name string) (result string, ok bool) {
+func inverseLookupInstance(m map[ID]*InstanceDetails, name string) (result string, ok bool) {
 	for instanceName, instanceDetails := range m {
 		for _, nif := range instanceDetails.Nifs {
 			if string(nif) == name {
