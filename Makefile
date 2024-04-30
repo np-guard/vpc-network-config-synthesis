@@ -1,5 +1,5 @@
 REPOSITORY := github.com/np-guard/vpc-network-config-synthesis
-ifeq ($(OS),Windows_NT)
+ifeq ($(shell echo "A"),"A")  # a strange way to check whether we use windows environment or not
 	SET = set
 	TARGETNAME = vpcgen.exe
 else

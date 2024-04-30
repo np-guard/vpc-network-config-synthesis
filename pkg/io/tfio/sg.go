@@ -32,7 +32,7 @@ func value(x interface{}) string {
 	case ir.IP:
 		return quote(v.String())
 	case ir.SGName:
-		return addSpaces(fmt.Sprintf("ibm_is_security_group.%v.id", v))
+		return changeScoping(fmt.Sprintf("ibm_is_security_group.%v.id", v))
 	default:
 		log.Fatalf("invalid terraform value %v", v)
 	}
@@ -114,6 +114,6 @@ func sgCollection(t *ir.SGCollection) *tf.ConfigFile {
 }
 
 // change the string so the output will match the terraform format and linter
-func addSpaces(s string) string {
-	return strings.ReplaceAll(s, "/", " / ")
+func changeScoping(s string) string {
+	return strings.ReplaceAll(s, "/", "---")
 }
