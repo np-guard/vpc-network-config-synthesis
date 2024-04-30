@@ -34,7 +34,7 @@ resource "ibm_is_network_acl" "acl-1" {
     source      = "10.240.4.0/24"
     destination = "10.240.0.0/24"
   }
-  # Internal. required-connections[1]: (segment segment1)->(subnet test-vpc0_subnet3); allowed-protocols[0]
+  # Internal. required-connections[1]: (segment segment1)->(subnet test-vpc0/subnet3); allowed-protocols[0]
   rules {
     name        = "rule4"
     action      = "allow"
@@ -46,7 +46,7 @@ resource "ibm_is_network_acl" "acl-1" {
       port_max = 53
     }
   }
-  # Internal. required-connections[1]: (segment segment1)->(subnet test-vpc0_subnet3); allowed-protocols[0]
+  # Internal. required-connections[1]: (segment segment1)->(subnet test-vpc0/subnet3); allowed-protocols[0]
   rules {
     name        = "rule5"
     action      = "allow"
@@ -58,7 +58,7 @@ resource "ibm_is_network_acl" "acl-1" {
       port_max = 53
     }
   }
-  # Internal. required-connections[1]: (segment segment1)->(subnet test-vpc0_subnet3); allowed-protocols[0]
+  # Internal. required-connections[1]: (segment segment1)->(subnet test-vpc0/subnet3); allowed-protocols[0]
   rules {
     name        = "rule6"
     action      = "allow"
@@ -70,7 +70,7 @@ resource "ibm_is_network_acl" "acl-1" {
       port_max = 53
     }
   }
-  # Internal. required-connections[1]: (segment segment1)->(subnet test-vpc0_subnet3); allowed-protocols[0]
+  # Internal. required-connections[1]: (segment segment1)->(subnet test-vpc0/subnet3); allowed-protocols[0]
   rules {
     name        = "rule7"
     action      = "allow"
@@ -82,7 +82,7 @@ resource "ibm_is_network_acl" "acl-1" {
       port_max = 53
     }
   }
-  # Internal. required-connections[2]: (subnet test-vpc0_subnet4)->(subnet test-vpc0_subnet5); allowed-protocols[0]
+  # Internal. required-connections[2]: (subnet test-vpc0/subnet4)->(subnet test-vpc0/subnet5); allowed-protocols[0]
   rules {
     name        = "rule8"
     action      = "allow"
@@ -94,7 +94,7 @@ resource "ibm_is_network_acl" "acl-1" {
       code = 0
     }
   }
-  # Internal. response to required-connections[2]: (subnet test-vpc0_subnet4)->(subnet test-vpc0_subnet5); allowed-protocols[0]
+  # Internal. response to required-connections[2]: (subnet test-vpc0/subnet4)->(subnet test-vpc0/subnet5); allowed-protocols[0]
   rules {
     name        = "rule9"
     action      = "allow"
@@ -106,7 +106,7 @@ resource "ibm_is_network_acl" "acl-1" {
       code = 0
     }
   }
-  # Internal. required-connections[2]: (subnet test-vpc0_subnet4)->(subnet test-vpc0_subnet5); allowed-protocols[0]
+  # Internal. required-connections[2]: (subnet test-vpc0/subnet4)->(subnet test-vpc0/subnet5); allowed-protocols[0]
   rules {
     name        = "rule10"
     action      = "allow"
@@ -118,7 +118,7 @@ resource "ibm_is_network_acl" "acl-1" {
       code = 0
     }
   }
-  # Internal. response to required-connections[2]: (subnet test-vpc0_subnet4)->(subnet test-vpc0_subnet5); allowed-protocols[0]
+  # Internal. response to required-connections[2]: (subnet test-vpc0/subnet4)->(subnet test-vpc0/subnet5); allowed-protocols[0]
   rules {
     name        = "rule11"
     action      = "allow"

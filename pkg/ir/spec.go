@@ -262,7 +262,7 @@ func (s *Definitions) lookupCidrSegment(name string) (Resource, error) {
 		for cidr := range cidrSegmentDetails.Cidrs {
 			ips = append(ips, IPFromCidr(cidr))
 		}
-		return Resource{name, ips, ResourceTypeSubnet}, nil
+		return Resource{name, ips, ResourceTypeCidr}, nil
 	}
 	return Resource{}, containerNotFoundError(name, ResourceTypeSegment)
 }
@@ -406,7 +406,7 @@ func ConvertStringToIDSlice(s []string) []ID {
 }
 
 func ScopingComponents(s string) []string {
-	return strings.Split(s, "_")
+	return strings.Split(s, "/")
 }
 
 func containerNotFoundError(name string, resource ResourceType) error {

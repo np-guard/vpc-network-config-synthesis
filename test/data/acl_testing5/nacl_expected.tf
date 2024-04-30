@@ -1,6 +1,6 @@
-# testacl5-vpc_sub1-1 [10.240.1.0/24]
-resource "ibm_is_network_acl" "acl-testacl5-vpc_sub1-1" {
-  name           = "acl-testacl5-vpc_sub1-1"
+# testacl5-vpc/sub1-1 [10.240.1.0/24]
+resource "ibm_is_network_acl" "acl-testacl5-vpc/sub1-1" {
+  name           = "acl-testacl5-vpc/sub1-1"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_vpc_id
   # Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
@@ -19,7 +19,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub1-1" {
     source      = "10.240.64.0/24"
     destination = "10.240.1.0/24"
   }
-  # Internal. required-connections[2]: (segment need-dns)->(subnet testacl5-vpc_sub3-1); allowed-protocols[0]
+  # Internal. required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
   rules {
     name        = "rule2"
     action      = "allow"
@@ -31,7 +31,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub1-1" {
       code = 0
     }
   }
-  # Internal. response to required-connections[2]: (segment need-dns)->(subnet testacl5-vpc_sub3-1); allowed-protocols[0]
+  # Internal. response to required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
   rules {
     name        = "rule3"
     action      = "allow"
@@ -43,7 +43,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub1-1" {
       code = 0
     }
   }
-  # Internal. required-connections[3]: (subnet testacl5-vpc_sub1-1)->(subnet testacl5-vpc_sub1-2); allowed-protocols[0]
+  # Internal. required-connections[3]: (subnet testacl5-vpc/sub1-1)->(subnet testacl5-vpc/sub1-2); allowed-protocols[0]
   rules {
     name        = "rule4"
     action      = "allow"
@@ -53,7 +53,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub1-1" {
     tcp {
     }
   }
-  # Internal. response to required-connections[3]: (subnet testacl5-vpc_sub1-1)->(subnet testacl5-vpc_sub1-2); allowed-protocols[0]
+  # Internal. response to required-connections[3]: (subnet testacl5-vpc/sub1-1)->(subnet testacl5-vpc/sub1-2); allowed-protocols[0]
   rules {
     name        = "rule5"
     action      = "allow"
@@ -63,7 +63,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub1-1" {
     tcp {
     }
   }
-  # Internal. required-connections[4]: (subnet testacl5-vpc_sub1-1)->(subnet testacl5-vpc_sub1-3); allowed-protocols[0]
+  # Internal. required-connections[4]: (subnet testacl5-vpc/sub1-1)->(subnet testacl5-vpc/sub1-3); allowed-protocols[0]
   rules {
     name        = "rule6"
     action      = "allow"
@@ -73,7 +73,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub1-1" {
     tcp {
     }
   }
-  # Internal. response to required-connections[4]: (subnet testacl5-vpc_sub1-1)->(subnet testacl5-vpc_sub1-3); allowed-protocols[0]
+  # Internal. response to required-connections[4]: (subnet testacl5-vpc/sub1-1)->(subnet testacl5-vpc/sub1-3); allowed-protocols[0]
   rules {
     name        = "rule7"
     action      = "allow"
@@ -241,12 +241,12 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub1-1" {
   }
 }
 
-# testacl5-vpc_sub1-2 [10.240.2.0/24]
-resource "ibm_is_network_acl" "acl-testacl5-vpc_sub1-2" {
-  name           = "acl-testacl5-vpc_sub1-2"
+# testacl5-vpc/sub1-2 [10.240.2.0/24]
+resource "ibm_is_network_acl" "acl-testacl5-vpc/sub1-2" {
+  name           = "acl-testacl5-vpc/sub1-2"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_vpc_id
-  # Internal. required-connections[3]: (subnet testacl5-vpc_sub1-1)->(subnet testacl5-vpc_sub1-2); allowed-protocols[0]
+  # Internal. required-connections[3]: (subnet testacl5-vpc/sub1-1)->(subnet testacl5-vpc/sub1-2); allowed-protocols[0]
   rules {
     name        = "rule0"
     action      = "allow"
@@ -256,7 +256,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub1-2" {
     tcp {
     }
   }
-  # Internal. response to required-connections[3]: (subnet testacl5-vpc_sub1-1)->(subnet testacl5-vpc_sub1-2); allowed-protocols[0]
+  # Internal. response to required-connections[3]: (subnet testacl5-vpc/sub1-1)->(subnet testacl5-vpc/sub1-2); allowed-protocols[0]
   rules {
     name        = "rule1"
     action      = "allow"
@@ -266,7 +266,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub1-2" {
     tcp {
     }
   }
-  # Internal. required-connections[5]: (subnet testacl5-vpc_sub1-2)->(subnet testacl5-vpc_sub1-3); allowed-protocols[0]
+  # Internal. required-connections[5]: (subnet testacl5-vpc/sub1-2)->(subnet testacl5-vpc/sub1-3); allowed-protocols[0]
   rules {
     name        = "rule2"
     action      = "allow"
@@ -276,7 +276,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub1-2" {
     tcp {
     }
   }
-  # Internal. response to required-connections[5]: (subnet testacl5-vpc_sub1-2)->(subnet testacl5-vpc_sub1-3); allowed-protocols[0]
+  # Internal. response to required-connections[5]: (subnet testacl5-vpc/sub1-2)->(subnet testacl5-vpc/sub1-3); allowed-protocols[0]
   rules {
     name        = "rule3"
     action      = "allow"
@@ -288,12 +288,12 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub1-2" {
   }
 }
 
-# testacl5-vpc_sub1-3 [10.240.3.0/24]
-resource "ibm_is_network_acl" "acl-testacl5-vpc_sub1-3" {
-  name           = "acl-testacl5-vpc_sub1-3"
+# testacl5-vpc/sub1-3 [10.240.3.0/24]
+resource "ibm_is_network_acl" "acl-testacl5-vpc/sub1-3" {
+  name           = "acl-testacl5-vpc/sub1-3"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_vpc_id
-  # Internal. required-connections[4]: (subnet testacl5-vpc_sub1-1)->(subnet testacl5-vpc_sub1-3); allowed-protocols[0]
+  # Internal. required-connections[4]: (subnet testacl5-vpc/sub1-1)->(subnet testacl5-vpc/sub1-3); allowed-protocols[0]
   rules {
     name        = "rule0"
     action      = "allow"
@@ -303,7 +303,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub1-3" {
     tcp {
     }
   }
-  # Internal. response to required-connections[4]: (subnet testacl5-vpc_sub1-1)->(subnet testacl5-vpc_sub1-3); allowed-protocols[0]
+  # Internal. response to required-connections[4]: (subnet testacl5-vpc/sub1-1)->(subnet testacl5-vpc/sub1-3); allowed-protocols[0]
   rules {
     name        = "rule1"
     action      = "allow"
@@ -313,7 +313,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub1-3" {
     tcp {
     }
   }
-  # Internal. required-connections[5]: (subnet testacl5-vpc_sub1-2)->(subnet testacl5-vpc_sub1-3); allowed-protocols[0]
+  # Internal. required-connections[5]: (subnet testacl5-vpc/sub1-2)->(subnet testacl5-vpc/sub1-3); allowed-protocols[0]
   rules {
     name        = "rule2"
     action      = "allow"
@@ -323,7 +323,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub1-3" {
     tcp {
     }
   }
-  # Internal. response to required-connections[5]: (subnet testacl5-vpc_sub1-2)->(subnet testacl5-vpc_sub1-3); allowed-protocols[0]
+  # Internal. response to required-connections[5]: (subnet testacl5-vpc/sub1-2)->(subnet testacl5-vpc/sub1-3); allowed-protocols[0]
   rules {
     name        = "rule3"
     action      = "allow"
@@ -335,9 +335,9 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub1-3" {
   }
 }
 
-# testacl5-vpc_sub2-1 [10.240.64.0/24]
-resource "ibm_is_network_acl" "acl-testacl5-vpc_sub2-1" {
-  name           = "acl-testacl5-vpc_sub2-1"
+# testacl5-vpc/sub2-1 [10.240.64.0/24]
+resource "ibm_is_network_acl" "acl-testacl5-vpc/sub2-1" {
+  name           = "acl-testacl5-vpc/sub2-1"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_vpc_id
   # Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
@@ -356,7 +356,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub2-1" {
     source      = "10.240.64.0/24"
     destination = "10.240.1.0/24"
   }
-  # Internal. required-connections[2]: (segment need-dns)->(subnet testacl5-vpc_sub3-1); allowed-protocols[0]
+  # Internal. required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
   rules {
     name        = "rule2"
     action      = "allow"
@@ -368,7 +368,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub2-1" {
       code = 0
     }
   }
-  # Internal. response to required-connections[2]: (segment need-dns)->(subnet testacl5-vpc_sub3-1); allowed-protocols[0]
+  # Internal. response to required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
   rules {
     name        = "rule3"
     action      = "allow"
@@ -380,7 +380,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub2-1" {
       code = 0
     }
   }
-  # Internal. required-connections[6]: (subnet testacl5-vpc_sub2-1)->(subnet testacl5-vpc_sub2-2); allowed-protocols[0]
+  # Internal. required-connections[6]: (subnet testacl5-vpc/sub2-1)->(subnet testacl5-vpc/sub2-2); allowed-protocols[0]
   rules {
     name        = "rule4"
     action      = "allow"
@@ -388,7 +388,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub2-1" {
     source      = "10.240.64.0/24"
     destination = "10.240.65.0/24"
   }
-  # Internal. response to required-connections[6]: (subnet testacl5-vpc_sub2-1)->(subnet testacl5-vpc_sub2-2); allowed-protocols[0]
+  # Internal. response to required-connections[6]: (subnet testacl5-vpc/sub2-1)->(subnet testacl5-vpc/sub2-2); allowed-protocols[0]
   rules {
     name        = "rule5"
     action      = "allow"
@@ -396,7 +396,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub2-1" {
     source      = "10.240.65.0/24"
     destination = "10.240.64.0/24"
   }
-  # Internal. required-connections[7]: (subnet testacl5-vpc_sub3-1)->(subnet testacl5-vpc_sub2-1); allowed-protocols[0]
+  # Internal. required-connections[7]: (subnet testacl5-vpc/sub3-1)->(subnet testacl5-vpc/sub2-1); allowed-protocols[0]
   rules {
     name        = "rule6"
     action      = "allow"
@@ -408,7 +408,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub2-1" {
       port_max = 443
     }
   }
-  # Internal. response to required-connections[7]: (subnet testacl5-vpc_sub3-1)->(subnet testacl5-vpc_sub2-1); allowed-protocols[0]
+  # Internal. response to required-connections[7]: (subnet testacl5-vpc/sub3-1)->(subnet testacl5-vpc/sub2-1); allowed-protocols[0]
   rules {
     name        = "rule7"
     action      = "allow"
@@ -578,12 +578,12 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub2-1" {
   }
 }
 
-# testacl5-vpc_sub2-2 [10.240.65.0/24]
-resource "ibm_is_network_acl" "acl-testacl5-vpc_sub2-2" {
-  name           = "acl-testacl5-vpc_sub2-2"
+# testacl5-vpc/sub2-2 [10.240.65.0/24]
+resource "ibm_is_network_acl" "acl-testacl5-vpc/sub2-2" {
+  name           = "acl-testacl5-vpc/sub2-2"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_vpc_id
-  # Internal. required-connections[6]: (subnet testacl5-vpc_sub2-1)->(subnet testacl5-vpc_sub2-2); allowed-protocols[0]
+  # Internal. required-connections[6]: (subnet testacl5-vpc/sub2-1)->(subnet testacl5-vpc/sub2-2); allowed-protocols[0]
   rules {
     name        = "rule0"
     action      = "allow"
@@ -591,7 +591,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub2-2" {
     source      = "10.240.64.0/24"
     destination = "10.240.65.0/24"
   }
-  # Internal. response to required-connections[6]: (subnet testacl5-vpc_sub2-1)->(subnet testacl5-vpc_sub2-2); allowed-protocols[0]
+  # Internal. response to required-connections[6]: (subnet testacl5-vpc/sub2-1)->(subnet testacl5-vpc/sub2-2); allowed-protocols[0]
   rules {
     name        = "rule1"
     action      = "allow"
@@ -601,12 +601,12 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub2-2" {
   }
 }
 
-# testacl5-vpc_sub3-1 [10.240.128.0/24]
-resource "ibm_is_network_acl" "acl-testacl5-vpc_sub3-1" {
-  name           = "acl-testacl5-vpc_sub3-1"
+# testacl5-vpc/sub3-1 [10.240.128.0/24]
+resource "ibm_is_network_acl" "acl-testacl5-vpc/sub3-1" {
+  name           = "acl-testacl5-vpc/sub3-1"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_vpc_id
-  # Internal. required-connections[2]: (segment need-dns)->(subnet testacl5-vpc_sub3-1); allowed-protocols[0]
+  # Internal. required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
   rules {
     name        = "rule0"
     action      = "allow"
@@ -618,7 +618,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub3-1" {
       code = 0
     }
   }
-  # Internal. response to required-connections[2]: (segment need-dns)->(subnet testacl5-vpc_sub3-1); allowed-protocols[0]
+  # Internal. response to required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
   rules {
     name        = "rule1"
     action      = "allow"
@@ -630,7 +630,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub3-1" {
       code = 0
     }
   }
-  # Internal. required-connections[2]: (segment need-dns)->(subnet testacl5-vpc_sub3-1); allowed-protocols[0]
+  # Internal. required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
   rules {
     name        = "rule2"
     action      = "allow"
@@ -642,7 +642,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub3-1" {
       code = 0
     }
   }
-  # Internal. response to required-connections[2]: (segment need-dns)->(subnet testacl5-vpc_sub3-1); allowed-protocols[0]
+  # Internal. response to required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
   rules {
     name        = "rule3"
     action      = "allow"
@@ -654,7 +654,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub3-1" {
       code = 0
     }
   }
-  # Internal. required-connections[7]: (subnet testacl5-vpc_sub3-1)->(subnet testacl5-vpc_sub2-1); allowed-protocols[0]
+  # Internal. required-connections[7]: (subnet testacl5-vpc/sub3-1)->(subnet testacl5-vpc/sub2-1); allowed-protocols[0]
   rules {
     name        = "rule4"
     action      = "allow"
@@ -666,7 +666,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc_sub3-1" {
       port_max = 443
     }
   }
-  # Internal. response to required-connections[7]: (subnet testacl5-vpc_sub3-1)->(subnet testacl5-vpc_sub2-1); allowed-protocols[0]
+  # Internal. response to required-connections[7]: (subnet testacl5-vpc/sub3-1)->(subnet testacl5-vpc/sub2-1); allowed-protocols[0]
   rules {
     name        = "rule5"
     action      = "allow"

@@ -57,7 +57,7 @@ func (s *Spec) ComputeBlockedSubnets(singleACL bool) {
 				}
 			}
 		}
-		if !s.findResourceInConnections(cidrSegments, ResourceTypeSubnet) {
+		if !s.findResourceInConnections(cidrSegments, ResourceTypeCidr) {
 			blockedSubnets = append(blockedSubnets, string(subnet))
 		}
 	}

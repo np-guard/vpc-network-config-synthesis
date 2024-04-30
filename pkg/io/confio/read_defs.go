@@ -181,5 +181,5 @@ func validateVpcs(vpcs map[ir.ID]ir.VPCDetails) error {
 }
 
 func scopingString(s1, s2 string) string {
-	return s1 + "_" + s2
+	return s1 + "/" + s2
 }
