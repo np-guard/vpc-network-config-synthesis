@@ -205,14 +205,15 @@ func (c *CidrSegmentDetails) getVPC() []ID {
 type ResourceType string
 
 const (
-	ResourceTypeExternal ResourceType = "external"
-	ResourceTypeSegment  ResourceType = "segment"
-	ResourceTypeCidr     ResourceType = "cidr"
-	ResourceTypeSubnet   ResourceType = "subnet"
-	ResourceTypeNIF      ResourceType = "nif"
-	ResourceTypeVPE      ResourceType = "vpe"
-	ResourceTypeInstance ResourceType = "instance"
-	ResourceTypeAny      ResourceType = "any"
+	ResourceTypeExternal    ResourceType = "external"
+	ResourceTypeSegment     ResourceType = "segment"
+	ResourceTypeCidrSegment ResourceType = "cidrSegment"
+	ResourceTypeCidr        ResourceType = "cidr"
+	ResourceTypeSubnet      ResourceType = "subnet"
+	ResourceTypeNIF         ResourceType = "nif"
+	ResourceTypeVPE         ResourceType = "vpe"
+	ResourceTypeInstance    ResourceType = "instance"
+	ResourceTypeAny         ResourceType = "any"
 )
 
 func getResourceVPCs[T ResourceVpc](m map[ID]T, name string) []ID {
@@ -310,10 +311,8 @@ func (s *Definitions) GetResourceOverlappingVPCs(t ResourceType, name string) []
 	case ResourceTypeSegment:
 		if _, ok := s.SubnetSegments[ID(name)]; ok { // subnet segment
 			return getResourceVPCs(s.SubnetSegments, name)
-		} else {
-			return getResourceVPCs(s.CidrSegments, name)
 		}
-
+		return getResourceVPCs(s.CidrSegments, name)
 	default:
 		return []ID{}
 	}
@@ -410,7 +409,7 @@ func ScopingComponents(s string) []string {
 }
 
 func containerNotFoundError(name string, resource ResourceType) error {
-	return fmt.Errorf("container %v %v not found", ResourceTypeSegment, name)
+	return fmt.Errorf("container %v %v not found", resource, name)
 }
 
 func UniqueIDValues(s []ID) []ID {

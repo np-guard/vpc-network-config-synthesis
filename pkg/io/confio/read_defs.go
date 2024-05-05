@@ -14,9 +14,9 @@ import (
 
 	configModel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
-
 	"github.com/np-guard/models/pkg/ipblock"
+
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
 const EndpointVPE string = "endpoint_gateway"
@@ -59,7 +59,7 @@ func ReadDefs(filename string) (*ir.ConfigDefs, error) {
 }
 
 func parseVPCs(config *configModel.ResourcesContainerModel) map[ir.ID]*ir.VPCDetails {
-	VPCs := make(map[ir.ID]*ir.VPCDetails)
+	VPCs := make(map[ir.ID]*ir.VPCDetails, len(config.VpcList))
 	for _, vpc := range config.VpcList {
 		addressPrefixes := make([]ir.CIDR, 0)
 		for _, addressPrefix := range vpc.AddressPrefixes {
@@ -157,7 +157,7 @@ func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]*ir.
 func validateVpcs(vpcs map[ir.ID]*ir.VPCDetails) error {
 	for vpcName1, vpcDetails1 := range vpcs {
 		for vpcName2, vpcDetails2 := range vpcs {
-			if vpcName1 == vpcName2 {
+			if vpcName1 >= vpcName2 {
 				continue
 			}
 			for _, addressPrefix1 := range vpcDetails1.AddressPrefixes {

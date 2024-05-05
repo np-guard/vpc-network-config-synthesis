@@ -112,8 +112,3 @@ func sgCollection(t *ir.SGCollection) *tf.ConfigFile {
 		Resources: resources,
 	}
 }
-
-// change the string so the output will match the terraform format and linter
-func changeScoping(s string) string {
-	return strings.ReplaceAll(s, "/", "---")
-}

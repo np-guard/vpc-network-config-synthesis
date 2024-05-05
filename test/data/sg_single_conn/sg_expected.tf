@@ -6,9 +6,9 @@ resource "ibm_is_security_group" "test-vpc/be" {
 }
 # Internal. required-connections[0]: (instance test-vpc/fe)->(instance test-vpc/be); allowed-protocols[0]
 resource "ibm_is_security_group_rule" "test-vpc/be-0" {
-  group     = ibm_is_security_group.test-vpc---be.id
+  group     = ibm_is_security_group.test-vpc--be.id
   direction = "inbound"
-  remote    = ibm_is_security_group.test-vpc---fe.id
+  remote    = ibm_is_security_group.test-vpc--fe.id
   tcp {
   }
 }
@@ -21,9 +21,9 @@ resource "ibm_is_security_group" "test-vpc/fe" {
 }
 # Internal. required-connections[0]: (instance test-vpc/fe)->(instance test-vpc/be); allowed-protocols[0]
 resource "ibm_is_security_group_rule" "test-vpc/fe-0" {
-  group     = ibm_is_security_group.test-vpc---fe.id
+  group     = ibm_is_security_group.test-vpc--fe.id
   direction = "outbound"
-  remote    = ibm_is_security_group.test-vpc---be.id
+  remote    = ibm_is_security_group.test-vpc--be.id
   tcp {
   }
 }

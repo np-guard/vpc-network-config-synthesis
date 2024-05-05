@@ -6,17 +6,17 @@ resource "ibm_is_security_group" "test-vpc/be" {
 }
 # Internal. required-connections[2]: (instance test-vpc/fe)->(instance test-vpc/be); allowed-protocols[0]
 resource "ibm_is_security_group_rule" "test-vpc/be-0" {
-  group     = ibm_is_security_group.test-vpc---be.id
+  group     = ibm_is_security_group.test-vpc--be.id
   direction = "inbound"
-  remote    = ibm_is_security_group.test-vpc---fe.id
+  remote    = ibm_is_security_group.test-vpc--fe.id
   tcp {
   }
 }
 # Internal. required-connections[3]: (instance test-vpc/be)->(instance test-vpc/opa); allowed-protocols[0]
 resource "ibm_is_security_group_rule" "test-vpc/be-1" {
-  group     = ibm_is_security_group.test-vpc---be.id
+  group     = ibm_is_security_group.test-vpc--be.id
   direction = "outbound"
-  remote    = ibm_is_security_group.test-vpc---opa.id
+  remote    = ibm_is_security_group.test-vpc--opa.id
 }
 
 ### SG attached to test-vpc/fe
@@ -27,9 +27,9 @@ resource "ibm_is_security_group" "test-vpc/fe" {
 }
 # Internal. required-connections[1]: (instance test-vpc/proxy)->(instance test-vpc/fe); allowed-protocols[0]
 resource "ibm_is_security_group_rule" "test-vpc/fe-0" {
-  group     = ibm_is_security_group.test-vpc---fe.id
+  group     = ibm_is_security_group.test-vpc--fe.id
   direction = "inbound"
-  remote    = ibm_is_security_group.test-vpc---proxy.id
+  remote    = ibm_is_security_group.test-vpc--proxy.id
   tcp {
     port_min = 9000
     port_max = 9000
@@ -37,9 +37,9 @@ resource "ibm_is_security_group_rule" "test-vpc/fe-0" {
 }
 # Internal. required-connections[2]: (instance test-vpc/fe)->(instance test-vpc/be); allowed-protocols[0]
 resource "ibm_is_security_group_rule" "test-vpc/fe-1" {
-  group     = ibm_is_security_group.test-vpc---fe.id
+  group     = ibm_is_security_group.test-vpc--fe.id
   direction = "outbound"
-  remote    = ibm_is_security_group.test-vpc---be.id
+  remote    = ibm_is_security_group.test-vpc--be.id
   tcp {
   }
 }
@@ -52,9 +52,9 @@ resource "ibm_is_security_group" "test-vpc/opa" {
 }
 # Internal. required-connections[3]: (instance test-vpc/be)->(instance test-vpc/opa); allowed-protocols[0]
 resource "ibm_is_security_group_rule" "test-vpc/opa-0" {
-  group     = ibm_is_security_group.test-vpc---opa.id
+  group     = ibm_is_security_group.test-vpc--opa.id
   direction = "inbound"
-  remote    = ibm_is_security_group.test-vpc---be.id
+  remote    = ibm_is_security_group.test-vpc--be.id
 }
 
 ### SG attached to test-vpc/proxy
@@ -65,15 +65,15 @@ resource "ibm_is_security_group" "test-vpc/proxy" {
 }
 # External. required-connections[0]: (external public internet)->(instance test-vpc/proxy); allowed-protocols[0]
 resource "ibm_is_security_group_rule" "test-vpc/proxy-0" {
-  group     = ibm_is_security_group.test-vpc---proxy.id
+  group     = ibm_is_security_group.test-vpc--proxy.id
   direction = "inbound"
   remote    = "0.0.0.0/0"
 }
 # Internal. required-connections[1]: (instance test-vpc/proxy)->(instance test-vpc/fe); allowed-protocols[0]
 resource "ibm_is_security_group_rule" "test-vpc/proxy-1" {
-  group     = ibm_is_security_group.test-vpc---proxy.id
+  group     = ibm_is_security_group.test-vpc--proxy.id
   direction = "outbound"
-  remote    = ibm_is_security_group.test-vpc---fe.id
+  remote    = ibm_is_security_group.test-vpc--fe.id
   tcp {
     port_min = 9000
     port_max = 9000

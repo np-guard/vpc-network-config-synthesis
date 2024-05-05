@@ -74,7 +74,7 @@ func (s *Spec) ComputeBlockedResources() {
 
 func (s *Spec) computeBlockedVPEs() []string {
 	var blockedVPEs []string
-	for vpe := range s.Defs.VPEEndpoints {
+	for vpe := range s.Defs.VPEs {
 		if !s.findResourceInConnections([]string{string(vpe)}, ResourceTypeVPE) {
 			blockedVPEs = append(blockedVPEs, string(vpe))
 		}
