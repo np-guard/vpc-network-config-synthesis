@@ -205,15 +205,14 @@ func (c *CidrSegmentDetails) getVPC() []ID {
 type ResourceType string
 
 const (
-	ResourceTypeExternal    ResourceType = "external"
-	ResourceTypeSegment     ResourceType = "segment"
-	ResourceTypeCidrSegment ResourceType = "cidrSegment"
-	ResourceTypeCidr        ResourceType = "cidr"
-	ResourceTypeSubnet      ResourceType = "subnet"
-	ResourceTypeNIF         ResourceType = "nif"
-	ResourceTypeVPE         ResourceType = "vpe"
-	ResourceTypeInstance    ResourceType = "instance"
-	ResourceTypeAny         ResourceType = "any"
+	ResourceTypeExternal ResourceType = "external"
+	ResourceTypeSegment  ResourceType = "segment"
+	ResourceTypeCidr     ResourceType = "cidr"
+	ResourceTypeSubnet   ResourceType = "subnet"
+	ResourceTypeNIF      ResourceType = "nif"
+	ResourceTypeVPE      ResourceType = "vpe"
+	ResourceTypeInstance ResourceType = "instance"
+	ResourceTypeAny      ResourceType = "any"
 )
 
 func getResourceVPCs[T ResourceVpc](m map[ID]T, name string) []ID {
