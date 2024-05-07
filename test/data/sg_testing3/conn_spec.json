@@ -55,6 +55,28 @@
                 "type": "instance"
             }
             
+        }, 
+        {
+            "src": {
+                "name": "be",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "policydb-endpoint-gateway",
+                "type": "vpe"
+            }
+            
+        }, 
+        {
+            "src": {
+                "name": "opa",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "policydb-endpoint-gateway",
+                "type": "vpe"
+            }
+            
         }
     ]
 }

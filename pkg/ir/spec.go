@@ -223,7 +223,7 @@ func lookupSingle[T NWResource](m map[ID]T, name string, t ResourceType) (Resour
 	if details, ok := m[ID(name)]; ok {
 		return Resource{name, []IP{details.Address()}, t}, nil
 	}
-	return Resource{}, fmt.Errorf("%v %v not found", t, name)
+	return Resource{}, resourceNotFoundError(name, t)
 }
 
 func (s *Definitions) lookupInstance(name string) (Resource, error) {
@@ -239,6 +239,17 @@ func (s *Definitions) lookupInstance(name string) (Resource, error) {
 		return Resource{name, ips, ResourceTypeNIF}, nil
 	}
 	return Resource{}, containerNotFoundError(name, ResourceTypeInstance)
+}
+
+func (s *Definitions) lookupVPE(name string) (Resource, error) {
+	ips := []IP{}
+	if VPEDetails, ok := s.VPEs[ID(name)]; ok {
+		for _, vpeEndPoint := range VPEDetails.VPEEndpoint {
+			ips = append(ips, s.VPEEndpoints[vpeEndPoint].IP)
+		}
+		return Resource{name, ips, ResourceTypeVPE}, nil
+	}
+	return Resource{}, resourceNotFoundError(name, ResourceTypeVPE)
 }
 
 func (s *Definitions) lookupSubnetSegment(name string) (Resource, error) {
@@ -279,7 +290,7 @@ func (s *Definitions) Lookup(t ResourceType, name string) (Resource, error) {
 	case ResourceTypeNIF:
 		return lookupSingle(s.NIFs, name, t)
 	case ResourceTypeVPE:
-		return lookupSingle(s.VPEEndpoints, name, t)
+		return s.lookupVPE(name)
 	case ResourceTypeInstance:
 		return s.lookupInstance(name)
 	case ResourceTypeSegment:
@@ -336,6 +347,15 @@ func inverseLookup[T NWResource](m map[ID]T, ip IP) (result string, ok bool) {
 	return "", false
 }
 
+func (s *ConfigDefs) inverseLookupVPE(ip IP) (result string, ok bool) {
+	for _, vpeEndpointDetails := range s.VPEEndpoints {
+		if vpeEndpointDetails.Address() == ip {
+			return string(vpeEndpointDetails.VPEName), true
+		}
+	}
+	return "", false
+}
+
 func inverseLookupInstance(m map[ID]*InstanceDetails, name string) (result string, ok bool) {
 	for instanceName, instanceDetails := range m {
 		for _, nif := range instanceDetails.Nifs {
@@ -356,7 +376,7 @@ func (s *ConfigDefs) NIFFromIP(ip IP) (string, bool) {
 }
 
 func (s *ConfigDefs) VPEFromIP(ip IP) (string, bool) {
-	return inverseLookup(s.VPEEndpoints, ip)
+	return s.inverseLookupVPE(ip)
 }
 
 func (s *ConfigDefs) InstanceFromNIF(nifName string) (string, bool) {
@@ -405,6 +425,10 @@ func ConvertStringToIDSlice(s []string) []ID {
 
 func ScopingComponents(s string) []string {
 	return strings.Split(s, "/")
+}
+
+func resourceNotFoundError(name string, resource ResourceType) error {
+	return fmt.Errorf("%v %v not found", resource, name)
 }
 
 func containerNotFoundError(name string, resource ResourceType) error {

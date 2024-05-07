@@ -147,7 +147,7 @@ func replaceResourcesName(jsonSpec *spec.Spec, subnetSegments map[string][]ir.ID
 	subnetsCache, ambiguousSubnets := inverseMapToFullyQualifiedName(config.Subnets)
 	nifsCache, ambiguousNifs := inverseMapToFullyQualifiedName(config.NIFs)
 	instancesCache, ambiguousInstances := inverseMapToFullyQualifiedName(config.Instances)
-	vpeEndpointsCache, ambiguousVpeEndpoints := inverseMapToFullyQualifiedName(config.VPEEndpoints)
+	vpesCache, ambiguousVpes := inverseMapToFullyQualifiedName(config.VPEs)
 
 	// go over subnetSegments
 	finalSubnetSegments := make(map[ir.ID]*ir.SubnetSegmentDetails)
@@ -177,7 +177,7 @@ func replaceResourcesName(jsonSpec *spec.Spec, subnetSegments map[string][]ir.ID
 		case spec.ResourceTypeInstance:
 			fullyQualifiedSrc, err = replaceResourceName(instancesCache, ambiguousInstances, conn.Src.Name, spec.ResourceTypeInstance)
 		case spec.ResourceTypeVpe:
-			fullyQualifiedSrc, err = replaceResourceName(vpeEndpointsCache, ambiguousVpeEndpoints, conn.Src.Name, spec.ResourceTypeVpe)
+			fullyQualifiedSrc, err = replaceResourceName(vpesCache, ambiguousVpes, conn.Src.Name, spec.ResourceTypeVpe)
 		}
 		if err != nil {
 			return nil, nil, err
@@ -193,7 +193,7 @@ func replaceResourcesName(jsonSpec *spec.Spec, subnetSegments map[string][]ir.ID
 		case spec.ResourceTypeInstance:
 			fullyQualifiedDst, err = replaceResourceName(instancesCache, ambiguousInstances, conn.Dst.Name, spec.ResourceTypeInstance)
 		case spec.ResourceTypeVpe:
-			fullyQualifiedDst, err = replaceResourceName(vpeEndpointsCache, ambiguousVpeEndpoints, conn.Dst.Name, spec.ResourceTypeVpe)
+			fullyQualifiedDst, err = replaceResourceName(vpesCache, ambiguousVpes, conn.Dst.Name, spec.ResourceTypeVpe)
 		}
 		if err != nil {
 			return nil, nil, err
