@@ -71,7 +71,7 @@ func parseVPCs(config *configModel.ResourcesContainerModel) map[ir.ID]*ir.VPCDet
 }
 
 func parseSubnets(config *configModel.ResourcesContainerModel) map[ir.ID]*ir.SubnetDetails {
-	subnets := make(map[ir.ID]*ir.SubnetDetails)
+	subnets := make(map[ir.ID]*ir.SubnetDetails, len(config.SubnetList))
 	for _, subnet := range config.SubnetList {
 		uniqueName := ir.ID(scopingString(*subnet.VPC.Name, *subnet.Name))
 		subnetDetails := ir.SubnetDetails{
@@ -86,7 +86,7 @@ func parseSubnets(config *configModel.ResourcesContainerModel) map[ir.ID]*ir.Sub
 
 func parseInstancesNifs(config *configModel.ResourcesContainerModel) (instances map[ir.ID]*ir.InstanceDetails,
 	nifs map[ir.ID]*ir.NifDetails) {
-	instances = make(map[ir.ID]*ir.InstanceDetails)
+	instances = make(map[ir.ID]*ir.InstanceDetails, len(config.InstanceList))
 	nifs = make(map[ir.ID]*ir.NifDetails)
 	for _, instance := range config.InstanceList {
 		instanceUniqueName := scopingString(*instance.VPC.Name, *instance.Name)
