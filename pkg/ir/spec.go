@@ -242,10 +242,10 @@ func (s *Definitions) lookupInstance(name string) (Resource, error) {
 }
 
 func (s *Definitions) lookupVPE(name string) (Resource, error) {
-	ips := []IP{}
 	if VPEDetails, ok := s.VPEs[name]; ok {
-		for _, vpeEndPoint := range VPEDetails.VPEEndpoint {
-			ips = append(ips, s.VPEEndpoints[vpeEndPoint].IP)
+		ips := make([]IP, len(VPEDetails.VPEEndpoint))
+		for i, vpeEndPoint := range VPEDetails.VPEEndpoint {
+			ips[i] = s.VPEEndpoints[vpeEndPoint].IP
 		}
 		return Resource{name, ips, ResourceTypeVPE}, nil
 	}

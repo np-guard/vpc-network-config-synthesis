@@ -61,9 +61,9 @@ func ReadDefs(filename string) (*ir.ConfigDefs, error) {
 func parseVPCs(config *configModel.ResourcesContainerModel) map[ir.ID]*ir.VPCDetails {
 	VPCs := make(map[ir.ID]*ir.VPCDetails, len(config.VpcList))
 	for _, vpc := range config.VpcList {
-		addressPrefixes := make([]ir.CIDR, 0)
-		for _, addressPrefix := range vpc.AddressPrefixes {
-			addressPrefixes = append(addressPrefixes, ir.CidrFromString(*addressPrefix.CIDR))
+		addressPrefixes := make([]ir.CIDR, len(vpc.AddressPrefixes))
+		for i, addressPrefix := range vpc.AddressPrefixes {
+			addressPrefixes[i] = ir.CidrFromString(*addressPrefix.CIDR)
 		}
 		VPCs[*vpc.Name] = &ir.VPCDetails{AddressPrefixes: addressPrefixes}
 	}

@@ -119,12 +119,11 @@ func resourcesContainedInCidr(s *ir.Spec, resourceIP ir.IP, resource ir.Resource
 	if resource.Type != ir.ResourceTypeCidr {
 		return []ir.IP{resourceIP}
 	}
-	retVal := make([]ir.IP, 0)
 	cidrSegmentDetails := s.Defs.CidrSegments[resource.Name]
 	cidrDetails := cidrSegmentDetails.Cidrs[ir.CidrFromIP(resourceIP)]
-	for _, subnet := range cidrDetails.ContainedSubnets {
-		retVal = append(retVal, s.Defs.Subnets[subnet].Address())
+	retVal := make([]ir.IP, len(cidrDetails.ContainedSubnets))
+	for i, subnet := range cidrDetails.ContainedSubnets {
+		retVal[i] = s.Defs.Subnets[subnet].Address()
 	}
-
 	return retVal
 }
