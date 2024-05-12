@@ -95,7 +95,7 @@ func parseSubnetSegments(jsonSegments spec.SpecSegments) map[string][]ir.ID {
 	subnetSegments := translateSegments(jsonSegments, spec.TypeSubnet)
 	result := make(map[string][]ir.ID)
 	for segmentName, subnets := range subnetSegments {
-		result[segmentName] = ir.ConvertStringToIDSlice(subnets)
+		result[segmentName] = subnets
 	}
 	return result
 }
@@ -127,7 +127,7 @@ func parseCidrSegments(jsonSegments spec.SpecSegments, configDefs *ir.ConfigDefs
 		cidrSegmentDetails := ir.CidrSegmentDetails{
 			Cidrs: segmentMap,
 		}
-		finalMap[ir.ID(segmentName)] = &cidrSegmentDetails
+		finalMap[segmentName] = &cidrSegmentDetails
 	}
 	return finalMap, nil
 }
@@ -136,7 +136,7 @@ func parseCidrSegments(jsonSegments spec.SpecSegments, configDefs *ir.ConfigDefs
 func translateExternals(m map[string]string) map[ir.ID]*ir.ExternalDetails {
 	res := make(map[ir.ID]*ir.ExternalDetails)
 	for k, v := range m {
-		res[ir.ID(k)] = &ir.ExternalDetails{IP: ir.IPFromString(v)}
+		res[k] = &ir.ExternalDetails{IP: ir.IPFromString(v)}
 	}
 	return res
 }
@@ -155,14 +155,14 @@ func replaceResourcesName(jsonSpec *spec.Spec, subnetSegments map[string][]ir.ID
 		subnetsNames := make([]ir.ID, 0)
 		VPCs := make([]ir.ID, 0)
 		for _, subnet := range subnets {
-			fullyQualifiedName, err := replaceResourceName(subnetsCache, ambiguousSubnets, string(subnet), spec.ResourceTypeSubnet)
+			fullyQualifiedName, err := replaceResourceName(subnetsCache, ambiguousSubnets, subnet, spec.ResourceTypeSubnet)
 			if err != nil {
 				return nil, nil, err
 			}
-			subnetsNames = append(subnetsNames, ir.ID(fullyQualifiedName))
-			VPCs = append(VPCs, config.Subnets[ir.ID(fullyQualifiedName)].VPC)
+			subnetsNames = append(subnetsNames, fullyQualifiedName)
+			VPCs = append(VPCs, config.Subnets[fullyQualifiedName].VPC)
 		}
-		finalSubnetSegments[ir.ID(segmentName)] = &ir.SubnetSegmentDetails{Subnets: subnetsNames, OverlappingVPCs: ir.UniqueIDValues(VPCs)}
+		finalSubnetSegments[segmentName] = &ir.SubnetSegmentDetails{Subnets: subnetsNames, OverlappingVPCs: ir.UniqueIDValues(VPCs)}
 	}
 
 	var err error
@@ -372,7 +372,7 @@ func replaceResourceName(cache map[string]ir.ID, ambiguous map[string]struct{}, 
 		return resourceName, nil
 	}
 	if val, ok := cache[resourceName]; ok {
-		return string(val), nil
+		return val, nil
 	}
 	if _, ok := ambiguous[resourceName]; ok {
 		return "", fmt.Errorf("ambiguity error for resource named %s", resourceName)

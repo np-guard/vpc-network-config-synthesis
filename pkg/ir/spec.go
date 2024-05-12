@@ -15,8 +15,8 @@ import (
 )
 
 type (
+	ID          = string
 	NamedEntity string
-	ID          string
 
 	Spec struct {
 		// Required connections
@@ -216,21 +216,21 @@ const (
 )
 
 func getResourceVPCs[T ResourceVpc](m map[ID]T, name string) []ID {
-	return m[ID(name)].getVPC()
+	return m[name].getVPC()
 }
 
 func lookupSingle[T NWResource](m map[ID]T, name string, t ResourceType) (Resource, error) {
-	if details, ok := m[ID(name)]; ok {
+	if details, ok := m[name]; ok {
 		return Resource{name, []IP{details.Address()}, t}, nil
 	}
 	return Resource{}, resourceNotFoundError(name, t)
 }
 
 func (s *Definitions) lookupInstance(name string) (Resource, error) {
-	if instanceDetails, ok := s.Instances[ID(name)]; ok {
+	if instanceDetails, ok := s.Instances[name]; ok {
 		ips := []IP{}
 		for _, elemName := range instanceDetails.Nifs {
-			nif, err := s.Lookup(ResourceTypeNIF, string(elemName))
+			nif, err := s.Lookup(ResourceTypeNIF, elemName)
 			if err != nil {
 				return Resource{}, fmt.Errorf("%w while looking up %v %v for instance %v", err, ResourceTypeNIF, elemName, name)
 			}
@@ -243,7 +243,7 @@ func (s *Definitions) lookupInstance(name string) (Resource, error) {
 
 func (s *Definitions) lookupVPE(name string) (Resource, error) {
 	ips := []IP{}
-	if VPEDetails, ok := s.VPEs[ID(name)]; ok {
+	if VPEDetails, ok := s.VPEs[name]; ok {
 		for _, vpeEndPoint := range VPEDetails.VPEEndpoint {
 			ips = append(ips, s.VPEEndpoints[vpeEndPoint].IP)
 		}
@@ -254,9 +254,9 @@ func (s *Definitions) lookupVPE(name string) (Resource, error) {
 
 func (s *Definitions) lookupSubnetSegment(name string) (Resource, error) {
 	ips := []IP{}
-	if subnetSegmentDetails, ok := s.SubnetSegments[ID(name)]; ok {
+	if subnetSegmentDetails, ok := s.SubnetSegments[name]; ok {
 		for _, subnetName := range subnetSegmentDetails.Subnets {
-			subnet, err := s.Lookup(ResourceTypeSubnet, string(subnetName))
+			subnet, err := s.Lookup(ResourceTypeSubnet, subnetName)
 			if err != nil {
 				return Resource{}, fmt.Errorf("%w while looking up %v %v for subnet %v", err, ResourceTypeSubnet, subnetName, name)
 			}
@@ -269,7 +269,7 @@ func (s *Definitions) lookupSubnetSegment(name string) (Resource, error) {
 
 func (s *Definitions) lookupCidrSegment(name string) (Resource, error) {
 	ips := []IP{}
-	if cidrSegmentDetails, ok := s.CidrSegments[ID(name)]; ok {
+	if cidrSegmentDetails, ok := s.CidrSegments[name]; ok {
 		for cidr := range cidrSegmentDetails.Cidrs {
 			ips = append(ips, IPFromCidr(cidr))
 		}
@@ -294,9 +294,9 @@ func (s *Definitions) Lookup(t ResourceType, name string) (Resource, error) {
 	case ResourceTypeInstance:
 		return s.lookupInstance(name)
 	case ResourceTypeSegment:
-		if _, ok := s.SubnetSegments[ID(name)]; ok { // subnet segment
+		if _, ok := s.SubnetSegments[name]; ok { // subnet segment
 			return s.lookupSubnetSegment(name)
-		} else if _, ok := s.CidrSegments[ID(name)]; ok { // cidr segment
+		} else if _, ok := s.CidrSegments[name]; ok { // cidr segment
 			return s.lookupCidrSegment(name)
 		} else {
 			return Resource{}, err
@@ -319,7 +319,7 @@ func (s *Definitions) GetResourceOverlappingVPCs(t ResourceType, name string) []
 	case ResourceTypeInstance:
 		return getResourceVPCs(s.Instances, name)
 	case ResourceTypeSegment:
-		if _, ok := s.SubnetSegments[ID(name)]; ok { // subnet segment
+		if _, ok := s.SubnetSegments[name]; ok { // subnet segment
 			return getResourceVPCs(s.SubnetSegments, name)
 		}
 		return getResourceVPCs(s.CidrSegments, name)
@@ -341,7 +341,7 @@ func (s *Definitions) ValidateConnection(srcVPCs, dstVPCs []ID) error {
 func inverseLookup[T NWResource](m map[ID]T, ip IP) (result string, ok bool) {
 	for name, details := range m {
 		if details.Address() == ip {
-			return string(name), true
+			return name, true
 		}
 	}
 	return "", false
@@ -350,7 +350,7 @@ func inverseLookup[T NWResource](m map[ID]T, ip IP) (result string, ok bool) {
 func (s *ConfigDefs) inverseLookupVPE(ip IP) (result string, ok bool) {
 	for _, vpeEndpointDetails := range s.VPEEndpoints {
 		if vpeEndpointDetails.Address() == ip {
-			return string(vpeEndpointDetails.VPEName), true
+			return vpeEndpointDetails.VPEName, true
 		}
 	}
 	return "", false
@@ -359,8 +359,8 @@ func (s *ConfigDefs) inverseLookupVPE(ip IP) (result string, ok bool) {
 func inverseLookupInstance(m map[ID]*InstanceDetails, name string) (result string, ok bool) {
 	for instanceName, instanceDetails := range m {
 		for _, nif := range instanceDetails.Nifs {
-			if string(nif) == name {
-				return string(instanceName), true
+			if nif == name {
+				return instanceName, true
 			}
 		}
 	}
@@ -408,19 +408,11 @@ func (s *ConfigDefs) SubnetsContainedInCidr(cidr ipblock.IPBlock) ([]ID, error) 
 			return nil, err
 		}
 		if subnetIPBlock.ContainedIn(&cidr) {
-			containedSubnets = append(containedSubnets, string(subnet))
+			containedSubnets = append(containedSubnets, subnet)
 		}
 	}
 	sort.Strings(containedSubnets)
-	return ConvertStringToIDSlice(containedSubnets), nil
-}
-
-func ConvertStringToIDSlice(s []string) []ID {
-	result := make([]ID, len(s))
-	for i, val := range s {
-		result[i] = ID(val)
-	}
-	return result
+	return containedSubnets, nil
 }
 
 func ScopingComponents(s string) []string {

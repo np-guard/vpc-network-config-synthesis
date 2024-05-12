@@ -65,7 +65,7 @@ func parseVPCs(config *configModel.ResourcesContainerModel) map[ir.ID]*ir.VPCDet
 		for _, addressPrefix := range vpc.AddressPrefixes {
 			addressPrefixes = append(addressPrefixes, ir.CidrFromString(*addressPrefix.CIDR))
 		}
-		VPCs[ir.ID(*vpc.Name)] = &ir.VPCDetails{AddressPrefixes: addressPrefixes}
+		VPCs[*vpc.Name] = &ir.VPCDetails{AddressPrefixes: addressPrefixes}
 	}
 	return VPCs
 }
@@ -73,10 +73,10 @@ func parseVPCs(config *configModel.ResourcesContainerModel) map[ir.ID]*ir.VPCDet
 func parseSubnets(config *configModel.ResourcesContainerModel) map[ir.ID]*ir.SubnetDetails {
 	subnets := make(map[ir.ID]*ir.SubnetDetails, len(config.SubnetList))
 	for _, subnet := range config.SubnetList {
-		uniqueName := ir.ID(scopingString(*subnet.VPC.Name, *subnet.Name))
+		uniqueName := scopingString(*subnet.VPC.Name, *subnet.Name)
 		subnetDetails := ir.SubnetDetails{
 			NamedEntity: ir.NamedEntity(*subnet.Name),
-			VPC:         ir.ID(*subnet.VPC.Name),
+			VPC:         *subnet.VPC.Name,
 			CIDR:        ir.IPFromString(*subnet.Ipv4CIDRBlock),
 		}
 		subnets[uniqueName] = &subnetDetails
@@ -95,19 +95,19 @@ func parseInstancesNifs(config *configModel.ResourcesContainerModel) (instances 
 			nifUniqueName := scopingString(instanceUniqueName, *instance.NetworkInterfaces[i].Name)
 			nifDetails := ir.NifDetails{
 				NamedEntity: ir.NamedEntity(*instance.NetworkInterfaces[i].Name),
-				Instance:    ir.ID(scopingString(*instance.VPC.Name, *instance.Name)),
-				VPC:         ir.ID(*instance.VPC.Name),
+				Instance:    scopingString(*instance.VPC.Name, *instance.Name),
+				VPC:         *instance.VPC.Name,
 				IP:          ir.IPFromString(*instance.NetworkInterfaces[i].PrimaryIP.Address),
 			}
-			nifs[ir.ID(nifUniqueName)] = &nifDetails
-			instanceNifs[i] = ir.ID(nifUniqueName)
+			nifs[nifUniqueName] = &nifDetails
+			instanceNifs[i] = nifUniqueName
 		}
 		instanceDetails := ir.InstanceDetails{
 			NamedEntity: ir.NamedEntity(*instance.Name),
-			VPC:         ir.ID(*instance.VPC.Name),
+			VPC:         *instance.VPC.Name,
 			Nifs:        instanceNifs,
 		}
-		instances[ir.ID(instanceUniqueName)] = &instanceDetails
+		instances[instanceUniqueName] = &instanceDetails
 	}
 	return instances, nifs
 }
@@ -122,9 +122,9 @@ func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]*ir.
 			vpeDetails := ir.VPEDetails{
 				NamedEntity: ir.NamedEntity(*vpe.Name),
 				VPEEndpoint: []ir.ID{},
-				VPC:         ir.ID(*vpe.VPC.Name),
+				VPC:         *vpe.VPC.Name,
 			}
-			vpes[ir.ID(uniqueVpeName)] = &vpeDetails
+			vpes[uniqueVpeName] = &vpeDetails
 		}
 	}
 
@@ -132,9 +132,9 @@ func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]*ir.
 		for _, r := range subnet.ReservedIps {
 			if t, ok := r.Target.(*vpcv1.ReservedIPTarget); ok && t != nil && r.Address != nil {
 				if r.ResourceType != nil && *t.ResourceType == EndpointVPE && t.Name != nil {
-					VPEName := ir.ID(scopingString(*subnet.VPC.Name, *t.Name))
-					subnetName := ir.ID(scopingString(*subnet.VPC.Name, *subnet.Name))
-					uniqueVpeEndpointName := scopingString(string(VPEName), *r.Name)
+					VPEName := scopingString(*subnet.VPC.Name, *t.Name)
+					subnetName := scopingString(*subnet.VPC.Name, *subnet.Name)
+					uniqueVpeEndpointName := scopingString(VPEName, *r.Name)
 					vpeEndpointDetails := ir.VPEEndpointDetails{
 						NamedEntity: ir.NamedEntity(*r.Name),
 						VPEName:     VPEName,
@@ -142,9 +142,9 @@ func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]*ir.
 						IP:          ir.IPFromString(*r.Address),
 						VPC:         vpes[VPEName].VPC,
 					}
-					vpeEndpoints[ir.ID(uniqueVpeEndpointName)] = &vpeEndpointDetails
+					vpeEndpoints[uniqueVpeEndpointName] = &vpeEndpointDetails
 					vpe := vpes[VPEName]
-					vpe.VPEEndpoint = append(vpe.VPEEndpoint, ir.ID(uniqueVpeEndpointName))
+					vpe.VPEEndpoint = append(vpe.VPEEndpoint, uniqueVpeEndpointName)
 					vpes[VPEName] = vpe
 				}
 			}
@@ -171,7 +171,7 @@ func validateVpcs(vpcs map[ir.ID]*ir.VPCDetails) error {
 						return err
 					}
 					if !address1.Intersect(address2).IsEmpty() {
-						return fmt.Errorf("vpcs %s and %s are overlapping", string(vpcName1), string(vpcName2))
+						return fmt.Errorf("vpcs %s and %s are overlapping", vpcName1, vpcName2)
 					}
 				}
 			}
