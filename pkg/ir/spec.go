@@ -9,7 +9,6 @@ package ir
 import (
 	"fmt"
 	"sort"
-	"strings"
 
 	"github.com/np-guard/models/pkg/ipblock"
 )
@@ -65,7 +64,7 @@ type (
 
 		Instances map[ID]*InstanceDetails
 
-		VPEEndpoints map[ID]*VPEEndpointDetails
+		VPEReservedIPs map[ID]*VPEReservedIPsDetails
 
 		VPEs map[ID]*VPEDetails
 	}
@@ -109,7 +108,7 @@ type (
 		Nifs []ID
 	}
 
-	VPEEndpointDetails struct {
+	VPEReservedIPsDetails struct {
 		NamedEntity
 		IP      IP
 		VPEName ID
@@ -119,8 +118,8 @@ type (
 
 	VPEDetails struct {
 		NamedEntity
-		VPEEndpoint []ID
-		VPC         ID
+		VPEReservedIPs []ID
+		VPC            ID
 	}
 
 	SubnetSegmentDetails struct {
@@ -150,7 +149,7 @@ type (
 	}
 
 	ResourceVpc interface {
-		getVPC() []ID
+		getOverlappingVPCs() []ID
 	}
 )
 
@@ -166,7 +165,7 @@ func (n *NifDetails) Address() IP {
 	return n.IP
 }
 
-func (v *VPEEndpointDetails) Address() IP {
+func (v *VPEReservedIPsDetails) Address() IP {
 	return v.IP
 }
 
@@ -174,27 +173,27 @@ func (e *ExternalDetails) Address() IP {
 	return e.IP
 }
 
-func (s *SubnetDetails) getVPC() []ID {
+func (s *SubnetDetails) getOverlappingVPCs() []ID {
 	return []ID{s.VPC}
 }
 
-func (n *NifDetails) getVPC() []ID {
+func (n *NifDetails) getOverlappingVPCs() []ID {
 	return []ID{n.VPC}
 }
 
-func (i *InstanceDetails) getVPC() []ID {
+func (i *InstanceDetails) getOverlappingVPCs() []ID {
 	return []ID{i.VPC}
 }
 
-func (v *VPEEndpointDetails) getVPC() []ID {
+func (v *VPEReservedIPsDetails) getOverlappingVPCs() []ID {
 	return []ID{v.VPC}
 }
 
-func (s *SubnetSegmentDetails) getVPC() []ID {
+func (s *SubnetSegmentDetails) getOverlappingVPCs() []ID {
 	return s.OverlappingVPCs
 }
 
-func (c *CidrSegmentDetails) getVPC() []ID {
+func (c *CidrSegmentDetails) getOverlappingVPCs() []ID {
 	result := make([]ID, 0)
 	for _, cidrDetails := range c.Cidrs {
 		result = append(result, cidrDetails.OverlappingVPCs...)
@@ -216,7 +215,7 @@ const (
 )
 
 func getResourceVPCs[T ResourceVpc](m map[ID]T, name string) []ID {
-	return m[name].getVPC()
+	return m[name].getOverlappingVPCs()
 }
 
 func lookupSingle[T NWResource](m map[ID]T, name string, t ResourceType) (Resource, error) {
@@ -243,9 +242,9 @@ func (s *Definitions) lookupInstance(name string) (Resource, error) {
 
 func (s *Definitions) lookupVPE(name string) (Resource, error) {
 	if VPEDetails, ok := s.VPEs[name]; ok {
-		ips := make([]IP, len(VPEDetails.VPEEndpoint))
-		for i, vpeEndPoint := range VPEDetails.VPEEndpoint {
-			ips[i] = s.VPEEndpoints[vpeEndPoint].IP
+		ips := make([]IP, len(VPEDetails.VPEReservedIPs))
+		for i, vpeEndPoint := range VPEDetails.VPEReservedIPs {
+			ips[i] = s.VPEReservedIPs[vpeEndPoint].IP
 		}
 		return Resource{name, ips, ResourceTypeVPE}, nil
 	}
@@ -315,7 +314,7 @@ func (s *Definitions) GetResourceOverlappingVPCs(t ResourceType, name string) []
 	case ResourceTypeNIF:
 		return getResourceVPCs(s.NIFs, name)
 	case ResourceTypeVPE:
-		return getResourceVPCs(s.VPEEndpoints, name)
+		return getResourceVPCs(s.VPEReservedIPs, name)
 	case ResourceTypeInstance:
 		return getResourceVPCs(s.Instances, name)
 	case ResourceTypeSegment:
@@ -348,7 +347,7 @@ func inverseLookup[T NWResource](m map[ID]T, ip IP) (result string, ok bool) {
 }
 
 func (s *ConfigDefs) inverseLookupVPE(ip IP) (result string, ok bool) {
-	for _, vpeEndpointDetails := range s.VPEEndpoints {
+	for _, vpeEndpointDetails := range s.VPEReservedIPs {
 		if vpeEndpointDetails.Address() == ip {
 			return vpeEndpointDetails.VPEName, true
 		}
@@ -413,10 +412,6 @@ func (s *ConfigDefs) SubnetsContainedInCidr(cidr ipblock.IPBlock) ([]ID, error) 
 	}
 	sort.Strings(containedSubnets)
 	return containedSubnets, nil
-}
-
-func ScopingComponents(s string) []string {
-	return strings.Split(s, "/")
 }
 
 func resourceNotFoundError(name string, resource ResourceType) error {

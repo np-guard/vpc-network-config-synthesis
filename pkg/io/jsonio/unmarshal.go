@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/models/pkg/spec"
@@ -80,8 +81,7 @@ func validateSegments(jsonSegments spec.SpecSegments) error {
 	return nil
 }
 
-// read segments from conn-spec file
-func translateSegments(jsonSegments spec.SpecSegments, segmentType spec.Type) map[string][]string {
+func filterSegmentsByType(jsonSegments spec.SpecSegments, segmentType spec.Type) map[string][]string {
 	result := make(map[string][]string)
 	for k, v := range jsonSegments {
 		if v.Type == segmentType {
@@ -92,7 +92,7 @@ func translateSegments(jsonSegments spec.SpecSegments, segmentType spec.Type) ma
 }
 
 func parseSubnetSegments(jsonSegments spec.SpecSegments) map[string][]ir.ID {
-	subnetSegments := translateSegments(jsonSegments, spec.TypeSubnet)
+	subnetSegments := filterSegmentsByType(jsonSegments, spec.TypeSubnet)
 	result := make(map[string][]ir.ID)
 	for segmentName, subnets := range subnetSegments {
 		result[segmentName] = subnets
@@ -101,7 +101,7 @@ func parseSubnetSegments(jsonSegments spec.SpecSegments) map[string][]ir.ID {
 }
 
 func parseCidrSegments(jsonSegments spec.SpecSegments, configDefs *ir.ConfigDefs) (map[ir.ID]*ir.CidrSegmentDetails, error) {
-	cidrSegments := translateSegments(jsonSegments, spec.TypeCidr)
+	cidrSegments := filterSegmentsByType(jsonSegments, spec.TypeCidr)
 	finalMap := make(map[ir.ID]*ir.CidrSegmentDetails)
 	for segmentName, segment := range cidrSegments {
 		// each cidr saves the contained subnets
@@ -167,7 +167,8 @@ func replaceResourcesName(jsonSpec *spec.Spec, subnetSegments map[string][]ir.ID
 
 	var err error
 	// go over Spec
-	for i, conn := range jsonSpec.RequiredConnections {
+	for i := range jsonSpec.RequiredConnections {
+		conn := &jsonSpec.RequiredConnections[i]
 		fullyQualifiedSrc := conn.Src.Name
 		switch conn.Src.Type {
 		case spec.ResourceTypeSubnet:
@@ -182,7 +183,7 @@ func replaceResourcesName(jsonSpec *spec.Spec, subnetSegments map[string][]ir.ID
 		if err != nil {
 			return nil, nil, err
 		}
-		jsonSpec.RequiredConnections[i].Src.Name = fullyQualifiedSrc
+		conn.Src.Name = fullyQualifiedSrc
 
 		fullyQualifiedDst := conn.Dst.Name
 		switch conn.Dst.Type {
@@ -198,7 +199,7 @@ func replaceResourcesName(jsonSpec *spec.Spec, subnetSegments map[string][]ir.ID
 		if err != nil {
 			return nil, nil, err
 		}
-		jsonSpec.RequiredConnections[i].Dst.Name = fullyQualifiedDst
+		conn.Dst.Name = fullyQualifiedDst
 	}
 	return jsonSpec, finalSubnetSegments, nil
 }
@@ -368,16 +369,16 @@ func parseOverlappingVpcs(cidr ipblock.IPBlock, vpcs map[ir.ID]*ir.VPCDetails) (
 
 func replaceResourceName(cache map[string]ir.ID, ambiguous map[string]struct{}, resourceName string,
 	resourceType spec.ResourceType) (string, error) {
-	if len(ir.ScopingComponents(resourceName)) != 1 {
+	if len(scopingComponents(resourceName)) != 1 {
 		return resourceName, nil
 	}
 	if val, ok := cache[resourceName]; ok {
 		return val, nil
 	}
 	if _, ok := ambiguous[resourceName]; ok {
-		return "", fmt.Errorf("ambiguity error for resource named %s", resourceName)
+		return "", fmt.Errorf("ambiguous for resource name: %s", resourceName)
 	}
-	return "", fmt.Errorf("unknown resource type %q named %s", resourceType, resourceName)
+	return "", fmt.Errorf("unknown resource name %s (resource type: %q)", resourceName, resourceType)
 }
 
 func inverseMapToFullyQualifiedName[T ir.Named](m map[ir.ID]T) (cache map[string]ir.ID, ambiguous map[string]struct{}) {
@@ -396,4 +397,8 @@ func inverseMapToFullyQualifiedName[T ir.Named](m map[ir.ID]T) (cache map[string
 		}
 	}
 	return cache, ambiguous
+}
+
+func scopingComponents(s string) []string {
+	return strings.Split(s, "/")
 }
