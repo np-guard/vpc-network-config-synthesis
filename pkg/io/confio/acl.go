@@ -128,7 +128,7 @@ func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCol
 	vpc := model.SubnetList[0].VPC
 	resourceGroup := model.SubnetList[0].ResourceGroup
 	for _, subnetName := range collection.SortedACLSubnets() {
-		acl := collection.ACLs[subnetName]
+		acl := collection.ACLs[ir.ScopingComponents(subnetName)[0]][subnetName]
 		if acl == nil {
 			continue
 		}

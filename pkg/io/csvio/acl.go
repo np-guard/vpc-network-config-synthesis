@@ -37,7 +37,11 @@ func (w *Writer) WriteACL(collection *ir.ACLCollection) error {
 		return err
 	}
 	for _, subnet := range collection.SortedACLSubnets() {
-		if err := w.w.WriteAll(makeACLTable(collection.ACLs[subnet], subnet)); err != nil {
+		vpcName := "singleACL"
+		if subnet != "1" { // its not singleACL generation
+			vpcName = ir.ScopingComponents(subnet)[0]
+		}
+		if err := w.w.WriteAll(makeACLTable(collection.ACLs[vpcName][subnet], subnet)); err != nil {
 			return err
 		}
 	}

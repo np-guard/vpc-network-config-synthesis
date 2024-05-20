@@ -35,7 +35,7 @@ type ACL struct {
 }
 
 type ACLCollection struct {
-	ACLs map[string]*ACL
+	ACLs map[ID]map[string]*ACL
 }
 
 type ACLWriter interface {
@@ -100,19 +100,21 @@ func (a *ACL) AppendExternal(rule *ACLRule) {
 }
 
 func NewACLCollection() *ACLCollection {
-	return &ACLCollection{ACLs: map[string]*ACL{}}
+	return &ACLCollection{ACLs: map[ID]map[string]*ACL{}}
 }
 
 func MergeACLCollections(collections ...*ACLCollection) *ACLCollection {
 	result := NewACLCollection()
 	for _, c := range collections {
-		for a := range c.ACLs {
-			acl := c.LookupOrCreate(a)
-			for r := range acl.Internal {
-				result.LookupOrCreate(a).AppendInternal(&acl.Internal[r])
-			}
-			for r := range acl.External {
-				result.LookupOrCreate(a).AppendExternal(&acl.External[r])
+		for _, vpc := range c.ACLs {
+			for a := range vpc {
+				acl := c.LookupOrCreate(a)
+				for r := range acl.Internal {
+					result.LookupOrCreate(a).AppendInternal(&acl.Internal[r])
+				}
+				for r := range acl.External {
+					result.LookupOrCreate(a).AppendExternal(&acl.External[r])
+				}
 			}
 		}
 	}
@@ -124,13 +126,19 @@ func NewACL() *ACL {
 }
 
 func (c *ACLCollection) LookupOrCreate(name string) *ACL {
-	acl, ok := c.ACLs[name]
-	if ok {
+	vpcName := "singleACL"
+	if name != "1" {
+		vpcName = ScopingComponents(name)[0]
+	}
+	if acl, ok := c.ACLs[vpcName][name]; ok {
 		return acl
 	}
 	newACL := NewACL()
 	newACL.Subnet = name
-	c.ACLs[name] = newACL
+	if c.ACLs[vpcName] == nil {
+		c.ACLs[vpcName] = make(map[string]*ACL)
+	}
+	c.ACLs[vpcName][name] = newACL
 	return newACL
 }
 

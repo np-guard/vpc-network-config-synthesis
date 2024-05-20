@@ -47,7 +47,7 @@ type SG struct {
 }
 
 type SGCollection struct {
-	SGs map[SGName]*SG
+	SGs map[ID]map[SGName]*SG
 }
 
 type SGWriter interface {
@@ -76,16 +76,19 @@ func NewSG() *SG {
 }
 
 func NewSGCollection() *SGCollection {
-	return &SGCollection{SGs: map[SGName]*SG{}}
+	return &SGCollection{SGs: map[ID]map[SGName]*SG{}}
 }
 
 func (c *SGCollection) LookupOrCreate(name SGName) *SG {
-	sg, ok := c.SGs[name]
-	if ok {
+	vpcName := ScopingComponents(string(name))[0]
+	if sg, ok := c.SGs[vpcName][name]; ok {
 		return sg
 	}
 	newSG := NewSG()
-	c.SGs[name] = newSG
+	if c.SGs[vpcName] == nil {
+		c.SGs[vpcName] = make(map[SGName]*SG)
+	}
+	c.SGs[vpcName][name] = newSG
 	return newSG
 }
 
@@ -99,10 +102,12 @@ func (a *SG) Add(rule *SGRule) {
 func MergeSGCollections(collections ...*SGCollection) *SGCollection {
 	result := NewSGCollection()
 	for _, c := range collections {
-		for a := range c.SGs {
-			sg := c.LookupOrCreate(a)
-			for r := range sg.Rules {
-				result.LookupOrCreate(a).Add(&sg.Rules[r])
+		for _, vpc := range c.SGs {
+			for sgName := range vpc {
+				sg := c.LookupOrCreate(sgName)
+				for r := range sg.Rules {
+					result.LookupOrCreate(sgName).Add(&sg.Rules[r])
+				}
 			}
 		}
 	}

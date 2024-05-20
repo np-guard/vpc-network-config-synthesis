@@ -97,7 +97,7 @@ func sgCollection(t *ir.SGCollection) *tf.ConfigFile {
 	var resources []tf.Block //nolint:prealloc  // nontrivial to calculate, and an unlikely performance bottleneck
 	for _, sgName := range t.SortedSGNames() {
 		comment := ""
-		rules := t.SGs[sgName].Rules
+		rules := t.SGs[ir.ScopingComponents(string(sgName))[0]][sgName].Rules
 		if len(rules) == 0 {
 			continue
 		}

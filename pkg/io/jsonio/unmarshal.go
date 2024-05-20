@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/models/pkg/spec"
@@ -369,7 +368,7 @@ func parseOverlappingVpcs(cidr ipblock.IPBlock, vpcs map[ir.ID]*ir.VPCDetails) (
 
 func replaceResourceName(cache map[string]ir.ID, ambiguous map[string]struct{}, resourceName string,
 	resourceType spec.ResourceType) (string, error) {
-	if len(scopingComponents(resourceName)) != 1 {
+	if len(ir.ScopingComponents(resourceName)) != 1 {
 		return resourceName, nil
 	}
 	if val, ok := cache[resourceName]; ok {
@@ -397,8 +396,4 @@ func inverseMapToFullyQualifiedName[T ir.Named](m map[ir.ID]T) (cache map[string
 		}
 	}
 	return cache, ambiguous
-}
-
-func scopingComponents(s string) []string {
-	return strings.Split(s, "/")
 }

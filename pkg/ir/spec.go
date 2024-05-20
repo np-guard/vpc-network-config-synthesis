@@ -9,6 +9,7 @@ package ir
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/np-guard/models/pkg/ipblock"
 )
@@ -434,4 +435,8 @@ func UniqueIDValues(s []ID) []ID {
 	}
 
 	return result
+}
+
+func ScopingComponents(s string) []string {
+	return strings.Split(s, "/")
 }

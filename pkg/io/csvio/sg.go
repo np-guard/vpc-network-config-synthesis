@@ -17,7 +17,7 @@ func (w *Writer) WriteSG(collection *ir.SGCollection) error {
 		return err
 	}
 	for _, sgName := range collection.SortedSGNames() {
-		if err := w.w.WriteAll(makeSGTable(collection.SGs[sgName], sgName)); err != nil {
+		if err := w.w.WriteAll(makeSGTable(collection.SGs[ir.ScopingComponents(string(sgName))[0]][sgName], sgName)); err != nil {
 			return err
 		}
 	}

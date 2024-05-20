@@ -87,7 +87,7 @@ func updateSG(model *configModel.ResourcesContainerModel, collection *ir.SGColle
 	vpc := model.SubnetList[0].VPC
 	resourceGroup := model.SubnetList[0].ResourceGroup
 	for _, sgName := range collection.SortedSGNames() {
-		sg := collection.SGs[sgName]
+		sg := collection.SGs[ir.ScopingComponents(string(sgName))[0]][sgName]
 		if sg == nil {
 			continue
 		}

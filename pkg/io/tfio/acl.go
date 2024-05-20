@@ -82,14 +82,19 @@ func singleACL(t *ir.ACL, comment string) tf.Block {
 }
 
 func aclCollection(t *ir.ACLCollection) *tf.ConfigFile {
-	var acls = make([]tf.Block, len(t.ACLs))
+	sortedACLs := t.SortedACLSubnets()
+	var acls = make([]tf.Block, len(sortedACLs))
 	i := 0
-	for _, subnet := range t.SortedACLSubnets() {
+	for _, subnet := range sortedACLs {
 		comment := ""
-		if len(acls) > 1 {
-			comment = fmt.Sprintf("\n# %v [%v]", subnet, t.ACLs[subnet].Internal[0].Target())
+		vpcName := "singleACL"
+		if subnet != "1" { // its not singleACL generation
+			vpcName = ir.ScopingComponents(subnet)[0]
 		}
-		acls[i] = singleACL(t.ACLs[subnet], comment)
+		if len(acls) > 1 {
+			comment = fmt.Sprintf("\n# %v [%v]", subnet, t.ACLs[vpcName][subnet].Internal[0].Target())
+		}
+		acls[i] = singleACL(t.ACLs[vpcName][subnet], comment)
 		i += 1
 	}
 	return &tf.ConfigFile{
