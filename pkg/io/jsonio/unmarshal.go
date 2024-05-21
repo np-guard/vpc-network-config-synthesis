@@ -376,7 +376,7 @@ func replaceResourceName(cache map[string]ir.ID, ambiguous map[string]struct{}, 
 		return val, nil
 	}
 	if _, ok := ambiguous[resourceName]; ok {
-		return "", fmt.Errorf("ambiguous for resource name: %s", resourceName)
+		return "", fmt.Errorf("ambiguous resource name: %s", resourceName)
 	}
 	return "", fmt.Errorf("unknown resource name %s (resource type: %q)", resourceName, resourceType)
 }
