@@ -1,12 +1,5 @@
 REPOSITORY := github.com/np-guard/vpc-network-config-synthesis
-ifeq ($(OS),Windows_NT)
-	SET = set
-	TARGETNAME = vpcgen.exe
-else
-	SET =
-	TARGETNAME = vpcgen
-endif
-TARGET = ./bin/$(TARGETNAME)
+TARGET = ./bin/vpcgen
 
 $(TARGET): build
 
@@ -34,7 +27,11 @@ precommit: mod fmt lint
 
 build:
 	@echo -- $@ --
-	$(SET) CGO_ENABLED=0 go build -o $(TARGET) ./cmd/vpcgen
+	CGO_ENABLED=0 go build -o $(TARGET) ./cmd/vpcgen
+
+build-windows:
+	@echo -- $@ --
+	set CGO_ENABLED=0 go build -o $(TARGET).exe ./cmd/vpcgen
 
 test:
 	@echo -- $@ --

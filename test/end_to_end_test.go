@@ -28,6 +28,8 @@ const (
 	defaultExpectedFormat       = "%v_expected.%v"
 )
 
+const configName string = "config_object.json"
+
 type TestCase struct {
 	folder       string
 	specName     string
@@ -48,14 +50,7 @@ func (c *TestCase) at(name, otherwise string) string {
 	return c.resolve(name)
 }
 
-func TestACLCIDR(t *testing.T) {
-	_, err := readSpec(&TestCase{folder: "acl_cidr"})
-	if err == nil || err.Error() != "unsupported resource type cidr" {
-		t.Errorf("No failure for unsupported type; got %v", err)
-	}
-}
-
-func aclTestCase(folder, configName, outputFormat string, single bool) TestCase {
+func aclTestCase(folder, outputFormat string, single bool) TestCase {
 	expectedFormat := defaultExpectedFormat
 	if single {
 		expectedFormat = defaultExpectedSingleFormat
@@ -71,7 +66,7 @@ func aclTestCase(folder, configName, outputFormat string, single bool) TestCase 
 	}
 }
 
-func sgTestCase(folder, configName, outputFormat string) TestCase {
+func sgTestCase(folder, outputFormat string) TestCase {
 	return TestCase{
 		folder:       folder,
 		configName:   configName,
@@ -85,28 +80,26 @@ func sgTestCase(folder, configName, outputFormat string) TestCase {
 
 func TestCSVCompare(t *testing.T) {
 	suite := map[string]TestCase{
-		"acl duplication csv":          aclTestCase("acl_dup", "", "csv", false),
-		"acl duplication single csv":   aclTestCase("acl_dup", "", "csv", true),
-		"acl conn1 csv":                aclTestCase("acl_single_conn1", "", "csv", false),
-		"acl conn1 single csv":         aclTestCase("acl_single_conn1", "", "csv", true),
-		"acl conn1 tf":                 aclTestCase("acl_single_conn1", "", "tf", false),
-		"acl conn1 single tf":          aclTestCase("acl_single_conn1", "", "tf", true),
-		"acl conn2 csv":                aclTestCase("acl_single_conn2", "", "csv", false),
-		"acl conn2 single csv":         aclTestCase("acl_single_conn2", "", "csv", true),
-		"acl conn2 tf":                 aclTestCase("acl_single_conn2", "", "tf", false),
-		"acl conn2 single tf":          aclTestCase("acl_single_conn2", "", "tf", true),
-		"acl_testing5 csv":             aclTestCase("acl_testing5", "config_object.json", "csv", false),
-		"acl_testing5 tf":              aclTestCase("acl_testing5", "config_object.json", "tf", false),
-		"acl_testing5 single csv":      aclTestCase("acl_testing5", "config_object.json", "csv", true),
-		"acl_testing5 single tf":       aclTestCase("acl_testing5", "config_object.json", "tf", true),
-		"acl_cidr_segments csv":        aclTestCase("acl_cidr_segments", "config_object.json", "csv", false),
-		"acl_cidr_segments tf":         aclTestCase("acl_cidr_segments", "config_object.json", "tf", false),
-		"acl_cidr_segments single csv": aclTestCase("acl_cidr_segments", "config_object.json", "csv", true),
-		"acl_cidr_segments single tf":  aclTestCase("acl_cidr_segments", "config_object.json", "tf", true),
-		"sg single connection 1 csv":   sgTestCase("sg_single_conn1", "", "csv"),
-		"sg single connection 1 tf":    sgTestCase("sg_single_conn1", "", "tf"),
-		"sg_testing2 csv":              sgTestCase("sg_testing2", "config_object.json", "csv"),
-		"sg_testing2 tf":               sgTestCase("sg_testing2", "config_object.json", "tf"),
+		"acl_testing5 csv":             aclTestCase("acl_testing5", "csv", false),
+		"acl_testing5 tf":              aclTestCase("acl_testing5", "tf", false),
+		"acl_testing5 single csv":      aclTestCase("acl_testing5", "csv", true),
+		"acl_testing5 single tf":       aclTestCase("acl_testing5", "tf", true),
+		"acl_single_conn csv":          aclTestCase("acl_single_conn", "csv", false),
+		"acl_single_conn tf":           aclTestCase("acl_single_conn", "tf", false),
+		"acl_single_conn single csv":   aclTestCase("acl_single_conn", "csv", true),
+		"acl_single_conn single tf":    aclTestCase("acl_single_conn", "tf", true),
+		"acl_cidr_segments1 tf":        aclTestCase("acl_cidr_segments1", "tf", false),
+		"acl_cidr_segments1 single tf": aclTestCase("acl_cidr_segments1", "tf", true),
+		"acl_cidr_segments2 tf":        aclTestCase("acl_cidr_segments2", "tf", false),
+		"acl_cidr_segments2 single tf": aclTestCase("acl_cidr_segments2", "tf", true),
+		"acl_tg_multiple tf":           aclTestCase("acl_tg_multiple", "tf", false),
+		"acl_tg_multiple single tf":    aclTestCase("acl_tg_multiple", "tf", true),
+		"sg_testing3 csv":              sgTestCase("sg_testing3", "csv"),
+		"sg_testing3 tf":               sgTestCase("sg_testing3", "tf"),
+		"sg_single_conn csv":           sgTestCase("sg_single_conn", "csv"),
+		"sg_single_conn tf":            sgTestCase("sg_single_conn", "tf"),
+		"sg_tg_multiple csv":           sgTestCase("sg_tg_multiple", "csv"),
+		"sg_tg_multiple tf":            sgTestCase("sg_tg_multiple", "tf"),
 	}
 	for testName := range suite {
 		testCase := suite[testName]

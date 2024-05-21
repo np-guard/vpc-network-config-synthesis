@@ -33,8 +33,8 @@ func (s *Spec) ComputeBlockedSubnets(singleACL bool) {
 
 		// subnet segments which include the subnet
 		segments := []string{}
-		for segmentName, segment := range s.Defs.SubnetSegments {
-			for _, s := range segment {
+		for segmentName, segmentDetails := range s.Defs.SubnetSegments {
+			for _, s := range segmentDetails.Subnets {
 				if subnet == s {
 					segments = append(segments, segmentName)
 					break
@@ -47,9 +47,9 @@ func (s *Spec) ComputeBlockedSubnets(singleACL bool) {
 
 		// cidr segments which include the subnet
 		cidrSegments := []string{}
-		for segmentName, cidrSegment := range s.Defs.CidrSegments {
-			for _, subnets := range cidrSegment {
-				for _, s := range subnets {
+		for segmentName, cidrSegmentDetails := range s.Defs.CidrSegments {
+			for _, cidrDetails := range cidrSegmentDetails.Cidrs {
+				for _, s := range cidrDetails.ContainedSubnets {
 					if subnet == s {
 						cidrSegments = append(cidrSegments, segmentName)
 						break
@@ -74,7 +74,7 @@ func (s *Spec) ComputeBlockedResources() {
 
 func (s *Spec) computeBlockedVPEs() []string {
 	var blockedVPEs []string
-	for vpe := range s.Defs.VPEToIP {
+	for vpe := range s.Defs.VPEs {
 		if !s.findResourceInConnections([]string{vpe}, ResourceTypeVPE) {
 			blockedVPEs = append(blockedVPEs, vpe)
 		}
@@ -84,23 +84,22 @@ func (s *Spec) computeBlockedVPEs() []string {
 
 func (s *Spec) computeBlockedNIFs() []string {
 	var blockedResources []string
-
-	for instance, NIFs := range s.Defs.InstanceToNIFs {
-		if s.findResourceInConnections([]string{instance}, ResourceTypeNIF) {
+	for instanceName, instanceDetails := range s.Defs.Instances {
+		if s.findResourceInConnections([]string{instanceName}, ResourceTypeNIF) {
 			continue
 		}
 
 		// instance is not in spec. look for its NIFs
 		var blockedNIFs []string
-		for _, nif := range NIFs {
+		for _, nif := range instanceDetails.Nifs {
 			if !s.findResourceInConnections([]string{nif}, ResourceTypeNIF) {
 				blockedNIFs = append(blockedNIFs, nif)
 			}
 		}
 
 		// instance has only one NIF which was not found
-		if len(blockedNIFs) > 0 && len(NIFs) == 1 {
-			blockedResources = append(blockedResources, instance)
+		if len(blockedNIFs) > 0 && len(instanceDetails.Nifs) == 1 {
+			blockedResources = append(blockedResources, instanceName)
 		} else {
 			blockedResources = append(blockedResources, blockedNIFs...)
 		}
