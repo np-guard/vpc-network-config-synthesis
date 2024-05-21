@@ -124,7 +124,6 @@ func TestResource_UnmarshalJSON(t *testing.T) {
 // Compare unmarshalled structs/arrays for "segments" in a spec file against simple json maps
 //
 //goland:noinspection GoShadowedVar
-//nolint:govet // ctx is intentionally shadowed, allowing stack-like navigation
 func TestUnmarshalSpecSegments(t *testing.T) {
 	ctx := ""
 	filename := examplesDir + "generic_example.json"
@@ -165,7 +164,6 @@ func TestUnmarshalSpecSegments(t *testing.T) {
 // Compare unmarshalled structs/arrays for "externals" in a spec file against simple json maps
 //
 //goland:noinspection GoShadowedVar
-//nolint:govet // ctx is intentionally shadowed, allowing stack-like navigation
 func TestUnmarshalSpecExternals(t *testing.T) {
 	ctx := ""
 	filename := examplesDir + "generic_example.json"
@@ -191,7 +189,7 @@ func TestUnmarshalSpecExternals(t *testing.T) {
 // Compare unmarshalled structs/arrays for "required-connections" in a spec file against simple json maps
 //
 //goland:noinspection GoShadowedVar
-//nolint:gocyclo,govet // ctx is intentionally shadowed, allowing stack-like navigation
+//nolint:gocyclo // ctx is intentionally shadowed, allowing stack-like navigation
 func TestUnmarshalSpecRequiredConnections(t *testing.T) {
 	ctx := ""
 	filename := examplesDir + "generic_example.json"

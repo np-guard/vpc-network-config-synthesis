@@ -32,7 +32,7 @@ func value(x interface{}) string {
 	case ir.IP:
 		return quote(v.String())
 	case ir.SGName:
-		return fmt.Sprintf("ibm_is_security_group.%v.id", v)
+		return changeScoping(fmt.Sprintf("ibm_is_security_group.%v.id", v))
 	default:
 		log.Fatalf("invalid terraform value %v", v)
 	}
@@ -83,7 +83,7 @@ func sg(sgName, comment string) tf.Block {
 	verifyName(sgName)
 	return tf.Block{
 		Name:    "resource", //nolint:revive  // obvious false positive
-		Labels:  []string{quote("ibm_is_security_group"), quote(sgName)},
+		Labels:  []string{quote("ibm_is_security_group"), changeScoping(quote(sgName))},
 		Comment: comment,
 		Arguments: []tf.Argument{
 			{Name: "name", Value: quote("sg-" + sgName)},

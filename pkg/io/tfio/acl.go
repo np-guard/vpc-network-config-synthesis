@@ -71,9 +71,9 @@ func singleACL(t *ir.ACL, comment string) tf.Block {
 	return tf.Block{
 		Comment: comment,
 		Name:    "resource",
-		Labels:  []string{quote("ibm_is_network_acl"), quote(t.Name())},
+		Labels:  []string{quote("ibm_is_network_acl"), changeScoping(quote(t.Name()))},
 		Arguments: []tf.Argument{
-			{Name: "name", Value: quote(t.Name())}, //nolint:revive  // obvious false positive
+			{Name: "name", Value: changeScoping(quote(t.Name()))}, //nolint:revive  // obvious false positive
 			{Name: "resource_group", Value: "local.acl_synth_resource_group_id"},
 			{Name: "vpc", Value: "local.acl_synth_vpc_id"},
 		},

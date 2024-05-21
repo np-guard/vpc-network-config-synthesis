@@ -115,15 +115,15 @@ func resourceRelevantToACL(e ir.ResourceType) bool {
 	return e == ir.ResourceTypeSubnet || e == ir.ResourceTypeSegment || e == ir.ResourceTypeCidr
 }
 
-func resourcesContainedInCidr(s *ir.Spec, epIP ir.IP, ep ir.Resource) []ir.IP {
-	if ep.Type != ir.ResourceTypeCidr {
-		return []ir.IP{epIP}
+func resourcesContainedInCidr(s *ir.Spec, resourceIP ir.IP, resource ir.Resource) []ir.IP {
+	if resource.Type != ir.ResourceTypeCidr {
+		return []ir.IP{resourceIP}
 	}
-	retVal := make([]ir.IP, 0)                             // list of subnet IPs contained in the cidr
-	subnets := s.Defs.CidrSegments[ep.Name][epIP.String()] // list of subnets contained in the cidr
-	for _, subnet := range subnets {
-		retVal = append(retVal, s.Defs.Subnets[subnet])
+	cidrSegmentDetails := s.Defs.CidrSegments[resource.Name]
+	cidrDetails := cidrSegmentDetails.Cidrs[ir.CidrFromIP(resourceIP)]
+	retVal := make([]ir.IP, len(cidrDetails.ContainedSubnets))
+	for i, subnet := range cidrDetails.ContainedSubnets {
+		retVal[i] = s.Defs.Subnets[subnet].Address()
 	}
-
 	return retVal
 }
