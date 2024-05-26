@@ -1,6 +1,6 @@
 module github.com/np-guard/vpc-network-config-synthesis
 
-go 1.21
+go 1.22
 
 require (
 	github.com/IBM/vpc-go-sdk v0.48.0
