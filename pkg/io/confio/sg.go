@@ -124,7 +124,7 @@ func updateSG(model *configModel.ResourcesContainerModel, collection *ir.SGColle
 	return nil
 }
 
-func (w *Writer) WriteSG(collection *ir.SGCollection) error {
+func (w *Writer) WriteSG(collection *ir.SGCollection, _ string) error {
 	if err := updateSG(w.model, collection); err != nil {
 		return err
 	}

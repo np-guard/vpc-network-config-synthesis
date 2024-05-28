@@ -155,7 +155,7 @@ func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCol
 	return nil
 }
 
-func (w *Writer) WriteACL(collection *ir.ACLCollection) error {
+func (w *Writer) WriteACL(collection *ir.ACLCollection, _ string) error {
 	if err := updateACL(w.model, collection); err != nil {
 		return err
 	}

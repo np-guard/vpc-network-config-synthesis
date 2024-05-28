@@ -83,7 +83,7 @@ func pickOutputFormat(outputFormat, outputFile string) (string, error) {
 	return inferredOutputFormat, nil
 }
 
-func pickWriter(format string, data *bytes.Buffer) (ir.Writer, error) {
+func pickWriter(format string, data *bytes.Buffer, connectivityFilename string) (ir.Writer, error) {
 	w := bufio.NewWriter(data)
 	switch format {
 	case tfOutputFormat:
@@ -92,6 +92,8 @@ func pickWriter(format string, data *bytes.Buffer) (ir.Writer, error) {
 		return csvio.NewWriter(w), nil
 	case mdOutputFormat:
 		return mdio.NewWriter(w), nil
+	case apiOutputFormat:
+		return confio.NewWriter(w, connectivityFilename)
 	default:
 		return nil, fmt.Errorf("bad output format: %q", format)
 	}
@@ -123,9 +125,9 @@ func generate(model *ir.Spec, target string) ir.Collection {
 	return nil
 }
 
-func writeOutput(collection ir.Collection, defs *ir.ConfigDefs, outputDirectory, outputFormat, outputFile, prefixOfFileNames *string) {
+func writeOutput(collection ir.Collection, defs *ir.ConfigDefs, outputDirectory, outputFormat, outputFile, prefixOfFileNames, configFilename *string) {
 	if *outputDirectory == "" {
-		writeToFile(collection, "", outputFormat, outputFile)
+		writeToFile(collection, "", outputFormat, outputFile, configFilename)
 	} else {
 		// create a directory
 		if err := os.Mkdir(*outputDirectory, defaultFilePermission); err != nil {
@@ -139,14 +141,14 @@ func writeOutput(collection ir.Collection, defs *ir.ConfigDefs, outputDirectory,
 			if *prefixOfFileNames != "" {
 				outputPath = *outputDirectory + "/" + *prefixOfFileNames + "_" + suffix
 			}
-			writeToFile(collection, vpc, outputFormat, &outputPath)
+			writeToFile(collection, vpc, outputFormat, &outputPath, configFilename)
 		}
 	}
 }
 
-func writeToFile(collection ir.Collection, vpc string, outputFormat, outputFile *string) {
+func writeToFile(collection ir.Collection, vpc string, outputFormat, outputFile, configFilename *string) {
 	var data bytes.Buffer
-	writer, err := pickWriter(*outputFormat, &data)
+	writer, err := pickWriter(*outputFormat, &data, *configFilename)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -205,8 +207,6 @@ Flags:
 	*outputFormat, err = pickOutputFormat(*outputFormat, *outputFile)
 	if err != nil {
 		log.Fatal(err)
-	} else if *outputFormat == "" {
-		log.Fatal("unknown format. Please supply format using -fmt flag, or use a known extension")
 	}
 
 	reader, err := pickReader(jsonInputFormat)
@@ -231,5 +231,5 @@ Flags:
 
 	collection := generate(model, *target)
 
-	writeOutput(collection, defs, outputDirectory, outputFormat, outputFile, prefixOfFileNames)
+	writeOutput(collection, defs, outputDirectory, outputFormat, outputFile, prefixOfFileNames, configFilename)
 }
