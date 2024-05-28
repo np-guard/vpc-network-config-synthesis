@@ -123,6 +123,27 @@ func generate(model *ir.Spec, target string) ir.Collection {
 	return nil
 }
 
+func writeOutput(collection ir.Collection, defs *ir.ConfigDefs, outputDirectory, outputFormat, outputFile, prefixOfFileNames *string) {
+	if *outputDirectory == "" {
+		writeToFile(collection, "", outputFormat, outputFile)
+	} else {
+		// create a directory
+		if err := os.Mkdir(*outputDirectory, defaultFilePermission); err != nil {
+			log.Fatal(err)
+		}
+
+		// write each file
+		for vpc := range defs.VPCs {
+			suffix := vpc + "." + *outputFormat
+			outputPath := *outputDirectory + "/" + suffix
+			if *prefixOfFileNames != "" {
+				outputPath = *outputDirectory + "/" + *prefixOfFileNames + "_" + suffix
+			}
+			writeToFile(collection, vpc, outputFormat, &outputPath)
+		}
+	}
+}
+
 func writeToFile(collection ir.Collection, vpc string, outputFormat, outputFile *string) {
 	var data bytes.Buffer
 	writer, err := pickWriter(*outputFormat, &data)
@@ -210,22 +231,5 @@ Flags:
 
 	collection := generate(model, *target)
 
-	if *outputDirectory == "" {
-		writeToFile(collection, "", outputFormat, outputFile)
-	} else {
-		// create a directory
-		if err := os.Mkdir(*outputDirectory, defaultFilePermission); err != nil {
-			log.Fatal(err)
-		}
-
-		// write each file
-		for vpc := range defs.VPCs {
-			suffix := vpc + "." + *outputFormat
-			outputPath := *outputDirectory + "/" + suffix
-			if *prefixOfFileNames != "" {
-				outputPath = *outputDirectory + "/" + *prefixOfFileNames + "_" + suffix
-			}
-			writeToFile(collection, vpc, outputFormat, &outputPath)
-		}
-	}
+	writeOutput(collection, defs, outputDirectory, outputFormat, outputFile, prefixOfFileNames)
 }
