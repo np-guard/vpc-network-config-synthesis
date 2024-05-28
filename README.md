@@ -6,22 +6,22 @@ The support is in multi-vpc input, but all connectivity must be within the same 
 
 ## Usage
 
-# nACLs Generation
+### nACLs Generation
 There is an option to generate an nACL for each subnet separately, or to generate a single nACL for all subnets in the same VPC.
 The input supports subnets, subnet segments and CIDR segments.
 Note: The segments are defined in the `conn_spec.json` file.
 
-# SGs Generation
+### SGs Generation
 The input supports Instances (VSIs), NIFs and VPEs.
 Note: If we have created a SG for a VSI (or its specific NIF), it will be applied to all the NIFs of the VSI. The same goes for ReservedIPs of VPE.
 
-# Output
+### Output
 1. If a path is given to the `output-dir` flag, a folder will be created. There we will create several files (as the number of vpcs), where each file contains the collection relevant to the vpc. The file names will be `prefix_vpc`, where prefix is ​​the value received in the `prefix` flag. If no value is passed in the `prefix` flag, the file names will be the vpc names.
 2. If path is given to the `output-file` flag, the collection will be written to the given path.
 3. If path is neither given to the `output-file` flag nor the `output-dir` flag, the collection will be written to stdout.
 Note: in options 1 and 3 it is mandatory to bring a value to the `fmt` flag.
 
-# Gloabl flags
+### Global flags
 ```commandline
 VpcGen translates connectivity spec to network ACLs or Security Groups.
 Usage:
