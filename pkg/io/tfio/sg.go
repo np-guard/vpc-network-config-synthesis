@@ -15,8 +15,8 @@ import (
 )
 
 // WriteSG prints an entire collection of security groups as a sequence of terraform resources.
-func (w *Writer) WriteSG(c *ir.SGCollection) error {
-	output := sgCollection(c).Print()
+func (w *Writer) WriteSG(c *ir.SGCollection, vpc string) error {
+	output := sgCollection(c, vpc).Print()
 	_, err := w.w.WriteString(output)
 	if err != nil {
 		return err
@@ -88,14 +88,20 @@ func sg(sgName, comment string) tf.Block {
 		Arguments: []tf.Argument{
 			{Name: "name", Value: quote("sg-" + sgName)},
 			{Name: "resource_group", Value: "local.sg_synth_resource_group_id"},
-			{Name: "vpc", Value: "local.sg_synth_vpc_id"},
+			{Name: "vpc", Value: fmt.Sprintf("local.name_%s_id", ir.ScopingComponents(sgName)[0])},
 		},
 	}
 }
 
-func sgCollection(t *ir.SGCollection) *tf.ConfigFile {
+func sgCollection(t *ir.SGCollection, vpc string) *tf.ConfigFile {
 	var resources []tf.Block //nolint:prealloc  // nontrivial to calculate, and an unlikely performance bottleneck
-	for _, sgName := range t.SortedSGNames() {
+	var sortedCollection []ir.SGName
+	if vpc == "" {
+		sortedCollection = t.SortedSGNames()
+	} else {
+		sortedCollection = t.SortedSGNamesInVPC(vpc)
+	}
+	for _, sgName := range sortedCollection {
 		comment := ""
 		rules := t.SGs[ir.ScopingComponents(string(sgName))[0]][sgName].Rules
 		if len(rules) == 0 {

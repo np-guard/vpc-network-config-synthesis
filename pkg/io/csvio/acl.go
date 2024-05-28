@@ -32,15 +32,18 @@ func ACLPort(p ir.PortRange) string {
 }
 
 // Write prints an entire collection of acls as a single CSV table.
-func (w *Writer) WriteACL(collection *ir.ACLCollection) error {
+func (w *Writer) WriteACL(collection *ir.ACLCollection, vpc string) error {
 	if err := w.w.WriteAll(aclHeader()); err != nil {
 		return err
 	}
-	for _, subnet := range collection.SortedACLSubnets() {
-		vpcName := "singleACL"
-		if subnet != "1" { // its not singleACL generation
-			vpcName = ir.ScopingComponents(subnet)[0]
-		}
+	var sortedACLs []string
+	if vpc == "" {
+		sortedACLs = collection.SortedACLSubnets()
+	} else {
+		sortedACLs = collection.SortedACLSubnetsInVPC(vpc)
+	}
+	for _, subnet := range sortedACLs {
+		vpcName := ir.ScopingComponents(subnet)[0]
 		if err := w.w.WriteAll(makeACLTable(collection.ACLs[vpcName][subnet], subnet)); err != nil {
 			return err
 		}

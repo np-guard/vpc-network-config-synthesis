@@ -15,8 +15,8 @@ import (
 )
 
 // WriteACL prints an entire collection of acls as a sequence of terraform resources.
-func (w *Writer) WriteACL(c *ir.ACLCollection) error {
-	output := aclCollection(c).Print()
+func (w *Writer) WriteACL(c *ir.ACLCollection, vpc string) error {
+	output := aclCollection(c, vpc).Print()
 	_, err := w.w.WriteString(output)
 	if err != nil {
 		return err
@@ -75,22 +75,24 @@ func singleACL(t *ir.ACL, comment string) tf.Block {
 		Arguments: []tf.Argument{
 			{Name: "name", Value: changeScoping(quote(t.Name()))}, //nolint:revive  // obvious false positive
 			{Name: "resource_group", Value: "local.acl_synth_resource_group_id"},
-			{Name: "vpc", Value: "local.acl_synth_vpc_id"},
+			{Name: "vpc", Value: fmt.Sprintf("local.name_%s_id", ir.ScopingComponents(t.Subnet)[0])},
 		},
 		Blocks: blocks,
 	}
 }
 
-func aclCollection(t *ir.ACLCollection) *tf.ConfigFile {
-	sortedACLs := t.SortedACLSubnets()
+func aclCollection(t *ir.ACLCollection, vpc string) *tf.ConfigFile {
+	var sortedACLs []string
+	if vpc == "" {
+		sortedACLs = t.SortedACLSubnets()
+	} else {
+		sortedACLs = t.SortedACLSubnetsInVPC(vpc)
+	}
 	var acls = make([]tf.Block, len(sortedACLs))
 	i := 0
 	for _, subnet := range sortedACLs {
 		comment := ""
-		vpcName := "singleACL"
-		if subnet != "1" { // its not singleACL generation
-			vpcName = ir.ScopingComponents(subnet)[0]
-		}
+		vpcName := ir.ScopingComponents(subnet)[0]
 		if len(acls) > 1 {
 			comment = fmt.Sprintf("\n# %v [%v]", subnet, t.ACLs[vpcName][subnet].Internal[0].Target())
 		}

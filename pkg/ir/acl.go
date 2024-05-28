@@ -39,7 +39,7 @@ type ACLCollection struct {
 }
 
 type ACLWriter interface {
-	WriteACL(*ACLCollection) error
+	WriteACL(*ACLCollection, string) error
 }
 
 func (r *ACLRule) isRedundant(rules []ACLRule) bool {
@@ -126,10 +126,7 @@ func NewACL() *ACL {
 }
 
 func (c *ACLCollection) LookupOrCreate(name string) *ACL {
-	vpcName := "singleACL"
-	if name != "1" {
-		vpcName = ScopingComponents(name)[0]
-	}
+	vpcName := ScopingComponents(name)[0]
 	if acl, ok := c.ACLs[vpcName][name]; ok {
 		return acl
 	}
@@ -142,10 +139,14 @@ func (c *ACLCollection) LookupOrCreate(name string) *ACL {
 	return newACL
 }
 
-func (c *ACLCollection) Write(w Writer) error {
-	return w.WriteACL(c)
+func (c *ACLCollection) Write(w Writer, vpc string) error {
+	return w.WriteACL(c, vpc)
 }
 
 func (c *ACLCollection) SortedACLSubnets() []string {
 	return utils.SortedKeys(c.ACLs)
+}
+
+func (c *ACLCollection) SortedACLSubnetsInVPC(vpc ID) []string {
+	return utils.SortedValuesInKey(c.ACLs, vpc)
 }

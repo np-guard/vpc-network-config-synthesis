@@ -51,7 +51,7 @@ type SGCollection struct {
 }
 
 type SGWriter interface {
-	WriteSG(*SGCollection) error
+	WriteSG(*SGCollection, string) error
 }
 
 func (r *SGRule) isRedundant(rules []SGRule) bool {
@@ -114,10 +114,14 @@ func MergeSGCollections(collections ...*SGCollection) *SGCollection {
 	return result
 }
 
-func (c *SGCollection) Write(w Writer) error {
-	return w.WriteSG(c)
+func (c *SGCollection) Write(w Writer, vpc string) error {
+	return w.WriteSG(c, vpc)
 }
 
 func (c *SGCollection) SortedSGNames() []SGName {
 	return utils.SortedKeys(c.SGs)
+}
+
+func (c *SGCollection) SortedSGNamesInVPC(vpc ID) []SGName {
+	return utils.SortedValuesInKey(c.SGs, vpc)
 }

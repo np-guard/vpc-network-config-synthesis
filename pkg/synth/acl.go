@@ -7,10 +7,13 @@ SPDX-License-Identifier: Apache-2.0
 package synth
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
+
+const subnetNotFoundError = "ACL: src/dst of type network interface (or instance) is not supported."
 
 type Options struct {
 	SingleACL bool
@@ -21,12 +24,18 @@ func MakeACL(s *ir.Spec, opt Options) *ir.ACLCollection {
 	aclSelector := func(ip ir.IP) string {
 		result, ok := s.Defs.SubnetNameFromIP(ip)
 		if !ok {
-			log.Fatalf("ACL: src/dst of type network interface (or instance) is not supported.")
+			log.Fatalf(subnetNotFoundError)
 		}
 		return result
 	}
 	if opt.SingleACL {
-		aclSelector = func(target ir.IP) string { return "1" }
+		aclSelector = func(ip ir.IP) string {
+			result, ok := s.Defs.SubnetNameFromIP(ip)
+			if !ok {
+				log.Fatalf(subnetNotFoundError)
+			}
+			return fmt.Sprintf("%s/singleACL", ir.ScopingComponents(result)[0])
+		}
 	}
 	collections := []*ir.ACLCollection{}
 	for c := range s.Connections {
