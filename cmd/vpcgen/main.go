@@ -125,7 +125,8 @@ func generate(model *ir.Spec, target string) ir.Collection {
 	return nil
 }
 
-func writeOutput(collection ir.Collection, defs *ir.ConfigDefs, outputDirectory, outputFormat, outputFile, prefixOfFileNames, configFilename *string) {
+func writeOutput(collection ir.Collection, defs *ir.ConfigDefs, outputDirectory, outputFormat, outputFile,
+	prefixOfFileNames, configFilename *string) {
 	if *outputDirectory == "" {
 		writeToFile(collection, "", outputFormat, outputFile, configFilename)
 	} else {
