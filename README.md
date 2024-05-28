@@ -19,7 +19,6 @@ Note: If we have created a SG for a VSI (or its specific NIF), it will be applie
 1. If a path is given to the `output-dir` flag, a folder will be created. There we will create several files (as the number of vpcs), where each file contains the collection relevant to the vpc. The file names will be `prefix_vpc`, where prefix is ​​the value received in the `prefix` flag. If no value is passed in the `prefix` flag, the file names will be the vpc names.
 2. If path is given to the `output-file` flag, the collection will be written to the given path.
 3. If path is neither given to the `output-file` flag nor the `output-dir` flag, the collection will be written to stdout.
-Note: in options 1 and 3 it is mandatory to bring a value to the `fmt` flag.
 
 ### Global flags
 ```commandline
@@ -33,7 +32,7 @@ Flags:
   -config string
         JSON file containing config spec
   -fmt string
-        Output format. One of "tf", "csv", "md"; must not contradict output file suffix. (default "acl").
+        Output format. One of "tf", "csv", "md"; must not contradict output file suffix. (default "csv").
   -output-dir string
         Output Directory. If unspecified, output will be written to one file.
   -output-file string
@@ -54,11 +53,10 @@ make mod
 make build
 ```
 
-Note: Windows environment users will run `make build-windows` instead of `make build`
+Note: Windows environment users will run `make build-windows` instead of `make build`.
 
 
 ## Run an example
-Linux environment:
 
 ```commandline
 bin/vpcgen -target=acl -config test/data/acl_testing5/config_object.json test/data/acl_testing5/conn_spec.json
@@ -66,4 +64,4 @@ bin/vpcgen -target=acl -config test/data/acl_testing5/config_object.json test/da
 bin/vpcgen -target=sg -config test/data/sg_testing3/config_object.json test/data/sg_testing3/conn_spec.json
 ```
 
-Note: Windows environment users will replace all `/` with `\`
+Note: Windows environment users will replace all `/` with `\`.

@@ -52,6 +52,23 @@
                     "code": 0
                 }
             ]
+        },
+        {
+            "src": {
+                "name": "subnet10",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "subnet11",
+                "type": "subnet"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "ICMP",
+                    "type": 0,
+                    "code": 0
+                }
+            ]
         }
     ]
 }

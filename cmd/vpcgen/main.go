@@ -184,7 +184,10 @@ Flags:
 	*outputFormat, err = pickOutputFormat(*outputFormat, *outputFile)
 	if err != nil {
 		log.Fatal(err)
+	} else if *outputFormat == "" {
+		log.Fatal("unknown format. Please supply format using -fmt flag, or use a known extension")
 	}
+
 	reader, err := pickReader(jsonInputFormat)
 	if err != nil {
 		log.Fatal(err)
@@ -217,9 +220,10 @@ Flags:
 
 		// write each file
 		for vpc := range defs.VPCs {
-			outputPath := fmt.Sprintf(*outputDirectory, "/", vpc)
+			suffix := vpc + "." + *outputFormat
+			outputPath := *outputDirectory + "/" + suffix
 			if *prefixOfFileNames != "" {
-				outputPath = fmt.Sprintf(*outputDirectory, "/", *prefixOfFileNames, "_", vpc)
+				outputPath = *outputDirectory + "/" + *prefixOfFileNames + "_" + suffix
 			}
 			writeToFile(collection, vpc, outputFormat, &outputPath)
 		}
