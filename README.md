@@ -8,11 +8,11 @@ The support is in multi-vpc input, but all connectivity must be within the same 
 
 ### nACLs Generation
 There is an option to generate an nACL for each subnet separately, or to generate a single nACL for all subnets in the same VPC.
-The input supports subnets, subnet segments and CIDR segments.
+The input supports subnets, subnet segments, CIDR segments and externals.
 Note: The segments are defined in the `conn_spec.json` file.
 
 ### SGs Generation
-The input supports Instances (VSIs), NIFs and VPEs.
+The input supports Instances (VSIs), NIFs, VPEs and externals.
 Note: If we have created a SG for a VSI (or its specific NIF), it will be applied to all the NIFs of the VSI. The same goes for ReservedIPs of VPE.
 
 ### Output
