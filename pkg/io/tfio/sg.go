@@ -86,7 +86,7 @@ func sg(sgName, comment string) tf.Block {
 		Labels:  []string{quote("ibm_is_security_group"), changeScoping(quote(sgName))},
 		Comment: comment,
 		Arguments: []tf.Argument{
-			{Name: "name", Value: quote("sg-" + sgName)},
+			{Name: "name", Value: changeScoping(quote("sg-" + sgName))},
 			{Name: "resource_group", Value: "local.sg_synth_resource_group_id"},
 			{Name: "vpc", Value: fmt.Sprintf("local.name_%s_id", ir.ScopingComponents(sgName)[0])},
 		},

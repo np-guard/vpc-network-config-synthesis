@@ -1,6 +1,6 @@
 ### SG attached to test-vpc/be
 resource "ibm_is_security_group" "test-vpc--be" {
-  name           = "sg-test-vpc/be"
+  name           = "sg-test-vpc--be"
   resource_group = local.sg_synth_resource_group_id
   vpc            = local.name_test-vpc_id
 }
@@ -15,7 +15,7 @@ resource "ibm_is_security_group_rule" "test-vpc--be-0" {
 
 ### SG attached to test-vpc/fe
 resource "ibm_is_security_group" "test-vpc--fe" {
-  name           = "sg-test-vpc/fe"
+  name           = "sg-test-vpc--fe"
   resource_group = local.sg_synth_resource_group_id
   vpc            = local.name_test-vpc_id
 }

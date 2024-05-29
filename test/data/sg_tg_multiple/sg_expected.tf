@@ -1,6 +1,6 @@
 ### SG attached to test-vpc0/vsi0-subnet0
 resource "ibm_is_security_group" "test-vpc0--vsi0-subnet0" {
-  name           = "sg-test-vpc0/vsi0-subnet0"
+  name           = "sg-test-vpc0--vsi0-subnet0"
   resource_group = local.sg_synth_resource_group_id
   vpc            = local.name_test-vpc0_id
 }
@@ -13,7 +13,7 @@ resource "ibm_is_security_group_rule" "test-vpc0--vsi0-subnet0-0" {
 
 ### SG attached to test-vpc0/vsi1-subnet4
 resource "ibm_is_security_group" "test-vpc0--vsi1-subnet4" {
-  name           = "sg-test-vpc0/vsi1-subnet4"
+  name           = "sg-test-vpc0--vsi1-subnet4"
   resource_group = local.sg_synth_resource_group_id
   vpc            = local.name_test-vpc0_id
 }
@@ -26,7 +26,7 @@ resource "ibm_is_security_group_rule" "test-vpc0--vsi1-subnet4-0" {
 
 ### SG attached to test-vpc2/vsi0-subnet20
 resource "ibm_is_security_group" "test-vpc2--vsi0-subnet20" {
-  name           = "sg-test-vpc2/vsi0-subnet20"
+  name           = "sg-test-vpc2--vsi0-subnet20"
   resource_group = local.sg_synth_resource_group_id
   vpc            = local.name_test-vpc2_id
 }
@@ -43,7 +43,7 @@ resource "ibm_is_security_group_rule" "test-vpc2--vsi0-subnet20-0" {
 
 ### SG attached to test-vpc2/vsi2-subnet20
 resource "ibm_is_security_group" "test-vpc2--vsi2-subnet20" {
-  name           = "sg-test-vpc2/vsi2-subnet20"
+  name           = "sg-test-vpc2--vsi2-subnet20"
   resource_group = local.sg_synth_resource_group_id
   vpc            = local.name_test-vpc2_id
 }
