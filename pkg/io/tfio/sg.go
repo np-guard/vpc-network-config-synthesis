@@ -68,7 +68,7 @@ func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) tf.Block {
 	verifyName(ruleName)
 	return tf.Block{
 		Name:    "resource",
-		Labels:  []string{quote("ibm_is_security_group_rule"), quote(ruleName)},
+		Labels:  []string{quote("ibm_is_security_group_rule"), changeScoping(quote(ruleName))},
 		Comment: fmt.Sprintf("# %v", rule.Explanation),
 		Arguments: []tf.Argument{
 			{Name: "group", Value: value(sgName)},

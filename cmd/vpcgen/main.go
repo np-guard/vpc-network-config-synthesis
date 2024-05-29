@@ -125,13 +125,25 @@ func generate(model *ir.Spec, target string) ir.Collection {
 	return nil
 }
 
+func makeDirectory(outputDirectory *string) (*string, error) {
+	if _, err := os.Stat(*outputDirectory); os.IsNotExist(err) {
+		if err := os.Mkdir(*outputDirectory, defaultFilePermission); err != nil {
+			return nil, err
+		}
+	} else if err != nil {
+		return nil, err
+	}
+	return outputDirectory, nil
+}
+
 func writeOutput(collection ir.Collection, defs *ir.ConfigDefs, outputDirectory, outputFormat, outputFile,
 	prefixOfFileNames, configFilename *string) {
 	if *outputDirectory == "" {
 		writeToFile(collection, "", outputFormat, outputFile, configFilename)
 	} else {
-		// create a directory
-		if err := os.Mkdir(*outputDirectory, defaultFilePermission); err != nil {
+		// create the directory if needed
+		outputDirectory, err := makeDirectory(outputDirectory)
+		if err != nil {
 			log.Fatal(err)
 		}
 
