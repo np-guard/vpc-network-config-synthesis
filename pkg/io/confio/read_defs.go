@@ -40,9 +40,22 @@ func ReadDefs(filename string) (*ir.ConfigDefs, error) {
 		return nil, err
 	}
 
-	instances, nifs := parseInstancesNifs(config)
-	vpes, vpeEndpoints := parseVPEs(config)
-	vpcs := parseVPCs(config)
+	subnets, err := parseSubnets(config)
+	if err != nil {
+		return nil, err
+	}
+	instances, nifs, err := parseInstancesNifs(config)
+	if err != nil {
+		return nil, err
+	}
+	vpes, vpeEndpoints, err := parseVPEs(config)
+	if err != nil {
+		return nil, err
+	}
+	vpcs, err := parseVPCs(config)
+	if err != nil {
+		return nil, err
+	}
 	err = validateVpcs(vpcs)
 	if err != nil {
 		return nil, err
@@ -50,7 +63,7 @@ func ReadDefs(filename string) (*ir.ConfigDefs, error) {
 
 	return &ir.ConfigDefs{
 		VPCs:           vpcs,
-		Subnets:        parseSubnets(config),
+		Subnets:        subnets,
 		NIFs:           nifs,
 		Instances:      instances,
 		VPEReservedIPs: vpeEndpoints,
@@ -58,34 +71,42 @@ func ReadDefs(filename string) (*ir.ConfigDefs, error) {
 	}, nil
 }
 
-func parseVPCs(config *configModel.ResourcesContainerModel) map[ir.ID]*ir.VPCDetails {
+func parseVPCs(config *configModel.ResourcesContainerModel) (map[ir.ID]*ir.VPCDetails, error) {
 	VPCs := make(map[ir.ID]*ir.VPCDetails, len(config.VpcList))
 	for _, vpc := range config.VpcList {
-		addressPrefixes := make([]ir.CIDR, len(vpc.AddressPrefixes))
-		for i, addressPrefix := range vpc.AddressPrefixes {
-			addressPrefixes[i] = ir.CidrFromString(*addressPrefix.CIDR)
+		addressPrefixes := ipblock.New()
+		for _, addressPrefix := range vpc.AddressPrefixes {
+			address, err := ipblock.FromCidr(*addressPrefix.CIDR)
+			if err != nil {
+				return nil, err
+			}
+			addressPrefixes = addressPrefixes.Union(address)
 		}
 		VPCs[*vpc.Name] = &ir.VPCDetails{AddressPrefixes: addressPrefixes}
 	}
-	return VPCs
+	return VPCs, nil
 }
 
-func parseSubnets(config *configModel.ResourcesContainerModel) map[ir.ID]*ir.SubnetDetails {
+func parseSubnets(config *configModel.ResourcesContainerModel) (map[ir.ID]*ir.SubnetDetails, error) {
 	subnets := make(map[ir.ID]*ir.SubnetDetails, len(config.SubnetList))
 	for _, subnet := range config.SubnetList {
 		uniqueName := scopingString(*subnet.VPC.Name, *subnet.Name)
+		cidr, err := ipblock.FromCidr(*subnet.Ipv4CIDRBlock)
+		if err != nil {
+			return nil, err
+		}
 		subnetDetails := ir.SubnetDetails{
 			NamedEntity: ir.NamedEntity(*subnet.Name),
 			VPC:         *subnet.VPC.Name,
-			CIDR:        ir.IPFromString(*subnet.Ipv4CIDRBlock),
+			CIDR:        cidr,
 		}
 		subnets[uniqueName] = &subnetDetails
 	}
-	return subnets
+	return subnets, nil
 }
 
 func parseInstancesNifs(config *configModel.ResourcesContainerModel) (instances map[ir.ID]*ir.InstanceDetails,
-	nifs map[ir.ID]*ir.NifDetails) {
+	nifs map[ir.ID]*ir.NifDetails, err error) {
 	instances = make(map[ir.ID]*ir.InstanceDetails, len(config.InstanceList))
 	nifs = make(map[ir.ID]*ir.NifDetails)
 	for _, instance := range config.InstanceList {
@@ -93,11 +114,15 @@ func parseInstancesNifs(config *configModel.ResourcesContainerModel) (instances 
 		instanceNifs := make([]ir.ID, len(instance.NetworkInterfaces))
 		for i := range instance.NetworkInterfaces {
 			nifUniqueName := scopingString(instanceUniqueName, *instance.NetworkInterfaces[i].Name)
+			nifIP, err := ipblock.FromIPAddress(*instance.NetworkInterfaces[i].PrimaryIP.Address)
+			if err != nil {
+				return nil, nil, err
+			}
 			nifDetails := ir.NifDetails{
 				NamedEntity: ir.NamedEntity(*instance.NetworkInterfaces[i].Name),
 				Instance:    scopingString(*instance.VPC.Name, *instance.Name),
 				VPC:         *instance.VPC.Name,
-				IP:          ir.IPFromString(*instance.NetworkInterfaces[i].PrimaryIP.Address),
+				IP:          nifIP,
 			}
 			nifs[nifUniqueName] = &nifDetails
 			instanceNifs[i] = nifUniqueName
@@ -109,13 +134,13 @@ func parseInstancesNifs(config *configModel.ResourcesContainerModel) (instances 
 		}
 		instances[instanceUniqueName] = &instanceDetails
 	}
-	return instances, nifs
+	return instances, nifs, nil
 }
 
 func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]*ir.VPEDetails,
-	vpeEndpoints map[ir.ID]*ir.VPEReservedIPsDetails) {
+	vpeReservedIPs map[ir.ID]*ir.VPEReservedIPsDetails, err error) {
 	vpes = make(map[ir.ID]*ir.VPEDetails)
-	vpeEndpoints = make(map[ir.ID]*ir.VPEReservedIPsDetails)
+	vpeReservedIPs = make(map[ir.ID]*ir.VPEReservedIPsDetails)
 
 	for _, vpe := range config.EndpointGWList {
 		if *vpe.ResourceType == EndpointVPE {
@@ -135,24 +160,28 @@ func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]*ir.
 				if r.ResourceType != nil && *t.ResourceType == EndpointVPE && t.Name != nil {
 					VPEName := scopingString(*subnet.VPC.Name, *t.Name)
 					subnetName := scopingString(*subnet.VPC.Name, *subnet.Name)
-					uniqueVpeEndpointName := scopingString(VPEName, *r.Name)
-					vpeEndpointDetails := ir.VPEReservedIPsDetails{
+					uniqueVpeReservedIPName := scopingString(VPEName, *r.Name)
+					vpeIP, err := ipblock.FromIPAddress(*r.Address)
+					if err != nil {
+						return nil, nil, err
+					}
+					vpeReservedIPDetails := ir.VPEReservedIPsDetails{
 						NamedEntity: ir.NamedEntity(*r.Name),
 						VPEName:     VPEName,
 						Subnet:      subnetName,
-						IP:          ir.IPFromString(*r.Address),
+						IP:          vpeIP,
 						VPC:         vpes[VPEName].VPC,
 					}
-					vpeEndpoints[uniqueVpeEndpointName] = &vpeEndpointDetails
+					vpeReservedIPs[uniqueVpeReservedIPName] = &vpeReservedIPDetails
 					vpe := vpes[VPEName]
-					vpe.VPEReservedIPs = append(vpe.VPEReservedIPs, uniqueVpeEndpointName)
+					vpe.VPEReservedIPs = append(vpe.VPEReservedIPs, uniqueVpeReservedIPName)
 					vpes[VPEName] = vpe
 				}
 			}
 		}
 	}
 
-	return vpes, vpeEndpoints
+	return vpes, vpeReservedIPs, nil
 }
 
 func validateVpcs(vpcs map[ir.ID]*ir.VPCDetails) error {
@@ -161,20 +190,8 @@ func validateVpcs(vpcs map[ir.ID]*ir.VPCDetails) error {
 			if vpcName1 >= vpcName2 {
 				continue
 			}
-			for _, addressPrefix1 := range vpcDetails1.AddressPrefixes {
-				address1, err := ipblock.FromCidr(addressPrefix1.String())
-				if err != nil {
-					return err
-				}
-				for _, addressPrefix2 := range vpcDetails2.AddressPrefixes {
-					address2, err := ipblock.FromCidr(addressPrefix2.String())
-					if err != nil {
-						return err
-					}
-					if !address1.Intersect(address2).IsEmpty() {
-						return fmt.Errorf("vpcs %s and %s are overlapping", vpcName1, vpcName2)
-					}
-				}
+			if !vpcDetails1.AddressPrefixes.Intersect(vpcDetails2.AddressPrefixes).IsEmpty() {
+				return fmt.Errorf("vpcs %s and %s are overlapping", vpcName1, vpcName2)
 			}
 		}
 	}

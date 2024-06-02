@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
@@ -74,10 +75,8 @@ func sGPort(p ir.PortRange) string {
 
 func sGRemoteType(t ir.RemoteType) string {
 	switch t.(type) {
-	case ir.IP:
+	case *ipblock.IPBlock:
 		return "IP address"
-	case ir.CIDR:
-		return "CIDR block"
 	case ir.SGName:
 		return "Security group"
 	}
@@ -87,14 +86,11 @@ func sGRemoteType(t ir.RemoteType) string {
 
 func sgRemote(r ir.RemoteType) string {
 	switch tr := r.(type) {
-	case ir.IP:
+	case *ipblock.IPBlock:
 		s := tr.String()
-		if s == ir.AnyIP {
+		if s == "0.0.0.0" {
 			return "Any IP"
-		}
-	case ir.CIDR:
-		s := tr.String()
-		if s == ir.AnyCIDR {
+		} else if s == ipblock.CidrAll {
 			return "Any CIDR"
 		}
 		return s

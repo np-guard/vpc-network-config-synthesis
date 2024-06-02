@@ -10,6 +10,7 @@ import (
 	"log"
 	"strconv"
 
+	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
@@ -105,10 +106,10 @@ func makeACLRow(priority int, rule *ir.ACLRule, aclName, subnet string) []string
 	}
 }
 
-func printIP(ip ir.IP, protocol ir.Protocol, isSource bool) string {
+func printIP(ip *ipblock.IPBlock, protocol ir.Protocol, isSource bool) string {
 	ipString := ip.String()
-	if ipString == ir.AnyCIDR {
-		ipString = "Any IP" //nolint:goconst // independent decision for SG and ACL
+	if ipString == ipblock.CidrAll {
+		ipString = "Any IP"
 	}
 	switch p := protocol.(type) {
 	case ir.ICMP:
