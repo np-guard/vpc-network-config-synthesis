@@ -64,7 +64,7 @@ func GenerateACLCollectionFromConnection(s *ir.Spec, conn *ir.Connection, aclSel
 			}
 			for _, trackedProtocol := range conn.TrackedProtocols {
 				reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}
-				protocolRules := allowDirectedConnection(s, src, dst, conn.Src, conn.Dst, internalSrc, internalDst, trackedProtocol.Protocol, reason)
+				protocolRules := allowDirectedConnection(s, src, dst, conn, internalSrc, internalDst, trackedProtocol.Protocol, reason)
 				connectionRules = append(connectionRules, protocolRules...)
 			}
 		}
@@ -80,38 +80,38 @@ func GenerateACLCollectionFromConnection(s *ir.Spec, conn *ir.Connection, aclSel
 	return result
 }
 
-func allowDirectedConnection(s *ir.Spec, src, dst ir.IP, srcEp, dstEp ir.Resource, internalSrc, internalDst bool,
+func allowDirectedConnection(s *ir.Spec, src, dst ir.IP, conn *ir.Connection, internalSrc, internalDst bool,
 	protocol ir.Protocol, reason explanation) []*ir.ACLRule {
 	var request, response *ir.Packet
 
-	srcList := resourcesContainedInCidr(s, src, srcEp)
-	dstList := resourcesContainedInCidr(s, dst, dstEp)
+	srcSubnetList := subnetsContainedInCidr(s, src, conn.Src)
+	dstSubnetList := subnetsContainedInCidr(s, dst, conn.Dst)
 
 	var connection []*ir.ACLRule
 
 	if internalSrc {
-		for _, srcIP := range srcList {
-			if srcIP == dst {
+		for _, srcSubnetCidr := range srcSubnetList {
+			if srcSubnetCidr == dst {
 				continue
 			}
-			request = &ir.Packet{Src: srcIP, Dst: dst, Protocol: protocol, Explanation: reason.String()}
+			request = &ir.Packet{Src: srcSubnetCidr, Dst: dst, Protocol: protocol, Explanation: reason.String()}
 			connection = append(connection, ir.AllowSend(*request))
 			if inverseProtocol := protocol.InverseDirection(); inverseProtocol != nil {
-				response = &ir.Packet{Src: dst, Dst: srcIP, Protocol: inverseProtocol, Explanation: reason.response().String()}
+				response = &ir.Packet{Src: dst, Dst: srcSubnetCidr, Protocol: inverseProtocol, Explanation: reason.response().String()}
 				connection = append(connection, ir.AllowReceive(*response))
 			}
 		}
 	}
 
 	if internalDst {
-		for _, dstIP := range dstList {
-			if src == dstIP {
+		for _, dstSubnetCidr := range dstSubnetList {
+			if src == dstSubnetCidr {
 				continue
 			}
-			request = &ir.Packet{Src: src, Dst: dstIP, Protocol: protocol, Explanation: reason.String()}
+			request = &ir.Packet{Src: src, Dst: dstSubnetCidr, Protocol: protocol, Explanation: reason.String()}
 			connection = append(connection, ir.AllowReceive(*request))
 			if inverseProtocol := protocol.InverseDirection(); inverseProtocol != nil {
-				response = &ir.Packet{Src: dstIP, Dst: src, Protocol: inverseProtocol, Explanation: reason.response().String()}
+				response = &ir.Packet{Src: dstSubnetCidr, Dst: src, Protocol: inverseProtocol, Explanation: reason.response().String()}
 				connection = append(connection, ir.AllowSend(*response))
 			}
 		}
@@ -124,15 +124,15 @@ func resourceRelevantToACL(e ir.ResourceType) bool {
 	return e == ir.ResourceTypeSubnet || e == ir.ResourceTypeSegment || e == ir.ResourceTypeCidr
 }
 
-func resourcesContainedInCidr(s *ir.Spec, resourceIP ir.IP, resource ir.Resource) []ir.IP {
+func subnetsContainedInCidr(s *ir.Spec, cidr ir.IP, resource ir.Resource) []ir.IP {
 	if resource.Type != ir.ResourceTypeCidr {
-		return []ir.IP{resourceIP}
+		return []ir.IP{cidr}
 	}
 	cidrSegmentDetails := s.Defs.CidrSegments[resource.Name]
-	cidrDetails := cidrSegmentDetails.Cidrs[ir.CidrFromIP(resourceIP)]
-	retVal := make([]ir.IP, len(cidrDetails.ContainedSubnets))
+	cidrDetails := cidrSegmentDetails.Cidrs[ir.CidrFromIP(cidr)]
+	result := make([]ir.IP, len(cidrDetails.ContainedSubnets))
 	for i, subnet := range cidrDetails.ContainedSubnets {
-		retVal[i] = s.Defs.Subnets[subnet].Address()
+		result[i] = s.Defs.Subnets[subnet].Address()
 	}
-	return retVal
+	return result
 }
