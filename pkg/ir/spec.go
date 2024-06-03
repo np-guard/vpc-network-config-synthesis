@@ -138,7 +138,7 @@ type (
 	}
 
 	ExternalDetails struct {
-		AA *ipblock.IPBlock
+		ExternalAddrs *ipblock.IPBlock
 	}
 
 	Named interface {
@@ -171,7 +171,7 @@ func (v *VPEReservedIPsDetails) Address() *ipblock.IPBlock {
 }
 
 func (e *ExternalDetails) Address() *ipblock.IPBlock {
-	return e.AA
+	return e.ExternalAddrs
 }
 
 func (s *SubnetDetails) getOverlappingVPCs() []ID {

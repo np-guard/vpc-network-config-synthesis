@@ -141,7 +141,7 @@ func translateExternals(m map[string]string) (map[ir.ID]*ir.ExternalDetails, err
 		if err != nil {
 			return nil, err
 		}
-		result[k] = &ir.ExternalDetails{AA: address}
+		result[k] = &ir.ExternalDetails{ExternalAddrs: address}
 	}
 	return result, nil
 }
