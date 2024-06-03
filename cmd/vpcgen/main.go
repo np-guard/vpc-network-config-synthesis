@@ -50,6 +50,7 @@ const (
 )
 
 const defaultFilePermission = 0o666
+const defaultDirectoryPermission = 0o755
 
 func inferFormatUsingFilename(filename string) string {
 	switch {
@@ -125,24 +126,13 @@ func generate(model *ir.Spec, target string) ir.Collection {
 	return nil
 }
 
-func makeDirectory(outputDirectory *string) (*string, error) {
-	if _, err := os.Stat(*outputDirectory); os.IsNotExist(err) {
-		if err := os.Mkdir(*outputDirectory, defaultFilePermission); err != nil {
-			return nil, err
-		}
-	} else if err != nil {
-		return nil, err
-	}
-	return outputDirectory, nil
-}
-
 func writeOutput(collection ir.Collection, defs *ir.ConfigDefs, outputDirectory, outputFormat, outputFile,
 	prefixOfFileNames, configFilename *string) {
 	if *outputDirectory == "" {
 		writeToFile(collection, "", outputFormat, outputFile, configFilename)
 	} else {
 		// create the directory if needed
-		outputDirectory, err := makeDirectory(outputDirectory)
+		err := os.MkdirAll(*outputDirectory, defaultDirectoryPermission)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -214,7 +204,7 @@ Flags:
 	var err error
 
 	if *outputDirectory != "" && *outputFile != "" {
-		log.Fatal(fmt.Errorf("could not determine whether to create a folder or not"))
+		log.Fatal(fmt.Errorf("output-file and output-dir cannot be specified together"))
 	}
 
 	*outputFormat, err = pickOutputFormat(*outputFormat, *outputFile)

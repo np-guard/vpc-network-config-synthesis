@@ -1,10 +1,11 @@
 # vpc-network-config-synthesis
 
-## About the vpc-network-config-synthesis
+## About vpc-network-config-synthesis
 Tool for automatic synthesis of VPC network configurations, namely Network ACLs and Security Groups.
-The support is in multi-vpc input, but all connectivity must be within the same vpc.
+Multi-vpc input is supported. Required connections cannot cross vpc boundaries.
 
 ## Usage
+Use the `target` flag to specify the type of network resources to generate: whether Network ACLs or Security Groups.
 
 ### nACLs Generation
 There is an option to generate an nACL for each subnet separately, or to generate a single nACL for all subnets in the same VPC.
@@ -13,12 +14,12 @@ Note: The segments are defined in the `conn_spec.json` file.
 
 ### SGs Generation
 The input supports Instances (VSIs), NIFs, VPEs and externals.
-Note: If we have created a SG for a VSI (or its specific NIF), it will be applied to all the NIFs of the VSI. The same goes for ReservedIPs of VPE.
+**Note**: A generated SG for a VSI (or its specific NIF), it will be applied to all the NIFs of the VSI. The same goes for Reserved IPs of a VPE.
 
 ### Output
-1. If a path is given to the `output-dir` flag, a folder will be created. There we will create several files (as the number of vpcs), where each file contains the collection relevant to the vpc. The file names will be `prefix_vpc`, where prefix is ​​the value received in the `prefix` flag. If no value is passed in the `prefix` flag, the file names will be the vpc names.
-2. If path is given to the `output-file` flag, the collection will be written to the given path.
-3. If path is neither given to the `output-file` flag nor the `output-dir` flag, the collection will be written to stdout.
+1. If the `output-dir` flag is used, the specified folder will be created, containing one file per VPC. Each generated file will contain the network resources (Security Groups or Network ACLs) relevant to its VPC. File names are set as `prefix_vpc`, where prefix is ​​the value received in the `prefix` flag. If the `prefix` flag is omitted, file names will match VPC names.
+2. If the `output-file` flag is used, all generated resources will be written to the specified file.
+3. if the `output-file` and `output-dir` flags are not used, the collection will be written to stdout.
 
 ### Global flags
 ```commandline
@@ -53,7 +54,7 @@ make mod
 make build
 ```
 
-Note: Windows environment users will run `make build-windows` instead of `make build`.
+**Note**: Windows environment users should run `make build-windows` instead of `make build`.
 
 
 ## Run an example
@@ -64,4 +65,4 @@ bin/vpcgen -target=acl -config test/data/acl_testing5/config_object.json test/da
 bin/vpcgen -target=sg -config test/data/sg_testing3/config_object.json test/data/sg_testing3/conn_spec.json
 ```
 
-Note: Windows environment users will replace all `/` with `\`.
+**Note**: Windows environment users should replace all `/` with `\`.
