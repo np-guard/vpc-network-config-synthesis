@@ -31,7 +31,7 @@ func (s SGName) String() string {
 
 type RemoteType interface {
 	fmt.Stringer
-	// IP | CIDR | SGName
+	// *ipblock.IPBlock | SGName
 }
 
 type SGRule struct {

@@ -109,7 +109,7 @@ func makeACLRow(priority int, rule *ir.ACLRule, aclName, subnet string) []string
 func printIP(ip *ipblock.IPBlock, protocol ir.Protocol, isSource bool) string {
 	ipString := ip.String()
 	if ipString == ipblock.CidrAll {
-		ipString = "Any IP"
+		ipString = "Any IP" //nolint:goconst // independent decision for SG and ACL
 	}
 	switch p := protocol.(type) {
 	case ir.ICMP:

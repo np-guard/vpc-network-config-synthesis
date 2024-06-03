@@ -13,6 +13,8 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
+const IPAddressAddressPrefixLength = 32
+
 func (w *Writer) WriteSG(collection *ir.SGCollection, vpc string) error {
 	if err := w.writeAll(sgHeader()); err != nil {
 		return err
@@ -88,9 +90,12 @@ func sGPort(p ir.PortRange) string {
 }
 
 func sGRemoteType(t ir.RemoteType) string {
-	switch t.(type) {
+	switch tr := t.(type) {
 	case *ipblock.IPBlock:
-		return "IP address"
+		if isIPAddress(tr.String()) {
+			return "IP address"
+		}
+		return "CIDR block"
 	case ir.SGName:
 		return "Security group"
 	}
@@ -102,10 +107,8 @@ func sgRemote(r ir.RemoteType) string {
 	switch tr := r.(type) {
 	case *ipblock.IPBlock:
 		s := tr.String()
-		if s == "0.0.0.0" {
+		if s == ipblock.CidrAll {
 			return "Any IP"
-		} else if s == ipblock.CidrAll {
-			return "Any CIDR"
 		}
 		return s
 	case ir.SGName:
@@ -134,4 +137,19 @@ func printProtocolParams(protocol ir.Protocol, isSource bool) string {
 		log.Panicf("Impossible protocol %v", p)
 	}
 	return ""
+}
+
+func isIPAddress(s string) bool {
+	address, err := ipblock.FromCidrOrAddress(s)
+	if err != nil {
+		log.Fatal(err)
+	}
+	prefixLength, err := address.PrefixLength()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if prefixLength == IPAddressAddressPrefixLength {
+		return true
+	}
+	return false
 }
