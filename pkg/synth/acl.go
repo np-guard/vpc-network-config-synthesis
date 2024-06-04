@@ -21,7 +21,7 @@ type Options struct {
 }
 
 // MakeACL translates Spec to a collection of ACLs
-func MakeACL(s *ir.Spec, opt Options) *ir.ACLCollection {
+func MakeACL(s *ir.Spec, opt Options, blockedSubnets []ir.ID) *ir.ACLCollection {
 	aclSelector := func(cidr *ipblock.IPBlock) string {
 		result, ok := s.Defs.SubnetNameFromIP(cidr)
 		if !ok {
@@ -40,13 +40,14 @@ func MakeACL(s *ir.Spec, opt Options) *ir.ACLCollection {
 	}
 	collections := []*ir.ACLCollection{}
 	for c := range s.Connections {
-		collection := GenerateACLCollectionFromConnection(s, &s.Connections[c], aclSelector)
+		collection := generateACLCollectionFromConnection(s, &s.Connections[c], aclSelector)
 		collections = append(collections, collection)
 	}
+	collections = append(collections, generateACLCollectionForBlockedSubnets(s, blockedSubnets, aclSelector))
 	return ir.MergeACLCollections(collections...)
 }
 
-func GenerateACLCollectionFromConnection(s *ir.Spec, conn *ir.Connection,
+func generateACLCollectionFromConnection(s *ir.Spec, conn *ir.Connection,
 	aclSelector func(target *ipblock.IPBlock) string) *ir.ACLCollection {
 	internalSrc := conn.Src.Type != ir.ResourceTypeExternal
 	internalDst := conn.Dst.Type != ir.ResourceTypeExternal
@@ -120,6 +121,19 @@ func allowDirectedConnection(s *ir.Spec, srcCidr, dstCidr *ipblock.IPBlock, conn
 	}
 
 	return connection
+}
+
+func generateACLCollectionForBlockedSubnets(s *ir.Spec, blockedSubnets []ir.ID,
+	aclSelector func(target *ipblock.IPBlock) string) *ir.ACLCollection {
+	result := ir.NewACLCollection()
+	for _, subnet := range blockedSubnets {
+		cidr := s.Defs.Subnets[subnet].Address()
+		acl := result.LookupOrCreate(aclSelector(cidr))
+		acl.AppendExternal(ir.DenyAllReceive(subnet, cidr))
+		acl.AppendExternal(ir.DenyAllSend(subnet, cidr))
+	}
+
+	return result
 }
 
 func resourceRelevantToACL(e ir.ResourceType) bool {

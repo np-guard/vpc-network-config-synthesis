@@ -111,14 +111,14 @@ func pickReader(format string) (ir.Reader, error) {
 func generate(model *ir.Spec, target string) ir.Collection {
 	switch target {
 	case sgTarget:
-		model.ComputeBlockedResources()
-		return synth.MakeSG(model, synth.Options{})
+		blockedSubnets := model.ComputeBlockedResources()
+		return synth.MakeSG(model, synth.Options{}, blockedSubnets)
 	case singleaclTarget:
-		model.ComputeBlockedSubnets(true)
-		return synth.MakeACL(model, synth.Options{SingleACL: true})
+		blockedSubnets := model.ComputeBlockedSubnets()
+		return synth.MakeACL(model, synth.Options{SingleACL: true}, blockedSubnets)
 	case aclTarget:
-		model.ComputeBlockedSubnets(false)
-		return synth.MakeACL(model, synth.Options{SingleACL: false})
+		blockedResources := model.ComputeBlockedSubnets()
+		return synth.MakeACL(model, synth.Options{SingleACL: false}, blockedResources)
 	default:
 		log.Fatalf("Impossible target: %v", target)
 	}

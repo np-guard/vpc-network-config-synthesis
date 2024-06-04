@@ -62,7 +62,7 @@ func aclTestCase(folder, outputFormat string, single bool) TestCase {
 		outputFormat: outputFormat,
 		expectedName: fmt.Sprintf(expectedFormat, "nacl", outputFormat),
 		maker: func(s *ir.Spec) ir.Collection {
-			return synth.MakeACL(s, synth.Options{SingleACL: single})
+			return synth.MakeACL(s, synth.Options{SingleACL: single}, []ir.ID{})
 		},
 	}
 }
@@ -74,7 +74,7 @@ func sgTestCase(folder, outputFormat string) TestCase {
 		outputFormat: outputFormat,
 		expectedName: fmt.Sprintf(defaultExpectedFormat, "sg", outputFormat),
 		maker: func(s *ir.Spec) ir.Collection {
-			return synth.MakeSG(s, synth.Options{})
+			return synth.MakeSG(s, synth.Options{}, []ir.ID{})
 		},
 	}
 }

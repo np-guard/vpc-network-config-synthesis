@@ -13,16 +13,17 @@ import (
 )
 
 // MakeSG translates Spec to a collection of security groups
-func MakeSG(s *ir.Spec, opt Options) *ir.SGCollection {
+func MakeSG(s *ir.Spec, opt Options, blockedResources []ir.ID) *ir.SGCollection {
 	collections := []*ir.SGCollection{}
 	for c := range s.Connections {
-		collection := GenerateSGCollectionFromConnection(&s.Connections[c], s.Defs.RemoteFromIP)
+		collection := generateSGCollectionFromConnection(&s.Connections[c], s.Defs.RemoteFromIP)
 		collections = append(collections, collection)
 	}
+	collections = append(collections, generateSGCollectionForBlockedResources(blockedResources))
 	return ir.MergeSGCollections(collections...)
 }
 
-func GenerateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(target *ipblock.IPBlock) ir.RemoteType) *ir.SGCollection {
+func generateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(target *ipblock.IPBlock) ir.RemoteType) *ir.SGCollection {
 	internalSrc := conn.Src.Type != ir.ResourceTypeExternal
 	internalDst := conn.Dst.Type != ir.ResourceTypeExternal
 	if !internalSrc && !internalDst {
@@ -82,6 +83,15 @@ func GenerateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(tar
 		}
 	}
 
+	return result
+}
+
+func generateSGCollectionForBlockedResources(blockedResources []ir.ID) *ir.SGCollection {
+	result := ir.NewSGCollection()
+	for _, resource := range blockedResources {
+		sg := result.LookupOrCreate(ir.SGName(resource))
+		sg.Attached = []ir.SGName{ir.SGName(resource)}
+	}
 	return result
 }
 

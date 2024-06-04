@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/tfio/tf"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
@@ -93,13 +94,19 @@ func aclCollection(t *ir.ACLCollection, vpc string) *tf.ConfigFile {
 	for _, subnet := range sortedACLs {
 		comment := ""
 		vpcName := ir.ScopingComponents(subnet)[0]
-		if len(acls) > 1 {
-			comment = fmt.Sprintf("\n# %v [%v]", subnet, t.ACLs[vpcName][subnet].Internal[0].Target())
-		}
-		acls[i] = singleACL(t.ACLs[vpcName][subnet], comment)
+		acl := t.ACLs[vpcName][subnet]
+		comment = fmt.Sprintf("\n# %v [%v]", subnet, subnetCidr(acl))
+		acls[i] = singleACL(acl, comment)
 		i += 1
 	}
 	return &tf.ConfigFile{
 		Resources: acls,
 	}
+}
+
+func subnetCidr(acl *ir.ACL) *ipblock.IPBlock {
+	if len(acl.Internal) > 0 {
+		return acl.Internal[0].Target()
+	}
+	return acl.External[0].Target()
 }
