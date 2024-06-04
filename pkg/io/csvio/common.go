@@ -65,3 +65,7 @@ func printProtocolName(protocol ir.Protocol) string {
 	}
 	return ""
 }
+
+func vpcFromScopedResource(resource ir.ID) ir.ID {
+	return ir.ScopingComponents(resource)[0]
+}

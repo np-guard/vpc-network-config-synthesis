@@ -127,31 +127,31 @@ func generate(model *ir.Spec, target string) ir.Collection {
 }
 
 func writeOutput(collection ir.Collection, defs *ir.ConfigDefs, outputDirectory, outputFormat, outputFile,
-	prefixOfFileNames, configFilename *string) {
-	if *outputDirectory == "" {
+	prefixOfFileNames, configFilename string) {
+	if outputDirectory == "" {
 		writeToFile(collection, "", outputFormat, outputFile, configFilename)
 	} else {
 		// create the directory if needed
-		err := os.MkdirAll(*outputDirectory, defaultDirectoryPermission)
+		err := os.MkdirAll(outputDirectory, defaultDirectoryPermission)
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		// write each file
 		for vpc := range defs.VPCs {
-			suffix := vpc + "." + *outputFormat
-			outputPath := *outputDirectory + "/" + suffix
-			if *prefixOfFileNames != "" {
-				outputPath = *outputDirectory + "/" + *prefixOfFileNames + "_" + suffix
+			suffix := vpc + "." + outputFormat
+			outputPath := outputDirectory + "/" + suffix
+			if prefixOfFileNames != "" {
+				outputPath = outputDirectory + "/" + prefixOfFileNames + "_" + suffix
 			}
-			writeToFile(collection, vpc, outputFormat, &outputPath, configFilename)
+			writeToFile(collection, vpc, outputFormat, outputPath, configFilename)
 		}
 	}
 }
 
-func writeToFile(collection ir.Collection, vpc string, outputFormat, outputFile, configFilename *string) {
+func writeToFile(collection ir.Collection, vpc, outputFormat, outputFile, configFilename string) {
 	var data bytes.Buffer
-	writer, err := pickWriter(*outputFormat, &data, *configFilename)
+	writer, err := pickWriter(outputFormat, &data, configFilename)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -159,10 +159,10 @@ func writeToFile(collection ir.Collection, vpc string, outputFormat, outputFile,
 		log.Fatal(err)
 	}
 
-	if *outputFile == "" {
+	if outputFile == "" {
 		fmt.Print(data.String())
 	} else {
-		err = os.WriteFile(*outputFile, data.Bytes(), defaultFilePermission)
+		err = os.WriteFile(outputFile, data.Bytes(), defaultFilePermission)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -178,9 +178,9 @@ func main() {
 		fmt.Sprintf("Output format. One of %q, %q, %q; must not contradict output file suffix. (default %q)",
 			tfOutputFormat, csvOutputFormat, mdOutputFormat, defaultOutputFormat))
 	outputFile := flag.String("output-file", "",
-		"Output to file. If specified, also determines output format.")
+		"Write all generated resources to the specified file.")
 	outputDirectory := flag.String("output-dir", "",
-		"Output Directory. If unspecified, output will be written to one file.")
+		"Write generated resources to files in the specified directory, one file per VPC.")
 	prefixOfFileNames := flag.String("prefix", "", "The prefix of the files that will be created.")
 	flag.Usage = func() {
 		_, _ = fmt.Fprintf(os.Stderr, `VpcGen translates connectivity spec to network ACLs or Security Groups.
@@ -234,5 +234,5 @@ Flags:
 
 	collection := generate(model, *target)
 
-	writeOutput(collection, defs, outputDirectory, outputFormat, outputFile, prefixOfFileNames, configFilename)
+	writeOutput(collection, defs, *outputDirectory, *outputFormat, *outputFile, *prefixOfFileNames, *configFilename)
 }

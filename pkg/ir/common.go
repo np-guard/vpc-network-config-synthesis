@@ -27,5 +27,5 @@ type Writer interface {
 }
 
 type Collection interface {
-	Write(Writer, string) error
+	Write(writer Writer, vpc string) error
 }

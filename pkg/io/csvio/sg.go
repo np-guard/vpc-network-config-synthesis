@@ -16,14 +16,9 @@ func (w *Writer) WriteSG(collection *ir.SGCollection, vpc string) error {
 	if err := w.w.WriteAll(sgHeader()); err != nil {
 		return err
 	}
-	var sortedCollection []ir.SGName
-	if vpc == "" {
-		sortedCollection = collection.SortedSGNames()
-	} else {
-		sortedCollection = collection.SortedSGNamesInVPC(vpc)
-	}
-	for _, sgName := range sortedCollection {
-		if err := w.w.WriteAll(makeSGTable(collection.SGs[ir.ScopingComponents(string(sgName))[0]][sgName], sgName)); err != nil {
+	for _, sgName := range collection.SortedSGNames(vpc) {
+		vpcName := vpcFromScopedResource(string(sgName))
+		if err := w.w.WriteAll(makeSGTable(collection.SGs[vpcName][sgName], sgName)); err != nil {
 			return err
 		}
 	}

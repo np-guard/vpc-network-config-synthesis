@@ -118,10 +118,9 @@ func (c *SGCollection) Write(w Writer, vpc string) error {
 	return w.WriteSG(c, vpc)
 }
 
-func (c *SGCollection) SortedSGNames() []SGName {
-	return utils.SortedKeys(c.SGs)
-}
-
-func (c *SGCollection) SortedSGNamesInVPC(vpc ID) []SGName {
+func (c *SGCollection) SortedSGNames(vpc ID) []SGName {
+	if vpc == "" {
+		return utils.SortedKeys(c.SGs)
+	}
 	return utils.SortedValuesInKey(c.SGs, vpc)
 }
