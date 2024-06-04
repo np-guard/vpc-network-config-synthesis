@@ -82,17 +82,12 @@ func singleACL(t *ir.ACL, comment string) tf.Block {
 }
 
 func aclCollection(t *ir.ACLCollection, vpc string) *tf.ConfigFile {
-	var sortedACLs []string
-	if vpc == "" {
-		sortedACLs = t.SortedACLSubnets()
-	} else {
-		sortedACLs = t.SortedACLSubnetsInVPC(vpc)
-	}
+	sortedACLs := t.SortedACLSubnets(vpc)
 	var acls = make([]tf.Block, len(sortedACLs))
 	i := 0
 	for _, subnet := range sortedACLs {
 		comment := ""
-		vpcName := ir.ScopingComponents(subnet)[0]
+		vpcName := vpcFromScopedResource(subnet)
 		if len(acls) > 1 {
 			comment = fmt.Sprintf("\n# %v [%v]", subnet, t.ACLs[vpcName][subnet].Internal[0].Target())
 		}

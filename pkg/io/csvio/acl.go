@@ -37,14 +37,8 @@ func (w *Writer) WriteACL(collection *ir.ACLCollection, vpc string) error {
 	if err := w.w.WriteAll(aclHeader()); err != nil {
 		return err
 	}
-	var sortedACLs []string
-	if vpc == "" {
-		sortedACLs = collection.SortedACLSubnets()
-	} else {
-		sortedACLs = collection.SortedACLSubnetsInVPC(vpc)
-	}
-	for _, subnet := range sortedACLs {
-		vpcName := ir.ScopingComponents(subnet)[0]
+	for _, subnet := range collection.SortedACLSubnets(vpc) {
+		vpcName := vpcFromScopedResource(subnet)
 		if err := w.w.WriteAll(makeACLTable(collection.ACLs[vpcName][subnet], subnet)); err != nil {
 			return err
 		}

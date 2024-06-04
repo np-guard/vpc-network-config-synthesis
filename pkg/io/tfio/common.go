@@ -73,3 +73,7 @@ func verifyName(name string) {
 func changeScoping(s string) string {
 	return strings.ReplaceAll(s, "/", "--")
 }
+
+func vpcFromScopedResource(resource ir.ID) ir.ID {
+	return ir.ScopingComponents(resource)[0]
+}

@@ -127,7 +127,7 @@ func findSubnet(model *configModel.ResourcesContainerModel, name string) int {
 func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCollection) error {
 	vpc := model.SubnetList[0].VPC
 	resourceGroup := model.SubnetList[0].ResourceGroup
-	for _, subnetName := range collection.SortedACLSubnets() {
+	for _, subnetName := range collection.SortedACLSubnets("") {
 		acl := collection.ACLs[ir.ScopingComponents(subnetName)[0]][subnetName]
 		if acl == nil {
 			continue

@@ -87,22 +87,17 @@ func sg(sgName, comment string) tf.Block {
 		Arguments: []tf.Argument{
 			{Name: "name", Value: changeScoping(quote("sg-" + sgName))},
 			{Name: "resource_group", Value: "local.sg_synth_resource_group_id"},
-			{Name: "vpc", Value: fmt.Sprintf("local.name_%s_id", ir.ScopingComponents(sgName)[0])},
+			{Name: "vpc", Value: fmt.Sprintf("local.name_%s_id", vpcFromScopedResource(sgName))},
 		},
 	}
 }
 
 func sgCollection(t *ir.SGCollection, vpc string) *tf.ConfigFile {
 	var resources []tf.Block //nolint:prealloc  // nontrivial to calculate, and an unlikely performance bottleneck
-	var sortedCollection []ir.SGName
-	if vpc == "" {
-		sortedCollection = t.SortedSGNames()
-	} else {
-		sortedCollection = t.SortedSGNamesInVPC(vpc)
-	}
-	for _, sgName := range sortedCollection {
+	for _, sgName := range t.SortedSGNames(vpc) {
 		comment := ""
-		rules := t.SGs[ir.ScopingComponents(string(sgName))[0]][sgName].Rules
+		vpcName := vpcFromScopedResource(string(sgName))
+		rules := t.SGs[vpcName][sgName].Rules
 		if len(rules) == 0 {
 			continue
 		}
