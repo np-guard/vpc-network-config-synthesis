@@ -231,7 +231,7 @@ func translateConnection(defs *ir.Definitions, v *spec.SpecRequiredConnectionsEl
 	if err != nil {
 		return nil, err
 	}
-	dstVPCs := defs.GetResourceOverlappingVPCs(srcResourceType, v.Src.Name)
+	dstVPCs := defs.GetResourceOverlappingVPCs(dstResourceType, v.Dst.Name)
 	err = defs.ValidateConnection(srcVPCs, dstVPCs)
 	if err != nil {
 		return nil, err

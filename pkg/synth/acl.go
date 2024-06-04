@@ -129,8 +129,8 @@ func generateACLCollectionForBlockedSubnets(s *ir.Spec, blockedSubnets []ir.ID,
 	for _, subnet := range blockedSubnets {
 		cidr := s.Defs.Subnets[subnet].Address()
 		acl := result.LookupOrCreate(aclSelector(cidr))
-		acl.AppendExternal(ir.DenyAllReceive(subnet, cidr))
-		acl.AppendExternal(ir.DenyAllSend(subnet, cidr))
+		acl.AppendInternal(ir.DenyAllReceive(subnet, cidr))
+		acl.AppendInternal(ir.DenyAllSend(subnet, cidr))
 	}
 
 	return result

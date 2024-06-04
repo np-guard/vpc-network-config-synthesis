@@ -76,19 +76,14 @@ func singleACL(t *ir.ACL, comment string) tf.Block {
 		Arguments: []tf.Argument{
 			{Name: "name", Value: changeScoping(quote(t.Name()))}, //nolint:revive  // obvious false positive
 			{Name: "resource_group", Value: "local.acl_synth_resource_group_id"},
-			{Name: "vpc", Value: fmt.Sprintf("local.name_%s_id", ir.ScopingComponents(t.Subnet)[0])},
+			{Name: "vpc", Value: fmt.Sprintf("local.name_%s_id", vpcFromScopedResource(t.Subnet))},
 		},
 		Blocks: blocks,
 	}
 }
 
 func aclCollection(t *ir.ACLCollection, vpc string) *tf.ConfigFile {
-	var sortedACLs []string
-	if vpc == "" {
-		sortedACLs = t.SortedACLSubnets()
-	} else {
-		sortedACLs = t.SortedACLSubnetsInVPC(vpc)
-	}
+	sortedACLs := t.SortedACLSubnets(vpc)
 	var acls = make([]tf.Block, len(sortedACLs))
 	i := 0
 	for _, subnet := range sortedACLs {

@@ -186,7 +186,7 @@ func (i *InstanceDetails) getOverlappingVPCs() []ID {
 	return []ID{i.VPC}
 }
 
-func (v *VPEReservedIPsDetails) getOverlappingVPCs() []ID {
+func (v *VPEDetails) getOverlappingVPCs() []ID {
 	return []ID{v.VPC}
 }
 
@@ -315,7 +315,7 @@ func (s *Definitions) GetResourceOverlappingVPCs(t ResourceType, name string) []
 	case ResourceTypeNIF:
 		return getResourceVPCs(s.NIFs, name)
 	case ResourceTypeVPE:
-		return getResourceVPCs(s.VPEReservedIPs, name)
+		return getResourceVPCs(s.VPEs, name)
 	case ResourceTypeInstance:
 		return getResourceVPCs(s.Instances, name)
 	case ResourceTypeSegment:

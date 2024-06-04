@@ -86,7 +86,7 @@ func makeSGItem(sg *ir.SG, sgRemoteRef *vpcv1.SecurityGroupRuleRemoteSecurityGro
 func updateSG(model *configModel.ResourcesContainerModel, collection *ir.SGCollection) error {
 	vpc := model.SubnetList[0].VPC
 	resourceGroup := model.SubnetList[0].ResourceGroup
-	for _, sgName := range collection.SortedSGNames() {
+	for _, sgName := range collection.SortedSGNames("") {
 		sg := collection.SGs[ir.ScopingComponents(string(sgName))[0]][sgName]
 		if sg == nil {
 			continue

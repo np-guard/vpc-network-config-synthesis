@@ -144,10 +144,9 @@ func (c *ACLCollection) Write(w Writer, vpc string) error {
 	return w.WriteACL(c, vpc)
 }
 
-func (c *ACLCollection) SortedACLSubnets() []string {
-	return utils.SortedKeys(c.ACLs)
-}
-
-func (c *ACLCollection) SortedACLSubnetsInVPC(vpc ID) []string {
+func (c *ACLCollection) SortedACLSubnets(vpc string) []string {
+	if vpc == "" {
+		return utils.SortedKeys(c.ACLs)
+	}
 	return utils.SortedValuesInKey(c.ACLs, vpc)
 }
