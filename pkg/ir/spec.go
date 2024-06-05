@@ -436,3 +436,7 @@ func UniqueIDValues(s []ID) []ID {
 func ScopingComponents(s string) []string {
 	return strings.Split(s, "/")
 }
+
+func VpcFromScopedResource(resource ID) ID {
+	return ScopingComponents(resource)[0]
+}

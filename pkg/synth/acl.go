@@ -35,7 +35,7 @@ func MakeACL(s *ir.Spec, opt Options) *ir.ACLCollection {
 			if !ok {
 				log.Fatalf(subnetNotFoundError)
 			}
-			return fmt.Sprintf("%s/singleACL", ir.ScopingComponents(result)[0])
+			return fmt.Sprintf("%s/singleACL", ir.VpcFromScopedResource(result))
 		}
 	}
 	collections := []*ir.ACLCollection{}

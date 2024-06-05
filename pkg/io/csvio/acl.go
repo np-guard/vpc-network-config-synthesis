@@ -38,7 +38,7 @@ func (w *Writer) WriteACL(collection *ir.ACLCollection, vpc string) error {
 		return err
 	}
 	for _, subnet := range collection.SortedACLSubnets(vpc) {
-		vpcName := vpcFromScopedResource(subnet)
+		vpcName := ir.VpcFromScopedResource(subnet)
 		if err := w.w.WriteAll(makeACLTable(collection.ACLs[vpcName][subnet], subnet)); err != nil {
 			return err
 		}

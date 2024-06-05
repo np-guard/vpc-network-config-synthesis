@@ -127,7 +127,7 @@ func NewACL() *ACL {
 }
 
 func (c *ACLCollection) LookupOrCreate(name string) *ACL {
-	vpcName := ScopingComponents(name)[0]
+	vpcName := VpcFromScopedResource(name)
 	if acl, ok := c.ACLs[vpcName][name]; ok {
 		return acl
 	}

@@ -20,7 +20,7 @@ func (w *Writer) WriteSG(collection *ir.SGCollection, vpc string) error {
 		return err
 	}
 	for _, sgName := range collection.SortedSGNames(vpc) {
-		vpcName := vpcFromScopedResource(string(sgName))
+		vpcName := ir.VpcFromScopedResource(string(sgName))
 		if err := w.writeAll(makeSGTable(collection.SGs[vpcName][sgName], sgName)); err != nil {
 			return err
 		}
