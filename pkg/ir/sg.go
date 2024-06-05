@@ -80,7 +80,7 @@ func NewSGCollection() *SGCollection {
 }
 
 func (c *SGCollection) LookupOrCreate(name SGName) *SG {
-	vpcName := ScopingComponents(string(name))[0]
+	vpcName := VpcFromScopedResource(string(name))
 	if sg, ok := c.SGs[vpcName][name]; ok {
 		return sg
 	}
