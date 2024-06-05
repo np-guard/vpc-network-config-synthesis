@@ -51,7 +51,7 @@ type SGCollection struct {
 }
 
 type SGWriter interface {
-	WriteSG(*SGCollection, string) error
+	WriteSG(sgColl *SGCollection, vpc string) error
 }
 
 func (r *SGRule) isRedundant(rules []SGRule) bool {

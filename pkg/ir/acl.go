@@ -40,7 +40,7 @@ type ACLCollection struct {
 }
 
 type ACLWriter interface {
-	WriteACL(*ACLCollection, string) error
+	WriteACL(aclColl *ACLCollection, vpc string) error
 }
 
 func (r *ACLRule) isRedundant(rules []ACLRule) bool {
