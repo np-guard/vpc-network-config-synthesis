@@ -9,6 +9,7 @@ package ir
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/np-guard/models/pkg/ipblock"
 )
@@ -185,7 +186,7 @@ func (i *InstanceDetails) getOverlappingVPCs() []ID {
 	return []ID{i.VPC}
 }
 
-func (v *VPEReservedIPsDetails) getOverlappingVPCs() []ID {
+func (v *VPEDetails) getOverlappingVPCs() []ID {
 	return []ID{v.VPC}
 }
 
@@ -314,7 +315,7 @@ func (s *Definitions) GetResourceOverlappingVPCs(t ResourceType, name string) []
 	case ResourceTypeNIF:
 		return getResourceVPCs(s.NIFs, name)
 	case ResourceTypeVPE:
-		return getResourceVPCs(s.VPEReservedIPs, name)
+		return getResourceVPCs(s.VPEs, name)
 	case ResourceTypeInstance:
 		return getResourceVPCs(s.Instances, name)
 	case ResourceTypeSegment:
@@ -434,4 +435,12 @@ func UniqueIDValues(s []ID) []ID {
 	}
 
 	return result
+}
+
+func ScopingComponents(s string) []string {
+	return strings.Split(s, "/")
+}
+
+func VpcFromScopedResource(resource ID) ID {
+	return ScopingComponents(resource)[0]
 }

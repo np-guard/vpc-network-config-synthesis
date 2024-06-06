@@ -32,12 +32,13 @@ func ACLPort(p ir.PortRange) string {
 }
 
 // Write prints an entire collection of acls as a single MD table.
-func (w *Writer) WriteACL(collection *ir.ACLCollection) error {
+func (w *Writer) WriteACL(collection *ir.ACLCollection, vpc string) error {
 	if err := w.writeAll(aclHeader()); err != nil {
 		return err
 	}
-	for _, subnet := range collection.SortedACLSubnets() {
-		if err := w.writeAll(makeACLTable(collection.ACLs[subnet], subnet)); err != nil {
+	for _, subnet := range collection.SortedACLSubnets(vpc) {
+		vpcName := ir.VpcFromScopedResource(subnet)
+		if err := w.writeAll(makeACLTable(collection.ACLs[vpcName][subnet], subnet)); err != nil {
 			return err
 		}
 	}

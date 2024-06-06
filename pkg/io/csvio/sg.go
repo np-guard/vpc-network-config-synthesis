@@ -12,12 +12,13 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-func (w *Writer) WriteSG(collection *ir.SGCollection) error {
+func (w *Writer) WriteSG(collection *ir.SGCollection, vpc string) error {
 	if err := w.w.WriteAll(sgHeader()); err != nil {
 		return err
 	}
-	for _, sgName := range collection.SortedSGNames() {
-		if err := w.w.WriteAll(makeSGTable(collection.SGs[sgName], sgName)); err != nil {
+	for _, sgName := range collection.SortedSGNames(vpc) {
+		vpcName := ir.VpcFromScopedResource(string(sgName))
+		if err := w.w.WriteAll(makeSGTable(collection.SGs[vpcName][sgName], sgName)); err != nil {
 			return err
 		}
 	}

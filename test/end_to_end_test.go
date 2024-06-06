@@ -150,7 +150,7 @@ func write(collection ir.Collection, outputFormat string) (text string, err erro
 	} else {
 		writer = tfio.NewWriter(buf)
 	}
-	err = collection.Write(writer)
+	err = collection.Write(writer, "") // write the collection to one file
 	if err != nil {
 		return "", err
 	}
