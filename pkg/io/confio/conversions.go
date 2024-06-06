@@ -12,6 +12,7 @@ import (
 	"github.com/IBM/vpc-go-sdk/vpcv1"
 
 	"github.com/np-guard/models/pkg/ipblock"
+
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )

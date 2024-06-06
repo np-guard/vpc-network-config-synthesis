@@ -8,11 +8,14 @@ package ir
 
 import (
 	"fmt"
+	"log"
 	"sort"
 	"strings"
 
 	"github.com/np-guard/models/pkg/ipblock"
 )
+
+const IPAddressAddressPrefixLength = 32
 
 type (
 	ID          = string
@@ -439,4 +442,19 @@ func ScopingComponents(s string) []string {
 
 func VpcFromScopedResource(resource ID) ID {
 	return ScopingComponents(resource)[0]
+}
+
+func IsIPAddress(s string) bool {
+	address, err := ipblock.FromCidrOrAddress(s)
+	if err != nil {
+		log.Fatal(err)
+	}
+	prefixLength, err := address.PrefixLength()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if prefixLength == IPAddressAddressPrefixLength {
+		return true
+	}
+	return false
 }
