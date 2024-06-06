@@ -15,7 +15,7 @@ import (
 	"github.com/np-guard/models/pkg/ipblock"
 )
 
-const IPAddressAddressPrefixLength = 32
+const MaximalIPv4PrefixLength = 32
 
 type (
 	ID          = string
@@ -47,7 +47,7 @@ type (
 		Name string
 
 		// list of CIDR / Ip addresses.
-		Values []*ipblock.IPBlock
+		IPAddrs []*ipblock.IPBlock
 
 		// Type of resource
 		Type ResourceType
@@ -231,13 +231,14 @@ func lookupSingle[T NWResource](m map[ID]T, name string, t ResourceType) (Resour
 
 func (s *Definitions) lookupInstance(name string) (Resource, error) {
 	if instanceDetails, ok := s.Instances[name]; ok {
-		ips := []*ipblock.IPBlock{}
-		for _, elemName := range instanceDetails.Nifs {
+		ips := make([]*ipblock.IPBlock, len(instanceDetails.Nifs))
+		for i, elemName := range instanceDetails.Nifs {
 			nif, err := s.Lookup(ResourceTypeNIF, elemName)
 			if err != nil {
 				return Resource{}, fmt.Errorf("%w while looking up %v %v for instance %v", err, ResourceTypeNIF, elemName, name)
 			}
-			ips = append(ips, nif.Values...)
+			// each nif has only one IP address
+			ips[i] = nif.IPAddrs[0]
 		}
 		return Resource{name, ips, ResourceTypeNIF}, nil
 	}
@@ -256,14 +257,15 @@ func (s *Definitions) lookupVPE(name string) (Resource, error) {
 }
 
 func (s *Definitions) lookupSubnetSegment(name string) (Resource, error) {
-	cidrs := []*ipblock.IPBlock{}
 	if subnetSegmentDetails, ok := s.SubnetSegments[name]; ok {
-		for _, subnetName := range subnetSegmentDetails.Subnets {
+		cidrs := make([]*ipblock.IPBlock, len(subnetSegmentDetails.Subnets))
+		for i, subnetName := range subnetSegmentDetails.Subnets {
 			subnet, err := s.Lookup(ResourceTypeSubnet, subnetName)
 			if err != nil {
 				return Resource{}, fmt.Errorf("%w while looking up %v %v for subnet %v", err, ResourceTypeSubnet, subnetName, name)
 			}
-			cidrs = append(cidrs, subnet.Values...)
+			// each subnet has only one CIDR block.
+			cidrs[i] = subnet.IPAddrs[0]
 		}
 		return Resource{name, cidrs, ResourceTypeSubnet}, nil
 	}
@@ -271,10 +273,12 @@ func (s *Definitions) lookupSubnetSegment(name string) (Resource, error) {
 }
 
 func (s *Definitions) lookupCidrSegment(name string) (Resource, error) {
-	cidrs := []*ipblock.IPBlock{}
 	if cidrSegmentDetails, ok := s.CidrSegments[name]; ok {
+		cidrs := make([]*ipblock.IPBlock, len(cidrSegmentDetails.Cidrs))
+		i := 0
 		for cidr := range cidrSegmentDetails.Cidrs {
-			cidrs = append(cidrs, cidr)
+			cidrs[i] = cidr
+			i++
 		}
 		return Resource{name, cidrs, ResourceTypeCidr}, nil
 	}
@@ -444,17 +448,10 @@ func VpcFromScopedResource(resource ID) ID {
 	return ScopingComponents(resource)[0]
 }
 
-func IsIPAddress(s string) bool {
-	address, err := ipblock.FromCidrOrAddress(s)
-	if err != nil {
-		log.Fatal(err)
-	}
+func IsIPAddress(address *ipblock.IPBlock) bool {
 	prefixLength, err := address.PrefixLength()
 	if err != nil {
 		log.Fatal(err)
 	}
-	if prefixLength == IPAddressAddressPrefixLength {
-		return true
-	}
-	return false
+	return prefixLength == MaximalIPv4PrefixLength
 }

@@ -115,7 +115,7 @@ func parseCidrSegments(jsonSegments spec.SpecSegments, configDefs *ir.ConfigDefs
 			if err != nil {
 				return nil, err
 			}
-			vpcs := parseOverlappingVpcs(*c, configDefs.VPCs)
+			vpcs := parseOverlappingVpcs(c, configDefs.VPCs)
 			subnets, err := configDefs.SubnetsContainedInCidr(*c)
 			if err != nil {
 				return nil, err
@@ -356,10 +356,10 @@ func unmarshal(filename string) (*spec.Spec, error) {
 	return jsonSpec, err
 }
 
-func parseOverlappingVpcs(cidr ipblock.IPBlock, vpcs map[ir.ID]*ir.VPCDetails) []ir.ID {
+func parseOverlappingVpcs(cidr *ipblock.IPBlock, vpcs map[ir.ID]*ir.VPCDetails) []ir.ID {
 	result := make([]ir.ID, 0)
 	for vpcName, vpcDetails := range vpcs {
-		if !vpcDetails.AddressPrefixes.Intersect(&cidr).IsEmpty() {
+		if !vpcDetails.AddressPrefixes.Intersect(cidr).IsEmpty() {
 			result = append(result, vpcName)
 		}
 	}

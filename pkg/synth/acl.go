@@ -60,8 +60,8 @@ func GenerateACLCollectionFromConnection(s *ir.Spec, conn *ir.Connection,
 		return result
 	}
 	var connectionRules []*ir.ACLRule
-	for _, src := range conn.Src.Values {
-		for _, dst := range conn.Dst.Values {
+	for _, src := range conn.Src.IPAddrs {
+		for _, dst := range conn.Dst.IPAddrs {
 			if src == dst && conn.Src.Type != ir.ResourceTypeCidr && conn.Dst.Type != ir.ResourceTypeCidr {
 				continue
 			}
