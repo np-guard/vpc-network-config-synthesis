@@ -12,7 +12,7 @@ mod: go.mod
 
 fmt:
 	@echo -- $@ --
-	dos2unix * .* pkg/*/*.go cmd/*/*.go examples/* test/data/*/*
+	dos2unix * .* pkg/*/*.go cmd/*/*.go test/data/*/*
 	goimports -local $(REPOSITORY) -w .
 	terraform fmt -recursive
 

@@ -223,8 +223,8 @@ Flags:
 		if err != nil {
 			log.Fatalf("could not parse config file %v: %v", *configFilename, err)
 		}
-	} else if *outputFormat == apiOutputFormat {
-		log.Fatal("-config parameter must be supplied when using -fmt=api or exporting JSON")
+	} else {
+		log.Fatal("-config parameter must be supplied")
 	}
 
 	model, err := reader.ReadSpec(connectivityFilename, defs)
