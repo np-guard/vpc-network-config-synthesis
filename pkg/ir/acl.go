@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/np-guard/models/pkg/ipblock"
+
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
@@ -22,8 +24,8 @@ const (
 type ACLRule struct {
 	Action      Action
 	Direction   Direction
-	Source      IP
-	Destination IP
+	Source      *ipblock.IPBlock
+	Destination *ipblock.IPBlock
 	Protocol    Protocol
 	Explanation string
 }
@@ -59,7 +61,7 @@ func (r *ACLRule) mustSupersede(other *ACLRule) bool {
 	return res
 }
 
-func (r *ACLRule) Target() IP {
+func (r *ACLRule) Target() *ipblock.IPBlock {
 	if r.Direction == Inbound {
 		return r.Destination
 	}

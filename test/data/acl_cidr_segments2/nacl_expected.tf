@@ -54,7 +54,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc--sub2-1" {
     name        = "rule0"
     action      = "allow"
     direction   = "inbound"
-    source      = "10.240.3.0/23"
+    source      = "10.240.2.0/23"
     destination = "10.240.64.0/24"
   }
   # Internal. response to required-connections[0]: (segment cidrSegment1)->(segment cidrSegment2); allowed-protocols[0]
@@ -63,7 +63,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc--sub2-1" {
     action      = "allow"
     direction   = "outbound"
     source      = "10.240.64.0/24"
-    destination = "10.240.3.0/23"
+    destination = "10.240.2.0/23"
   }
 }
 
@@ -77,7 +77,7 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc--sub2-2" {
     name        = "rule0"
     action      = "allow"
     direction   = "inbound"
-    source      = "10.240.3.0/23"
+    source      = "10.240.2.0/23"
     destination = "10.240.65.0/24"
   }
   # Internal. response to required-connections[0]: (segment cidrSegment1)->(segment cidrSegment2); allowed-protocols[0]
@@ -86,6 +86,6 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc--sub2-2" {
     action      = "allow"
     direction   = "outbound"
     source      = "10.240.65.0/24"
-    destination = "10.240.3.0/23"
+    destination = "10.240.2.0/23"
   }
 }

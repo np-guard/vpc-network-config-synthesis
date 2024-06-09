@@ -10,6 +10,8 @@ import (
 	"log"
 	"strings"
 
+	"github.com/np-guard/models/pkg/ipblock"
+
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/tfio/tf"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
@@ -27,9 +29,7 @@ func (w *Writer) WriteSG(c *ir.SGCollection, vpc string) error {
 
 func value(x interface{}) string {
 	switch v := x.(type) {
-	case ir.CIDR:
-		return quote(v.String())
-	case ir.IP:
+	case *ipblock.IPBlock:
 		return quote(v.String())
 	case ir.SGName:
 		return changeScoping(fmt.Sprintf("ibm_is_security_group.%v.id", v))

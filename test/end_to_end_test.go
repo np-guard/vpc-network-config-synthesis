@@ -16,6 +16,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/confio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/csvio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/jsonio"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/mdio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/tfio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/synth"
@@ -100,6 +101,9 @@ func TestCSVCompare(t *testing.T) {
 		"sg_single_conn tf":            sgTestCase("sg_single_conn", "tf"),
 		"sg_tg_multiple csv":           sgTestCase("sg_tg_multiple", "csv"),
 		"sg_tg_multiple tf":            sgTestCase("sg_tg_multiple", "tf"),
+		"sg_externals csv":             sgTestCase("sg_externals", "csv"),
+		"sg_externals tf":              sgTestCase("sg_externals", "tf"),
+		"sg_externals md":              sgTestCase("sg_externals", "md"),
 	}
 	for testName := range suite {
 		testCase := suite[testName]
@@ -145,10 +149,13 @@ func shrinkWhitespace(s string) string {
 func write(collection ir.Collection, outputFormat string) (text string, err error) {
 	buf := new(bytes.Buffer)
 	var writer ir.Writer
-	if outputFormat == "csv" {
+	switch outputFormat {
+	case "csv":
 		writer = csvio.NewWriter(buf)
-	} else {
+	case "tf":
 		writer = tfio.NewWriter(buf)
+	case "md":
+		writer = mdio.NewWriter(buf)
 	}
 	err = collection.Write(writer, "") // write the collection to one file
 	if err != nil {
