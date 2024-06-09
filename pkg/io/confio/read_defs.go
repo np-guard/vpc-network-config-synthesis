@@ -191,7 +191,7 @@ func validateVpcs(vpcs map[ir.ID]*ir.VPCDetails) error {
 				continue
 			}
 			if !vpcDetails1.AddressPrefixes.Intersect(vpcDetails2.AddressPrefixes).IsEmpty() {
-				return fmt.Errorf("vpcs %s and %s are overlapping", vpcName1, vpcName2)
+				return fmt.Errorf("vpcs %s and %s have overlapping IP address spaces", vpcName1, vpcName2)
 			}
 		}
 	}

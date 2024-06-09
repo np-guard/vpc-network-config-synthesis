@@ -51,7 +51,7 @@ type SGCollection struct {
 }
 
 type SGWriter interface {
-	WriteSG(*SGCollection, string) error
+	WriteSG(sgColl *SGCollection, vpc string) error
 }
 
 func (r *SGRule) isRedundant(rules []SGRule) bool {
@@ -80,7 +80,7 @@ func NewSGCollection() *SGCollection {
 }
 
 func (c *SGCollection) LookupOrCreate(name SGName) *SG {
-	vpcName := ScopingComponents(string(name))[0]
+	vpcName := VpcFromScopedResource(string(name))
 	if sg, ok := c.SGs[vpcName][name]; ok {
 		return sg
 	}

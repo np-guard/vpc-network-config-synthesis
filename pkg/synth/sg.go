@@ -9,6 +9,7 @@ import (
 	"log"
 
 	"github.com/np-guard/models/pkg/ipblock"
+
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
@@ -36,8 +37,8 @@ func generateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(tar
 		return result
 	}
 
-	for _, src := range conn.Src.Values {
-		for _, dst := range conn.Dst.Values {
+	for _, src := range conn.Src.IPAddrs {
+		for _, dst := range conn.Dst.IPAddrs {
 			if src == dst {
 				continue
 			}

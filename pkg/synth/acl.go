@@ -11,6 +11,7 @@ import (
 	"log"
 
 	"github.com/np-guard/models/pkg/ipblock"
+
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
@@ -35,7 +36,7 @@ func MakeACL(s *ir.Spec, opt Options, blockedSubnets []ir.ID) *ir.ACLCollection 
 			if !ok {
 				log.Fatalf(subnetNotFoundError)
 			}
-			return fmt.Sprintf("%s/singleACL", ir.ScopingComponents(result)[0])
+			return fmt.Sprintf("%s/singleACL", ir.VpcFromScopedResource(result))
 		}
 	}
 	collections := []*ir.ACLCollection{}
@@ -60,8 +61,8 @@ func generateACLCollectionFromConnection(s *ir.Spec, conn *ir.Connection,
 		return result
 	}
 	var connectionRules []*ir.ACLRule
-	for _, src := range conn.Src.Values {
-		for _, dst := range conn.Dst.Values {
+	for _, src := range conn.Src.IPAddrs {
+		for _, dst := range conn.Dst.IPAddrs {
 			if src == dst && conn.Src.Type != ir.ResourceTypeCidr && conn.Dst.Type != ir.ResourceTypeCidr {
 				continue
 			}

@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/np-guard/models/pkg/ipblock"
+
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/tfio/tf"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
@@ -87,7 +88,7 @@ func sg(sgName, comment string) tf.Block {
 		Arguments: []tf.Argument{
 			{Name: "name", Value: changeScoping(quote("sg-" + sgName))},
 			{Name: "resource_group", Value: "local.sg_synth_resource_group_id"},
-			{Name: "vpc", Value: fmt.Sprintf("local.name_%s_id", vpcFromScopedResource(sgName))},
+			{Name: "vpc", Value: fmt.Sprintf("local.name_%s_id", ir.VpcFromScopedResource(sgName))},
 		},
 	}
 }
@@ -96,7 +97,7 @@ func sgCollection(t *ir.SGCollection, vpc string) *tf.ConfigFile {
 	var resources []tf.Block //nolint:prealloc  // nontrivial to calculate, and an unlikely performance bottleneck
 	for _, sgName := range t.SortedSGNames(vpc) {
 		comment := ""
-		vpcName := vpcFromScopedResource(string(sgName))
+		vpcName := ir.VpcFromScopedResource(string(sgName))
 		rules := t.SGs[vpcName][sgName].Rules
 		comment = fmt.Sprintf("\n### SG attached to %v", sgName)
 		resources = append(resources, sg(sgName.String(), comment))

@@ -10,6 +10,7 @@ import (
 	"reflect"
 
 	"github.com/np-guard/models/pkg/ipblock"
+
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
@@ -40,7 +41,7 @@ type ACLCollection struct {
 }
 
 type ACLWriter interface {
-	WriteACL(*ACLCollection, string) error
+	WriteACL(aclColl *ACLCollection, vpc string) error
 }
 
 func (r *ACLRule) isRedundant(rules []ACLRule) bool {
@@ -127,7 +128,7 @@ func NewACL() *ACL {
 }
 
 func (c *ACLCollection) LookupOrCreate(name string) *ACL {
-	vpcName := ScopingComponents(name)[0]
+	vpcName := VpcFromScopedResource(name)
 	if acl, ok := c.ACLs[vpcName][name]; ok {
 		return acl
 	}
