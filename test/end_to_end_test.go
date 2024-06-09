@@ -63,7 +63,7 @@ func aclTestCase(folder, outputFormat string, single bool) TestCase {
 		outputFormat: outputFormat,
 		expectedName: fmt.Sprintf(expectedFormat, "nacl", outputFormat),
 		blocked: func(s *ir.Spec) []ir.ID {
-			return s.ComputeBlockedSubnets()
+			return s.ComputeBlockedSubnets(false) // don't print warning
 		},
 		maker: func(s *ir.Spec, blocked []ir.ID) ir.Collection {
 			return synth.MakeACL(s, synth.Options{SingleACL: single}, blocked)
@@ -78,7 +78,7 @@ func sgTestCase(folder, outputFormat string) TestCase {
 		outputFormat: outputFormat,
 		expectedName: fmt.Sprintf(defaultExpectedFormat, "sg", outputFormat),
 		blocked: func(s *ir.Spec) []ir.ID {
-			return s.ComputeBlockedResources()
+			return s.ComputeBlockedResources(false) // don't print warning
 		},
 		maker: func(s *ir.Spec, blocked []ir.ID) ir.Collection {
 			return synth.MakeSG(s, synth.Options{}, blocked)

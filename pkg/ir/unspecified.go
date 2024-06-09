@@ -16,7 +16,7 @@ const (
 	warningUnspecifiedSG  = "The following endpoints do not have required connections; the generated SGs will block all communication: "
 )
 
-func (s *Spec) ComputeBlockedSubnets() []ID {
+func (s *Spec) ComputeBlockedSubnets(printWarning bool) []ID {
 	var blockedSubnets []ID
 
 	for subnet := range s.Defs.Subnets {
@@ -55,14 +55,18 @@ func (s *Spec) ComputeBlockedSubnets() []ID {
 		}
 	}
 	sort.Strings(blockedSubnets)
-	printUnspecifiedWarning(warningUnspecifiedACL, blockedSubnets)
+	if printWarning {
+		printUnspecifiedWarning(warningUnspecifiedACL, blockedSubnets)
+	}
 	return blockedSubnets
 }
 
-func (s *Spec) ComputeBlockedResources() []ID {
+func (s *Spec) ComputeBlockedResources(printWarning bool) []ID {
 	blockedResources := append(s.computeBlockedNIFs(), s.computeBlockedVPEs()...)
 	sort.Strings(blockedResources)
-	printUnspecifiedWarning(warningUnspecifiedSG, blockedResources)
+	if printWarning {
+		printUnspecifiedWarning(warningUnspecifiedSG, blockedResources)
+	}
 	return blockedResources
 }
 
