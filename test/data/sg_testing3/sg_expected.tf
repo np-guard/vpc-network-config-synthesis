@@ -1,3 +1,10 @@
+### SG attached to test-vpc/appdata-endpoint-gateway
+resource "ibm_is_security_group" "test-vpc--appdata-endpoint-gateway" {
+  name           = "sg-test-vpc--appdata-endpoint-gateway"
+  resource_group = local.sg_synth_resource_group_id
+  vpc            = local.name_test-vpc_id
+}
+
 ### SG attached to test-vpc/be
 resource "ibm_is_security_group" "test-vpc--be" {
   name           = "sg-test-vpc--be"
