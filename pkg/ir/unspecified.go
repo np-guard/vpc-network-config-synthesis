@@ -7,6 +7,7 @@ package ir
 
 import (
 	"log"
+	"sort"
 	"strings"
 )
 
@@ -53,12 +54,14 @@ func (s *Spec) ComputeBlockedSubnets() []ID {
 			blockedSubnets = append(blockedSubnets, subnet)
 		}
 	}
+	sort.Strings(blockedSubnets)
 	printUnspecifiedWarning(warningUnspecifiedACL, blockedSubnets)
 	return blockedSubnets
 }
 
 func (s *Spec) ComputeBlockedResources() []ID {
 	blockedResources := append(s.computeBlockedNIFs(), s.computeBlockedVPEs()...)
+	sort.Strings(blockedResources)
 	printUnspecifiedWarning(warningUnspecifiedSG, blockedResources)
 	return blockedResources
 }

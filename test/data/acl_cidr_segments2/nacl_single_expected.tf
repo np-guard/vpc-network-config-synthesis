@@ -1,4 +1,3 @@
-# testacl5-vpc/singleACL [10.240.2.0/24]
 resource "ibm_is_network_acl" "acl-testacl5-vpc--singleACL" {
   name           = "acl-testacl5-vpc--singleACL"
   resource_group = local.acl_synth_resource_group_id

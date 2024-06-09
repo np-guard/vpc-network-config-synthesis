@@ -1,4 +1,3 @@
-# test-vpc1/singleACL [10.240.10.0/24]
 resource "ibm_is_network_acl" "acl-test-vpc1--singleACL" {
   name           = "acl-test-vpc1--singleACL"
   resource_group = local.acl_synth_resource_group_id
