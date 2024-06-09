@@ -166,7 +166,7 @@ func write(collection ir.Collection, outputFormat, conn string) (text string, er
 	if err != nil {
 		return "", err
 	}
-	err = collection.Write(writer, "") // write the collection to one file
+	err = collection.Write(writer, "") // write the collection into one file
 	if err != nil {
 		return "", err
 	}

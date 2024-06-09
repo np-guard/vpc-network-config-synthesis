@@ -48,6 +48,7 @@ func MakeACL(s *ir.Spec, opt Options, blockedSubnets []ir.ID) *ir.ACLCollection 
 	return ir.MergeACLCollections(collections...)
 }
 
+
 func generateACLCollectionFromConnection(s *ir.Spec, conn *ir.Connection,
 	aclSelector func(target *ipblock.IPBlock) string) *ir.ACLCollection {
 	internalSrc := conn.Src.Type != ir.ResourceTypeExternal
