@@ -37,7 +37,8 @@ type TestCase struct {
 	expectedName string
 	outputFormat string
 	configName   string
-	maker        func(s *ir.Spec) ir.Collection
+	blocked      func(s *ir.Spec) []ir.ID
+	maker        func(s *ir.Spec, blocked []ir.ID) ir.Collection
 }
 
 func (c *TestCase) resolve(name string) string {
@@ -61,8 +62,11 @@ func aclTestCase(folder, outputFormat string, single bool) TestCase {
 		configName:   configName,
 		outputFormat: outputFormat,
 		expectedName: fmt.Sprintf(expectedFormat, "nacl", outputFormat),
-		maker: func(s *ir.Spec) ir.Collection {
-			return synth.MakeACL(s, synth.Options{SingleACL: single}, []ir.ID{})
+		blocked: func(s *ir.Spec) []ir.ID {
+			return s.ComputeBlockedSubnets()
+		},
+		maker: func(s *ir.Spec, blocked []ir.ID) ir.Collection {
+			return synth.MakeACL(s, synth.Options{SingleACL: single}, blocked)
 		},
 	}
 }
@@ -73,8 +77,11 @@ func sgTestCase(folder, outputFormat string) TestCase {
 		configName:   configName,
 		outputFormat: outputFormat,
 		expectedName: fmt.Sprintf(defaultExpectedFormat, "sg", outputFormat),
-		maker: func(s *ir.Spec) ir.Collection {
-			return synth.MakeSG(s, synth.Options{}, []ir.ID{})
+		blocked: func(s *ir.Spec) []ir.ID {
+			return s.ComputeBlockedResources()
+		},
+		maker: func(s *ir.Spec, blocked []ir.ID) ir.Collection {
+			return synth.MakeSG(s, synth.Options{}, blocked)
 		},
 	}
 }
@@ -113,8 +120,9 @@ func TestCSVCompare(t *testing.T) {
 				t.Fatal(err)
 				return
 			}
-			collection := testCase.maker(s)
-			actual, err := write(collection, testCase.outputFormat)
+			blocked := testCase.blocked(s)
+			collection := testCase.maker(s, blocked)
+			actual, err := write(collection, testCase.outputFormat, testCase.specName)
 			if err != nil {
 				t.Fatal(err)
 				return
@@ -130,13 +138,9 @@ func TestCSVCompare(t *testing.T) {
 
 func readSpec(c *TestCase) (s *ir.Spec, err error) {
 	reader := jsonio.NewReader()
-
-	var defs *ir.ConfigDefs
-	if c.configName != "" {
-		defs, err = confio.ReadDefs(c.resolve(c.configName))
-		if err != nil {
-			return
-		}
+	defs, err := confio.ReadDefs(c.resolve(c.configName))
+	if err != nil {
+		return
 	}
 
 	return reader.ReadSpec(c.at(c.specName, defaultSpecName), defs)
@@ -146,7 +150,7 @@ func shrinkWhitespace(s string) string {
 	return regexp.MustCompile(`[ \t]+`).ReplaceAllString(s, " ")
 }
 
-func write(collection ir.Collection, outputFormat string) (text string, err error) {
+func write(collection ir.Collection, outputFormat, conn string) (text string, err error) {
 	buf := new(bytes.Buffer)
 	var writer ir.Writer
 	switch outputFormat {
@@ -156,6 +160,11 @@ func write(collection ir.Collection, outputFormat string) (text string, err erro
 		writer = tfio.NewWriter(buf)
 	case "md":
 		writer = mdio.NewWriter(buf)
+	case "json":
+		writer, err = confio.NewWriter(buf, conn)
+	}
+	if err != nil {
+		return "", err
 	}
 	err = collection.Write(writer, "") // write the collection to one file
 	if err != nil {

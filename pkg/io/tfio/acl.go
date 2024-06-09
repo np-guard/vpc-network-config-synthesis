@@ -90,7 +90,9 @@ func aclCollection(t *ir.ACLCollection, vpc string) *tf.ConfigFile {
 		comment := ""
 		vpcName := ir.ScopingComponents(subnet)[0]
 		acl := t.ACLs[vpcName][subnet]
-		comment = fmt.Sprintf("\n# %v [%v]", subnet, subnetCidr(acl))
+		if len(sortedACLs) > 1 { // single nacl
+			comment = fmt.Sprintf("\n# %v [%v]", subnet, subnetCidr(acl))
+		}
 		acls[i] = singleACL(acl, comment)
 		i += 1
 	}

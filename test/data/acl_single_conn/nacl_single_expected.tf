@@ -1,3 +1,4 @@
+# test-vpc1/singleACL [10.240.10.0/24]
 resource "ibm_is_network_acl" "acl-test-vpc1--singleACL" {
   name           = "acl-test-vpc1--singleACL"
   resource_group = local.acl_synth_resource_group_id
@@ -97,5 +98,21 @@ resource "ibm_is_network_acl" "acl-test-vpc1--singleACL" {
       source_port_min = 443
       source_port_max = 443
     }
+  }
+  # Deny all communication; subnet test-vpc1/subnet2[10.240.20.0/24] does not have required connections
+  rules {
+    name        = "rule8"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "0.0.0.0/0"
+    destination = "10.240.20.0/24"
+  }
+  # Deny all communication; subnet test-vpc1/subnet2[10.240.20.0/24] does not have required connections
+  rules {
+    name        = "rule9"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "10.240.20.0/24"
+    destination = "0.0.0.0/0"
   }
 }

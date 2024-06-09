@@ -98,9 +98,6 @@ func sgCollection(t *ir.SGCollection, vpc string) *tf.ConfigFile {
 		comment := ""
 		vpcName := vpcFromScopedResource(string(sgName))
 		rules := t.SGs[vpcName][sgName].Rules
-		if len(rules) == 0 {
-			continue
-		}
 		comment = fmt.Sprintf("\n### SG attached to %v", sgName)
 		resources = append(resources, sg(sgName.String(), comment))
 		for i := range rules {
