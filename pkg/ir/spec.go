@@ -8,10 +8,14 @@ package ir
 
 import (
 	"fmt"
+	"log"
 	"sort"
+	"strings"
 
 	"github.com/np-guard/models/pkg/ipblock"
 )
+
+const MaximalIPv4PrefixLength = 32
 
 type (
 	ID          = string
@@ -43,7 +47,7 @@ type (
 		Name string
 
 		// list of CIDR / Ip addresses.
-		Values []IP
+		IPAddrs []*ipblock.IPBlock
 
 		// Type of resource
 		Type ResourceType
@@ -84,20 +88,20 @@ type (
 	}
 
 	VPCDetails struct {
-		AddressPrefixes []CIDR
+		AddressPrefixes *ipblock.IPBlock
 		// tg
 		// lb
 	}
 
 	SubnetDetails struct {
 		NamedEntity
-		CIDR IP
+		CIDR *ipblock.IPBlock
 		VPC  ID
 	}
 
 	NifDetails struct {
 		NamedEntity
-		IP       IP
+		IP       *ipblock.IPBlock
 		VPC      ID
 		Instance ID
 	}
@@ -110,7 +114,7 @@ type (
 
 	VPEReservedIPsDetails struct {
 		NamedEntity
-		IP      IP
+		IP      *ipblock.IPBlock
 		VPEName ID
 		Subnet  ID
 		VPC     ID
@@ -128,7 +132,7 @@ type (
 	}
 
 	CidrSegmentDetails struct {
-		Cidrs map[CIDR]CIDRDetails
+		Cidrs map[*ipblock.IPBlock]CIDRDetails
 	}
 
 	CIDRDetails struct {
@@ -137,7 +141,7 @@ type (
 	}
 
 	ExternalDetails struct {
-		IP IP
+		ExternalAddrs *ipblock.IPBlock
 	}
 
 	Named interface {
@@ -145,7 +149,7 @@ type (
 	}
 
 	NWResource interface {
-		Address() IP
+		Address() *ipblock.IPBlock
 	}
 
 	ResourceVpc interface {
@@ -157,20 +161,20 @@ func (n *NamedEntity) Name() string {
 	return string(*n)
 }
 
-func (s *SubnetDetails) Address() IP {
+func (s *SubnetDetails) Address() *ipblock.IPBlock {
 	return s.CIDR
 }
 
-func (n *NifDetails) Address() IP {
+func (n *NifDetails) Address() *ipblock.IPBlock {
 	return n.IP
 }
 
-func (v *VPEReservedIPsDetails) Address() IP {
+func (v *VPEReservedIPsDetails) Address() *ipblock.IPBlock {
 	return v.IP
 }
 
-func (e *ExternalDetails) Address() IP {
-	return e.IP
+func (e *ExternalDetails) Address() *ipblock.IPBlock {
+	return e.ExternalAddrs
 }
 
 func (s *SubnetDetails) getOverlappingVPCs() []ID {
@@ -185,7 +189,7 @@ func (i *InstanceDetails) getOverlappingVPCs() []ID {
 	return []ID{i.VPC}
 }
 
-func (v *VPEReservedIPsDetails) getOverlappingVPCs() []ID {
+func (v *VPEDetails) getOverlappingVPCs() []ID {
 	return []ID{v.VPC}
 }
 
@@ -220,20 +224,21 @@ func getResourceVPCs[T ResourceVpc](m map[ID]T, name string) []ID {
 
 func lookupSingle[T NWResource](m map[ID]T, name string, t ResourceType) (Resource, error) {
 	if details, ok := m[name]; ok {
-		return Resource{name, []IP{details.Address()}, t}, nil
+		return Resource{name, []*ipblock.IPBlock{details.Address()}, t}, nil
 	}
 	return Resource{}, resourceNotFoundError(name, t)
 }
 
 func (s *Definitions) lookupInstance(name string) (Resource, error) {
 	if instanceDetails, ok := s.Instances[name]; ok {
-		ips := []IP{}
-		for _, elemName := range instanceDetails.Nifs {
+		ips := make([]*ipblock.IPBlock, len(instanceDetails.Nifs))
+		for i, elemName := range instanceDetails.Nifs {
 			nif, err := s.Lookup(ResourceTypeNIF, elemName)
 			if err != nil {
 				return Resource{}, fmt.Errorf("%w while looking up %v %v for instance %v", err, ResourceTypeNIF, elemName, name)
 			}
-			ips = append(ips, nif.Values...)
+			// each nif has only one IP address
+			ips[i] = nif.IPAddrs[0]
 		}
 		return Resource{name, ips, ResourceTypeNIF}, nil
 	}
@@ -242,7 +247,7 @@ func (s *Definitions) lookupInstance(name string) (Resource, error) {
 
 func (s *Definitions) lookupVPE(name string) (Resource, error) {
 	if VPEDetails, ok := s.VPEs[name]; ok {
-		ips := make([]IP, len(VPEDetails.VPEReservedIPs))
+		ips := make([]*ipblock.IPBlock, len(VPEDetails.VPEReservedIPs))
 		for i, vpeEndPoint := range VPEDetails.VPEReservedIPs {
 			ips[i] = s.VPEReservedIPs[vpeEndPoint].IP
 		}
@@ -252,27 +257,30 @@ func (s *Definitions) lookupVPE(name string) (Resource, error) {
 }
 
 func (s *Definitions) lookupSubnetSegment(name string) (Resource, error) {
-	ips := []IP{}
 	if subnetSegmentDetails, ok := s.SubnetSegments[name]; ok {
-		for _, subnetName := range subnetSegmentDetails.Subnets {
+		cidrs := make([]*ipblock.IPBlock, len(subnetSegmentDetails.Subnets))
+		for i, subnetName := range subnetSegmentDetails.Subnets {
 			subnet, err := s.Lookup(ResourceTypeSubnet, subnetName)
 			if err != nil {
 				return Resource{}, fmt.Errorf("%w while looking up %v %v for subnet %v", err, ResourceTypeSubnet, subnetName, name)
 			}
-			ips = append(ips, subnet.Values...)
+			// each subnet has only one CIDR block.
+			cidrs[i] = subnet.IPAddrs[0]
 		}
-		return Resource{name, ips, ResourceTypeSubnet}, nil
+		return Resource{name, cidrs, ResourceTypeSubnet}, nil
 	}
 	return Resource{}, containerNotFoundError(name, ResourceTypeSegment)
 }
 
 func (s *Definitions) lookupCidrSegment(name string) (Resource, error) {
-	ips := []IP{}
 	if cidrSegmentDetails, ok := s.CidrSegments[name]; ok {
+		cidrs := make([]*ipblock.IPBlock, len(cidrSegmentDetails.Cidrs))
+		i := 0
 		for cidr := range cidrSegmentDetails.Cidrs {
-			ips = append(ips, IPFromCidr(cidr))
+			cidrs[i] = cidr
+			i++
 		}
-		return Resource{name, ips, ResourceTypeCidr}, nil
+		return Resource{name, cidrs, ResourceTypeCidr}, nil
 	}
 	return Resource{}, containerNotFoundError(name, ResourceTypeSegment)
 }
@@ -314,7 +322,7 @@ func (s *Definitions) GetResourceOverlappingVPCs(t ResourceType, name string) []
 	case ResourceTypeNIF:
 		return getResourceVPCs(s.NIFs, name)
 	case ResourceTypeVPE:
-		return getResourceVPCs(s.VPEReservedIPs, name)
+		return getResourceVPCs(s.VPEs, name)
 	case ResourceTypeInstance:
 		return getResourceVPCs(s.Instances, name)
 	case ResourceTypeSegment:
@@ -337,18 +345,18 @@ func (s *Definitions) ValidateConnection(srcVPCs, dstVPCs []ID) error {
 	return nil
 }
 
-func inverseLookup[T NWResource](m map[ID]T, ip IP) (result string, ok bool) {
+func inverseLookup[T NWResource](m map[ID]T, address *ipblock.IPBlock) (result string, ok bool) {
 	for name, details := range m {
-		if details.Address() == ip {
+		if details.Address().Equal(address) {
 			return name, true
 		}
 	}
 	return "", false
 }
 
-func (s *ConfigDefs) inverseLookupVPE(ip IP) (result string, ok bool) {
+func (s *ConfigDefs) inverseLookupVPE(ip *ipblock.IPBlock) (result string, ok bool) {
 	for _, vpeEndpointDetails := range s.VPEReservedIPs {
-		if vpeEndpointDetails.Address() == ip {
+		if vpeEndpointDetails.Address().Equal(ip) {
 			return vpeEndpointDetails.VPEName, true
 		}
 	}
@@ -366,15 +374,15 @@ func inverseLookupInstance(m map[ID]*InstanceDetails, name string) (result strin
 	return "", false
 }
 
-func (s *ConfigDefs) SubnetNameFromIP(ip IP) (string, bool) {
-	return inverseLookup(s.Subnets, ip)
+func (s *ConfigDefs) SubnetNameFromIP(cidr *ipblock.IPBlock) (string, bool) {
+	return inverseLookup(s.Subnets, cidr)
 }
 
-func (s *ConfigDefs) NIFFromIP(ip IP) (string, bool) {
+func (s *ConfigDefs) NIFFromIP(ip *ipblock.IPBlock) (string, bool) {
 	return inverseLookup(s.NIFs, ip)
 }
 
-func (s *ConfigDefs) VPEFromIP(ip IP) (string, bool) {
+func (s *ConfigDefs) VPEFromIP(ip *ipblock.IPBlock) (string, bool) {
 	return s.inverseLookupVPE(ip)
 }
 
@@ -382,7 +390,7 @@ func (s *ConfigDefs) InstanceFromNIF(nifName string) (string, bool) {
 	return inverseLookupInstance(s.Instances, nifName)
 }
 
-func (s *ConfigDefs) RemoteFromIP(ip IP) RemoteType {
+func (s *ConfigDefs) RemoteFromIP(ip *ipblock.IPBlock) RemoteType {
 	if nif, okNIF := s.NIFFromIP(ip); okNIF {
 		if instance, okInstance := s.InstanceFromNIF(nif); okInstance {
 			return SGName(instance)
@@ -401,12 +409,8 @@ type Reader interface {
 
 func (s *ConfigDefs) SubnetsContainedInCidr(cidr ipblock.IPBlock) ([]ID, error) {
 	var containedSubnets []string
-	for subnet, details := range s.Subnets {
-		subnetIPBlock, err := ipblock.FromCidrOrAddress(details.CIDR.String())
-		if err != nil {
-			return nil, err
-		}
-		if subnetIPBlock.ContainedIn(&cidr) {
+	for subnet, subnetDetails := range s.Subnets {
+		if subnetDetails.CIDR.ContainedIn(&cidr) {
 			containedSubnets = append(containedSubnets, subnet)
 		}
 	}
@@ -434,4 +438,20 @@ func UniqueIDValues(s []ID) []ID {
 	}
 
 	return result
+}
+
+func ScopingComponents(s string) []string {
+	return strings.Split(s, "/")
+}
+
+func VpcFromScopedResource(resource ID) ID {
+	return ScopingComponents(resource)[0]
+}
+
+func IsIPAddress(address *ipblock.IPBlock) bool {
+	prefixLength, err := address.PrefixLength()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return prefixLength == MaximalIPv4PrefixLength
 }

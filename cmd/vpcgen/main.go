@@ -50,6 +50,7 @@ const (
 )
 
 const defaultFilePermission = 0o666
+const defaultDirectoryPermission = 0o755
 
 func inferFormatUsingFilename(filename string) string {
 	switch {
@@ -125,22 +126,68 @@ func generate(model *ir.Spec, target string) ir.Collection {
 	return nil
 }
 
+func writeOutput(collection ir.Collection, defs *ir.ConfigDefs, outputDirectory, outputFormat, outputFile,
+	prefixOfFileNames, configFilename string) {
+	if outputDirectory == "" {
+		writeToFile(collection, "", outputFormat, outputFile, configFilename)
+	} else {
+		// create the directory if needed
+		err := os.MkdirAll(outputDirectory, defaultDirectoryPermission)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// write each file
+		for vpc := range defs.VPCs {
+			suffix := vpc + "." + outputFormat
+			outputPath := outputDirectory + "/" + suffix
+			if prefixOfFileNames != "" {
+				outputPath = outputDirectory + "/" + prefixOfFileNames + "_" + suffix
+			}
+			writeToFile(collection, vpc, outputFormat, outputPath, configFilename)
+		}
+	}
+}
+
+func writeToFile(collection ir.Collection, vpc, outputFormat, outputFile, configFilename string) {
+	var data bytes.Buffer
+	writer, err := pickWriter(outputFormat, &data, configFilename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err = collection.Write(writer, vpc); err != nil {
+		log.Fatal(err)
+	}
+
+	if outputFile == "" {
+		fmt.Print(data.String())
+	} else {
+		err = os.WriteFile(outputFile, data.Bytes(), defaultFilePermission)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
 func main() {
 	configFilename := flag.String("config", "",
 		"JSON file containing config spec")
 	target := flag.String("target", defaultTarget,
 		fmt.Sprintf("Target resource to generate. One of %q, %q, %q.", aclTarget, sgTarget, singleaclTarget))
 	outputFormat := flag.String("fmt", "",
-		fmt.Sprintf("Output format. One of %q, %q, %q; must not contradict output file suffix. Default: %q",
+		fmt.Sprintf("Output format. One of %q, %q, %q; must not contradict output file suffix. (default %q)",
 			tfOutputFormat, csvOutputFormat, mdOutputFormat, defaultOutputFormat))
-	outputFile := flag.String("o", "",
-		"Output to file. If unspecified, use stdout. If specified, also determines output format.")
+	outputFile := flag.String("output-file", "",
+		"Write all generated resources to the specified file.")
+	outputDirectory := flag.String("output-dir", "",
+		"Write generated resources to files in the specified directory, one file per VPC.")
+	prefixOfFileNames := flag.String("prefix", "", "The prefix of the files that will be created.")
 	flag.Usage = func() {
 		_, _ = fmt.Fprintf(os.Stderr, `VpcGen translates connectivity spec to network ACLs or Security Groups.
 Usage:
 	%s [flags] SPEC_FILE
 
-SPEC_FILE: JSON file containing connectivity spec
+SPEC_FILE: JSON file containing connectivity spec, and segments.
 
 Flags:
 `, "vpcgen")
@@ -156,10 +203,15 @@ Flags:
 
 	var err error
 
+	if *outputDirectory != "" && *outputFile != "" {
+		log.Fatal(fmt.Errorf("output-file and output-dir cannot be specified together"))
+	}
+
 	*outputFormat, err = pickOutputFormat(*outputFormat, *outputFile)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	reader, err := pickReader(jsonInputFormat)
 	if err != nil {
 		log.Fatal(err)
@@ -182,21 +234,5 @@ Flags:
 
 	collection := generate(model, *target)
 
-	var data bytes.Buffer
-	writer, err := pickWriter(*outputFormat, &data, *configFilename)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err = collection.Write(writer); err != nil {
-		log.Fatal(err)
-	}
-
-	if *outputFile == "" {
-		fmt.Print(data.String())
-	} else {
-		err = os.WriteFile(*outputFile, data.Bytes(), defaultFilePermission)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
+	writeOutput(collection, defs, *outputDirectory, *outputFormat, *outputFile, *prefixOfFileNames, *configFilename)
 }

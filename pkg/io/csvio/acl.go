@@ -10,6 +10,8 @@ import (
 	"log"
 	"strconv"
 
+	"github.com/np-guard/models/pkg/ipblock"
+
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
@@ -32,12 +34,13 @@ func ACLPort(p ir.PortRange) string {
 }
 
 // Write prints an entire collection of acls as a single CSV table.
-func (w *Writer) WriteACL(collection *ir.ACLCollection) error {
+func (w *Writer) WriteACL(collection *ir.ACLCollection, vpc string) error {
 	if err := w.w.WriteAll(aclHeader()); err != nil {
 		return err
 	}
-	for _, subnet := range collection.SortedACLSubnets() {
-		if err := w.w.WriteAll(makeACLTable(collection.ACLs[subnet], subnet)); err != nil {
+	for _, subnet := range collection.SortedACLSubnets(vpc) {
+		vpcName := ir.VpcFromScopedResource(subnet)
+		if err := w.w.WriteAll(makeACLTable(collection.ACLs[vpcName][subnet], subnet)); err != nil {
 			return err
 		}
 	}
@@ -81,9 +84,9 @@ func makeACLRow(priority int, rule *ir.ACLRule, aclName, subnet string) []string
 	}
 }
 
-func printIP(ip ir.IP, protocol ir.Protocol, isSource bool) string {
+func printIP(ip *ipblock.IPBlock, protocol ir.Protocol, isSource bool) string {
 	ipString := ip.String()
-	if ipString == ir.AnyCIDR {
+	if ip.Equal(ipblock.GetCidrAll()) {
 		ipString = "Any IP" //nolint:goconst // independent decision for SG and ACL
 	}
 	switch p := protocol.(type) {

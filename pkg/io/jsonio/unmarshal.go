@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/models/pkg/spec"
@@ -50,11 +49,16 @@ func (*Reader) ReadSpec(filename string, configDefs *ir.ConfigDefs) (*ir.Spec, e
 		return nil, err
 	}
 
+	externals, err := translateExternals(jsonSpec.Externals)
+	if err != nil {
+		return nil, err
+	}
+
 	defs := &ir.Definitions{
 		ConfigDefs:     *configDefs,
 		SubnetSegments: finalSubnetSegments,
 		CidrSegments:   cidrSegments,
-		Externals:      translateExternals(jsonSpec.Externals),
+		Externals:      externals,
 	}
 
 	var connections []ir.Connection
@@ -102,24 +106,21 @@ func parseSubnetSegments(jsonSegments spec.SpecSegments) map[string][]ir.ID {
 
 func parseCidrSegments(jsonSegments spec.SpecSegments, configDefs *ir.ConfigDefs) (map[ir.ID]*ir.CidrSegmentDetails, error) {
 	cidrSegments := filterSegmentsByType(jsonSegments, spec.TypeCidr)
-	finalMap := make(map[ir.ID]*ir.CidrSegmentDetails)
+	result := make(map[ir.ID]*ir.CidrSegmentDetails)
 	for segmentName, segment := range cidrSegments {
 		// each cidr saves the contained subnets
-		segmentMap := make(map[ir.CIDR]ir.CIDRDetails)
+		segmentMap := make(map[*ipblock.IPBlock]ir.CIDRDetails)
 		for _, cidr := range segment {
 			c, err := ipblock.FromCidr(cidr)
 			if err != nil {
 				return nil, err
 			}
-			vpcs, err := parseOverlappingVpcs(*c, configDefs.VPCs)
-			if err != nil {
-				return nil, err
-			}
+			vpcs := parseOverlappingVpcs(c, configDefs.VPCs)
 			subnets, err := configDefs.SubnetsContainedInCidr(*c)
 			if err != nil {
 				return nil, err
 			}
-			segmentMap[ir.CidrFromString(cidr)] = ir.CIDRDetails{
+			segmentMap[c] = ir.CIDRDetails{
 				OverlappingVPCs:  vpcs,
 				ContainedSubnets: subnets,
 			}
@@ -127,18 +128,22 @@ func parseCidrSegments(jsonSegments spec.SpecSegments, configDefs *ir.ConfigDefs
 		cidrSegmentDetails := ir.CidrSegmentDetails{
 			Cidrs: segmentMap,
 		}
-		finalMap[segmentName] = &cidrSegmentDetails
+		result[segmentName] = &cidrSegmentDetails
 	}
-	return finalMap, nil
+	return result, nil
 }
 
 // read externals from conn-spec
-func translateExternals(m map[string]string) map[ir.ID]*ir.ExternalDetails {
-	res := make(map[ir.ID]*ir.ExternalDetails)
+func translateExternals(m map[string]string) (map[ir.ID]*ir.ExternalDetails, error) {
+	result := make(map[ir.ID]*ir.ExternalDetails)
 	for k, v := range m {
-		res[k] = &ir.ExternalDetails{IP: ir.IPFromString(v)}
+		address, err := ipblock.FromCidrOrAddress(v)
+		if err != nil {
+			return nil, err
+		}
+		result[k] = &ir.ExternalDetails{ExternalAddrs: address}
 	}
-	return res
+	return result, nil
 }
 
 // replace all resources names in conn-spec to fully qualified name
@@ -226,7 +231,7 @@ func translateConnection(defs *ir.Definitions, v *spec.SpecRequiredConnectionsEl
 	if err != nil {
 		return nil, err
 	}
-	dstVPCs := defs.GetResourceOverlappingVPCs(srcResourceType, v.Src.Name)
+	dstVPCs := defs.GetResourceOverlappingVPCs(dstResourceType, v.Dst.Name)
 	err = defs.ValidateConnection(srcVPCs, dstVPCs)
 	if err != nil {
 		return nil, err
@@ -351,25 +356,19 @@ func unmarshal(filename string) (*spec.Spec, error) {
 	return jsonSpec, err
 }
 
-func parseOverlappingVpcs(cidr ipblock.IPBlock, vpcs map[ir.ID]*ir.VPCDetails) ([]ir.ID, error) {
+func parseOverlappingVpcs(cidr *ipblock.IPBlock, vpcs map[ir.ID]*ir.VPCDetails) []ir.ID {
 	result := make([]ir.ID, 0)
 	for vpcName, vpcDetails := range vpcs {
-		for _, addressPrefix := range vpcDetails.AddressPrefixes {
-			addressPrefixIP, err := ipblock.FromCidr(addressPrefix.String())
-			if err != nil {
-				return nil, err
-			}
-			if !addressPrefixIP.Intersect(&cidr).IsEmpty() {
-				result = append(result, vpcName)
-			}
+		if !vpcDetails.AddressPrefixes.Intersect(cidr).IsEmpty() {
+			result = append(result, vpcName)
 		}
 	}
-	return result, nil
+	return result
 }
 
 func replaceResourceName(cache map[string]ir.ID, ambiguous map[string]struct{}, resourceName string,
 	resourceType spec.ResourceType) (string, error) {
-	if len(scopingComponents(resourceName)) != 1 {
+	if len(ir.ScopingComponents(resourceName)) != 1 {
 		return resourceName, nil
 	}
 	if val, ok := cache[resourceName]; ok {
@@ -397,8 +396,4 @@ func inverseMapToFullyQualifiedName[T ir.Named](m map[ir.ID]T) (cache map[string
 		}
 	}
 	return cache, ambiguous
-}
-
-func scopingComponents(s string) []string {
-	return strings.Split(s, "/")
 }

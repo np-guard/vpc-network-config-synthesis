@@ -86,8 +86,8 @@ func makeSGItem(sg *ir.SG, sgRemoteRef *vpcv1.SecurityGroupRuleRemoteSecurityGro
 func updateSG(model *configModel.ResourcesContainerModel, collection *ir.SGCollection) error {
 	vpc := model.SubnetList[0].VPC
 	resourceGroup := model.SubnetList[0].ResourceGroup
-	for _, sgName := range collection.SortedSGNames() {
-		sg := collection.SGs[sgName]
+	for _, sgName := range collection.SortedSGNames("") {
+		sg := collection.SGs[ir.VpcFromScopedResource(string(sgName))][sgName]
 		if sg == nil {
 			continue
 		}
@@ -124,7 +124,7 @@ func updateSG(model *configModel.ResourcesContainerModel, collection *ir.SGColle
 	return nil
 }
 
-func (w *Writer) WriteSG(collection *ir.SGCollection) error {
+func (w *Writer) WriteSG(collection *ir.SGCollection, _ string) error {
 	if err := updateSG(w.model, collection); err != nil {
 		return err
 	}

@@ -9,15 +9,18 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/np-guard/models/pkg/ipblock"
+
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-func (w *Writer) WriteSG(collection *ir.SGCollection) error {
+func (w *Writer) WriteSG(collection *ir.SGCollection, vpc string) error {
 	if err := w.writeAll(sgHeader()); err != nil {
 		return err
 	}
-	for _, sgName := range collection.SortedSGNames() {
-		if err := w.writeAll(makeSGTable(collection.SGs[sgName], sgName)); err != nil {
+	for _, sgName := range collection.SortedSGNames(vpc) {
+		vpcName := ir.VpcFromScopedResource(string(sgName))
+		if err := w.writeAll(makeSGTable(collection.SGs[vpcName][sgName], sgName)); err != nil {
 			return err
 		}
 	}
@@ -81,10 +84,11 @@ func sGPort(p ir.PortRange) string {
 }
 
 func sGRemoteType(t ir.RemoteType) string {
-	switch t.(type) {
-	case ir.IP:
-		return "IP address"
-	case ir.CIDR:
+	switch tr := t.(type) {
+	case *ipblock.IPBlock:
+		if ir.IsIPAddress(tr) {
+			return "IP address"
+		}
 		return "CIDR block"
 	case ir.SGName:
 		return "Security group"
@@ -95,15 +99,10 @@ func sGRemoteType(t ir.RemoteType) string {
 
 func sgRemote(r ir.RemoteType) string {
 	switch tr := r.(type) {
-	case ir.IP:
+	case *ipblock.IPBlock:
 		s := tr.String()
-		if s == ir.AnyIP {
+		if s == ipblock.CidrAll {
 			return "Any IP"
-		}
-	case ir.CIDR:
-		s := tr.String()
-		if s == ir.AnyCIDR {
-			return "Any CIDR"
 		}
 		return s
 	case ir.SGName:

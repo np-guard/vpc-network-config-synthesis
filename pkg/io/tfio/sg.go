@@ -10,13 +10,15 @@ import (
 	"log"
 	"strings"
 
+	"github.com/np-guard/models/pkg/ipblock"
+
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/tfio/tf"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
 // WriteSG prints an entire collection of security groups as a sequence of terraform resources.
-func (w *Writer) WriteSG(c *ir.SGCollection) error {
-	output := sgCollection(c).Print()
+func (w *Writer) WriteSG(c *ir.SGCollection, vpc string) error {
+	output := sgCollection(c, vpc).Print()
 	_, err := w.w.WriteString(output)
 	if err != nil {
 		return err
@@ -27,9 +29,7 @@ func (w *Writer) WriteSG(c *ir.SGCollection) error {
 
 func value(x interface{}) string {
 	switch v := x.(type) {
-	case ir.CIDR:
-		return quote(v.String())
-	case ir.IP:
+	case *ipblock.IPBlock:
 		return quote(v.String())
 	case ir.SGName:
 		return changeScoping(fmt.Sprintf("ibm_is_security_group.%v.id", v))
@@ -68,7 +68,7 @@ func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) tf.Block {
 	verifyName(ruleName)
 	return tf.Block{
 		Name:    "resource",
-		Labels:  []string{quote("ibm_is_security_group_rule"), quote(ruleName)},
+		Labels:  []string{quote("ibm_is_security_group_rule"), changeScoping(quote(ruleName))},
 		Comment: fmt.Sprintf("# %v", rule.Explanation),
 		Arguments: []tf.Argument{
 			{Name: "group", Value: value(sgName)},
@@ -86,18 +86,19 @@ func sg(sgName, comment string) tf.Block {
 		Labels:  []string{quote("ibm_is_security_group"), changeScoping(quote(sgName))},
 		Comment: comment,
 		Arguments: []tf.Argument{
-			{Name: "name", Value: quote("sg-" + sgName)},
+			{Name: "name", Value: changeScoping(quote("sg-" + sgName))},
 			{Name: "resource_group", Value: "local.sg_synth_resource_group_id"},
-			{Name: "vpc", Value: "local.sg_synth_vpc_id"},
+			{Name: "vpc", Value: fmt.Sprintf("local.name_%s_id", ir.VpcFromScopedResource(sgName))},
 		},
 	}
 }
 
-func sgCollection(t *ir.SGCollection) *tf.ConfigFile {
+func sgCollection(t *ir.SGCollection, vpc string) *tf.ConfigFile {
 	var resources []tf.Block //nolint:prealloc  // nontrivial to calculate, and an unlikely performance bottleneck
-	for _, sgName := range t.SortedSGNames() {
+	for _, sgName := range t.SortedSGNames(vpc) {
 		comment := ""
-		rules := t.SGs[sgName].Rules
+		vpcName := ir.VpcFromScopedResource(string(sgName))
+		rules := t.SGs[vpcName][sgName].Rules
 		if len(rules) == 0 {
 			continue
 		}
