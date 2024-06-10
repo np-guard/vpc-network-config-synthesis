@@ -203,6 +203,10 @@ Flags:
 
 	var err error
 
+	if *configFilename == "" {
+		log.Fatal("-config parameter must be supplied")
+	}
+
 	if *outputDirectory != "" && *outputFile != "" {
 		log.Fatal(fmt.Errorf("output-file and output-dir cannot be specified together"))
 	}
@@ -217,14 +221,9 @@ Flags:
 		log.Fatal(err)
 	}
 
-	var defs *ir.ConfigDefs
-	if *configFilename != "" {
-		defs, err = confio.ReadDefs(*configFilename)
-		if err != nil {
-			log.Fatalf("could not parse config file %v: %v", *configFilename, err)
-		}
-	} else {
-		log.Fatal("-config parameter must be supplied")
+	defs, err := confio.ReadDefs(*configFilename)
+	if err != nil {
+		log.Fatalf("could not parse config file %v: %v", *configFilename, err)
 	}
 
 	model, err := reader.ReadSpec(connectivityFilename, defs)

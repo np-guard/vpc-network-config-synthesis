@@ -12,18 +12,28 @@ import (
 	"github.com/IBM/vpc-go-sdk/vpcv1"
 
 	configModel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
+	"github.com/np-guard/models/pkg/ipblock"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
+
+func cidr(address *ipblock.IPBlock) *string {
+	result := ip(address)
+	if ir.IsIPAddress(address) {
+		s := *result + "/32"
+		result = &s
+	}
+	return result
+}
 
 func makeACLRuleItem(rule *ir.ACLRule, current,
 	next *vpcv1.NetworkACLRuleReference) vpcv1.NetworkACLRuleItemIntf {
 	iPVersion := utils.Ptr(ipv4Const)
 	direction := direction(rule.Direction)
 	action := action(rule.Action)
-	source := ip(rule.Source)
-	destination := ip(rule.Destination)
+	source := cidr(rule.Source)
+	destination := cidr(rule.Destination)
 	switch p := rule.Protocol.(type) {
 	case ir.TCPUDP:
 		data := tcpudp(p)

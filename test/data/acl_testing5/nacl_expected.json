@@ -140,7 +140,7 @@
                 "crn": "fake:crn:33",
                 "href": "fake:href:33",
                 "id": "fake:id:33",
-                "name": "acl-sub1-2"
+                "name": "acl-testacl5-vpc--sub1-2"
             },
             "resource_group": {
                 "href": "href:15",
@@ -241,7 +241,7 @@
                 "crn": "fake:crn:28",
                 "href": "fake:href:28",
                 "id": "fake:id:28",
-                "name": "acl-sub1-1"
+                "name": "acl-testacl5-vpc--sub1-1"
             },
             "public_gateway": {
                 "crn": "crn:45",
@@ -349,7 +349,7 @@
                 "crn": "fake:crn:66",
                 "href": "fake:href:66",
                 "id": "fake:id:66",
-                "name": "acl-sub2-1"
+                "name": "acl-testacl5-vpc--sub2-1"
             },
             "public_gateway": {
                 "crn": "crn:64",
@@ -457,7 +457,7 @@
                 "crn": "fake:crn:38",
                 "href": "fake:href:38",
                 "id": "fake:id:38",
-                "name": "acl-sub1-3"
+                "name": "acl-testacl5-vpc--sub1-3"
             },
             "resource_group": {
                 "href": "href:15",
@@ -558,7 +558,7 @@
                 "crn": "fake:crn:69",
                 "href": "fake:href:69",
                 "id": "fake:id:69",
-                "name": "acl-sub2-2"
+                "name": "acl-testacl5-vpc--sub2-2"
             },
             "public_gateway": {
                 "crn": "crn:64",
@@ -666,7 +666,7 @@
                 "crn": "fake:crn:76",
                 "href": "fake:href:76",
                 "id": "fake:id:76",
-                "name": "acl-sub3-1"
+                "name": "acl-testacl5-vpc--sub3-1"
             },
             "resource_group": {
                 "href": "href:15",
@@ -1590,7 +1590,7 @@
             "crn": "fake:crn:28",
             "href": "fake:href:28",
             "id": "fake:id:28",
-            "name": "acl-sub1-1",
+            "name": "acl-testacl5-vpc/sub1-1",
             "resource_group": {
                 "href": "href:15",
                 "id": "id:16",
@@ -2062,7 +2062,7 @@
                 {
                     "action": "allow",
                     "created_at": null,
-                    "destination": "8.8.8.8",
+                    "destination": "8.8.8.8/32",
                     "direction": "outbound",
                     "href": "fake:href:1",
                     "id": "fake:id:1",
@@ -2099,7 +2099,7 @@
             "crn": "fake:crn:33",
             "href": "fake:href:33",
             "id": "fake:id:33",
-            "name": "acl-sub1-2",
+            "name": "acl-testacl5-vpc/sub1-2",
             "resource_group": {
                 "href": "href:15",
                 "id": "id:16",
@@ -2209,7 +2209,7 @@
             "crn": "fake:crn:38",
             "href": "fake:href:38",
             "id": "fake:id:38",
-            "name": "acl-sub1-3",
+            "name": "acl-testacl5-vpc/sub1-3",
             "resource_group": {
                 "href": "href:15",
                 "id": "id:16",
@@ -2319,7 +2319,7 @@
             "crn": "fake:crn:66",
             "href": "fake:href:66",
             "id": "fake:id:66",
-            "name": "acl-sub2-1",
+            "name": "acl-testacl5-vpc/sub2-1",
             "resource_group": {
                 "href": "href:15",
                 "id": "id:16",
@@ -2783,7 +2783,7 @@
                 {
                     "action": "allow",
                     "created_at": null,
-                    "destination": "8.8.8.8",
+                    "destination": "8.8.8.8/32",
                     "direction": "outbound",
                     "href": "fake:href:39",
                     "id": "fake:id:39",
@@ -2820,7 +2820,7 @@
             "crn": "fake:crn:69",
             "href": "fake:href:69",
             "id": "fake:id:69",
-            "name": "acl-sub2-2",
+            "name": "acl-testacl5-vpc/sub2-2",
             "resource_group": {
                 "href": "href:15",
                 "id": "id:16",
@@ -2880,7 +2880,7 @@
             "crn": "fake:crn:76",
             "href": "fake:href:76",
             "id": "fake:id:76",
-            "name": "acl-sub3-1",
+            "name": "acl-testacl5-vpc/sub3-1",
             "resource_group": {
                 "href": "href:15",
                 "id": "id:16",
@@ -3038,6 +3038,7 @@
                     "href": "href:187",
                     "id": "id:188",
                     "ip_version": "ipv4",
+                    "local": null,
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     },
@@ -3048,6 +3049,7 @@
                     "href": "href:189",
                     "id": "id:190",
                     "ip_version": "ipv4",
+                    "local": null,
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     },
@@ -3081,6 +3083,7 @@
                     "href": "href:191",
                     "id": "id:192",
                     "ip_version": "ipv4",
+                    "local": null,
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     },
@@ -3091,6 +3094,7 @@
                     "href": "href:193",
                     "id": "id:194",
                     "ip_version": "ipv4",
+                    "local": null,
                     "remote": {
                         "crn": "crn:12",
                         "href": "href:13",
@@ -3185,6 +3189,6 @@
     "load_balancers": [],
     "transit_connections": null,
     "transit_gateways": null,
-    "iks_worker_nodes": [],
+    "iks_clusters": null,
     "collector_version": "0.5.1"
 }
