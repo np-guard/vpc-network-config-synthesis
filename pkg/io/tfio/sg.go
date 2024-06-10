@@ -32,7 +32,7 @@ func value(x interface{}) string {
 	case *ipblock.IPBlock:
 		return quote(v.String())
 	case ir.SGName:
-		return changeScoping(fmt.Sprintf("ibm_is_security_group.%v.id", v))
+		return ir.ChangeScoping(fmt.Sprintf("ibm_is_security_group.%v.id", v))
 	default:
 		log.Fatalf("invalid terraform value %v", v)
 	}
@@ -68,7 +68,7 @@ func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) tf.Block {
 	verifyName(ruleName)
 	return tf.Block{
 		Name:    "resource",
-		Labels:  []string{quote("ibm_is_security_group_rule"), changeScoping(quote(ruleName))},
+		Labels:  []string{quote("ibm_is_security_group_rule"), ir.ChangeScoping(quote(ruleName))},
 		Comment: fmt.Sprintf("# %v", rule.Explanation),
 		Arguments: []tf.Argument{
 			{Name: "group", Value: value(sgName)},
@@ -83,10 +83,10 @@ func sg(sgName, comment string) tf.Block {
 	verifyName(sgName)
 	return tf.Block{
 		Name:    "resource", //nolint:revive  // obvious false positive
-		Labels:  []string{quote("ibm_is_security_group"), changeScoping(quote(sgName))},
+		Labels:  []string{quote("ibm_is_security_group"), ir.ChangeScoping(quote(sgName))},
 		Comment: comment,
 		Arguments: []tf.Argument{
-			{Name: "name", Value: changeScoping(quote("sg-" + sgName))},
+			{Name: "name", Value: ir.ChangeScoping(quote("sg-" + sgName))},
 			{Name: "resource_group", Value: "local.sg_synth_resource_group_id"},
 			{Name: "vpc", Value: fmt.Sprintf("local.name_%s_id", ir.VpcFromScopedResource(sgName))},
 		},

@@ -455,3 +455,7 @@ func IsIPAddress(address *ipblock.IPBlock) bool {
 	}
 	return prefixLength == MaximalIPv4PrefixLength
 }
+
+func ChangeScoping(s string) string {
+	return strings.ReplaceAll(s, "/", "--")
+}

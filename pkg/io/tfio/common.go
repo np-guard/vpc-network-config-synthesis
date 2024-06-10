@@ -13,7 +13,6 @@ import (
 	"log"
 	"regexp"
 	"strconv"
-	"strings"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/tfio/tf"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
@@ -68,8 +67,4 @@ func verifyName(name string) {
 	if err != nil {
 		log.Fatalf("\"name\" should match regexp %q", pattern)
 	}
-}
-
-func changeScoping(s string) string {
-	return strings.ReplaceAll(s, "/", "--")
 }

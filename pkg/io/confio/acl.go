@@ -117,7 +117,8 @@ func makeACLItem(acl *ir.ACL, subnet *vpcv1.SubnetReference) *configModel.Networ
 
 func findSubnet(model *configModel.ResourcesContainerModel, name string) int {
 	for i, subnet := range model.SubnetList {
-		if subnet.Name != nil && *subnet.Name == name {
+		if subnet.Name != nil && *subnet.Name == ir.ScopingComponents(name)[1] &&
+			subnet.VPC.Name != nil && *subnet.VPC.Name == ir.VpcFromScopedResource(name) {
 			return i
 		}
 	}
@@ -125,8 +126,6 @@ func findSubnet(model *configModel.ResourcesContainerModel, name string) int {
 }
 
 func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCollection) error {
-	vpc := model.SubnetList[0].VPC
-	resourceGroup := model.SubnetList[0].ResourceGroup
 	for _, subnetName := range collection.SortedACLSubnets("") {
 		acl := collection.ACLs[ir.VpcFromScopedResource(subnetName)][subnetName]
 		if acl == nil {
@@ -134,6 +133,8 @@ func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCol
 		}
 		subnetIndex := findSubnet(model, subnetName)
 		subnet := model.SubnetList[subnetIndex]
+		vpc := model.SubnetList[subnetIndex].VPC
+		resourceGroup := model.SubnetList[subnetIndex].ResourceGroup
 		subnetRef := &vpcv1.SubnetReference{
 			Name:         subnet.Name,
 			CRN:          subnet.CRN,
@@ -144,12 +145,13 @@ func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCol
 		aclItem := makeACLItem(acl, subnetRef)
 		aclItem.ResourceGroup = resourceGroup
 		aclItem.VPC = vpc
+		aclName := ir.ChangeScoping(*aclItem.Name)
 		model.NetworkACLList = append(model.NetworkACLList, aclItem)
 		model.SubnetList[subnetIndex].NetworkACL = &vpcv1.NetworkACLReference{
 			ID:   aclItem.ID,
 			CRN:  aclItem.CRN,
 			Href: aclItem.Href,
-			Name: aclItem.Name,
+			Name: &aclName,
 		}
 	}
 	return nil
