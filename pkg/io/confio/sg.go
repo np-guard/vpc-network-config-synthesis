@@ -84,24 +84,20 @@ func makeSGItem(sg *ir.SG, sgRemoteRef *vpcv1.SecurityGroupRuleRemoteSecurityGro
 }
 
 func updateSG(model *configModel.ResourcesContainerModel, collection *ir.SGCollection) error {
-	vpc := model.SubnetList[0].VPC
-	resourceGroup := model.SubnetList[0].ResourceGroup
-	for _, sgName := range collection.SortedSGNames("") {
-		sg := collection.SGs[ir.VpcFromScopedResource(string(sgName))][sgName]
-		if sg == nil {
-			continue
-		}
+	for i := range model.InstanceList {
+		vpc := model.InstanceList[i].VPC
+		sgName := ScopingString(*vpc.Name, *model.InstanceList[i].Name)
+		sg := collection.SGs[*vpc.Name][ir.SGName(sgName)]
 		ref := allocateRef()
 		sgRemoteRef := &vpcv1.SecurityGroupRuleRemoteSecurityGroupReference{
 			ID:   ref.ID,
 			CRN:  ref.CRN,
 			Href: ref.Href,
-			Name: utils.Ptr(sgName.String()),
+			Name: utils.Ptr(sgName),
 		}
 		sgItem := makeSGItem(sg, sgRemoteRef)
-		sgItem.ResourceGroup = resourceGroup
+		sgItem.ResourceGroup = model.InstanceList[i].ResourceGroup
 		sgItem.VPC = vpc
-
 		sgRef := vpcv1.SecurityGroupReference{
 			Name: sgRemoteRef.Name,
 			Href: sgRemoteRef.Href,
@@ -110,17 +106,36 @@ func updateSG(model *configModel.ResourcesContainerModel, collection *ir.SGColle
 		}
 		model.SecurityGroupList = append(model.SecurityGroupList, sgItem)
 
-		for _, attached := range sg.Attached {
-			for _, instance := range model.InstanceList {
-				if *instance.Name == string(attached) {
-					for j := range instance.NetworkInterfaces {
-						instance.NetworkInterfaces[j].SecurityGroups = []vpcv1.SecurityGroupReference{sgRef}
-					}
-					break
-				}
-			}
+		for j := range model.InstanceList[i].NetworkInterfaces {
+			model.InstanceList[i].NetworkInterfaces[j].SecurityGroups = []vpcv1.SecurityGroupReference{sgRef}
 		}
 	}
+
+	for i := range model.EndpointGWList {
+		vpc := model.InstanceList[i].VPC
+		sgName := ScopingString(*vpc.Name, *model.EndpointGWList[i].Name)
+		sg := collection.SGs[*vpc.Name][ir.SGName(sgName)]
+		ref := allocateRef()
+		sgRemoteRef := &vpcv1.SecurityGroupRuleRemoteSecurityGroupReference{
+			ID:   ref.ID,
+			CRN:  ref.CRN,
+			Href: ref.Href,
+			Name: utils.Ptr(sgName),
+		}
+		sgItem := makeSGItem(sg, sgRemoteRef)
+		sgItem.ResourceGroup = model.EndpointGWList[i].ResourceGroup
+		sgItem.VPC = vpc
+		sgRef := vpcv1.SecurityGroupReference{
+			Name: sgRemoteRef.Name,
+			Href: sgRemoteRef.Href,
+			ID:   sgRemoteRef.ID,
+			CRN:  sgRemoteRef.CRN,
+		}
+		model.SecurityGroupList = append(model.SecurityGroupList, sgItem)
+
+		model.EndpointGWList[i].SecurityGroups = []vpcv1.SecurityGroupReference{sgRef}
+	}
+
 	return nil
 }
 

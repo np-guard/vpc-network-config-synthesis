@@ -143,8 +143,6 @@ func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCol
 		}
 		subnetIndex := findSubnet(model, subnetName)
 		subnet := model.SubnetList[subnetIndex]
-		vpc := model.SubnetList[subnetIndex].VPC
-		resourceGroup := model.SubnetList[subnetIndex].ResourceGroup
 		subnetRef := &vpcv1.SubnetReference{
 			Name:         subnet.Name,
 			CRN:          subnet.CRN,
@@ -153,8 +151,8 @@ func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCol
 			ResourceType: subnet.ResourceType,
 		}
 		aclItem := makeACLItem(acl, subnetRef)
-		aclItem.ResourceGroup = resourceGroup
-		aclItem.VPC = vpc
+		aclItem.ResourceGroup = model.SubnetList[subnetIndex].ResourceGroup
+		aclItem.VPC = model.SubnetList[subnetIndex].VPC
 		aclName := ir.ChangeScoping(*aclItem.Name)
 		model.NetworkACLList = append(model.NetworkACLList, aclItem)
 		model.SubnetList[subnetIndex].NetworkACL = &vpcv1.NetworkACLReference{

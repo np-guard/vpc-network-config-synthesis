@@ -90,7 +90,7 @@ func parseVPCs(config *configModel.ResourcesContainerModel) (map[ir.ID]*ir.VPCDe
 func parseSubnets(config *configModel.ResourcesContainerModel) (map[ir.ID]*ir.SubnetDetails, error) {
 	subnets := make(map[ir.ID]*ir.SubnetDetails, len(config.SubnetList))
 	for _, subnet := range config.SubnetList {
-		uniqueName := scopingString(*subnet.VPC.Name, *subnet.Name)
+		uniqueName := ScopingString(*subnet.VPC.Name, *subnet.Name)
 		cidr, err := ipblock.FromCidr(*subnet.Ipv4CIDRBlock)
 		if err != nil {
 			return nil, err
@@ -110,17 +110,17 @@ func parseInstancesNifs(config *configModel.ResourcesContainerModel) (instances 
 	instances = make(map[ir.ID]*ir.InstanceDetails, len(config.InstanceList))
 	nifs = make(map[ir.ID]*ir.NifDetails)
 	for _, instance := range config.InstanceList {
-		instanceUniqueName := scopingString(*instance.VPC.Name, *instance.Name)
+		instanceUniqueName := ScopingString(*instance.VPC.Name, *instance.Name)
 		instanceNifs := make([]ir.ID, len(instance.NetworkInterfaces))
 		for i := range instance.NetworkInterfaces {
-			nifUniqueName := scopingString(instanceUniqueName, *instance.NetworkInterfaces[i].Name)
+			nifUniqueName := ScopingString(instanceUniqueName, *instance.NetworkInterfaces[i].Name)
 			nifIP, err := ipblock.FromIPAddress(*instance.NetworkInterfaces[i].PrimaryIP.Address)
 			if err != nil {
 				return nil, nil, err
 			}
 			nifDetails := ir.NifDetails{
 				NamedEntity: ir.NamedEntity(*instance.NetworkInterfaces[i].Name),
-				Instance:    scopingString(*instance.VPC.Name, *instance.Name),
+				Instance:    ScopingString(*instance.VPC.Name, *instance.Name),
 				VPC:         *instance.VPC.Name,
 				IP:          nifIP,
 			}
@@ -144,7 +144,7 @@ func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]*ir.
 
 	for _, vpe := range config.EndpointGWList {
 		if *vpe.ResourceType == EndpointVPE {
-			uniqueVpeName := scopingString(*vpe.VPC.Name, *vpe.Name)
+			uniqueVpeName := ScopingString(*vpe.VPC.Name, *vpe.Name)
 			vpeDetails := ir.VPEDetails{
 				NamedEntity:    ir.NamedEntity(*vpe.Name),
 				VPEReservedIPs: []ir.ID{},
@@ -158,9 +158,9 @@ func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]*ir.
 		for _, r := range subnet.ReservedIps {
 			if t, ok := r.Target.(*vpcv1.ReservedIPTarget); ok && t != nil && r.Address != nil {
 				if r.ResourceType != nil && *t.ResourceType == EndpointVPE && t.Name != nil {
-					VPEName := scopingString(*subnet.VPC.Name, *t.Name)
-					subnetName := scopingString(*subnet.VPC.Name, *subnet.Name)
-					uniqueVpeReservedIPName := scopingString(VPEName, *r.Name)
+					VPEName := ScopingString(*subnet.VPC.Name, *t.Name)
+					subnetName := ScopingString(*subnet.VPC.Name, *subnet.Name)
+					uniqueVpeReservedIPName := ScopingString(VPEName, *r.Name)
 					vpeIP, err := ipblock.FromIPAddress(*r.Address)
 					if err != nil {
 						return nil, nil, err
@@ -198,6 +198,6 @@ func validateVpcs(vpcs map[ir.ID]*ir.VPCDetails) error {
 	return nil
 }
 
-func scopingString(s1, s2 string) string {
+func ScopingString(s1, s2 string) string {
 	return s1 + "/" + s2
 }
