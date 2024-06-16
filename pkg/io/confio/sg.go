@@ -11,53 +11,95 @@ import (
 	"github.com/IBM/vpc-go-sdk/vpcv1"
 
 	configModel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
+	"github.com/np-guard/models/pkg/ipblock"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
-func makeSGRuleItem(rule *ir.SGRule, i int, sgRemoteRef *vpcv1.SecurityGroupRuleRemoteSecurityGroupReference) vpcv1.SecurityGroupRuleIntf {
+const ResourceTypeSGTarget = "network_interface"
+
+func lookupOrCreate(nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference,
+	name string) *vpcv1.SecurityGroupRuleRemoteSecurityGroupReference {
+	if sgRemoteRef, ok := nameToSGRemoteRef[name]; ok {
+		return sgRemoteRef
+	}
+	ref := allocateRef()
+	sgRemoteRef := &vpcv1.SecurityGroupRuleRemoteSecurityGroupReference{
+		ID:   ref.ID,
+		CRN:  ref.CRN,
+		Href: ref.Href,
+		Name: utils.Ptr(name),
+	}
+	return sgRemoteRef
+}
+
+func sgRemote(nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference,
+	rule *ir.SGRule) vpcv1.SecurityGroupRuleRemoteIntf {
+	st := rule.Remote.String()
+	switch t := rule.Remote.(type) {
+	case *ipblock.IPBlock:
+		if ir.IsIPAddress(t) {
+			return &vpcv1.SecurityGroupRuleRemoteIP{
+				Address: &st,
+			}
+		}
+		return &vpcv1.SecurityGroupRuleRemoteCIDR{
+			CIDRBlock: &st,
+		}
+	case ir.SGName:
+		return lookupOrCreate(nameToSGRemoteRef, ir.ChangeScoping(st))
+	}
+	return nil
+}
+
+func makeSGRuleItem(nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference,
+	rule *ir.SGRule, i int) vpcv1.SecurityGroupRuleIntf {
 	iPVersion := utils.Ptr(ipv4Const)
 	direction := direction(rule.Direction)
+	cidrAll := ipblock.CidrAll
+	local := &vpcv1.SecurityGroupRuleLocal{
+		CIDRBlock: &cidrAll,
+	}
 	ref := allocateRef()
 
 	switch p := rule.Protocol.(type) {
 	case ir.TCPUDP:
 		data := tcpudp(p)
 		return &vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp{
+			Direction: direction,
 			Href:      ref.Href,
 			ID:        ref.ID,
 			IPVersion: iPVersion,
-			Direction: direction,
-			Remote:    sgRemoteRef,
-
-			Protocol: data.Protocol,
-			PortMin:  data.remotePortMin(rule.Direction),
-			PortMax:  data.remotePortMax(rule.Direction),
+			Local:     local,
+			Remote:    sgRemote(nameToSGRemoteRef, rule),
+			Protocol:  data.Protocol,
+			PortMin:   data.remotePortMin(rule.Direction),
+			PortMax:   data.remotePortMax(rule.Direction),
 		}
 	case ir.ICMP:
 		data := icmp(p)
 		return &vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp{
+			Direction: direction,
 			Href:      ref.Href,
 			ID:        ref.ID,
 			IPVersion: iPVersion,
-			Direction: direction,
-			Remote:    sgRemoteRef,
-
-			Protocol: data.Protocol,
-			Type:     data.Type,
-			Code:     data.Code,
+			Local:     local,
+			Remote:    sgRemote(nameToSGRemoteRef, rule),
+			Protocol:  data.Protocol,
+			Type:      data.Type,
+			Code:      data.Code,
 		}
 	case ir.AnyProtocol:
 		data := all()
 		return &vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolAll{
+			Direction: direction,
 			Href:      ref.Href,
 			ID:        ref.ID,
 			IPVersion: iPVersion,
-			Direction: direction,
-			Remote:    sgRemoteRef,
-
-			Protocol: data.Protocol,
+			Local:     local,
+			Remote:    sgRemote(nameToSGRemoteRef, rule),
+			Protocol:  data.Protocol,
 		}
 	default:
 		log.Fatalf("Impossible protocol type for sg rule %v: %T", i, p)
@@ -65,44 +107,56 @@ func makeSGRuleItem(rule *ir.SGRule, i int, sgRemoteRef *vpcv1.SecurityGroupRule
 	}
 }
 
-func makeSGItem(sg *ir.SG, sgRemoteRef *vpcv1.SecurityGroupRuleRemoteSecurityGroupReference) *configModel.SecurityGroup {
+func makeSGRules(nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference,
+	sg *ir.SG) []vpcv1.SecurityGroupRuleIntf {
 	ruleItems := make([]vpcv1.SecurityGroupRuleIntf, len(sg.Rules))
 	for i := range sg.Rules {
-		ruleItems[i] = makeSGRuleItem(&sg.Rules[i], i, sgRemoteRef)
+		ruleItems[i] = makeSGRuleItem(nameToSGRemoteRef, &sg.Rules[i], i)
 	}
-
-	result := configModel.NewSecurityGroup(&vpcv1.SecurityGroup{
-		ID:      sgRemoteRef.ID,
-		CRN:     sgRemoteRef.CRN,
-		Href:    sgRemoteRef.Href,
-		Name:    sgRemoteRef.Name,
-		Rules:   ruleItems,
-		Targets: []vpcv1.SecurityGroupTargetReferenceIntf{},
-	})
-	result.Tags = []string{}
-	return result
+	return ruleItems
 }
 
-func updateSG(model *configModel.ResourcesContainerModel, collection *ir.SGCollection) error {
+func parseTargetsSGInstance(instance *configModel.Instance) []vpcv1.SecurityGroupTargetReferenceIntf {
+	targets := make([]vpcv1.SecurityGroupTargetReferenceIntf, len(instance.NetworkInterfaces))
+	for i := range instance.NetworkInterfaces {
+		sgTargetRef := &vpcv1.SecurityGroupTargetReference{
+			Name:         instance.NetworkInterfaces[i].Name,
+			Href:         instance.NetworkInterfaces[i].Href,
+			ID:           instance.NetworkInterfaces[i].ID,
+			ResourceType: utils.Ptr(ResourceTypeSGTarget),
+		}
+		targets[i] = sgTargetRef
+	}
+
+	return targets
+}
+
+func updateSGInstances(model *configModel.ResourcesContainerModel, collection *ir.SGCollection,
+	nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference) {
 	for i := range model.InstanceList {
 		vpc := model.InstanceList[i].VPC
 		sgName := ScopingString(*vpc.Name, *model.InstanceList[i].Name)
+		sgItemName := utils.Ptr(ir.ChangeScoping(sgName))
 		sg := collection.SGs[*vpc.Name][ir.SGName(sgName)]
-		ref := allocateRef()
-		sgRemoteRef := &vpcv1.SecurityGroupRuleRemoteSecurityGroupReference{
-			ID:   ref.ID,
+		ref := lookupOrCreate(nameToSGRemoteRef, *sgItemName)
+
+		sgItem := configModel.NewSecurityGroup(&vpcv1.SecurityGroup{
+			CRN:           ref.CRN,
+			Href:          ref.Href,
+			ID:            ref.ID,
+			Name:          sgItemName,
+			ResourceGroup: model.InstanceList[i].ResourceGroup,
+			Rules:         makeSGRules(nameToSGRemoteRef, sg),
+			Targets:       parseTargetsSGInstance(model.InstanceList[i]),
+			VPC:           vpc,
+		})
+		sgItem.Tags = []string{}
+
+		sgRef := vpcv1.SecurityGroupReference{
 			CRN:  ref.CRN,
 			Href: ref.Href,
-			Name: utils.Ptr(sgName),
-		}
-		sgItem := makeSGItem(sg, sgRemoteRef)
-		sgItem.ResourceGroup = model.InstanceList[i].ResourceGroup
-		sgItem.VPC = vpc
-		sgRef := vpcv1.SecurityGroupReference{
-			Name: sgRemoteRef.Name,
-			Href: sgRemoteRef.Href,
-			ID:   sgRemoteRef.ID,
-			CRN:  sgRemoteRef.CRN,
+			ID:   ref.ID,
+			Name: sgItemName,
 		}
 		model.SecurityGroupList = append(model.SecurityGroupList, sgItem)
 
@@ -110,32 +164,47 @@ func updateSG(model *configModel.ResourcesContainerModel, collection *ir.SGColle
 			model.InstanceList[i].NetworkInterfaces[j].SecurityGroups = []vpcv1.SecurityGroupReference{sgRef}
 		}
 	}
+}
 
+func updateSGEndpointGW(model *configModel.ResourcesContainerModel, collection *ir.SGCollection,
+	nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference) {
 	for i := range model.EndpointGWList {
-		vpc := model.InstanceList[i].VPC
+		vpc := model.EndpointGWList[i].VPC
 		sgName := ScopingString(*vpc.Name, *model.EndpointGWList[i].Name)
+		sgItemName := utils.Ptr(ir.ChangeScoping(sgName))
 		sg := collection.SGs[*vpc.Name][ir.SGName(sgName)]
-		ref := allocateRef()
-		sgRemoteRef := &vpcv1.SecurityGroupRuleRemoteSecurityGroupReference{
-			ID:   ref.ID,
-			CRN:  ref.CRN,
-			Href: ref.Href,
-			Name: utils.Ptr(sgName),
+		ref := lookupOrCreate(nameToSGRemoteRef, *sgItemName)
+		target := &vpcv1.SecurityGroupTargetReference{
+			Name:         model.EndpointGWList[i].Name,
+			Href:         model.EndpointGWList[i].Href,
+			ID:           model.EndpointGWList[i].ID,
+			ResourceType: utils.Ptr(ResourceTypeSGTarget),
 		}
-		sgItem := makeSGItem(sg, sgRemoteRef)
-		sgItem.ResourceGroup = model.EndpointGWList[i].ResourceGroup
-		sgItem.VPC = vpc
-		sgRef := vpcv1.SecurityGroupReference{
-			Name: sgRemoteRef.Name,
-			Href: sgRemoteRef.Href,
-			ID:   sgRemoteRef.ID,
-			CRN:  sgRemoteRef.CRN,
-		}
+
+		sgItem := configModel.NewSecurityGroup(&vpcv1.SecurityGroup{
+			CRN:           ref.CRN,
+			Href:          ref.Href,
+			ID:            ref.ID,
+			Name:          sgItemName,
+			ResourceGroup: model.EndpointGWList[i].ResourceGroup,
+			Rules:         makeSGRules(nameToSGRemoteRef, sg),
+			Targets:       []vpcv1.SecurityGroupTargetReferenceIntf{target},
+			VPC:           vpc,
+		})
+		sgItem.Tags = []string{}
+
 		model.SecurityGroupList = append(model.SecurityGroupList, sgItem)
-
-		model.EndpointGWList[i].SecurityGroups = []vpcv1.SecurityGroupReference{sgRef}
 	}
+}
 
+func updateSG(model *configModel.ResourcesContainerModel, collection *ir.SGCollection) error {
+	model.SecurityGroupList = make([]*configModel.SecurityGroup, 0) // delete old SGs
+	nameToSGRemoteRef := make(map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference)
+
+	updateSGInstances(model, collection, nameToSGRemoteRef)
+	updateSGEndpointGW(model, collection, nameToSGRemoteRef)
+
+	GlobalIndex = 0 // for tests
 	return nil
 }
 

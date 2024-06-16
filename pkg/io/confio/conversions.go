@@ -33,14 +33,14 @@ type refData struct {
 	Href *string
 }
 
-var globalIndex int = 0
+var GlobalIndex int = 0
 
 func allocateRef() refData {
-	globalIndex++
+	GlobalIndex++
 	return refData{
-		ID:   utils.Ptr(fmt.Sprintf("fake:id:%v", globalIndex)),
-		CRN:  utils.Ptr(fmt.Sprintf("fake:crn:%v", globalIndex)),
-		Href: utils.Ptr(fmt.Sprintf("fake:href:%v", globalIndex)),
+		ID:   utils.Ptr(fmt.Sprintf("fake:id:%v", GlobalIndex)),
+		CRN:  utils.Ptr(fmt.Sprintf("fake:crn:%v", GlobalIndex)),
+		Href: utils.Ptr(fmt.Sprintf("fake:href:%v", GlobalIndex)),
 	}
 }
 

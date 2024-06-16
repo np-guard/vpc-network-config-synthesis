@@ -2474,11 +2474,115 @@
     ],
     "security_groups": [
         {
-            "created_at": "2024-06-10T12:17:35.000Z",
-            "crn": "crn:339",
-            "href": "href:340",
-            "id": "id:341",
-            "name": "sg21",
+            "created_at": null,
+            "crn": "fake:crn:1",
+            "href": "fake:href:1",
+            "id": "fake:id:1",
+            "name": "test-vpc0--vsi1-subnet3",
+            "resource_group": {
+                "href": "href:16",
+                "id": "id:17",
+                "name": "name:4"
+            },
+            "rules": [],
+            "targets": [
+                {
+                    "href": "href:195",
+                    "id": "id:196",
+                    "name": "fretted-zone-graduate-showplace",
+                    "resource_type": "network_interface"
+                }
+            ],
+            "vpc": {
+                "crn": "crn:48",
+                "href": "href:49",
+                "id": "id:50",
+                "name": "test-vpc0",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": null,
+            "crn": "fake:crn:2",
+            "href": "fake:href:2",
+            "id": "fake:id:2",
+            "name": "test-vpc0--vsi1-subnet4",
+            "resource_group": {
+                "href": "href:16",
+                "id": "id:17",
+                "name": "name:4"
+            },
+            "rules": [
+                {
+                    "direction": "inbound",
+                    "href": "fake:href:3",
+                    "id": "fake:id:3",
+                    "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
+                    "remote": {
+                        "crn": "fake:crn:4",
+                        "href": "fake:href:4",
+                        "id": "fake:id:4",
+                        "name": "test-vpc0--vsi0-subnet0"
+                    },
+                    "protocol": "all"
+                }
+            ],
+            "targets": [
+                {
+                    "href": "href:133",
+                    "id": "id:134",
+                    "name": "emptiness-agony-ninetieth-mankind",
+                    "resource_type": "network_interface"
+                }
+            ],
+            "vpc": {
+                "crn": "crn:48",
+                "href": "href:49",
+                "id": "id:50",
+                "name": "test-vpc0",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": null,
+            "crn": "fake:crn:5",
+            "href": "fake:href:5",
+            "id": "fake:id:5",
+            "name": "test-vpc0--vsi1-subnet2",
+            "resource_group": {
+                "href": "href:16",
+                "id": "id:17",
+                "name": "name:4"
+            },
+            "rules": [],
+            "targets": [
+                {
+                    "href": "href:109",
+                    "id": "id:110",
+                    "name": "doorstep-crushing-resilient-jocular",
+                    "resource_type": "network_interface"
+                }
+            ],
+            "vpc": {
+                "crn": "crn:48",
+                "href": "href:49",
+                "id": "id:50",
+                "name": "test-vpc0",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": null,
+            "crn": "fake:crn:6",
+            "href": "fake:href:6",
+            "id": "fake:id:6",
+            "name": "test-vpc0--vsi0-subnet0",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
@@ -2487,44 +2591,302 @@
             "rules": [
                 {
                     "direction": "outbound",
-                    "href": "href:342",
-                    "id": "id:343",
+                    "href": "fake:href:7",
+                    "id": "fake:id:7",
                     "ip_version": "ipv4",
                     "local": {
                         "cidr_block": "0.0.0.0/0"
                     },
                     "remote": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "protocol": "all"
-                },
-                {
-                    "direction": "inbound",
-                    "href": "href:344",
-                    "id": "id:345",
-                    "ip_version": "ipv4",
-                    "local": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "remote": {
-                        "cidr_block": "0.0.0.0/0"
+                        "crn": "fake:crn:8",
+                        "href": "fake:href:8",
+                        "id": "fake:id:8",
+                        "name": "test-vpc0--vsi1-subnet4"
                     },
                     "protocol": "all"
                 }
             ],
             "targets": [
                 {
-                    "href": "href:215",
-                    "id": "id:216",
-                    "name": "revolving-gowl-blurry-trace",
+                    "href": "href:264",
+                    "id": "id:265",
+                    "name": "balloon-antidote-shiny-chief",
                     "resource_type": "network_interface"
-                },
+                }
+            ],
+            "vpc": {
+                "crn": "crn:48",
+                "href": "href:49",
+                "id": "id:50",
+                "name": "test-vpc0",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": null,
+            "crn": "fake:crn:9",
+            "href": "fake:href:9",
+            "id": "fake:id:9",
+            "name": "test-vpc0--vsi0-subnet2",
+            "resource_group": {
+                "href": "href:16",
+                "id": "id:17",
+                "name": "name:4"
+            },
+            "rules": [],
+            "targets": [
                 {
-                    "href": "href:219",
-                    "id": "id:220",
-                    "name": "resemble-steed-rendition-salaried",
+                    "href": "href:105",
+                    "id": "id:106",
+                    "name": "dreamily-devotee-guru-pushing",
                     "resource_type": "network_interface"
-                },
+                }
+            ],
+            "vpc": {
+                "crn": "crn:48",
+                "href": "href:49",
+                "id": "id:50",
+                "name": "test-vpc0",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": null,
+            "crn": "fake:crn:10",
+            "href": "fake:href:10",
+            "id": "fake:id:10",
+            "name": "test-vpc0--vsi0-subnet3",
+            "resource_group": {
+                "href": "href:16",
+                "id": "id:17",
+                "name": "name:4"
+            },
+            "rules": [],
+            "targets": [
+                {
+                    "href": "href:191",
+                    "id": "id:192",
+                    "name": "broadband-squeegee-rickety-sticker",
+                    "resource_type": "network_interface"
+                }
+            ],
+            "vpc": {
+                "crn": "crn:48",
+                "href": "href:49",
+                "id": "id:50",
+                "name": "test-vpc0",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": null,
+            "crn": "fake:crn:11",
+            "href": "fake:href:11",
+            "id": "fake:id:11",
+            "name": "test-vpc0--vsi0-subnet4",
+            "resource_group": {
+                "href": "href:16",
+                "id": "id:17",
+                "name": "name:4"
+            },
+            "rules": [],
+            "targets": [
+                {
+                    "href": "href:129",
+                    "id": "id:130",
+                    "name": "county-barmbrack-bakeshop-guzzler",
+                    "resource_type": "network_interface"
+                }
+            ],
+            "vpc": {
+                "crn": "crn:48",
+                "href": "href:49",
+                "id": "id:50",
+                "name": "test-vpc0",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": null,
+            "crn": "fake:crn:12",
+            "href": "fake:href:12",
+            "id": "fake:id:12",
+            "name": "test-vpc0--vsi0-subnet1",
+            "resource_group": {
+                "href": "href:16",
+                "id": "id:17",
+                "name": "name:4"
+            },
+            "rules": [],
+            "targets": [
+                {
+                    "href": "href:85",
+                    "id": "id:86",
+                    "name": "trough-staining-tribute-friend",
+                    "resource_type": "network_interface"
+                }
+            ],
+            "vpc": {
+                "crn": "crn:48",
+                "href": "href:49",
+                "id": "id:50",
+                "name": "test-vpc0",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": null,
+            "crn": "fake:crn:13",
+            "href": "fake:href:13",
+            "id": "fake:id:13",
+            "name": "test-vpc0--vsi0-subnet5",
+            "resource_group": {
+                "href": "href:16",
+                "id": "id:17",
+                "name": "name:4"
+            },
+            "rules": [],
+            "targets": [
+                {
+                    "href": "href:154",
+                    "id": "id:155",
+                    "name": "shopping-vanquish-quickstep-elude",
+                    "resource_type": "network_interface"
+                }
+            ],
+            "vpc": {
+                "crn": "crn:48",
+                "href": "href:49",
+                "id": "id:50",
+                "name": "test-vpc0",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": null,
+            "crn": "fake:crn:14",
+            "href": "fake:href:14",
+            "id": "fake:id:14",
+            "name": "test-vpc0--vsi1-subnet1",
+            "resource_group": {
+                "href": "href:16",
+                "id": "id:17",
+                "name": "name:4"
+            },
+            "rules": [],
+            "targets": [
+                {
+                    "href": "href:81",
+                    "id": "id:82",
+                    "name": "dormice-skirmish-winnings-worried",
+                    "resource_type": "network_interface"
+                }
+            ],
+            "vpc": {
+                "crn": "crn:48",
+                "href": "href:49",
+                "id": "id:50",
+                "name": "test-vpc0",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": null,
+            "crn": "fake:crn:15",
+            "href": "fake:href:15",
+            "id": "fake:id:15",
+            "name": "test-vpc0--vsi1-subnet5",
+            "resource_group": {
+                "href": "href:16",
+                "id": "id:17",
+                "name": "name:4"
+            },
+            "rules": [],
+            "targets": [
+                {
+                    "href": "href:150",
+                    "id": "id:151",
+                    "name": "crowbar-starry-expire-resilient",
+                    "resource_type": "network_interface"
+                }
+            ],
+            "vpc": {
+                "crn": "crn:48",
+                "href": "href:49",
+                "id": "id:50",
+                "name": "test-vpc0",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": null,
+            "crn": "fake:crn:16",
+            "href": "fake:href:16",
+            "id": "fake:id:16",
+            "name": "test-vpc0--vsi1-subnet0",
+            "resource_group": {
+                "href": "href:16",
+                "id": "id:17",
+                "name": "name:4"
+            },
+            "rules": [],
+            "targets": [
+                {
+                    "href": "href:260",
+                    "id": "id:261",
+                    "name": "goon-unmoved-overall-useable",
+                    "resource_type": "network_interface"
+                }
+            ],
+            "vpc": {
+                "crn": "crn:48",
+                "href": "href:49",
+                "id": "id:50",
+                "name": "test-vpc0",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": null,
+            "crn": "fake:crn:17",
+            "href": "fake:href:17",
+            "id": "fake:id:17",
+            "name": "test-vpc2--vsi0-subnet20",
+            "resource_group": {
+                "href": "href:16",
+                "id": "id:17",
+                "name": "name:4"
+            },
+            "rules": [
+                {
+                    "direction": "outbound",
+                    "href": "fake:href:18",
+                    "id": "fake:id:18",
+                    "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
+                    "remote": {
+                        "crn": "fake:crn:19",
+                        "href": "fake:href:19",
+                        "id": "fake:id:19",
+                        "name": "test-vpc2--vsi2-subnet20"
+                    },
+                    "port_max": 53,
+                    "port_min": 53,
+                    "protocol": "tcp"
+                }
+            ],
+            "targets": [
                 {
                     "href": "href:223",
                     "id": "id:224",
@@ -2542,44 +2904,17 @@
             "tags": []
         },
         {
-            "created_at": "2024-06-10T12:17:35.000Z",
-            "crn": "crn:346",
-            "href": "href:347",
-            "id": "id:348",
-            "name": "sg31",
+            "created_at": null,
+            "crn": "fake:crn:20",
+            "href": "fake:href:20",
+            "id": "fake:id:20",
+            "name": "test-vpc3--vsi0-subnet30",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
                 "name": "name:4"
             },
-            "rules": [
-                {
-                    "direction": "outbound",
-                    "href": "href:349",
-                    "id": "id:350",
-                    "ip_version": "ipv4",
-                    "local": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "remote": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "protocol": "all"
-                },
-                {
-                    "direction": "inbound",
-                    "href": "href:351",
-                    "id": "id:352",
-                    "ip_version": "ipv4",
-                    "local": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "remote": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "protocol": "all"
-                }
-            ],
+            "rules": [],
             "targets": [
                 {
                     "href": "href:174",
@@ -2598,133 +2933,40 @@
             "tags": []
         },
         {
-            "created_at": "2024-06-10T12:17:34.000Z",
-            "crn": "crn:353",
-            "href": "href:354",
-            "id": "id:355",
-            "name": "sg1",
+            "created_at": null,
+            "crn": "fake:crn:21",
+            "href": "fake:href:21",
+            "id": "fake:id:21",
+            "name": "test-vpc2--vsi1-subnet20",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
                 "name": "name:4"
             },
-            "rules": [
-                {
-                    "direction": "inbound",
-                    "href": "href:356",
-                    "id": "id:357",
-                    "ip_version": "ipv4",
-                    "local": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "remote": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "protocol": "all"
-                },
-                {
-                    "direction": "outbound",
-                    "href": "href:358",
-                    "id": "id:359",
-                    "ip_version": "ipv4",
-                    "local": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "remote": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "protocol": "all"
-                }
-            ],
+            "rules": [],
             "targets": [
                 {
-                    "href": "href:260",
-                    "id": "id:261",
-                    "name": "goon-unmoved-overall-useable",
-                    "resource_type": "network_interface"
-                },
-                {
-                    "href": "href:150",
-                    "id": "id:151",
-                    "name": "crowbar-starry-expire-resilient",
-                    "resource_type": "network_interface"
-                },
-                {
-                    "href": "href:81",
-                    "id": "id:82",
-                    "name": "dormice-skirmish-winnings-worried",
-                    "resource_type": "network_interface"
-                },
-                {
-                    "href": "href:154",
-                    "id": "id:155",
-                    "name": "shopping-vanquish-quickstep-elude",
-                    "resource_type": "network_interface"
-                },
-                {
-                    "href": "href:129",
-                    "id": "id:130",
-                    "name": "county-barmbrack-bakeshop-guzzler",
-                    "resource_type": "network_interface"
-                },
-                {
-                    "href": "href:85",
-                    "id": "id:86",
-                    "name": "trough-staining-tribute-friend",
-                    "resource_type": "network_interface"
-                },
-                {
-                    "href": "href:191",
-                    "id": "id:192",
-                    "name": "broadband-squeegee-rickety-sticker",
-                    "resource_type": "network_interface"
-                },
-                {
-                    "href": "href:105",
-                    "id": "id:106",
-                    "name": "dreamily-devotee-guru-pushing",
-                    "resource_type": "network_interface"
-                },
-                {
-                    "href": "href:264",
-                    "id": "id:265",
-                    "name": "balloon-antidote-shiny-chief",
-                    "resource_type": "network_interface"
-                },
-                {
-                    "href": "href:109",
-                    "id": "id:110",
-                    "name": "doorstep-crushing-resilient-jocular",
-                    "resource_type": "network_interface"
-                },
-                {
-                    "href": "href:133",
-                    "id": "id:134",
-                    "name": "emptiness-agony-ninetieth-mankind",
-                    "resource_type": "network_interface"
-                },
-                {
-                    "href": "href:195",
-                    "id": "id:196",
-                    "name": "fretted-zone-graduate-showplace",
+                    "href": "href:219",
+                    "id": "id:220",
+                    "name": "resemble-steed-rendition-salaried",
                     "resource_type": "network_interface"
                 }
             ],
             "vpc": {
-                "crn": "crn:48",
-                "href": "href:49",
-                "id": "id:50",
-                "name": "test-vpc0",
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc2",
                 "resource_type": "vpc"
             },
             "tags": []
         },
         {
-            "created_at": "2024-06-10T12:17:31.000Z",
-            "crn": "crn:360",
-            "href": "href:361",
-            "id": "id:362",
-            "name": "sg11",
+            "created_at": null,
+            "crn": "fake:crn:22",
+            "href": "fake:href:22",
+            "id": "fake:id:22",
+            "name": "test-vpc2--vsi2-subnet20",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
@@ -2733,38 +2975,72 @@
             "rules": [
                 {
                     "direction": "inbound",
-                    "href": "href:363",
-                    "id": "id:364",
+                    "href": "fake:href:23",
+                    "id": "fake:id:23",
                     "ip_version": "ipv4",
                     "local": {
                         "cidr_block": "0.0.0.0/0"
                     },
                     "remote": {
-                        "cidr_block": "0.0.0.0/0"
+                        "crn": "fake:crn:24",
+                        "href": "fake:href:24",
+                        "id": "fake:id:24",
+                        "name": "test-vpc2--vsi0-subnet20"
                     },
-                    "protocol": "all"
-                },
-                {
-                    "direction": "outbound",
-                    "href": "href:365",
-                    "id": "id:366",
-                    "ip_version": "ipv4",
-                    "local": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "remote": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "protocol": "all"
+                    "port_max": 53,
+                    "port_min": 53,
+                    "protocol": "tcp"
                 }
             ],
             "targets": [
                 {
-                    "href": "href:243",
-                    "id": "id:244",
-                    "name": "vacant-earthen-winter-sulfate",
+                    "href": "href:215",
+                    "id": "id:216",
+                    "name": "revolving-gowl-blurry-trace",
                     "resource_type": "network_interface"
-                },
+                }
+            ],
+            "vpc": {
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc2",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": null,
+            "crn": "fake:crn:25",
+            "href": "fake:href:25",
+            "id": "fake:id:25",
+            "name": "test-vpc1--vsi0-subnet11",
+            "resource_group": {
+                "href": "href:16",
+                "id": "id:17",
+                "name": "name:4"
+            },
+            "rules": [
+                {
+                    "direction": "inbound",
+                    "href": "fake:href:26",
+                    "id": "fake:id:26",
+                    "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
+                    "remote": {
+                        "crn": "fake:crn:27",
+                        "href": "fake:href:27",
+                        "id": "fake:id:27",
+                        "name": "test-vpc1--vsi0-subnet10"
+                    },
+                    "port_max": 65535,
+                    "port_min": 1,
+                    "protocol": "tcp"
+                }
+            ],
+            "targets": [
                 {
                     "href": "href:281",
                     "id": "id:282",
@@ -2782,11 +3058,11 @@
             "tags": []
         },
         {
-            "created_at": "2024-06-10T12:17:05.000Z",
-            "crn": "crn:13",
-            "href": "href:14",
-            "id": "id:15",
-            "name": "remission-specked-edginess-footprint",
+            "created_at": null,
+            "crn": "fake:crn:28",
+            "href": "fake:href:28",
+            "id": "fake:id:28",
+            "name": "test-vpc1--vsi0-subnet10",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
@@ -2795,685 +3071,31 @@
             "rules": [
                 {
                     "direction": "outbound",
-                    "href": "href:367",
-                    "id": "id:368",
+                    "href": "fake:href:29",
+                    "id": "fake:id:29",
                     "ip_version": "ipv4",
                     "local": {
                         "cidr_block": "0.0.0.0/0"
                     },
                     "remote": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "protocol": "all"
-                },
-                {
-                    "direction": "inbound",
-                    "href": "href:369",
-                    "id": "id:370",
-                    "ip_version": "ipv4",
-                    "local": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "remote": {
-                        "crn": "crn:13",
-                        "href": "href:14",
-                        "id": "id:15",
-                        "name": "remission-specked-edginess-footprint"
-                    },
-                    "protocol": "all"
-                }
-            ],
-            "targets": [],
-            "vpc": {
-                "crn": "crn:1",
-                "href": "href:2",
-                "id": "id:3",
-                "name": "test-vpc2",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": "2024-06-10T12:17:04.000Z",
-            "crn": "crn:28",
-            "href": "href:29",
-            "id": "id:30",
-            "name": "lagoon-wiry-unawake-thicken",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [
-                {
-                    "direction": "outbound",
-                    "href": "href:371",
-                    "id": "id:372",
-                    "ip_version": "ipv4",
-                    "local": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "remote": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "protocol": "all"
-                },
-                {
-                    "direction": "inbound",
-                    "href": "href:373",
-                    "id": "id:374",
-                    "ip_version": "ipv4",
-                    "local": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "remote": {
-                        "crn": "crn:28",
-                        "href": "href:29",
-                        "id": "id:30",
-                        "name": "lagoon-wiry-unawake-thicken"
-                    },
-                    "protocol": "all"
-                }
-            ],
-            "targets": [],
-            "vpc": {
-                "crn": "crn:20",
-                "href": "href:21",
-                "id": "id:22",
-                "name": "test-vpc1",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": "2024-06-10T12:17:04.000Z",
-            "crn": "crn:43",
-            "href": "href:44",
-            "id": "id:45",
-            "name": "judge-quartet-radiator-sequester",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [
-                {
-                    "direction": "outbound",
-                    "href": "href:375",
-                    "id": "id:376",
-                    "ip_version": "ipv4",
-                    "local": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "remote": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "protocol": "all"
-                },
-                {
-                    "direction": "inbound",
-                    "href": "href:377",
-                    "id": "id:378",
-                    "ip_version": "ipv4",
-                    "local": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "remote": {
-                        "crn": "crn:43",
-                        "href": "href:44",
-                        "id": "id:45",
-                        "name": "judge-quartet-radiator-sequester"
-                    },
-                    "protocol": "all"
-                }
-            ],
-            "targets": [],
-            "vpc": {
-                "crn": "crn:35",
-                "href": "href:36",
-                "id": "id:37",
-                "name": "test-vpc3",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": "2024-06-10T12:17:04.000Z",
-            "crn": "crn:56",
-            "href": "href:57",
-            "id": "id:58",
-            "name": "pavestone-debunk-recognize-jumble",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [
-                {
-                    "direction": "outbound",
-                    "href": "href:379",
-                    "id": "id:380",
-                    "ip_version": "ipv4",
-                    "local": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "remote": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "protocol": "all"
-                },
-                {
-                    "direction": "inbound",
-                    "href": "href:381",
-                    "id": "id:382",
-                    "ip_version": "ipv4",
-                    "local": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "remote": {
-                        "crn": "crn:56",
-                        "href": "href:57",
-                        "id": "id:58",
-                        "name": "pavestone-debunk-recognize-jumble"
-                    },
-                    "protocol": "all"
-                }
-            ],
-            "targets": [],
-            "vpc": {
-                "crn": "crn:48",
-                "href": "href:49",
-                "id": "id:50",
-                "name": "test-vpc0",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": null,
-            "crn": "fake:crn:1",
-            "href": "fake:href:1",
-            "id": "fake:id:1",
-            "name": "test-vpc0/vsi1-subnet3",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [],
-            "targets": [],
-            "vpc": {
-                "crn": "crn:48",
-                "href": "href:49",
-                "id": "id:50",
-                "name": "test-vpc0",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": null,
-            "crn": "fake:crn:2",
-            "href": "fake:href:2",
-            "id": "fake:id:2",
-            "name": "test-vpc0/vsi1-subnet4",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [
-                {
-                    "direction": "inbound",
-                    "href": "fake:href:3",
-                    "id": "fake:id:3",
-                    "ip_version": "ipv4",
-                    "local": null,
-                    "remote": {
-                        "crn": "fake:crn:2",
-                        "href": "fake:href:2",
-                        "id": "fake:id:2",
-                        "name": "test-vpc0/vsi1-subnet4"
-                    },
-                    "protocol": "all"
-                }
-            ],
-            "targets": [],
-            "vpc": {
-                "crn": "crn:48",
-                "href": "href:49",
-                "id": "id:50",
-                "name": "test-vpc0",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": null,
-            "crn": "fake:crn:4",
-            "href": "fake:href:4",
-            "id": "fake:id:4",
-            "name": "test-vpc0/vsi1-subnet2",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [],
-            "targets": [],
-            "vpc": {
-                "crn": "crn:48",
-                "href": "href:49",
-                "id": "id:50",
-                "name": "test-vpc0",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": null,
-            "crn": "fake:crn:5",
-            "href": "fake:href:5",
-            "id": "fake:id:5",
-            "name": "test-vpc0/vsi0-subnet0",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [
-                {
-                    "direction": "outbound",
-                    "href": "fake:href:6",
-                    "id": "fake:id:6",
-                    "ip_version": "ipv4",
-                    "local": null,
-                    "remote": {
-                        "crn": "fake:crn:5",
-                        "href": "fake:href:5",
-                        "id": "fake:id:5",
-                        "name": "test-vpc0/vsi0-subnet0"
-                    },
-                    "protocol": "all"
-                }
-            ],
-            "targets": [],
-            "vpc": {
-                "crn": "crn:48",
-                "href": "href:49",
-                "id": "id:50",
-                "name": "test-vpc0",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": null,
-            "crn": "fake:crn:7",
-            "href": "fake:href:7",
-            "id": "fake:id:7",
-            "name": "test-vpc0/vsi0-subnet2",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [],
-            "targets": [],
-            "vpc": {
-                "crn": "crn:48",
-                "href": "href:49",
-                "id": "id:50",
-                "name": "test-vpc0",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": null,
-            "crn": "fake:crn:8",
-            "href": "fake:href:8",
-            "id": "fake:id:8",
-            "name": "test-vpc0/vsi0-subnet3",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [],
-            "targets": [],
-            "vpc": {
-                "crn": "crn:48",
-                "href": "href:49",
-                "id": "id:50",
-                "name": "test-vpc0",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": null,
-            "crn": "fake:crn:9",
-            "href": "fake:href:9",
-            "id": "fake:id:9",
-            "name": "test-vpc0/vsi0-subnet4",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [],
-            "targets": [],
-            "vpc": {
-                "crn": "crn:48",
-                "href": "href:49",
-                "id": "id:50",
-                "name": "test-vpc0",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": null,
-            "crn": "fake:crn:10",
-            "href": "fake:href:10",
-            "id": "fake:id:10",
-            "name": "test-vpc0/vsi0-subnet1",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [],
-            "targets": [],
-            "vpc": {
-                "crn": "crn:48",
-                "href": "href:49",
-                "id": "id:50",
-                "name": "test-vpc0",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": null,
-            "crn": "fake:crn:11",
-            "href": "fake:href:11",
-            "id": "fake:id:11",
-            "name": "test-vpc0/vsi0-subnet5",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [],
-            "targets": [],
-            "vpc": {
-                "crn": "crn:48",
-                "href": "href:49",
-                "id": "id:50",
-                "name": "test-vpc0",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": null,
-            "crn": "fake:crn:12",
-            "href": "fake:href:12",
-            "id": "fake:id:12",
-            "name": "test-vpc0/vsi1-subnet1",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [],
-            "targets": [],
-            "vpc": {
-                "crn": "crn:48",
-                "href": "href:49",
-                "id": "id:50",
-                "name": "test-vpc0",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": null,
-            "crn": "fake:crn:13",
-            "href": "fake:href:13",
-            "id": "fake:id:13",
-            "name": "test-vpc0/vsi1-subnet5",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [],
-            "targets": [],
-            "vpc": {
-                "crn": "crn:48",
-                "href": "href:49",
-                "id": "id:50",
-                "name": "test-vpc0",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": null,
-            "crn": "fake:crn:14",
-            "href": "fake:href:14",
-            "id": "fake:id:14",
-            "name": "test-vpc0/vsi1-subnet0",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [],
-            "targets": [],
-            "vpc": {
-                "crn": "crn:48",
-                "href": "href:49",
-                "id": "id:50",
-                "name": "test-vpc0",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": null,
-            "crn": "fake:crn:15",
-            "href": "fake:href:15",
-            "id": "fake:id:15",
-            "name": "test-vpc2/vsi0-subnet20",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [
-                {
-                    "direction": "outbound",
-                    "href": "fake:href:16",
-                    "id": "fake:id:16",
-                    "ip_version": "ipv4",
-                    "local": null,
-                    "remote": {
-                        "crn": "fake:crn:15",
-                        "href": "fake:href:15",
-                        "id": "fake:id:15",
-                        "name": "test-vpc2/vsi0-subnet20"
-                    },
-                    "port_max": 53,
-                    "port_min": 53,
-                    "protocol": "tcp"
-                }
-            ],
-            "targets": [],
-            "vpc": {
-                "crn": "crn:1",
-                "href": "href:2",
-                "id": "id:3",
-                "name": "test-vpc2",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": null,
-            "crn": "fake:crn:17",
-            "href": "fake:href:17",
-            "id": "fake:id:17",
-            "name": "test-vpc3/vsi0-subnet30",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [],
-            "targets": [],
-            "vpc": {
-                "crn": "crn:35",
-                "href": "href:36",
-                "id": "id:37",
-                "name": "test-vpc3",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": null,
-            "crn": "fake:crn:18",
-            "href": "fake:href:18",
-            "id": "fake:id:18",
-            "name": "test-vpc2/vsi1-subnet20",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [],
-            "targets": [],
-            "vpc": {
-                "crn": "crn:1",
-                "href": "href:2",
-                "id": "id:3",
-                "name": "test-vpc2",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": null,
-            "crn": "fake:crn:19",
-            "href": "fake:href:19",
-            "id": "fake:id:19",
-            "name": "test-vpc2/vsi2-subnet20",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [
-                {
-                    "direction": "inbound",
-                    "href": "fake:href:20",
-                    "id": "fake:id:20",
-                    "ip_version": "ipv4",
-                    "local": null,
-                    "remote": {
-                        "crn": "fake:crn:19",
-                        "href": "fake:href:19",
-                        "id": "fake:id:19",
-                        "name": "test-vpc2/vsi2-subnet20"
-                    },
-                    "port_max": 53,
-                    "port_min": 53,
-                    "protocol": "tcp"
-                }
-            ],
-            "targets": [],
-            "vpc": {
-                "crn": "crn:1",
-                "href": "href:2",
-                "id": "id:3",
-                "name": "test-vpc2",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": null,
-            "crn": "fake:crn:21",
-            "href": "fake:href:21",
-            "id": "fake:id:21",
-            "name": "test-vpc1/vsi0-subnet11",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [
-                {
-                    "direction": "inbound",
-                    "href": "fake:href:22",
-                    "id": "fake:id:22",
-                    "ip_version": "ipv4",
-                    "local": null,
-                    "remote": {
-                        "crn": "fake:crn:21",
-                        "href": "fake:href:21",
-                        "id": "fake:id:21",
-                        "name": "test-vpc1/vsi0-subnet11"
+                        "crn": "fake:crn:30",
+                        "href": "fake:href:30",
+                        "id": "fake:id:30",
+                        "name": "test-vpc1--vsi0-subnet11"
                     },
                     "port_max": 65535,
                     "port_min": 1,
                     "protocol": "tcp"
                 }
             ],
-            "targets": [],
-            "vpc": {
-                "crn": "crn:20",
-                "href": "href:21",
-                "id": "id:22",
-                "name": "test-vpc1",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": null,
-            "crn": "fake:crn:23",
-            "href": "fake:href:23",
-            "id": "fake:id:23",
-            "name": "test-vpc1/vsi0-subnet10",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [
+            "targets": [
                 {
-                    "direction": "outbound",
-                    "href": "fake:href:24",
-                    "id": "fake:id:24",
-                    "ip_version": "ipv4",
-                    "local": null,
-                    "remote": {
-                        "crn": "fake:crn:23",
-                        "href": "fake:href:23",
-                        "id": "fake:id:23",
-                        "name": "test-vpc1/vsi0-subnet10"
-                    },
-                    "port_max": 65535,
-                    "port_min": 1,
-                    "protocol": "tcp"
+                    "href": "href:243",
+                    "id": "id:244",
+                    "name": "vacant-earthen-winter-sulfate",
+                    "resource_type": "network_interface"
                 }
             ],
-            "targets": [],
             "vpc": {
                 "crn": "crn:20",
                 "href": "href:21",
@@ -3628,7 +3250,7 @@
                             "crn": "fake:crn:1",
                             "href": "fake:href:1",
                             "id": "fake:id:1",
-                            "name": "test-vpc0/vsi1-subnet3"
+                            "name": "test-vpc0--vsi1-subnet3"
                         }
                     ],
                     "status": "available",
@@ -3786,7 +3408,7 @@
                             "crn": "fake:crn:2",
                             "href": "fake:href:2",
                             "id": "fake:id:2",
-                            "name": "test-vpc0/vsi1-subnet4"
+                            "name": "test-vpc0--vsi1-subnet4"
                         }
                     ],
                     "status": "available",
@@ -3941,10 +3563,10 @@
                     "resource_type": "network_interface",
                     "security_groups": [
                         {
-                            "crn": "fake:crn:4",
-                            "href": "fake:href:4",
-                            "id": "fake:id:4",
-                            "name": "test-vpc0/vsi1-subnet2"
+                            "crn": "fake:crn:5",
+                            "href": "fake:href:5",
+                            "id": "fake:id:5",
+                            "name": "test-vpc0--vsi1-subnet2"
                         }
                     ],
                     "status": "available",
@@ -4107,10 +3729,10 @@
                     "resource_type": "network_interface",
                     "security_groups": [
                         {
-                            "crn": "fake:crn:5",
-                            "href": "fake:href:5",
-                            "id": "fake:id:5",
-                            "name": "test-vpc0/vsi0-subnet0"
+                            "crn": "fake:crn:6",
+                            "href": "fake:href:6",
+                            "id": "fake:id:6",
+                            "name": "test-vpc0--vsi0-subnet0"
                         }
                     ],
                     "status": "available",
@@ -4265,10 +3887,10 @@
                     "resource_type": "network_interface",
                     "security_groups": [
                         {
-                            "crn": "fake:crn:7",
-                            "href": "fake:href:7",
-                            "id": "fake:id:7",
-                            "name": "test-vpc0/vsi0-subnet2"
+                            "crn": "fake:crn:9",
+                            "href": "fake:href:9",
+                            "id": "fake:id:9",
+                            "name": "test-vpc0--vsi0-subnet2"
                         }
                     ],
                     "status": "available",
@@ -4423,10 +4045,10 @@
                     "resource_type": "network_interface",
                     "security_groups": [
                         {
-                            "crn": "fake:crn:8",
-                            "href": "fake:href:8",
-                            "id": "fake:id:8",
-                            "name": "test-vpc0/vsi0-subnet3"
+                            "crn": "fake:crn:10",
+                            "href": "fake:href:10",
+                            "id": "fake:id:10",
+                            "name": "test-vpc0--vsi0-subnet3"
                         }
                     ],
                     "status": "available",
@@ -4581,10 +4203,10 @@
                     "resource_type": "network_interface",
                     "security_groups": [
                         {
-                            "crn": "fake:crn:9",
-                            "href": "fake:href:9",
-                            "id": "fake:id:9",
-                            "name": "test-vpc0/vsi0-subnet4"
+                            "crn": "fake:crn:11",
+                            "href": "fake:href:11",
+                            "id": "fake:id:11",
+                            "name": "test-vpc0--vsi0-subnet4"
                         }
                     ],
                     "status": "available",
@@ -4739,10 +4361,10 @@
                     "resource_type": "network_interface",
                     "security_groups": [
                         {
-                            "crn": "fake:crn:10",
-                            "href": "fake:href:10",
-                            "id": "fake:id:10",
-                            "name": "test-vpc0/vsi0-subnet1"
+                            "crn": "fake:crn:12",
+                            "href": "fake:href:12",
+                            "id": "fake:id:12",
+                            "name": "test-vpc0--vsi0-subnet1"
                         }
                     ],
                     "status": "available",
@@ -4897,10 +4519,10 @@
                     "resource_type": "network_interface",
                     "security_groups": [
                         {
-                            "crn": "fake:crn:11",
-                            "href": "fake:href:11",
-                            "id": "fake:id:11",
-                            "name": "test-vpc0/vsi0-subnet5"
+                            "crn": "fake:crn:13",
+                            "href": "fake:href:13",
+                            "id": "fake:id:13",
+                            "name": "test-vpc0--vsi0-subnet5"
                         }
                     ],
                     "status": "available",
@@ -5055,10 +4677,10 @@
                     "resource_type": "network_interface",
                     "security_groups": [
                         {
-                            "crn": "fake:crn:12",
-                            "href": "fake:href:12",
-                            "id": "fake:id:12",
-                            "name": "test-vpc0/vsi1-subnet1"
+                            "crn": "fake:crn:14",
+                            "href": "fake:href:14",
+                            "id": "fake:id:14",
+                            "name": "test-vpc0--vsi1-subnet1"
                         }
                     ],
                     "status": "available",
@@ -5213,10 +4835,10 @@
                     "resource_type": "network_interface",
                     "security_groups": [
                         {
-                            "crn": "fake:crn:13",
-                            "href": "fake:href:13",
-                            "id": "fake:id:13",
-                            "name": "test-vpc0/vsi1-subnet5"
+                            "crn": "fake:crn:15",
+                            "href": "fake:href:15",
+                            "id": "fake:id:15",
+                            "name": "test-vpc0--vsi1-subnet5"
                         }
                     ],
                     "status": "available",
@@ -5371,10 +4993,10 @@
                     "resource_type": "network_interface",
                     "security_groups": [
                         {
-                            "crn": "fake:crn:14",
-                            "href": "fake:href:14",
-                            "id": "fake:id:14",
-                            "name": "test-vpc0/vsi1-subnet0"
+                            "crn": "fake:crn:16",
+                            "href": "fake:href:16",
+                            "id": "fake:id:16",
+                            "name": "test-vpc0--vsi1-subnet0"
                         }
                     ],
                     "status": "available",
@@ -5529,10 +5151,10 @@
                     "resource_type": "network_interface",
                     "security_groups": [
                         {
-                            "crn": "fake:crn:15",
-                            "href": "fake:href:15",
-                            "id": "fake:id:15",
-                            "name": "test-vpc2/vsi0-subnet20"
+                            "crn": "fake:crn:17",
+                            "href": "fake:href:17",
+                            "id": "fake:id:17",
+                            "name": "test-vpc2--vsi0-subnet20"
                         }
                     ],
                     "status": "available",
@@ -5695,10 +5317,10 @@
                     "resource_type": "network_interface",
                     "security_groups": [
                         {
-                            "crn": "fake:crn:17",
-                            "href": "fake:href:17",
-                            "id": "fake:id:17",
-                            "name": "test-vpc3/vsi0-subnet30"
+                            "crn": "fake:crn:20",
+                            "href": "fake:href:20",
+                            "id": "fake:id:20",
+                            "name": "test-vpc3--vsi0-subnet30"
                         }
                     ],
                     "status": "available",
@@ -5861,10 +5483,10 @@
                     "resource_type": "network_interface",
                     "security_groups": [
                         {
-                            "crn": "fake:crn:18",
-                            "href": "fake:href:18",
-                            "id": "fake:id:18",
-                            "name": "test-vpc2/vsi1-subnet20"
+                            "crn": "fake:crn:21",
+                            "href": "fake:href:21",
+                            "id": "fake:id:21",
+                            "name": "test-vpc2--vsi1-subnet20"
                         }
                     ],
                     "status": "available",
@@ -6019,10 +5641,10 @@
                     "resource_type": "network_interface",
                     "security_groups": [
                         {
-                            "crn": "fake:crn:19",
-                            "href": "fake:href:19",
-                            "id": "fake:id:19",
-                            "name": "test-vpc2/vsi2-subnet20"
+                            "crn": "fake:crn:22",
+                            "href": "fake:href:22",
+                            "id": "fake:id:22",
+                            "name": "test-vpc2--vsi2-subnet20"
                         }
                     ],
                     "status": "available",
@@ -6177,10 +5799,10 @@
                     "resource_type": "network_interface",
                     "security_groups": [
                         {
-                            "crn": "fake:crn:21",
-                            "href": "fake:href:21",
-                            "id": "fake:id:21",
-                            "name": "test-vpc1/vsi0-subnet11"
+                            "crn": "fake:crn:25",
+                            "href": "fake:href:25",
+                            "id": "fake:id:25",
+                            "name": "test-vpc1--vsi0-subnet11"
                         }
                     ],
                     "status": "available",
@@ -6343,10 +5965,10 @@
                     "resource_type": "network_interface",
                     "security_groups": [
                         {
-                            "crn": "fake:crn:23",
-                            "href": "fake:href:23",
-                            "id": "fake:id:23",
-                            "name": "test-vpc1/vsi0-subnet10"
+                            "crn": "fake:crn:28",
+                            "href": "fake:href:28",
+                            "id": "fake:id:28",
+                            "name": "test-vpc1--vsi0-subnet10"
                         }
                     ],
                     "status": "available",

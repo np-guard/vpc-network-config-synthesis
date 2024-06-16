@@ -439,9 +439,9 @@
             "ipv4_cidr_block": "10.240.1.0/24",
             "name": "subnet1",
             "network_acl": {
-                "crn": "fake:crn:7",
-                "href": "fake:href:7",
-                "id": "fake:id:7",
+                "crn": "fake:crn:1",
+                "href": "fake:href:1",
+                "id": "fake:id:1",
                 "name": "acl-test-vpc0--subnet1"
             },
             "resource_group": {
@@ -572,9 +572,9 @@
             "ipv4_cidr_block": "10.240.4.0/24",
             "name": "subnet2",
             "network_acl": {
-                "crn": "fake:crn:11",
-                "href": "fake:href:11",
-                "id": "fake:id:11",
+                "crn": "fake:crn:4",
+                "href": "fake:href:4",
+                "id": "fake:id:4",
                 "name": "acl-test-vpc0--subnet2"
             },
             "resource_group": {
@@ -705,9 +705,9 @@
             "ipv4_cidr_block": "10.240.8.0/24",
             "name": "subnet4",
             "network_acl": {
-                "crn": "fake:crn:17",
-                "href": "fake:href:17",
-                "id": "fake:id:17",
+                "crn": "fake:crn:8",
+                "href": "fake:href:8",
+                "id": "fake:id:8",
                 "name": "acl-test-vpc0--subnet4"
             },
             "resource_group": {
@@ -838,9 +838,9 @@
             "ipv4_cidr_block": "10.240.9.0/24",
             "name": "subnet5",
             "network_acl": {
-                "crn": "fake:crn:20",
-                "href": "fake:href:20",
-                "id": "fake:id:20",
+                "crn": "fake:crn:11",
+                "href": "fake:href:11",
+                "id": "fake:id:11",
                 "name": "acl-test-vpc0--subnet5"
             },
             "resource_group": {
@@ -971,9 +971,9 @@
             "ipv4_cidr_block": "10.240.192.0/24",
             "name": "subnet30",
             "network_acl": {
-                "crn": "fake:crn:32",
-                "href": "fake:href:32",
-                "id": "fake:id:32",
+                "crn": "fake:crn:14",
+                "href": "fake:href:14",
+                "id": "fake:id:14",
                 "name": "acl-test-vpc3--subnet30"
             },
             "resource_group": {
@@ -1087,9 +1087,9 @@
             "ipv4_cidr_block": "10.240.5.0/24",
             "name": "subnet3",
             "network_acl": {
-                "crn": "fake:crn:14",
-                "href": "fake:href:14",
-                "id": "fake:id:14",
+                "crn": "fake:crn:17",
+                "href": "fake:href:17",
+                "id": "fake:id:17",
                 "name": "acl-test-vpc0--subnet3"
             },
             "resource_group": {
@@ -1220,9 +1220,9 @@
             "ipv4_cidr_block": "10.240.128.0/24",
             "name": "subnet20",
             "network_acl": {
-                "crn": "fake:crn:29",
-                "href": "fake:href:29",
-                "id": "fake:id:29",
+                "crn": "fake:crn:20",
+                "href": "fake:href:20",
+                "id": "fake:id:20",
                 "name": "acl-test-vpc2--subnet20"
             },
             "resource_group": {
@@ -1486,9 +1486,9 @@
             "ipv4_cidr_block": "10.240.0.0/24",
             "name": "subnet0",
             "network_acl": {
-                "crn": "fake:crn:4",
-                "href": "fake:href:4",
-                "id": "fake:id:4",
+                "crn": "fake:crn:26",
+                "href": "fake:href:26",
+                "id": "fake:id:26",
                 "name": "acl-test-vpc0--subnet0"
             },
             "resource_group": {
@@ -1619,9 +1619,9 @@
             "ipv4_cidr_block": "10.240.80.0/24",
             "name": "subnet11",
             "network_acl": {
-                "crn": "fake:crn:26",
-                "href": "fake:href:26",
-                "id": "fake:id:26",
+                "crn": "fake:crn:30",
+                "href": "fake:href:30",
+                "id": "fake:id:30",
                 "name": "acl-test-vpc1--subnet11"
             },
             "resource_group": {
@@ -2473,91 +2473,10 @@
         },
         {
             "created_at": null,
-            "crn": "fake:crn:4",
-            "href": "fake:href:4",
-            "id": "fake:id:4",
-            "name": "acl-test-vpc0/subnet0",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [
-                {
-                    "action": "allow",
-                    "before": {
-                        "href": "fake:href:2",
-                        "id": "fake:id:2",
-                        "name": "rule1"
-                    },
-                    "created_at": null,
-                    "destination": "10.240.4.0/24",
-                    "direction": "outbound",
-                    "href": "fake:href:3",
-                    "id": "fake:id:3",
-                    "ip_version": "ipv4",
-                    "name": "rule0",
-                    "source": "10.240.0.0/24",
-                    "protocol": "all"
-                },
-                {
-                    "action": "allow",
-                    "before": {
-                        "href": "fake:href:1",
-                        "id": "fake:id:1",
-                        "name": "rule2"
-                    },
-                    "created_at": null,
-                    "destination": "10.240.0.0/24",
-                    "direction": "inbound",
-                    "href": "fake:href:2",
-                    "id": "fake:id:2",
-                    "ip_version": "ipv4",
-                    "name": "rule1",
-                    "source": "10.240.4.0/24",
-                    "protocol": "all"
-                },
-                {
-                    "action": "allow",
-                    "created_at": null,
-                    "destination": "10.240.5.0/24",
-                    "direction": "outbound",
-                    "href": "fake:href:1",
-                    "id": "fake:id:1",
-                    "ip_version": "ipv4",
-                    "name": "rule2",
-                    "source": "10.240.0.0/24",
-                    "destination_port_max": 53,
-                    "destination_port_min": 53,
-                    "protocol": "udp",
-                    "source_port_max": 65535,
-                    "source_port_min": 1
-                }
-            ],
-            "subnets": [
-                {
-                    "crn": "crn:247",
-                    "href": "href:248",
-                    "id": "id:249",
-                    "name": "subnet0",
-                    "resource_type": "subnet"
-                }
-            ],
-            "vpc": {
-                "crn": "crn:48",
-                "href": "href:49",
-                "id": "id:50",
-                "name": "test-vpc0",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": null,
-            "crn": "fake:crn:7",
-            "href": "fake:href:7",
-            "id": "fake:id:7",
-            "name": "acl-test-vpc0/subnet1",
+            "crn": "fake:crn:1",
+            "href": "fake:href:1",
+            "id": "fake:id:1",
+            "name": "acl-test-vpc0--subnet1",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
@@ -2567,15 +2486,15 @@
                 {
                     "action": "deny",
                     "before": {
-                        "href": "fake:href:5",
-                        "id": "fake:id:5",
+                        "href": "fake:href:2",
+                        "id": "fake:id:2",
                         "name": "rule1"
                     },
                     "created_at": null,
                     "destination": "10.240.1.0/24",
                     "direction": "inbound",
-                    "href": "fake:href:6",
-                    "id": "fake:id:6",
+                    "href": "fake:href:3",
+                    "id": "fake:id:3",
                     "ip_version": "ipv4",
                     "name": "rule0",
                     "source": "0.0.0.0/0",
@@ -2586,8 +2505,8 @@
                     "created_at": null,
                     "destination": "0.0.0.0/0",
                     "direction": "outbound",
-                    "href": "fake:href:5",
-                    "id": "fake:id:5",
+                    "href": "fake:href:2",
+                    "id": "fake:id:2",
                     "ip_version": "ipv4",
                     "name": "rule1",
                     "source": "10.240.1.0/24",
@@ -2614,10 +2533,10 @@
         },
         {
             "created_at": null,
-            "crn": "fake:crn:11",
-            "href": "fake:href:11",
-            "id": "fake:id:11",
-            "name": "acl-test-vpc0/subnet2",
+            "crn": "fake:crn:4",
+            "href": "fake:href:4",
+            "id": "fake:id:4",
+            "name": "acl-test-vpc0--subnet2",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
@@ -2627,15 +2546,15 @@
                 {
                     "action": "allow",
                     "before": {
-                        "href": "fake:href:9",
-                        "id": "fake:id:9",
+                        "href": "fake:href:6",
+                        "id": "fake:id:6",
                         "name": "rule1"
                     },
                     "created_at": null,
                     "destination": "10.240.4.0/24",
                     "direction": "inbound",
-                    "href": "fake:href:10",
-                    "id": "fake:id:10",
+                    "href": "fake:href:7",
+                    "id": "fake:id:7",
                     "ip_version": "ipv4",
                     "name": "rule0",
                     "source": "10.240.0.0/24",
@@ -2644,15 +2563,15 @@
                 {
                     "action": "allow",
                     "before": {
-                        "href": "fake:href:8",
-                        "id": "fake:id:8",
+                        "href": "fake:href:5",
+                        "id": "fake:id:5",
                         "name": "rule2"
                     },
                     "created_at": null,
                     "destination": "10.240.0.0/24",
                     "direction": "outbound",
-                    "href": "fake:href:9",
-                    "id": "fake:id:9",
+                    "href": "fake:href:6",
+                    "id": "fake:id:6",
                     "ip_version": "ipv4",
                     "name": "rule1",
                     "source": "10.240.4.0/24",
@@ -2663,8 +2582,8 @@
                     "created_at": null,
                     "destination": "10.240.5.0/24",
                     "direction": "outbound",
-                    "href": "fake:href:8",
-                    "id": "fake:id:8",
+                    "href": "fake:href:5",
+                    "id": "fake:id:5",
                     "ip_version": "ipv4",
                     "name": "rule2",
                     "source": "10.240.4.0/24",
@@ -2695,10 +2614,74 @@
         },
         {
             "created_at": null,
-            "crn": "fake:crn:14",
-            "href": "fake:href:14",
-            "id": "fake:id:14",
-            "name": "acl-test-vpc0/subnet3",
+            "crn": "fake:crn:8",
+            "href": "fake:href:8",
+            "id": "fake:id:8",
+            "name": "acl-test-vpc0--subnet4",
+            "resource_group": {
+                "href": "href:16",
+                "id": "id:17",
+                "name": "name:4"
+            },
+            "rules": [
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:9",
+                        "id": "fake:id:9",
+                        "name": "rule1"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.9.0/24",
+                    "direction": "outbound",
+                    "href": "fake:href:10",
+                    "id": "fake:id:10",
+                    "ip_version": "ipv4",
+                    "name": "rule0",
+                    "source": "10.240.8.0/24",
+                    "code": 0,
+                    "protocol": "icmp",
+                    "type": 0
+                },
+                {
+                    "action": "allow",
+                    "created_at": null,
+                    "destination": "10.240.8.0/24",
+                    "direction": "inbound",
+                    "href": "fake:href:9",
+                    "id": "fake:id:9",
+                    "ip_version": "ipv4",
+                    "name": "rule1",
+                    "source": "10.240.9.0/24",
+                    "code": 0,
+                    "protocol": "icmp",
+                    "type": 8
+                }
+            ],
+            "subnets": [
+                {
+                    "crn": "crn:113",
+                    "href": "href:114",
+                    "id": "id:115",
+                    "name": "subnet4",
+                    "resource_type": "subnet"
+                }
+            ],
+            "vpc": {
+                "crn": "crn:48",
+                "href": "href:49",
+                "id": "id:50",
+                "name": "test-vpc0",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": null,
+            "crn": "fake:crn:11",
+            "href": "fake:href:11",
+            "id": "fake:id:11",
+            "name": "acl-test-vpc0--subnet5",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
@@ -2713,10 +2696,134 @@
                         "name": "rule1"
                     },
                     "created_at": null,
-                    "destination": "10.240.5.0/24",
+                    "destination": "10.240.9.0/24",
                     "direction": "inbound",
                     "href": "fake:href:13",
                     "id": "fake:id:13",
+                    "ip_version": "ipv4",
+                    "name": "rule0",
+                    "source": "10.240.8.0/24",
+                    "code": 0,
+                    "protocol": "icmp",
+                    "type": 0
+                },
+                {
+                    "action": "allow",
+                    "created_at": null,
+                    "destination": "10.240.8.0/24",
+                    "direction": "outbound",
+                    "href": "fake:href:12",
+                    "id": "fake:id:12",
+                    "ip_version": "ipv4",
+                    "name": "rule1",
+                    "source": "10.240.9.0/24",
+                    "code": 0,
+                    "protocol": "icmp",
+                    "type": 8
+                }
+            ],
+            "subnets": [
+                {
+                    "crn": "crn:137",
+                    "href": "href:138",
+                    "id": "id:139",
+                    "name": "subnet5",
+                    "resource_type": "subnet"
+                }
+            ],
+            "vpc": {
+                "crn": "crn:48",
+                "href": "href:49",
+                "id": "id:50",
+                "name": "test-vpc0",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": null,
+            "crn": "fake:crn:14",
+            "href": "fake:href:14",
+            "id": "fake:id:14",
+            "name": "acl-test-vpc3--subnet30",
+            "resource_group": {
+                "href": "href:16",
+                "id": "id:17",
+                "name": "name:4"
+            },
+            "rules": [
+                {
+                    "action": "deny",
+                    "before": {
+                        "href": "fake:href:15",
+                        "id": "fake:id:15",
+                        "name": "rule1"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.192.0/24",
+                    "direction": "inbound",
+                    "href": "fake:href:16",
+                    "id": "fake:id:16",
+                    "ip_version": "ipv4",
+                    "name": "rule0",
+                    "source": "0.0.0.0/0",
+                    "protocol": "all"
+                },
+                {
+                    "action": "deny",
+                    "created_at": null,
+                    "destination": "0.0.0.0/0",
+                    "direction": "outbound",
+                    "href": "fake:href:15",
+                    "id": "fake:id:15",
+                    "ip_version": "ipv4",
+                    "name": "rule1",
+                    "source": "10.240.192.0/24",
+                    "protocol": "all"
+                }
+            ],
+            "subnets": [
+                {
+                    "crn": "crn:158",
+                    "href": "href:159",
+                    "id": "id:160",
+                    "name": "subnet30",
+                    "resource_type": "subnet"
+                }
+            ],
+            "vpc": {
+                "crn": "crn:35",
+                "href": "href:36",
+                "id": "id:37",
+                "name": "test-vpc3",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": null,
+            "crn": "fake:crn:17",
+            "href": "fake:href:17",
+            "id": "fake:id:17",
+            "name": "acl-test-vpc0--subnet3",
+            "resource_group": {
+                "href": "href:16",
+                "id": "id:17",
+                "name": "name:4"
+            },
+            "rules": [
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:18",
+                        "id": "fake:id:18",
+                        "name": "rule1"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.5.0/24",
+                    "direction": "inbound",
+                    "href": "fake:href:19",
+                    "id": "fake:id:19",
                     "ip_version": "ipv4",
                     "name": "rule0",
                     "source": "10.240.0.0/24",
@@ -2731,8 +2838,8 @@
                     "created_at": null,
                     "destination": "10.240.5.0/24",
                     "direction": "inbound",
-                    "href": "fake:href:12",
-                    "id": "fake:id:12",
+                    "href": "fake:href:18",
+                    "id": "fake:id:18",
                     "ip_version": "ipv4",
                     "name": "rule1",
                     "source": "10.240.4.0/24",
@@ -2763,74 +2870,10 @@
         },
         {
             "created_at": null,
-            "crn": "fake:crn:17",
-            "href": "fake:href:17",
-            "id": "fake:id:17",
-            "name": "acl-test-vpc0/subnet4",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [
-                {
-                    "action": "allow",
-                    "before": {
-                        "href": "fake:href:15",
-                        "id": "fake:id:15",
-                        "name": "rule1"
-                    },
-                    "created_at": null,
-                    "destination": "10.240.9.0/24",
-                    "direction": "outbound",
-                    "href": "fake:href:16",
-                    "id": "fake:id:16",
-                    "ip_version": "ipv4",
-                    "name": "rule0",
-                    "source": "10.240.8.0/24",
-                    "code": 0,
-                    "protocol": "icmp",
-                    "type": 0
-                },
-                {
-                    "action": "allow",
-                    "created_at": null,
-                    "destination": "10.240.8.0/24",
-                    "direction": "inbound",
-                    "href": "fake:href:15",
-                    "id": "fake:id:15",
-                    "ip_version": "ipv4",
-                    "name": "rule1",
-                    "source": "10.240.9.0/24",
-                    "code": 0,
-                    "protocol": "icmp",
-                    "type": 8
-                }
-            ],
-            "subnets": [
-                {
-                    "crn": "crn:113",
-                    "href": "href:114",
-                    "id": "id:115",
-                    "name": "subnet4",
-                    "resource_type": "subnet"
-                }
-            ],
-            "vpc": {
-                "crn": "crn:48",
-                "href": "href:49",
-                "id": "id:50",
-                "name": "test-vpc0",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": null,
             "crn": "fake:crn:20",
             "href": "fake:href:20",
             "id": "fake:id:20",
-            "name": "acl-test-vpc0/subnet5",
+            "name": "acl-test-vpc2--subnet20",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
@@ -2838,53 +2881,49 @@
             },
             "rules": [
                 {
-                    "action": "allow",
+                    "action": "deny",
                     "before": {
-                        "href": "fake:href:18",
-                        "id": "fake:id:18",
+                        "href": "fake:href:21",
+                        "id": "fake:id:21",
                         "name": "rule1"
                     },
                     "created_at": null,
-                    "destination": "10.240.9.0/24",
+                    "destination": "10.240.128.0/24",
                     "direction": "inbound",
-                    "href": "fake:href:19",
-                    "id": "fake:id:19",
+                    "href": "fake:href:22",
+                    "id": "fake:id:22",
                     "ip_version": "ipv4",
                     "name": "rule0",
-                    "source": "10.240.8.0/24",
-                    "code": 0,
-                    "protocol": "icmp",
-                    "type": 0
+                    "source": "0.0.0.0/0",
+                    "protocol": "all"
                 },
                 {
-                    "action": "allow",
+                    "action": "deny",
                     "created_at": null,
-                    "destination": "10.240.8.0/24",
+                    "destination": "0.0.0.0/0",
                     "direction": "outbound",
-                    "href": "fake:href:18",
-                    "id": "fake:id:18",
+                    "href": "fake:href:21",
+                    "id": "fake:id:21",
                     "ip_version": "ipv4",
                     "name": "rule1",
-                    "source": "10.240.9.0/24",
-                    "code": 0,
-                    "protocol": "icmp",
-                    "type": 8
+                    "source": "10.240.128.0/24",
+                    "protocol": "all"
                 }
             ],
             "subnets": [
                 {
-                    "crn": "crn:137",
-                    "href": "href:138",
-                    "id": "id:139",
-                    "name": "subnet5",
+                    "crn": "crn:199",
+                    "href": "href:200",
+                    "id": "id:201",
+                    "name": "subnet20",
                     "resource_type": "subnet"
                 }
             ],
             "vpc": {
-                "crn": "crn:48",
-                "href": "href:49",
-                "id": "id:50",
-                "name": "test-vpc0",
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "test-vpc2",
                 "resource_type": "vpc"
             },
             "tags": []
@@ -2894,7 +2933,7 @@
             "crn": "fake:crn:23",
             "href": "fake:href:23",
             "id": "fake:id:23",
-            "name": "acl-test-vpc1/subnet10",
+            "name": "acl-test-vpc1--subnet10",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
@@ -2904,15 +2943,15 @@
                 {
                     "action": "allow",
                     "before": {
-                        "href": "fake:href:21",
-                        "id": "fake:id:21",
+                        "href": "fake:href:24",
+                        "id": "fake:id:24",
                         "name": "rule1"
                     },
                     "created_at": null,
                     "destination": "10.240.80.0/24",
                     "direction": "outbound",
-                    "href": "fake:href:22",
-                    "id": "fake:id:22",
+                    "href": "fake:href:25",
+                    "id": "fake:id:25",
                     "ip_version": "ipv4",
                     "name": "rule0",
                     "source": "10.240.64.0/24",
@@ -2925,8 +2964,8 @@
                     "created_at": null,
                     "destination": "10.240.64.0/24",
                     "direction": "inbound",
-                    "href": "fake:href:21",
-                    "id": "fake:id:21",
+                    "href": "fake:href:24",
+                    "id": "fake:id:24",
                     "ip_version": "ipv4",
                     "name": "rule1",
                     "source": "10.240.80.0/24",
@@ -2958,7 +2997,7 @@
             "crn": "fake:crn:26",
             "href": "fake:href:26",
             "id": "fake:id:26",
-            "name": "acl-test-vpc1/subnet11",
+            "name": "acl-test-vpc0--subnet0",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
@@ -2968,15 +3007,96 @@
                 {
                     "action": "allow",
                     "before": {
-                        "href": "fake:href:24",
-                        "id": "fake:id:24",
+                        "href": "fake:href:28",
+                        "id": "fake:id:28",
+                        "name": "rule1"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.4.0/24",
+                    "direction": "outbound",
+                    "href": "fake:href:29",
+                    "id": "fake:id:29",
+                    "ip_version": "ipv4",
+                    "name": "rule0",
+                    "source": "10.240.0.0/24",
+                    "protocol": "all"
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:27",
+                        "id": "fake:id:27",
+                        "name": "rule2"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.0.0/24",
+                    "direction": "inbound",
+                    "href": "fake:href:28",
+                    "id": "fake:id:28",
+                    "ip_version": "ipv4",
+                    "name": "rule1",
+                    "source": "10.240.4.0/24",
+                    "protocol": "all"
+                },
+                {
+                    "action": "allow",
+                    "created_at": null,
+                    "destination": "10.240.5.0/24",
+                    "direction": "outbound",
+                    "href": "fake:href:27",
+                    "id": "fake:id:27",
+                    "ip_version": "ipv4",
+                    "name": "rule2",
+                    "source": "10.240.0.0/24",
+                    "destination_port_max": 53,
+                    "destination_port_min": 53,
+                    "protocol": "udp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                }
+            ],
+            "subnets": [
+                {
+                    "crn": "crn:247",
+                    "href": "href:248",
+                    "id": "id:249",
+                    "name": "subnet0",
+                    "resource_type": "subnet"
+                }
+            ],
+            "vpc": {
+                "crn": "crn:48",
+                "href": "href:49",
+                "id": "id:50",
+                "name": "test-vpc0",
+                "resource_type": "vpc"
+            },
+            "tags": []
+        },
+        {
+            "created_at": null,
+            "crn": "fake:crn:30",
+            "href": "fake:href:30",
+            "id": "fake:id:30",
+            "name": "acl-test-vpc1--subnet11",
+            "resource_group": {
+                "href": "href:16",
+                "id": "id:17",
+                "name": "name:4"
+            },
+            "rules": [
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:31",
+                        "id": "fake:id:31",
                         "name": "rule1"
                     },
                     "created_at": null,
                     "destination": "10.240.80.0/24",
                     "direction": "inbound",
-                    "href": "fake:href:25",
-                    "id": "fake:id:25",
+                    "href": "fake:href:32",
+                    "id": "fake:id:32",
                     "ip_version": "ipv4",
                     "name": "rule0",
                     "source": "10.240.64.0/24",
@@ -2989,8 +3109,8 @@
                     "created_at": null,
                     "destination": "10.240.64.0/24",
                     "direction": "outbound",
-                    "href": "fake:href:24",
-                    "id": "fake:id:24",
+                    "href": "fake:href:31",
+                    "id": "fake:id:31",
                     "ip_version": "ipv4",
                     "name": "rule1",
                     "source": "10.240.80.0/24",
@@ -3013,126 +3133,6 @@
                 "href": "href:21",
                 "id": "id:22",
                 "name": "test-vpc1",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": null,
-            "crn": "fake:crn:29",
-            "href": "fake:href:29",
-            "id": "fake:id:29",
-            "name": "acl-test-vpc2/subnet20",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [
-                {
-                    "action": "deny",
-                    "before": {
-                        "href": "fake:href:27",
-                        "id": "fake:id:27",
-                        "name": "rule1"
-                    },
-                    "created_at": null,
-                    "destination": "10.240.128.0/24",
-                    "direction": "inbound",
-                    "href": "fake:href:28",
-                    "id": "fake:id:28",
-                    "ip_version": "ipv4",
-                    "name": "rule0",
-                    "source": "0.0.0.0/0",
-                    "protocol": "all"
-                },
-                {
-                    "action": "deny",
-                    "created_at": null,
-                    "destination": "0.0.0.0/0",
-                    "direction": "outbound",
-                    "href": "fake:href:27",
-                    "id": "fake:id:27",
-                    "ip_version": "ipv4",
-                    "name": "rule1",
-                    "source": "10.240.128.0/24",
-                    "protocol": "all"
-                }
-            ],
-            "subnets": [
-                {
-                    "crn": "crn:199",
-                    "href": "href:200",
-                    "id": "id:201",
-                    "name": "subnet20",
-                    "resource_type": "subnet"
-                }
-            ],
-            "vpc": {
-                "crn": "crn:1",
-                "href": "href:2",
-                "id": "id:3",
-                "name": "test-vpc2",
-                "resource_type": "vpc"
-            },
-            "tags": []
-        },
-        {
-            "created_at": null,
-            "crn": "fake:crn:32",
-            "href": "fake:href:32",
-            "id": "fake:id:32",
-            "name": "acl-test-vpc3/subnet30",
-            "resource_group": {
-                "href": "href:16",
-                "id": "id:17",
-                "name": "name:4"
-            },
-            "rules": [
-                {
-                    "action": "deny",
-                    "before": {
-                        "href": "fake:href:30",
-                        "id": "fake:id:30",
-                        "name": "rule1"
-                    },
-                    "created_at": null,
-                    "destination": "10.240.192.0/24",
-                    "direction": "inbound",
-                    "href": "fake:href:31",
-                    "id": "fake:id:31",
-                    "ip_version": "ipv4",
-                    "name": "rule0",
-                    "source": "0.0.0.0/0",
-                    "protocol": "all"
-                },
-                {
-                    "action": "deny",
-                    "created_at": null,
-                    "destination": "0.0.0.0/0",
-                    "direction": "outbound",
-                    "href": "fake:href:30",
-                    "id": "fake:id:30",
-                    "ip_version": "ipv4",
-                    "name": "rule1",
-                    "source": "10.240.192.0/24",
-                    "protocol": "all"
-                }
-            ],
-            "subnets": [
-                {
-                    "crn": "crn:158",
-                    "href": "href:159",
-                    "id": "id:160",
-                    "name": "subnet30",
-                    "resource_type": "subnet"
-                }
-            ],
-            "vpc": {
-                "crn": "crn:35",
-                "href": "href:36",
-                "id": "id:37",
-                "name": "test-vpc3",
                 "resource_type": "vpc"
             },
             "tags": []

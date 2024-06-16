@@ -95,7 +95,7 @@ func makeACLRuleItem(rule *ir.ACLRule, current,
 	}
 }
 
-func makeACLItem(acl *ir.ACL, subnet *vpcv1.SubnetReference) *configModel.NetworkACL {
+func aclRules(acl *ir.ACL) []vpcv1.NetworkACLRuleItemIntf {
 	ruleItems := make([]vpcv1.NetworkACLRuleItemIntf, len(acl.Rules()))
 	rules := acl.Rules()
 
@@ -112,56 +112,44 @@ func makeACLItem(acl *ir.ACL, subnet *vpcv1.SubnetReference) *configModel.Networ
 		next = current
 	}
 
-	ref := allocateRef()
-	result := configModel.NewNetworkACL(&vpcv1.NetworkACL{
-		ID:      ref.ID,
-		CRN:     ref.CRN,
-		Href:    ref.Href,
-		Name:    utils.Ptr(acl.Name()),
-		Subnets: []vpcv1.SubnetReference{*subnet},
-		Rules:   ruleItems,
-	})
-	result.Tags = []string{}
-	return result
-}
-
-func findSubnet(model *configModel.ResourcesContainerModel, name string) int {
-	for i, subnet := range model.SubnetList {
-		if subnet.Name != nil && *subnet.Name == ir.ScopingComponents(name)[1] &&
-			subnet.VPC.Name != nil && *subnet.VPC.Name == ir.VpcFromScopedResource(name) {
-			return i
-		}
-	}
-	return -1
+	return ruleItems
 }
 
 func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCollection) error {
-	for _, subnetName := range collection.SortedACLSubnets("") {
-		acl := collection.ACLs[ir.VpcFromScopedResource(subnetName)][subnetName]
-		if acl == nil {
-			continue
-		}
-		subnetIndex := findSubnet(model, subnetName)
-		subnet := model.SubnetList[subnetIndex]
+	for i := range model.SubnetList {
+		vpc := model.SubnetList[i].VPC
+		aclName := ScopingString(*vpc.Name, *model.SubnetList[i].Name)
+		acl := collection.ACLs[*vpc.Name][aclName]
 		subnetRef := &vpcv1.SubnetReference{
-			Name:         subnet.Name,
-			CRN:          subnet.CRN,
-			Href:         subnet.Href,
-			ID:           subnet.ID,
-			ResourceType: subnet.ResourceType,
+			Name:         model.SubnetList[i].Name,
+			CRN:          model.SubnetList[i].CRN,
+			Href:         model.SubnetList[i].Href,
+			ID:           model.SubnetList[i].ID,
+			ResourceType: model.SubnetList[i].ResourceType,
 		}
-		aclItem := makeACLItem(acl, subnetRef)
-		aclItem.ResourceGroup = model.SubnetList[subnetIndex].ResourceGroup
-		aclItem.VPC = model.SubnetList[subnetIndex].VPC
-		aclName := ir.ChangeScoping(*aclItem.Name)
+
+		ref := allocateRef()
+		aclItem := configModel.NewNetworkACL(&vpcv1.NetworkACL{
+			CRN:           ref.CRN,
+			Href:          ref.Href,
+			ID:            ref.ID,
+			Name:          utils.Ptr(ir.ChangeScoping(acl.Name())),
+			ResourceGroup: model.SubnetList[i].ResourceGroup,
+			Rules:         aclRules(acl),
+			Subnets:       []vpcv1.SubnetReference{*subnetRef},
+			VPC:           model.SubnetList[i].VPC,
+		})
+		aclItem.Tags = []string{}
+
 		model.NetworkACLList = append(model.NetworkACLList, aclItem)
-		model.SubnetList[subnetIndex].NetworkACL = &vpcv1.NetworkACLReference{
+		model.SubnetList[i].NetworkACL = &vpcv1.NetworkACLReference{
 			ID:   aclItem.ID,
 			CRN:  aclItem.CRN,
 			Href: aclItem.Href,
-			Name: &aclName,
+			Name: utils.Ptr(ir.ChangeScoping(*aclItem.Name)),
 		}
 	}
+	GlobalIndex = 0 // for tests
 	return nil
 }
 
