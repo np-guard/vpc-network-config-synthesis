@@ -22,7 +22,7 @@ type Options struct {
 }
 
 // MakeACL translates Spec to a collection of ACLs
-func MakeACL(s *ir.Spec, opt Options, blockedSubnets []ir.ID) *ir.ACLCollection {
+func MakeACL(s *ir.Spec, opt Options) *ir.ACLCollection {
 	aclSelector := func(cidr *ipblock.IPBlock) string {
 		result, ok := s.Defs.SubnetNameFromIP(cidr)
 		if !ok {
@@ -44,7 +44,7 @@ func MakeACL(s *ir.Spec, opt Options, blockedSubnets []ir.ID) *ir.ACLCollection 
 		collection := generateACLCollectionFromConnection(s, &s.Connections[c], aclSelector)
 		collections = append(collections, collection)
 	}
-	collections = append(collections, generateACLCollectionForBlockedSubnets(s, blockedSubnets, aclSelector))
+	collections = append(collections, generateACLCollectionForBlockedSubnets(s, aclSelector))
 	return ir.MergeACLCollections(collections...)
 }
 
@@ -124,8 +124,8 @@ func allowDirectedConnection(s *ir.Spec, srcCidr, dstCidr *ipblock.IPBlock, conn
 	return connection
 }
 
-func generateACLCollectionForBlockedSubnets(s *ir.Spec, blockedSubnets []ir.ID,
-	aclSelector func(target *ipblock.IPBlock) string) *ir.ACLCollection {
+func generateACLCollectionForBlockedSubnets(s *ir.Spec, aclSelector func(target *ipblock.IPBlock) string) *ir.ACLCollection {
+	blockedSubnets := s.ComputeBlockedSubnets()
 	result := ir.NewACLCollection()
 	for _, subnet := range blockedSubnets {
 		cidr := s.Defs.Subnets[subnet].Address()

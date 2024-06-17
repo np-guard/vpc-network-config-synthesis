@@ -19,6 +19,18 @@ import (
 
 const ResourceTypeSGTarget = "network_interface"
 
+func deleteTargetFromSG(model *configModel.ResourcesContainerModel, sgIndex int, targetID *string) {
+	// for i := range model.SecurityGroupList[sgIndex].Targets {
+	// 	switch target := model.SecurityGroupList[sgIndex].Targets[i].(type) {
+	// 	case *vpcv1.SecurityGroupTargetReferenceEndpointGatewayReference:
+	// 		if targetID == target.ID {
+
+	// 		}
+	// 	}
+	// 	case
+	// }
+}
+
 func lookupOrCreate(nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference,
 	name string) *vpcv1.SecurityGroupRuleRemoteSecurityGroupReference {
 	if sgRemoteRef, ok := nameToSGRemoteRef[name]; ok {
@@ -132,7 +144,7 @@ func parseTargetsSGInstance(instance *configModel.Instance) []vpcv1.SecurityGrou
 }
 
 func updateSGInstances(model *configModel.ResourcesContainerModel, collection *ir.SGCollection,
-	nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference) {
+	nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference, idToSGIndex map[string]int) {
 	for i := range model.InstanceList {
 		vpc := model.InstanceList[i].VPC
 		sgName := ScopingString(*vpc.Name, *model.InstanceList[i].Name)
@@ -151,6 +163,7 @@ func updateSGInstances(model *configModel.ResourcesContainerModel, collection *i
 			VPC:           vpc,
 		})
 		sgItem.Tags = []string{}
+		model.SecurityGroupList = append(model.SecurityGroupList, sgItem)
 
 		sgRef := vpcv1.SecurityGroupReference{
 			CRN:  ref.CRN,
@@ -158,16 +171,23 @@ func updateSGInstances(model *configModel.ResourcesContainerModel, collection *i
 			ID:   ref.ID,
 			Name: sgItemName,
 		}
-		model.SecurityGroupList = append(model.SecurityGroupList, sgItem)
 
 		for j := range model.InstanceList[i].NetworkInterfaces {
+			for k := range model.InstanceList[i].NetworkInterfaces[j].SecurityGroups {
+				sgID := model.InstanceList[i].NetworkInterfaces[j].SecurityGroups[k].ID
+				nifID := model.InstanceList[i].NetworkInterfaces[j].ID
+				if _, ok := idToSGIndex[*sgID]; !ok {
+					log.Fatalf("ERROR")
+				}
+				deleteTargetFromSG(model, idToSGIndex[*sgID], nifID)
+			}
 			model.InstanceList[i].NetworkInterfaces[j].SecurityGroups = []vpcv1.SecurityGroupReference{sgRef}
 		}
 	}
 }
 
 func updateSGEndpointGW(model *configModel.ResourcesContainerModel, collection *ir.SGCollection,
-	nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference) {
+	nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference, idToSGIndex map[string]int) {
 	for i := range model.EndpointGWList {
 		vpc := model.EndpointGWList[i].VPC
 		sgName := ScopingString(*vpc.Name, *model.EndpointGWList[i].Name)
@@ -192,17 +212,34 @@ func updateSGEndpointGW(model *configModel.ResourcesContainerModel, collection *
 			VPC:           vpc,
 		})
 		sgItem.Tags = []string{}
-
 		model.SecurityGroupList = append(model.SecurityGroupList, sgItem)
+
+		sgRef := vpcv1.SecurityGroupReference{
+			CRN:  ref.CRN,
+			Href: ref.Href,
+			ID:   ref.ID,
+			Name: sgItemName,
+		}
+
+		for j := range model.EndpointGWList[i].SecurityGroups {
+			sgID := model.EndpointGWList[i].SecurityGroups[j].ID
+			endpointGatewayID := model.EndpointGWList[i].ID
+			deleteTargetFromSG(model, idToSGIndex[*sgID], endpointGatewayID)
+		}
+		model.EndpointGWList[i].SecurityGroups = []vpcv1.SecurityGroupReference{sgRef}
 	}
 }
 
 func updateSG(model *configModel.ResourcesContainerModel, collection *ir.SGCollection) error {
-	model.SecurityGroupList = make([]*configModel.SecurityGroup, 0) // delete old SGs
+	// model.SecurityGroupList = make([]*configModel.SecurityGroup, 0) // delete old SGs
 	nameToSGRemoteRef := make(map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference)
+	idToSGIndex := make(map[string]int, len(model.SecurityGroupList))
+	for i := range model.SecurityGroupList {
+		idToSGIndex[*model.SecurityGroupList[i].ID] = i
+	}
 
-	updateSGInstances(model, collection, nameToSGRemoteRef)
-	updateSGEndpointGW(model, collection, nameToSGRemoteRef)
+	updateSGInstances(model, collection, nameToSGRemoteRef, idToSGIndex)
+	updateSGEndpointGW(model, collection, nameToSGRemoteRef, idToSGIndex)
 
 	GlobalIndex = 0 // for tests
 	return nil

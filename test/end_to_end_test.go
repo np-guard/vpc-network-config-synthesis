@@ -37,7 +37,7 @@ type TestCase struct {
 	outputFormat string
 	separate     bool
 	blocked      func(s *ir.Spec) []ir.ID
-	maker        func(s *ir.Spec, blocked []ir.ID) ir.Collection
+	maker        func(s *ir.Spec) ir.Collection
 }
 
 func (c *TestCase) resolve(name string) string {
@@ -54,11 +54,8 @@ func aclTestCase(folder, outputFormat string, single, separateOutputs bool) Test
 		expectedName: fmt.Sprintf(expectedFormat, "nacl", outputFormat),
 		outputFormat: outputFormat,
 		separate:     separateOutputs,
-		blocked: func(s *ir.Spec) []ir.ID {
-			return s.ComputeBlockedSubnets(false) // don't print warning
-		},
-		maker: func(s *ir.Spec, blocked []ir.ID) ir.Collection {
-			return synth.MakeACL(s, synth.Options{SingleACL: single}, blocked)
+		maker: func(s *ir.Spec) ir.Collection {
+			return synth.MakeACL(s, synth.Options{SingleACL: single})
 		},
 	}
 }
@@ -69,11 +66,8 @@ func sgTestCase(folder, outputFormat string, separateOutputs bool) TestCase {
 		expectedName: fmt.Sprintf(defaultExpectedFormat, "sg", outputFormat),
 		outputFormat: outputFormat,
 		separate:     separateOutputs,
-		blocked: func(s *ir.Spec) []ir.ID {
-			return s.ComputeBlockedResources(false) // don't print warning
-		},
-		maker: func(s *ir.Spec, blocked []ir.ID) ir.Collection {
-			return synth.MakeSG(s, synth.Options{}, blocked)
+		maker: func(s *ir.Spec) ir.Collection {
+			return synth.MakeSG(s, synth.Options{})
 		},
 	}
 }
@@ -119,8 +113,7 @@ func TestCSVCompare(t *testing.T) {
 				t.Fatal(err)
 				return
 			}
-			blocked := testCase.blocked(s)
-			collection := testCase.maker(s, blocked)
+			collection := testCase.maker(s)
 			if testCase.separate {
 				writeMultipleFiles(testCase, t, collection, s)
 			} else {

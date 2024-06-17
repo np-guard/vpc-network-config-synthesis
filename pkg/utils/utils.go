@@ -15,6 +15,20 @@ func Ptr[T any](t T) *T {
 	return &t
 }
 
+func DeleteElementFromSlice[T comparable](s []T, val T) []T {
+	index := -1
+	for i := range s {
+		if s[i] == val {
+			index = i
+			break
+		}
+	}
+	if index != -1 {
+		return append(s[:index], s[index+1:]...)
+	}
+	return s
+}
+
 func SortedKeys[T ~string, V any](m map[string]map[T]V) []T {
 	keys := make([]T, 0)
 	for _, vpc := range m {

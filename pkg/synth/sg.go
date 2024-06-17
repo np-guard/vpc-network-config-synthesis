@@ -14,13 +14,13 @@ import (
 )
 
 // MakeSG translates Spec to a collection of security groups
-func MakeSG(s *ir.Spec, opt Options, blockedResources []ir.ID) *ir.SGCollection {
+func MakeSG(s *ir.Spec, opt Options) *ir.SGCollection {
 	collections := []*ir.SGCollection{}
 	for c := range s.Connections {
 		collection := generateSGCollectionFromConnection(&s.Connections[c], s.Defs.RemoteFromIP)
 		collections = append(collections, collection)
 	}
-	collections = append(collections, generateSGCollectionForBlockedResources(blockedResources))
+	collections = append(collections, generateSGCollectionForBlockedResources(s))
 	return ir.MergeSGCollections(collections...)
 }
 
@@ -87,7 +87,8 @@ func generateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(tar
 	return result
 }
 
-func generateSGCollectionForBlockedResources(blockedResources []ir.ID) *ir.SGCollection {
+func generateSGCollectionForBlockedResources(s *ir.Spec) *ir.SGCollection {
+	blockedResources := s.ComputeBlockedResources()
 	result := ir.NewSGCollection()
 	for _, resource := range blockedResources {
 		sg := result.LookupOrCreate(ir.SGName(resource))
