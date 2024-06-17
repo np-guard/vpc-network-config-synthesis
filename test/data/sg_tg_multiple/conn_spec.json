@@ -2,7 +2,7 @@
     "required-connections": [
         {
             "src": {
-                "name": "vsi0-subnet0",
+                "name": "test-vpc0/vsi0-subnet0",
                 "type": "instance"
             },
             "dst": {
@@ -24,6 +24,21 @@
                     "protocol": "TCP",
                     "min_destination_port": 53,
                     "max_destination_port": 53
+                }
+            ]
+        }, 
+        {
+            "src": {
+                "name": "vsi0-subnet10",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "vsi0-subnet11",
+                "type": "instance"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
                 }
             ]
         }

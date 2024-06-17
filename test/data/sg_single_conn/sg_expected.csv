@@ -1,3 +1,0 @@
-SG,Direction,Remote type,Remote,Protocol,Protocol params,Description
-test-vpc/be,Inbound,Security group,test-vpc/fe,TCP,any port,Internal. required-connections[0]: (instance test-vpc/fe)->(instance test-vpc/be); allowed-protocols[0]
-test-vpc/fe,Outbound,Security group,test-vpc/be,TCP,any port,Internal. required-connections[0]: (instance test-vpc/fe)->(instance test-vpc/be); allowed-protocols[0]

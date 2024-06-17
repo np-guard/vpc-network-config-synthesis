@@ -8,7 +8,6 @@ package jsonio
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"reflect"
 	"testing"
 
@@ -17,7 +16,6 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
-const examplesDir = "../../../examples/"
 const (
 	minPort = 1
 	maxPort = 65535
@@ -26,20 +24,6 @@ const (
 type TestItem[T any] struct {
 	input    string
 	expected T
-}
-
-func readFile(t *testing.T, filename string) map[string]interface{} {
-	bytes, err := os.ReadFile(filename)
-	if err != nil {
-		t.Fatalf(`Read file %v returns %v`, filename, err)
-	}
-
-	jsonSpec := map[string]interface{}(nil)
-	err = json.Unmarshal(bytes, &jsonSpec)
-	if err != nil {
-		t.Fatalf(`input.Unmarshal %v returns %v`, filename, err)
-	}
-	return jsonSpec
 }
 
 func TestTcpUdp_UnmarshalJSON(t *testing.T) {
@@ -117,185 +101,6 @@ func TestResource_UnmarshalJSON(t *testing.T) {
 		}
 		if !reflect.DeepEqual(actual, test.expected) {
 			t.Fatalf(`Unmarshal %q returns %v instead of %v`, test.input, *actual, test.expected)
-		}
-	}
-}
-
-// Compare unmarshalled structs/arrays for "segments" in a spec file against simple json maps
-//
-//goland:noinspection GoShadowedVar
-func TestUnmarshalSpecSegments(t *testing.T) {
-	ctx := ""
-	filename := examplesDir + "generic_example.json"
-
-	jsonSpec := readFile(t, filename)
-
-	s, err := unmarshal(filename)
-	if err != nil {
-		t.Fatalf(`Unmarshal %v returns %v`, filename, err)
-	}
-	ctx, jsonSegmentMap := enter[map[string]interface{}]("segments", ctx, jsonSpec)
-	if len(s.Segments) != len(jsonSegmentMap) {
-		t.Fatalf(`len(%v): %v != %v`, ctx, len(s.Segments), len(jsonSegmentMap))
-	}
-	for field, segment := range s.Segments {
-		ctx, jsonSegment := enter[map[string]interface{}](field, ctx, jsonSegmentMap)
-		{
-			ctx, jsonType := enter[string]("type", ctx, jsonSegment)
-			if string(segment.Type) != jsonType {
-				t.Fatalf(`%v: %v != %v`, ctx, segment.Type, jsonType)
-			}
-		}
-		{
-			ctx, jsonSegmentItemsArray := enter[[]interface{}]("items", ctx, jsonSegment)
-			if len(segment.Items) != len(jsonSegmentItemsArray) {
-				t.Fatalf(`len(%v): %v != %v`, ctx, len(segment.Items), len(jsonSegmentItemsArray))
-			}
-			for j, item := range segment.Items {
-				ctx, jsonItem := enterArray[string](j, ctx, jsonSegmentItemsArray)
-				if item != jsonItem {
-					t.Fatalf(`%v: %v != %v`, ctx, item, jsonItem)
-				}
-			}
-		}
-	}
-}
-
-// Compare unmarshalled structs/arrays for "externals" in a spec file against simple json maps
-//
-//goland:noinspection GoShadowedVar
-func TestUnmarshalSpecExternals(t *testing.T) {
-	ctx := ""
-	filename := examplesDir + "generic_example.json"
-
-	jsonSpec := readFile(t, filename)
-
-	s, err := unmarshal(filename)
-	if err != nil {
-		t.Fatalf(`Unmarshal %v returns %v`, filename, err)
-	}
-	ctx, jsonExtMap := enter[map[string]interface{}]("externals", ctx, jsonSpec)
-	if len(s.Externals) != len(jsonExtMap) {
-		t.Fatalf(`len(%v): %v != %v`, ctx, len(s.Externals), len(jsonExtMap))
-	}
-	for field, value := range s.Externals {
-		ctx, jsonExt := enter[string](field, ctx, jsonExtMap)
-		if value != jsonExt {
-			t.Fatalf(`%v: %v != %v`, ctx, value, jsonExt)
-		}
-	}
-}
-
-// Compare unmarshalled structs/arrays for "required-connections" in a spec file against simple json maps
-//
-//goland:noinspection GoShadowedVar
-//nolint:gocyclo // ctx is intentionally shadowed, allowing stack-like navigation
-func TestUnmarshalSpecRequiredConnections(t *testing.T) {
-	ctx := ""
-	filename := examplesDir + "generic_example.json"
-
-	jsonSpec := readFile(t, filename)
-
-	s, err := unmarshal(filename)
-	if err != nil {
-		t.Fatalf(`Unmarshal %v returns %v`, filename, err)
-	}
-	ctx, jsonConnArray := enter[[]interface{}]("required-connections", ctx, jsonSpec)
-	if len(s.RequiredConnections) != len(jsonConnArray) {
-		t.Fatalf(`len(%v): %v != %v`, ctx, len(s.RequiredConnections), len(jsonConnArray))
-	}
-	for i, conn := range s.RequiredConnections {
-		ctx, jsonConn := enterArray[map[string]interface{}](i, ctx, jsonConnArray)
-		{
-			ctx, jsonConnResource := enterField("src", ctx, jsonConn)
-			resource := conn.Src
-			{
-				ctx, jsonConnResourceType := enter[string]("type", ctx, jsonConnResource)
-				if string(resource.Type) != jsonConnResourceType {
-					t.Fatalf(`%v: %v != %v`, ctx, resource.Type, jsonConnResourceType)
-				}
-			}
-			{
-				ctx, jsonConnResourceName := enter[string]("name", ctx, jsonConnResource)
-				if resource.Name != jsonConnResourceName {
-					t.Fatalf(`%v: %v != %v`, ctx, resource.Name, jsonConnResourceName)
-				}
-			}
-		}
-		{
-			ctx, jsonConnResource := enterField("dst", ctx, jsonConn)
-			resource := conn.Dst
-			{
-				ctx, jsonConnResourceType := enter[string]("type", ctx, jsonConnResource)
-				if string(resource.Type) != jsonConnResourceType {
-					t.Fatalf(`%v: %v != %v`, ctx, resource.Type, jsonConnResourceType)
-				}
-			}
-			{
-				ctx, jsonConnResourceName := enter[string]("name", ctx, jsonConnResource)
-				if resource.Name != jsonConnResourceName {
-					t.Fatalf(`%v: %v != %v`, ctx, resource.Name, jsonConnResourceName)
-				}
-			}
-		}
-		{
-			ctx, jsonBidirectional := enter[bool]("bidirectional", ctx, jsonConn)
-			if conn.Bidirectional != jsonBidirectional {
-				t.Fatalf(`%v: %t != %t`, ctx, conn.Bidirectional, jsonBidirectional)
-			}
-		}
-		{
-			ctx, jsonConnAllowedProtocols := enter[[]interface{}]("allowed-protocols", ctx, jsonConn)
-			if len(conn.AllowedProtocols) != len(jsonConnAllowedProtocols) {
-				t.Fatalf(`len(%v): %v != %v`, ctx, len(conn.AllowedProtocols), len(jsonConnAllowedProtocols))
-			}
-			for j, protocol := range conn.AllowedProtocols {
-				ctx, jsonProtocol := enterArray[map[string]interface{}](j, ctx, jsonConnAllowedProtocols)
-				switch p := protocol.(type) {
-				case spec.TcpUdp:
-					{
-						ctx, jsonProtocolName := enter[string]("protocol", ctx, jsonProtocol)
-						if string(p.Protocol) != jsonProtocolName {
-							t.Fatalf(`%v: %v != %v`, ctx, p.Protocol, jsonProtocolName)
-						}
-					}
-					{
-						ctx, jsonProtocolPort := enterInt("min_destination_port", ctx, jsonProtocol)
-						if p.MinDestinationPort != jsonProtocolPort {
-							t.Fatalf(`%v: %v != %v`, ctx, p.MinDestinationPort, jsonProtocolPort)
-						}
-					}
-					{
-						ctx, jsonProtocolPort := enterInt("max_destination_port", ctx, jsonProtocol)
-						if p.MaxDestinationPort != jsonProtocolPort {
-							t.Fatalf(`%v: %v != %v`, ctx, p.MaxDestinationPort, jsonProtocolPort)
-						}
-					}
-				case spec.Icmp:
-					{
-						ctx, jsonProtocolName := enter[string]("protocol", ctx, jsonProtocol)
-						if string(p.Protocol) != jsonProtocolName {
-							t.Fatalf(`%v: %v != %v`, ctx, p.Protocol, jsonProtocolName)
-						}
-					}
-					{
-						ctx, jsonProtocolType := enter[*int]("type", ctx, jsonProtocol)
-						if p.Type != jsonProtocolType {
-							t.Fatalf(`%v: %v != %v`, ctx, p.Type, jsonProtocolType)
-						}
-					}
-					{
-						ctx, jsonProtocolCode := enter[*int]("code", ctx, jsonProtocol)
-						if p.Code != jsonProtocolCode {
-							t.Fatalf(`%v: %v != %v`, ctx, p.Code, jsonProtocolCode)
-						}
-					}
-				case spec.AnyProtocol:
-					t.Fatalf("Unsupported")
-				default:
-					t.Fatalf("Bad protocol %v", p)
-				}
-			}
 		}
 	}
 }

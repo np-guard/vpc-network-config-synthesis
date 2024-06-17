@@ -98,4 +98,36 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc--singleACL" {
     source      = "10.240.3.0/24"
     destination = "10.240.64.0/24"
   }
+  # Deny all communication; subnet testacl5-vpc/sub1-1[10.240.1.0/24] does not have required connections
+  rules {
+    name        = "rule12"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "0.0.0.0/0"
+    destination = "10.240.1.0/24"
+  }
+  # Deny all communication; subnet testacl5-vpc/sub1-1[10.240.1.0/24] does not have required connections
+  rules {
+    name        = "rule13"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "10.240.1.0/24"
+    destination = "0.0.0.0/0"
+  }
+  # Deny all communication; subnet testacl5-vpc/sub2-2[10.240.65.0/24] does not have required connections
+  rules {
+    name        = "rule14"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "0.0.0.0/0"
+    destination = "10.240.65.0/24"
+  }
+  # Deny all communication; subnet testacl5-vpc/sub2-2[10.240.65.0/24] does not have required connections
+  rules {
+    name        = "rule15"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "10.240.65.0/24"
+    destination = "0.0.0.0/0"
+  }
 }
