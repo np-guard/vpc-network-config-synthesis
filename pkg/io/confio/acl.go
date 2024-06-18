@@ -19,7 +19,7 @@ import (
 )
 
 func cidr(address *ipblock.IPBlock) *string {
-	result := ip(address)
+	result := addr(address)
 	if ir.IsIPAddress(address) {
 		return utils.Ptr(*result + "/32")
 	}

@@ -64,7 +64,7 @@ func direction(d ir.Direction) *string {
 	return nil
 }
 
-func ip(x *ipblock.IPBlock) *string {
+func addr(x *ipblock.IPBlock) *string {
 	return utils.Ptr(x.String())
 }
 
