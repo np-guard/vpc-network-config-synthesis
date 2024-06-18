@@ -91,7 +91,7 @@ func generateSGCollectionForBlockedResources(s *ir.Spec) *ir.SGCollection {
 	blockedResources := s.ComputeBlockedResources()
 	result := ir.NewSGCollection()
 	for _, resource := range blockedResources {
-		sg := result.LookupOrCreate(ir.SGName(resource))
+		sg := result.LookupOrCreate(ir.SGName(resource)) // an empty SG allows no connections
 		sg.Attached = []ir.SGName{ir.SGName(resource)}
 	}
 	return result

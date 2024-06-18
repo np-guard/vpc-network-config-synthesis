@@ -105,11 +105,9 @@ func MergeSGCollections(collections ...*SGCollection) *SGCollection {
 		for _, vpc := range c.SGs {
 			for sgName := range vpc {
 				sg := c.LookupOrCreate(sgName)
-				if len(sg.Rules) == 0 { // blocked resource
-					result.LookupOrCreate(sgName)
-				}
+				rsg := result.LookupOrCreate(sgName)
 				for r := range sg.Rules {
-					result.LookupOrCreate(sgName).Add(&sg.Rules[r])
+					rsg.Add(&sg.Rules[r])
 				}
 			}
 		}
