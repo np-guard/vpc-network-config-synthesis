@@ -13,7 +13,7 @@ import (
 
 const (
 	warningUnspecifiedACL = "The following subnets do not have required connections; the generated ACL will block all traffic: "
-	warningUnspecifiedSG  = "The following endpoints do not have required connections; the generated SGs will block all communication: "
+	warningUnspecifiedSG  = "The following endpoints do not have required connections; the generated SGs will block all traffic: "
 )
 
 func (s *Spec) ComputeBlockedSubnets() []ID {

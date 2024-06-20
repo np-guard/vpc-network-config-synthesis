@@ -56,7 +56,7 @@ func generateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(tar
 						log.Panicf("Source is not security group name: %v", src)
 					}
 					sgSrc := result.LookupOrCreate(sgSrcName)
-					sgSrc.Attached = []ir.SGName{sgSrcName}
+					sgSrc.Attached = []ir.ID{ir.ID(sgSrcName)}
 					rule := ir.SGRule{
 						Remote:      sgSelector(dst),
 						Direction:   ir.Outbound,
@@ -71,7 +71,7 @@ func generateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(tar
 						log.Panicf("Dst is not security group name: %v", dst)
 					}
 					sgDst := result.LookupOrCreate(sgDstName)
-					sgDst.Attached = []ir.SGName{sgDstName}
+					sgDst.Attached = []ir.ID{ir.ID(sgDstName)}
 					rule := ir.SGRule{
 						Remote:      sgSelector(src),
 						Direction:   ir.Inbound,
@@ -92,7 +92,7 @@ func generateSGCollectionForBlockedResources(s *ir.Spec) *ir.SGCollection {
 	result := ir.NewSGCollection()
 	for _, resource := range blockedResources {
 		sg := result.LookupOrCreate(ir.SGName(resource)) // an empty SG allows no connections
-		sg.Attached = []ir.SGName{ir.SGName(resource)}
+		sg.Attached = []ir.ID{resource}
 	}
 	return result
 }

@@ -43,7 +43,7 @@ type SGRule struct {
 
 type SG struct {
 	Rules    []SGRule
-	Attached []SGName
+	Attached []ID
 }
 
 type SGCollection struct {
@@ -72,7 +72,7 @@ func (r *SGRule) mustSupersede(other *SGRule) bool {
 }
 
 func NewSG() *SG {
-	return &SG{Rules: []SGRule{}, Attached: []SGName{}}
+	return &SG{Rules: []SGRule{}, Attached: []ID{}}
 }
 
 func NewSGCollection() *SGCollection {
