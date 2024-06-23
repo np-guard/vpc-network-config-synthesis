@@ -1,4 +1,6 @@
 {
+    "collector_version": "0.10.2",
+    "provider": "",
     "vpcs": [
         {
             "classic_access": false,
@@ -6905,6 +6907,5 @@
             "updated_at": "2024-06-10T12:21:00.365Z"
         }
     ],
-    "iks_clusters": [],
-    "collector_version": "0.10.2"
+    "iks_clusters": []
 }

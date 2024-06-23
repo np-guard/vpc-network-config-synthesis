@@ -1,4 +1,6 @@
 {
+    "collector_version": "0.10.2",
+    "provider": "",
     "vpcs": [
         {
             "classic_access": false,
@@ -3198,6 +3200,5 @@
     "load_balancers": [],
     "transit_connections": null,
     "transit_gateways": null,
-    "iks_clusters": [],
-    "collector_version": "0.10.2"
+    "iks_clusters": []
 }

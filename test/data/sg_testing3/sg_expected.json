@@ -1,4 +1,6 @@
 {
+    "collector_version": "0.11.0",
+    "provider": "ibm",
     "vpcs": [
         {
             "classic_access": false,
@@ -2363,6 +2365,5 @@
     "load_balancers": [],
     "transit_connections": null,
     "transit_gateways": null,
-    "iks_clusters": [],
-    "collector_version": "0.11.0"
+    "iks_clusters": []
 }
