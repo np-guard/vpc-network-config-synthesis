@@ -112,7 +112,7 @@ func updateSG(model *configModel.ResourcesContainerModel, collection *ir.SGColle
 
 		for _, attached := range sg.Attached {
 			for _, instance := range model.InstanceList {
-				if *instance.Name == string(attached) {
+				if *instance.Name == attached {
 					for j := range instance.NetworkInterfaces {
 						instance.NetworkInterfaces[j].SecurityGroups = []vpcv1.SecurityGroupReference{sgRef}
 					}

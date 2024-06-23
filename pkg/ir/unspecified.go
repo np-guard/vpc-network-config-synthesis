@@ -7,32 +7,25 @@ package ir
 
 import (
 	"log"
+	"sort"
 	"strings"
 )
 
 const (
-	commonWarningACL            = "The following subnets do not have required connections; "
-	warningUnspecifiedACL       = commonWarningACL + "no ACLs were generated for them: "
-	warningUnspecifiedSingleACL = commonWarningACL + "the generated ACL will block all traffic: "
-	warningUnspecifiedSG        = "The following endpoints do not have required connections; no SGs were generated for them: "
+	warningUnspecifiedACL = "The following subnets do not have required connections; the generated ACL will block all traffic: "
+	warningUnspecifiedSG  = "The following endpoints do not have required connections; the generated SGs will block all traffic: "
 )
 
-func (s *Spec) ComputeBlockedSubnets(singleACL bool) {
-	var warning string
-	if singleACL {
-		warning = warningUnspecifiedSingleACL
-	} else {
-		warning = warningUnspecifiedACL
-	}
-	var blockedSubnets []string
+func (s *Spec) ComputeBlockedSubnets() []ID {
+	var blockedSubnets []ID
 
 	for subnet := range s.Defs.Subnets {
-		if s.findResourceInConnections([]string{subnet}, ResourceTypeSubnet) {
+		if s.findResourceInConnections([]ID{subnet}, ResourceTypeSubnet) {
 			continue
 		}
 
 		// subnet segments which include the subnet
-		segments := []string{}
+		segments := []ID{}
 		for segmentName, segmentDetails := range s.Defs.SubnetSegments {
 			for _, s := range segmentDetails.Subnets {
 				if subnet == s {
@@ -46,7 +39,7 @@ func (s *Spec) ComputeBlockedSubnets(singleACL bool) {
 		}
 
 		// cidr segments which include the subnet
-		cidrSegments := []string{}
+		cidrSegments := []ID{}
 		for segmentName, cidrSegmentDetails := range s.Defs.CidrSegments {
 			for _, cidrDetails := range cidrSegmentDetails.Cidrs {
 				for _, s := range cidrDetails.ContainedSubnets {
@@ -61,38 +54,39 @@ func (s *Spec) ComputeBlockedSubnets(singleACL bool) {
 			blockedSubnets = append(blockedSubnets, subnet)
 		}
 	}
-	printUnspecifiedWarning(warning, blockedSubnets)
+	sort.Strings(blockedSubnets)
+	printUnspecifiedWarning(warningUnspecifiedACL, blockedSubnets)
+	return blockedSubnets
 }
 
-func (s *Spec) ComputeBlockedResources() {
-	warning := warningUnspecifiedSG
-
+func (s *Spec) ComputeBlockedResources() []ID {
 	blockedResources := append(s.computeBlockedNIFs(), s.computeBlockedVPEs()...)
-
-	printUnspecifiedWarning(warning, blockedResources)
+	sort.Strings(blockedResources)
+	printUnspecifiedWarning(warningUnspecifiedSG, blockedResources)
+	return blockedResources
 }
 
-func (s *Spec) computeBlockedVPEs() []string {
-	var blockedVPEs []string
+func (s *Spec) computeBlockedVPEs() []ID {
+	var blockedVPEs []ID
 	for vpe := range s.Defs.VPEs {
-		if !s.findResourceInConnections([]string{vpe}, ResourceTypeVPE) {
+		if !s.findResourceInConnections([]ID{vpe}, ResourceTypeVPE) {
 			blockedVPEs = append(blockedVPEs, vpe)
 		}
 	}
 	return blockedVPEs
 }
 
-func (s *Spec) computeBlockedNIFs() []string {
-	var blockedResources []string
+func (s *Spec) computeBlockedNIFs() []ID {
+	var blockedResources []ID
 	for instanceName, instanceDetails := range s.Defs.Instances {
-		if s.findResourceInConnections([]string{instanceName}, ResourceTypeNIF) {
+		if s.findResourceInConnections([]ID{instanceName}, ResourceTypeNIF) {
 			continue
 		}
 
 		// instance is not in spec. look for its NIFs
-		var blockedNIFs []string
+		var blockedNIFs []ID
 		for _, nif := range instanceDetails.Nifs {
-			if !s.findResourceInConnections([]string{nif}, ResourceTypeNIF) {
+			if !s.findResourceInConnections([]ID{nif}, ResourceTypeNIF) {
 				blockedNIFs = append(blockedNIFs, nif)
 			}
 		}
@@ -107,8 +101,8 @@ func (s *Spec) computeBlockedNIFs() []string {
 	return blockedResources
 }
 
-func (s *Spec) findResourceInConnections(resources []string, epType ResourceType) bool {
-	// The slice of strings represents all resources that include the resource we are looking for
+func (s *Spec) findResourceInConnections(resources []ID, epType ResourceType) bool {
+	// The slice of IDs represents all resources that include the resource we are looking for
 	for c := range s.Connections {
 		for _, ep := range resources {
 			if s.Connections[c].Src.Type == epType && ep == s.Connections[c].Src.Name {
@@ -122,7 +116,7 @@ func (s *Spec) findResourceInConnections(resources []string, epType ResourceType
 	return false
 }
 
-func printUnspecifiedWarning(warning string, blockedResources []string) {
+func printUnspecifiedWarning(warning string, blockedResources []ID) {
 	if len(blockedResources) > 0 {
 		log.Println(warning, strings.Join(blockedResources, ", "))
 	}

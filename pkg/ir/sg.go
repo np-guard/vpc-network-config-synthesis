@@ -43,7 +43,7 @@ type SGRule struct {
 
 type SG struct {
 	Rules    []SGRule
-	Attached []SGName
+	Attached []ID
 }
 
 type SGCollection struct {
@@ -72,7 +72,7 @@ func (r *SGRule) mustSupersede(other *SGRule) bool {
 }
 
 func NewSG() *SG {
-	return &SG{Rules: []SGRule{}, Attached: []SGName{}}
+	return &SG{Rules: []SGRule{}, Attached: []ID{}}
 }
 
 func NewSGCollection() *SGCollection {
@@ -105,8 +105,9 @@ func MergeSGCollections(collections ...*SGCollection) *SGCollection {
 		for _, vpc := range c.SGs {
 			for sgName := range vpc {
 				sg := c.LookupOrCreate(sgName)
+				rsg := result.LookupOrCreate(sgName)
 				for r := range sg.Rules {
-					result.LookupOrCreate(sgName).Add(&sg.Rules[r])
+					rsg.Add(&sg.Rules[r])
 				}
 			}
 		}

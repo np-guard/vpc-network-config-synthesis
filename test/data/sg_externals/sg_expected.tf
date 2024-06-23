@@ -1,3 +1,10 @@
+### SG attached to test-vpc/appdata-endpoint-gateway
+resource "ibm_is_security_group" "test-vpc--appdata-endpoint-gateway" {
+  name           = "sg-test-vpc--appdata-endpoint-gateway"
+  resource_group = local.sg_synth_resource_group_id
+  vpc            = local.name_test-vpc_id
+}
+
 ### SG attached to test-vpc/be
 resource "ibm_is_security_group" "test-vpc--be" {
   name           = "sg-test-vpc--be"
@@ -53,6 +60,13 @@ resource "ibm_is_security_group_rule" "test-vpc--opa-0" {
   group     = ibm_is_security_group.test-vpc--opa.id
   direction = "inbound"
   remote    = "0.0.0.0"
+}
+
+### SG attached to test-vpc/policydb-endpoint-gateway
+resource "ibm_is_security_group" "test-vpc--policydb-endpoint-gateway" {
+  name           = "sg-test-vpc--policydb-endpoint-gateway"
+  resource_group = local.sg_synth_resource_group_id
+  vpc            = local.name_test-vpc_id
 }
 
 ### SG attached to test-vpc/proxy

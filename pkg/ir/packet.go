@@ -64,3 +64,19 @@ func makeDenyInternal() []ACLRule {
 	}
 	return denyInternal
 }
+
+func DenyAllSend(subnetName ID, cidr *ipblock.IPBlock) *ACLRule {
+	explanation := DenyAllExplanation(subnetName, cidr)
+	ACLRule := *packetACLRule(Packet{Src: cidr, Dst: ipblock.GetCidrAll(), Protocol: AnyProtocol{}, Explanation: explanation}, Outbound, Deny)
+	return &ACLRule
+}
+
+func DenyAllReceive(subnetName ID, cidr *ipblock.IPBlock) *ACLRule {
+	explanation := DenyAllExplanation(subnetName, cidr)
+	ACLRule := *packetACLRule(Packet{Src: ipblock.GetCidrAll(), Dst: cidr, Protocol: AnyProtocol{}, Explanation: explanation}, Inbound, Deny)
+	return &ACLRule
+}
+
+func DenyAllExplanation(subnetName ID, cidr *ipblock.IPBlock) string {
+	return fmt.Sprintf("Deny all communication; subnet %s[%s] does not have required connections", subnetName, cidr.String())
+}

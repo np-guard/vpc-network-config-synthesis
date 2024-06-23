@@ -112,13 +112,10 @@ func pickReader(format string) (ir.Reader, error) {
 func generate(model *ir.Spec, target string) ir.Collection {
 	switch target {
 	case sgTarget:
-		model.ComputeBlockedResources()
 		return synth.MakeSG(model, synth.Options{})
 	case singleaclTarget:
-		model.ComputeBlockedSubnets(true)
 		return synth.MakeACL(model, synth.Options{SingleACL: true})
 	case aclTarget:
-		model.ComputeBlockedSubnets(false)
 		return synth.MakeACL(model, synth.Options{SingleACL: false})
 	default:
 		log.Fatalf("Impossible target: %v", target)
@@ -203,6 +200,10 @@ Flags:
 
 	var err error
 
+	if *configFilename == "" {
+		log.Fatal("-config parameter must be supplied")
+	}
+
 	if *outputDirectory != "" && *outputFile != "" {
 		log.Fatal(fmt.Errorf("output-file and output-dir cannot be specified together"))
 	}
@@ -217,14 +218,9 @@ Flags:
 		log.Fatal(err)
 	}
 
-	var defs *ir.ConfigDefs
-	if *configFilename != "" {
-		defs, err = confio.ReadDefs(*configFilename)
-		if err != nil {
-			log.Fatalf("could not parse config file %v: %v", *configFilename, err)
-		}
-	} else if *outputFormat == apiOutputFormat {
-		log.Fatal("-config parameter must be supplied when using -fmt=api or exporting JSON")
+	defs, err := confio.ReadDefs(*configFilename)
+	if err != nil {
+		log.Fatalf("could not parse config file %v: %v", *configFilename, err)
 	}
 
 	model, err := reader.ReadSpec(connectivityFilename, defs)
