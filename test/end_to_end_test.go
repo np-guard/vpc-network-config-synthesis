@@ -93,6 +93,7 @@ func TestCSVCompare(t *testing.T) {
 		"acl_tg_multiple json":               aclTestCase("acl_tg_multiple", "json", false, false),
 		"sg_testing3 csv":                    sgTestCase("sg_testing3", "csv", false),
 		"sg_testing3 tf":                     sgTestCase("sg_testing3", "tf", false),
+		"sg_testing3 json":                   sgTestCase("sg_testing3", "json", false),
 		"sg_single_conn csv":                 sgTestCase("sg_single_conn", "csv", false),
 		"sg_single_conn tf":                  sgTestCase("sg_single_conn", "tf", false),
 		"sg_tg_multiple csv":                 sgTestCase("sg_tg_multiple", "csv", false),

@@ -17,7 +17,8 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
-const ResourceTypeSGTarget = "network_interface"
+const ResourceTypeNif = "network_interface"
+const ResourceTypeEndpointGateway = "endpoint_gateway"
 
 func deleteTargetFromSG(model *configModel.ResourcesContainerModel, sgIndex, targetIndex int) {
 	part1 := model.SecurityGroupList[sgIndex].Targets[:targetIndex]
@@ -142,7 +143,7 @@ func parseTargetsSGInstance(instance *configModel.Instance) []vpcv1.SecurityGrou
 			Name:         instance.NetworkInterfaces[i].Name,
 			Href:         instance.NetworkInterfaces[i].Href,
 			ID:           instance.NetworkInterfaces[i].ID,
-			ResourceType: utils.Ptr(ResourceTypeSGTarget),
+			ResourceType: utils.Ptr(ResourceTypeNif),
 		}
 		targets[i] = sgTargetRef
 	}
@@ -202,7 +203,8 @@ func updateSGEndpointGW(model *configModel.ResourcesContainerModel, collection *
 			Name:         model.EndpointGWList[i].Name,
 			Href:         model.EndpointGWList[i].Href,
 			ID:           model.EndpointGWList[i].ID,
-			ResourceType: utils.Ptr(ResourceTypeSGTarget),
+			CRN:          model.EndpointGWList[i].CRN,
+			ResourceType: utils.Ptr(ResourceTypeEndpointGateway),
 		}
 
 		sgItem := configModel.NewSecurityGroup(&vpcv1.SecurityGroup{
