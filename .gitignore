@@ -47,3 +47,6 @@ go.work
 
 # IDEs
 .idea
+
+# experiments directory
+workdir/

@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/np-guard/models/pkg/ipblock"
+
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/tfio/tf"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
@@ -71,9 +73,9 @@ func singleACL(t *ir.ACL, comment string) tf.Block {
 	return tf.Block{
 		Comment: comment,
 		Name:    "resource",
-		Labels:  []string{quote("ibm_is_network_acl"), changeScoping(quote(t.Name()))},
+		Labels:  []string{quote("ibm_is_network_acl"), ir.ChangeScoping(quote(t.Name()))},
 		Arguments: []tf.Argument{
-			{Name: "name", Value: changeScoping(quote(t.Name()))}, //nolint:revive  // obvious false positive
+			{Name: "name", Value: ir.ChangeScoping(quote(t.Name()))}, //nolint:revive  // obvious false positive
 			{Name: "resource_group", Value: "local.acl_synth_resource_group_id"},
 			{Name: "vpc", Value: fmt.Sprintf("local.name_%s_id", ir.VpcFromScopedResource(t.Subnet))},
 		},
@@ -88,13 +90,21 @@ func aclCollection(t *ir.ACLCollection, vpc string) *tf.ConfigFile {
 	for _, subnet := range sortedACLs {
 		comment := ""
 		vpcName := ir.VpcFromScopedResource(subnet)
-		if len(acls) > 1 {
-			comment = fmt.Sprintf("\n# %v [%v]", subnet, t.ACLs[vpcName][subnet].Internal[0].Target())
+		acl := t.ACLs[vpcName][subnet]
+		if len(sortedACLs) > 1 { // not a single nacl
+			comment = fmt.Sprintf("\n# %v [%v]", subnet, subnetCidr(acl))
 		}
-		acls[i] = singleACL(t.ACLs[vpcName][subnet], comment)
+		acls[i] = singleACL(acl, comment)
 		i += 1
 	}
 	return &tf.ConfigFile{
 		Resources: acls,
 	}
+}
+
+func subnetCidr(acl *ir.ACL) *ipblock.IPBlock {
+	if len(acl.Internal) > 0 {
+		return acl.Internal[0].Target()
+	}
+	return acl.External[0].Target()
 }

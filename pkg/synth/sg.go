@@ -17,13 +17,14 @@ import (
 func MakeSG(s *ir.Spec, opt Options) *ir.SGCollection {
 	collections := []*ir.SGCollection{}
 	for c := range s.Connections {
-		collection := GenerateSGCollectionFromConnection(&s.Connections[c], s.Defs.RemoteFromIP)
+		collection := generateSGCollectionFromConnection(&s.Connections[c], s.Defs.RemoteFromIP)
 		collections = append(collections, collection)
 	}
+	collections = append(collections, generateSGCollectionForBlockedResources(s))
 	return ir.MergeSGCollections(collections...)
 }
 
-func GenerateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(target *ipblock.IPBlock) ir.RemoteType) *ir.SGCollection {
+func generateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(target *ipblock.IPBlock) ir.RemoteType) *ir.SGCollection {
 	internalSrc := conn.Src.Type != ir.ResourceTypeExternal
 	internalDst := conn.Dst.Type != ir.ResourceTypeExternal
 	if !internalSrc && !internalDst {
@@ -55,7 +56,7 @@ func GenerateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(tar
 						log.Panicf("Source is not security group name: %v", src)
 					}
 					sgSrc := result.LookupOrCreate(sgSrcName)
-					sgSrc.Attached = []ir.SGName{sgSrcName}
+					sgSrc.Attached = []ir.ID{ir.ID(sgSrcName)}
 					rule := ir.SGRule{
 						Remote:      sgSelector(dst),
 						Direction:   ir.Outbound,
@@ -70,7 +71,7 @@ func GenerateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(tar
 						log.Panicf("Dst is not security group name: %v", dst)
 					}
 					sgDst := result.LookupOrCreate(sgDstName)
-					sgDst.Attached = []ir.SGName{sgDstName}
+					sgDst.Attached = []ir.ID{ir.ID(sgDstName)}
 					rule := ir.SGRule{
 						Remote:      sgSelector(src),
 						Direction:   ir.Inbound,
@@ -83,6 +84,16 @@ func GenerateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(tar
 		}
 	}
 
+	return result
+}
+
+func generateSGCollectionForBlockedResources(s *ir.Spec) *ir.SGCollection {
+	blockedResources := s.ComputeBlockedResources()
+	result := ir.NewSGCollection()
+	for _, resource := range blockedResources {
+		sg := result.LookupOrCreate(ir.SGName(resource)) // an empty SG allows no connections
+		sg.Attached = []ir.ID{resource}
+	}
 	return result
 }
 

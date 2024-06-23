@@ -6,7 +6,7 @@
                 "type": "instance"
             },
             "dst": {
-                "name": "be",
+                "name": "test-vpc/be",
                 "type": "instance"
             },
             "allowed-protocols": [
