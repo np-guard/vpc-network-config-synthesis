@@ -5,7 +5,7 @@ go 1.22.2
 require (
 	github.com/IBM/vpc-go-sdk v0.52.0
 	github.com/np-guard/cloud-resource-collector v0.11.0
-	github.com/np-guard/models v0.3.2
+	github.com/np-guard/models v0.3.3
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 )
 
