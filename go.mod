@@ -6,6 +6,7 @@ require (
 	github.com/IBM/vpc-go-sdk v0.52.0
 	github.com/np-guard/cloud-resource-collector v0.11.0
 	github.com/np-guard/models v0.3.2
+	github.com/spf13/cobra v1.8.1
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 )
 
@@ -27,7 +28,6 @@ require (
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
-	github.com/spf13/cobra v1.8.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	go.mongodb.org/mongo-driver v1.15.0 // indirect
 	golang.org/x/crypto v0.24.0 // indirect
