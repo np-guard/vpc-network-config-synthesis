@@ -11,8 +11,6 @@ import (
 
 	"github.com/IBM/vpc-go-sdk/vpcv1"
 
-	"github.com/np-guard/models/pkg/ipblock"
-
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
@@ -62,10 +60,6 @@ func direction(d ir.Direction) *string {
 		return utils.Ptr(inboundConst)
 	}
 	return nil
-}
-
-func addr(x *ipblock.IPBlock) *string {
-	return utils.Ptr(x.String())
 }
 
 func minPort(r ir.PortRange) *int64 {

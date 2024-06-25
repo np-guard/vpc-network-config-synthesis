@@ -19,11 +19,7 @@ import (
 )
 
 func cidr(address *ipblock.IPBlock) *string {
-	result := addr(address)
-	if ir.IsIPAddress(address) {
-		return utils.Ptr(*result + "/32")
-	}
-	return result
+	return utils.Ptr(address.ToCidrListString())
 }
 
 func makeACLRuleItem(rule *ir.ACLRule, current,
@@ -115,16 +111,16 @@ func aclRules(acl *ir.ACL) []vpcv1.NetworkACLRuleItemIntf {
 }
 
 func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCollection) error {
-	for i := range model.SubnetList {
-		vpc := model.SubnetList[i].VPC
-		aclName := ScopingString(*vpc.Name, *model.SubnetList[i].Name)
+	for _, subnet := range model.SubnetList {
+		vpc := subnet.VPC
+		aclName := ScopingString(*vpc.Name, *subnet.Name)
 		acl := collection.ACLs[*vpc.Name][aclName]
 		subnetRef := &vpcv1.SubnetReference{
-			Name:         model.SubnetList[i].Name,
-			CRN:          model.SubnetList[i].CRN,
-			Href:         model.SubnetList[i].Href,
-			ID:           model.SubnetList[i].ID,
-			ResourceType: model.SubnetList[i].ResourceType,
+			Name:         subnet.Name,
+			CRN:          subnet.CRN,
+			Href:         subnet.Href,
+			ID:           subnet.ID,
+			ResourceType: subnet.ResourceType,
 		}
 
 		ref := allocateRef()
@@ -133,22 +129,22 @@ func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCol
 			Href:          ref.Href,
 			ID:            ref.ID,
 			Name:          utils.Ptr(ir.ChangeScoping(acl.Name())),
-			ResourceGroup: model.SubnetList[i].ResourceGroup,
+			ResourceGroup: subnet.ResourceGroup,
 			Rules:         aclRules(acl),
 			Subnets:       []vpcv1.SubnetReference{*subnetRef},
-			VPC:           model.SubnetList[i].VPC,
+			VPC:           subnet.VPC,
 		})
 		aclItem.Tags = []string{}
 
 		model.NetworkACLList = append(model.NetworkACLList, aclItem)
-		model.SubnetList[i].NetworkACL = &vpcv1.NetworkACLReference{
+		subnet.NetworkACL = &vpcv1.NetworkACLReference{
 			ID:   aclItem.ID,
 			CRN:  aclItem.CRN,
 			Href: aclItem.Href,
-			Name: utils.Ptr(ir.ChangeScoping(*aclItem.Name)),
+			Name: utils.Ptr(*aclItem.Name),
 		}
 	}
-	GlobalIndex = 0 // for tests
+	GlobalIndex = 0 // making test results more predictable
 	return nil
 }
 

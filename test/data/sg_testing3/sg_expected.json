@@ -1309,9 +1309,9 @@
         },
         {
             "created_at": null,
-            "crn": "fake:crn:10",
-            "href": "fake:href:10",
-            "id": "fake:id:10",
+            "crn": "fake:crn:4",
+            "href": "fake:href:4",
+            "id": "fake:id:4",
             "name": "test-vpc--fe",
             "resource_group": {
                 "href": "href:16",
@@ -1321,16 +1321,16 @@
             "rules": [
                 {
                     "direction": "inbound",
-                    "href": "fake:href:11",
-                    "id": "fake:id:11",
+                    "href": "fake:href:10",
+                    "id": "fake:id:10",
                     "ip_version": "ipv4",
                     "local": {
                         "cidr_block": "0.0.0.0/0"
                     },
                     "remote": {
-                        "crn": "fake:crn:12",
-                        "href": "fake:href:12",
-                        "id": "fake:id:12",
+                        "crn": "fake:crn:1",
+                        "href": "fake:href:1",
+                        "id": "fake:id:1",
                         "name": "test-vpc--proxy"
                     },
                     "port_max": 9000,
@@ -1339,16 +1339,16 @@
                 },
                 {
                     "direction": "outbound",
-                    "href": "fake:href:13",
-                    "id": "fake:id:13",
+                    "href": "fake:href:11",
+                    "id": "fake:id:11",
                     "ip_version": "ipv4",
                     "local": {
                         "cidr_block": "0.0.0.0/0"
                     },
                     "remote": {
-                        "crn": "fake:crn:14",
-                        "href": "fake:href:14",
-                        "id": "fake:id:14",
+                        "crn": "fake:crn:7",
+                        "href": "fake:href:7",
+                        "id": "fake:id:7",
                         "name": "test-vpc--be"
                     },
                     "port_max": 65535,
@@ -1375,9 +1375,9 @@
         },
         {
             "created_at": null,
-            "crn": "fake:crn:15",
-            "href": "fake:href:15",
-            "id": "fake:id:15",
+            "crn": "fake:crn:7",
+            "href": "fake:href:7",
+            "id": "fake:id:7",
             "name": "test-vpc--be",
             "resource_group": {
                 "href": "href:16",
@@ -1387,16 +1387,16 @@
             "rules": [
                 {
                     "direction": "inbound",
-                    "href": "fake:href:16",
-                    "id": "fake:id:16",
+                    "href": "fake:href:12",
+                    "id": "fake:id:12",
                     "ip_version": "ipv4",
                     "local": {
                         "cidr_block": "0.0.0.0/0"
                     },
                     "remote": {
-                        "crn": "fake:crn:17",
-                        "href": "fake:href:17",
-                        "id": "fake:id:17",
+                        "crn": "fake:crn:4",
+                        "href": "fake:href:4",
+                        "id": "fake:id:4",
                         "name": "test-vpc--fe"
                     },
                     "port_max": 65535,
@@ -1405,32 +1405,32 @@
                 },
                 {
                     "direction": "outbound",
-                    "href": "fake:href:18",
-                    "id": "fake:id:18",
+                    "href": "fake:href:13",
+                    "id": "fake:id:13",
                     "ip_version": "ipv4",
                     "local": {
                         "cidr_block": "0.0.0.0/0"
                     },
                     "remote": {
-                        "crn": "fake:crn:19",
-                        "href": "fake:href:19",
-                        "id": "fake:id:19",
+                        "crn": "fake:crn:5",
+                        "href": "fake:href:5",
+                        "id": "fake:id:5",
                         "name": "test-vpc--opa"
                     },
                     "protocol": "all"
                 },
                 {
                     "direction": "outbound",
-                    "href": "fake:href:20",
-                    "id": "fake:id:20",
+                    "href": "fake:href:14",
+                    "id": "fake:id:14",
                     "ip_version": "ipv4",
                     "local": {
                         "cidr_block": "0.0.0.0/0"
                     },
                     "remote": {
-                        "crn": "fake:crn:21",
-                        "href": "fake:href:21",
-                        "id": "fake:id:21",
+                        "crn": "fake:crn:9",
+                        "href": "fake:href:9",
+                        "id": "fake:id:9",
                         "name": "test-vpc--policydb-endpoint-gateway"
                     },
                     "protocol": "all"
@@ -1455,9 +1455,9 @@
         },
         {
             "created_at": null,
-            "crn": "fake:crn:22",
-            "href": "fake:href:22",
-            "id": "fake:id:22",
+            "crn": "fake:crn:9",
+            "href": "fake:href:9",
+            "id": "fake:id:9",
             "name": "test-vpc--policydb-endpoint-gateway",
             "resource_group": {
                 "href": "href:16",
@@ -1467,32 +1467,32 @@
             "rules": [
                 {
                     "direction": "inbound",
-                    "href": "fake:href:23",
-                    "id": "fake:id:23",
+                    "href": "fake:href:15",
+                    "id": "fake:id:15",
                     "ip_version": "ipv4",
                     "local": {
                         "cidr_block": "0.0.0.0/0"
                     },
                     "remote": {
-                        "crn": "fake:crn:24",
-                        "href": "fake:href:24",
-                        "id": "fake:id:24",
+                        "crn": "fake:crn:7",
+                        "href": "fake:href:7",
+                        "id": "fake:id:7",
                         "name": "test-vpc--be"
                     },
                     "protocol": "all"
                 },
                 {
                     "direction": "inbound",
-                    "href": "fake:href:25",
-                    "id": "fake:id:25",
+                    "href": "fake:href:16",
+                    "id": "fake:id:16",
                     "ip_version": "ipv4",
                     "local": {
                         "cidr_block": "0.0.0.0/0"
                     },
                     "remote": {
-                        "crn": "fake:crn:26",
-                        "href": "fake:href:26",
-                        "id": "fake:id:26",
+                        "crn": "fake:crn:5",
+                        "href": "fake:href:5",
+                        "id": "fake:id:5",
                         "name": "test-vpc--opa"
                     },
                     "protocol": "all"
@@ -1518,9 +1518,9 @@
         },
         {
             "created_at": null,
-            "crn": "fake:crn:27",
-            "href": "fake:href:27",
-            "id": "fake:id:27",
+            "crn": "fake:crn:17",
+            "href": "fake:href:17",
+            "id": "fake:id:17",
             "name": "test-vpc--appdata-endpoint-gateway",
             "resource_group": {
                 "href": "href:16",
@@ -1582,9 +1582,9 @@
             "resource_type": "endpoint_gateway",
             "security_groups": [
                 {
-                    "crn": "fake:crn:22",
-                    "href": "fake:href:22",
-                    "id": "fake:id:22",
+                    "crn": "fake:crn:9",
+                    "href": "fake:href:9",
+                    "id": "fake:id:9",
                     "name": "test-vpc--policydb-endpoint-gateway"
                 }
             ],
@@ -1639,9 +1639,9 @@
             "resource_type": "endpoint_gateway",
             "security_groups": [
                 {
-                    "crn": "fake:crn:27",
-                    "href": "fake:href:27",
-                    "id": "fake:id:27",
+                    "crn": "fake:crn:17",
+                    "href": "fake:href:17",
+                    "id": "fake:id:17",
                     "name": "test-vpc--appdata-endpoint-gateway"
                 }
             ],
@@ -2129,9 +2129,9 @@
                     "resource_type": "network_interface",
                     "security_groups": [
                         {
-                            "crn": "fake:crn:10",
-                            "href": "fake:href:10",
-                            "id": "fake:id:10",
+                            "crn": "fake:crn:4",
+                            "href": "fake:href:4",
+                            "id": "fake:id:4",
                             "name": "test-vpc--fe"
                         }
                     ],
@@ -2287,9 +2287,9 @@
                     "resource_type": "network_interface",
                     "security_groups": [
                         {
-                            "crn": "fake:crn:15",
-                            "href": "fake:href:15",
-                            "id": "fake:id:15",
+                            "crn": "fake:crn:7",
+                            "href": "fake:href:7",
+                            "id": "fake:id:7",
                             "name": "test-vpc--be"
                         }
                     ],

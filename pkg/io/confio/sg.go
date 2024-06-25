@@ -51,6 +51,7 @@ func lookupOrCreate(nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteS
 		Href: ref.Href,
 		Name: utils.Ptr(name),
 	}
+	nameToSGRemoteRef[name] = sgRemoteRef
 	return sgRemoteRef
 }
 
@@ -153,9 +154,9 @@ func parseTargetsSGInstance(instance *configModel.Instance) []vpcv1.SecurityGrou
 
 func updateSGInstances(model *configModel.ResourcesContainerModel, collection *ir.SGCollection,
 	nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference, idToSGIndex map[string]int) {
-	for i := range model.InstanceList {
-		vpc := model.InstanceList[i].VPC
-		sgName := ScopingString(*vpc.Name, *model.InstanceList[i].Name)
+	for _, instance := range model.InstanceList {
+		vpc := instance.VPC
+		sgName := ScopingString(*vpc.Name, *instance.Name)
 		sgItemName := utils.Ptr(ir.ChangeScoping(sgName))
 		sg := collection.SGs[*vpc.Name][ir.SGName(sgName)]
 		ref := lookupOrCreate(nameToSGRemoteRef, *sgItemName)
@@ -165,9 +166,9 @@ func updateSGInstances(model *configModel.ResourcesContainerModel, collection *i
 			Href:          ref.Href,
 			ID:            ref.ID,
 			Name:          sgItemName,
-			ResourceGroup: model.InstanceList[i].ResourceGroup,
+			ResourceGroup: instance.ResourceGroup,
 			Rules:         makeSGRules(nameToSGRemoteRef, sg),
-			Targets:       parseTargetsSGInstance(model.InstanceList[i]),
+			Targets:       parseTargetsSGInstance(instance),
 			VPC:           vpc,
 		})
 		sgItem.Tags = []string{}
@@ -180,30 +181,30 @@ func updateSGInstances(model *configModel.ResourcesContainerModel, collection *i
 			Name: sgItemName,
 		}
 
-		for j := range model.InstanceList[i].NetworkInterfaces {
-			for k := range model.InstanceList[i].NetworkInterfaces[j].SecurityGroups {
-				sgID := model.InstanceList[i].NetworkInterfaces[j].SecurityGroups[k].ID
-				nifID := model.InstanceList[i].NetworkInterfaces[j].ID
+		for j := range instance.NetworkInterfaces {
+			for k := range instance.NetworkInterfaces[j].SecurityGroups {
+				sgID := instance.NetworkInterfaces[j].SecurityGroups[k].ID
+				nifID := instance.NetworkInterfaces[j].ID
 				findAndDeleteTargetFromSG(model, idToSGIndex[*sgID], nifID)
 			}
-			model.InstanceList[i].NetworkInterfaces[j].SecurityGroups = []vpcv1.SecurityGroupReference{sgRef}
+			instance.NetworkInterfaces[j].SecurityGroups = []vpcv1.SecurityGroupReference{sgRef}
 		}
 	}
 }
 
 func updateSGEndpointGW(model *configModel.ResourcesContainerModel, collection *ir.SGCollection,
 	nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference, idToSGIndex map[string]int) {
-	for i := range model.EndpointGWList {
-		vpc := model.EndpointGWList[i].VPC
-		sgName := ScopingString(*vpc.Name, *model.EndpointGWList[i].Name)
+	for _, EndpointGW := range model.EndpointGWList {
+		vpc := EndpointGW.VPC
+		sgName := ScopingString(*vpc.Name, *EndpointGW.Name)
 		sgItemName := utils.Ptr(ir.ChangeScoping(sgName))
 		sg := collection.SGs[*vpc.Name][ir.SGName(sgName)]
 		ref := lookupOrCreate(nameToSGRemoteRef, *sgItemName)
 		target := &vpcv1.SecurityGroupTargetReference{
-			Name:         model.EndpointGWList[i].Name,
-			Href:         model.EndpointGWList[i].Href,
-			ID:           model.EndpointGWList[i].ID,
-			CRN:          model.EndpointGWList[i].CRN,
+			Name:         EndpointGW.Name,
+			Href:         EndpointGW.Href,
+			ID:           EndpointGW.ID,
+			CRN:          EndpointGW.CRN,
 			ResourceType: utils.Ptr(ResourceTypeEndpointGateway),
 		}
 
@@ -212,7 +213,7 @@ func updateSGEndpointGW(model *configModel.ResourcesContainerModel, collection *
 			Href:          ref.Href,
 			ID:            ref.ID,
 			Name:          sgItemName,
-			ResourceGroup: model.EndpointGWList[i].ResourceGroup,
+			ResourceGroup: EndpointGW.ResourceGroup,
 			Rules:         makeSGRules(nameToSGRemoteRef, sg),
 			Targets:       []vpcv1.SecurityGroupTargetReferenceIntf{target},
 			VPC:           vpc,
@@ -227,16 +228,16 @@ func updateSGEndpointGW(model *configModel.ResourcesContainerModel, collection *
 			Name: sgItemName,
 		}
 
-		for j := range model.EndpointGWList[i].SecurityGroups {
-			sgID := model.EndpointGWList[i].SecurityGroups[j].ID
-			endpointGatewayID := model.EndpointGWList[i].ID
+		for j := range EndpointGW.SecurityGroups {
+			sgID := EndpointGW.SecurityGroups[j].ID
+			endpointGatewayID := EndpointGW.ID
 			findAndDeleteTargetFromSG(model, idToSGIndex[*sgID], endpointGatewayID)
 		}
-		model.EndpointGWList[i].SecurityGroups = []vpcv1.SecurityGroupReference{sgRef}
+		EndpointGW.SecurityGroups = []vpcv1.SecurityGroupReference{sgRef}
 	}
 }
 
-func updateSG(model *configModel.ResourcesContainerModel, collection *ir.SGCollection) error {
+func updateSG(model *configModel.ResourcesContainerModel, collection *ir.SGCollection) {
 	nameToSGRemoteRef := make(map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference)
 	idToSGIndex := make(map[string]int, len(model.SecurityGroupList))
 	for i := range model.SecurityGroupList {
@@ -246,13 +247,10 @@ func updateSG(model *configModel.ResourcesContainerModel, collection *ir.SGColle
 	updateSGInstances(model, collection, nameToSGRemoteRef, idToSGIndex)
 	updateSGEndpointGW(model, collection, nameToSGRemoteRef, idToSGIndex)
 
-	GlobalIndex = 0 // for tests
-	return nil
+	GlobalIndex = 0 // making test results more predictable
 }
 
 func (w *Writer) WriteSG(collection *ir.SGCollection, _ string) error {
-	if err := updateSG(w.model, collection); err != nil {
-		return err
-	}
+	updateSG(w.model, collection)
 	return w.writeModel()
 }
