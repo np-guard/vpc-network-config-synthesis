@@ -154,7 +154,8 @@ func parseTargetsSGInstance(instance *configModel.Instance) []vpcv1.SecurityGrou
 
 func updateSGInstances(model *configModel.ResourcesContainerModel, collection *ir.SGCollection,
 	nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference, idToSGIndex map[string]int) {
-	for _, instance := range model.InstanceList {
+	for i := range model.InstanceList {
+		instance := model.InstanceList[i]
 		vpc := instance.VPC
 		sgName := ScopingString(*vpc.Name, *instance.Name)
 		sgItemName := utils.Ptr(ir.ChangeScoping(sgName))
@@ -194,7 +195,8 @@ func updateSGInstances(model *configModel.ResourcesContainerModel, collection *i
 
 func updateSGEndpointGW(model *configModel.ResourcesContainerModel, collection *ir.SGCollection,
 	nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference, idToSGIndex map[string]int) {
-	for _, EndpointGW := range model.EndpointGWList {
+	for i := range model.EndpointGWList {
+		EndpointGW := model.EndpointGWList[i]
 		vpc := EndpointGW.VPC
 		sgName := ScopingString(*vpc.Name, *EndpointGW.Name)
 		sgItemName := utils.Ptr(ir.ChangeScoping(sgName))
