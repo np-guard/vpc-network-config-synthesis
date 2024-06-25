@@ -40,7 +40,7 @@ const (
 	tfOutputFormat      = "tf"
 	csvOutputFormat     = "csv"
 	mdOutputFormat      = "md"
-	apiOutputFormat     = "api"
+	apiOutputFormat     = "json"
 	defaultOutputFormat = csvOutputFormat
 )
 
