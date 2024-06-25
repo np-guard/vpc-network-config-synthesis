@@ -26,6 +26,17 @@ func writeOutput(args *inArgs, collection ir.Collection, defs *ir.ConfigDefs) er
 	if err := updateFormat(args); err != nil {
 		return err
 	}
+	if args.locals && args.outputFmt == tfOutputFormat {
+		if _, ok := collection.(*ir.ACLCollection); ok {
+			if err := tfio.WriteLocals(defs, true); err != nil {
+				return err
+			}
+		} else {
+			if err := tfio.WriteLocals(defs, false); err != nil {
+				return err
+			}
+		}
+	}
 	if args.outputDir != "" && args.outputFmt == apiOutputFormat {
 		return fmt.Errorf("-d cannot be used with format json")
 	}

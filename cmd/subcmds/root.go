@@ -21,6 +21,7 @@ const (
 	outputDirFlag  = "output-dir"
 	prefixFlag     = "prefix"
 	singleACLFlag  = "single"
+	localsFlag     = "locals"
 )
 
 type inArgs struct {
@@ -31,6 +32,7 @@ type inArgs struct {
 	outputDir  string
 	prefix     string
 	singleacl  bool
+	locals     bool
 }
 
 func NewRootCommand() *cobra.Command {
@@ -49,6 +51,7 @@ func NewRootCommand() *cobra.Command {
 	rootCmd.PersistentFlags().StringVarP(&args.outputDir, outputDirFlag, "d", "",
 		"Write generated resources to files in the specified directory, one file per VPC.")
 	rootCmd.PersistentFlags().StringVar(&args.prefix, prefixFlag, "", "The prefix of the files that will be created.")
+	rootCmd.PersistentFlags().BoolVar(&args.locals, localsFlag, false, "whether to generate a locals.tf file (Possible when the output fmt is tf)")
 	rootCmd.PersistentFlags().SortFlags = false
 
 	if err := rootCmd.MarkPersistentFlagRequired(configFlag); err != nil {

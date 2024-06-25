@@ -16,7 +16,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-// WriteSG prints an entire collection of security groups as a sequence of terraform resources.
+// WriteSG prints an entire collection of Security Groups as a sequence of terraform resources.
 func (w *Writer) WriteSG(c *ir.SGCollection, vpc string) error {
 	output := sgCollection(c, vpc).Print()
 	_, err := w.w.WriteString(output)
