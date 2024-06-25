@@ -26,27 +26,33 @@ func writeOutput(args *inArgs, collection ir.Collection, defs *ir.ConfigDefs) er
 	if err := updateFormat(args); err != nil {
 		return err
 	}
+	if args.outputDir == "" && args.outputFile == "" {
+		return fmt.Errorf("either -o or -d must be provided")
+	}
+	if args.outputDir != "" && args.outputFmt == apiOutputFormat {
+		return fmt.Errorf("-d cannot be used with format json")
+	}
 	if args.outputDir == "" {
 		if err := writeToFile(args, collection, ""); err != nil {
 			return err
 		}
-	} else {
-		// create the directory if needed
-		err := os.MkdirAll(args.outputDir, defaultDirectoryPermission)
-		if err != nil {
-			return err
-		}
+		return nil
+	}
+	// create the directory if needed
+	err := os.MkdirAll(args.outputDir, defaultDirectoryPermission)
+	if err != nil {
+		return err
+	}
 
-		// write each file
-		for vpc := range defs.VPCs {
-			suffix := vpc + "." + args.outputFmt
-			args.outputFile = args.outputDir + "/" + suffix
-			if args.prefix != "" {
-				args.outputFile = args.outputDir + "/" + args.prefix + "_" + suffix
-			}
-			if err := writeToFile(args, collection, vpc); err != nil {
-				return err
-			}
+	// write each file
+	for vpc := range defs.VPCs {
+		suffix := vpc + "." + args.outputFmt
+		args.outputFile = args.outputDir + "/" + suffix
+		if args.prefix != "" {
+			args.outputFile = args.outputDir + "/" + args.prefix + "_" + suffix
+		}
+		if err := writeToFile(args, collection, vpc); err != nil {
+			return err
 		}
 	}
 	return nil
