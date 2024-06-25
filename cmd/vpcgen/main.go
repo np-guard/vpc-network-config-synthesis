@@ -69,12 +69,16 @@ func inferFormatUsingFilename(filename string) string {
 	}
 }
 
-func pickOutputFormat(outputFormat, outputFile string) (string, error) {
+func pickOutputFormat(outputFormat, outputFile, outputDirectory string) (string, error) {
 	inferredOutputFormat := inferFormatUsingFilename(outputFile)
 	if outputFormat != "" {
 		if outputFile != "" && inferredOutputFormat != "" && inferredOutputFormat != outputFormat {
 			return "", fmt.Errorf("output file %v is expected to use format %v, but -fmt %v is supplied",
 				outputFile, inferredOutputFormat, outputFormat)
+		}
+		if outputFormat == apiOutputFormat && outputDirectory != "" {
+			return "", fmt.Errorf("-dir cannot be used with -fmt json")
+
 		}
 		return outputFormat, nil
 	}
@@ -208,7 +212,7 @@ Flags:
 		log.Fatal(fmt.Errorf("output-file and output-dir cannot be specified together"))
 	}
 
-	*outputFormat, err = pickOutputFormat(*outputFormat, *outputFile)
+	*outputFormat, err = pickOutputFormat(*outputFormat, *outputFile, *outputDirectory)
 	if err != nil {
 		log.Fatal(err)
 	}
