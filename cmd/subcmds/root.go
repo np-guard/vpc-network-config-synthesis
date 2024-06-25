@@ -60,6 +60,9 @@ func NewRootCommand() *cobra.Command {
 	rootCmd.AddCommand(NewACLCommand(args))
 	rootCmd.AddCommand(NewSGCommand(args))
 
+	rootCmd.CompletionOptions.HiddenDefaultCmd = true
+	rootCmd.SetHelpCommand(&cobra.Command{Hidden: true}) // disable help command. should use --help flag instead
+
 	return rootCmd
 }
 

@@ -17,7 +17,7 @@ import (
 
 func main() {
 	rootCmd := subcmds.NewRootCommand()
-	rootCmd.SetArgs(os.Args)
+	rootCmd.SetArgs(os.Args[1:])
 
 	err := rootCmd.Execute()
 	if err != nil {
