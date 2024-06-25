@@ -78,7 +78,6 @@ func pickOutputFormat(outputFormat, outputFile, outputDirectory string) (string,
 		}
 		if outputFormat == apiOutputFormat && outputDirectory != "" {
 			return "", fmt.Errorf("-dir cannot be used with -fmt json")
-
 		}
 		return outputFormat, nil
 	}
