@@ -26,9 +26,6 @@ func writeOutput(args *inArgs, collection ir.Collection, defs *ir.ConfigDefs) er
 	if err := updateFormat(args); err != nil {
 		return err
 	}
-	if args.outputDir == "" && args.outputFile == "" {
-		return fmt.Errorf("either -o or -d must be provided")
-	}
 	if args.outputDir != "" && args.outputFmt == apiOutputFormat {
 		return fmt.Errorf("-d cannot be used with format json")
 	}
