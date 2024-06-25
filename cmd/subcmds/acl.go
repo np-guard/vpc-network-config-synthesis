@@ -15,8 +15,9 @@ import (
 func NewACLCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "acl",
-		Short: "...",
-		Long:  `...`,
+		Short: "nACL generation for subnets",
+		Long: `generate an nACL for each subnet separately, or to generate a single nACL for all subnets in 
+			the same VPC. The input supports subnets, subnet segments, CIDR segments and externals.`,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			spec, err := unmarshal(args)
 			if err != nil {
@@ -36,7 +37,7 @@ func NewACLCommand(args *inArgs) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().BoolVar(&args.singleacl, singleAclFlag, false, "whether to generate a single acl")
+	cmd.Flags().BoolVar(&args.singleacl, singleACLFlag, false, "whether to generate a single acl")
 
 	return cmd
 }

@@ -14,8 +14,8 @@ import (
 func NewSGCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "sg",
-		Short: "...",
-		Long:  `...`,
+		Short: "SG generation for nifs and vpes",
+		Long:  `The input supports Instances (VSIs), NIFs, VPEs and externals.`,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			spec, err := unmarshal(args)
 			if err != nil {

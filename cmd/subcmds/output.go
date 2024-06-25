@@ -23,6 +23,9 @@ const defaultFilePermission = 0o666
 const defaultDirectoryPermission = 0o755
 
 func writeOutput(args *inArgs, collection ir.Collection, defs *ir.ConfigDefs) error {
+	if err := updateFormat(args); err != nil {
+		return err
+	}
 	if args.outputDir == "" {
 		if err := writeToFile(args, collection, ""); err != nil {
 			return err

@@ -5,29 +5,45 @@ SPDX-License-Identifier: Apache-2.0
 
 package subcmds
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 var outputFormats = []string{"tf", "csv", "md", "json"}
 
-func updateFormat(args *inArgs) {
+func updateFormat(args *inArgs) error {
+	var err error
 	if args.outputFmt == "" {
-		args.outputFmt = inferFormatUsingFilename(args.outputFile)
+		args.outputFmt, err = inferFormatUsingFilename(args.outputFile)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
-func inferFormatUsingFilename(filename string) string {
+const (
+	tfOutputFormat      = "tf"
+	csvOutputFormat     = "csv"
+	mdOutputFormat      = "md"
+	apiOutputFormat     = "json"
+	defaultOutputFormat = csvOutputFormat
+)
+
+func inferFormatUsingFilename(filename string) (string, error) {
 	switch {
 	case filename == "":
-		return defaultOutputFormat
+		return defaultOutputFormat, nil
 	case strings.HasSuffix(filename, ".tf"):
-		return tfOutputFormat
+		return tfOutputFormat, nil
 	case strings.HasSuffix(filename, ".csv"):
-		return csvOutputFormat
+		return csvOutputFormat, nil
 	case strings.HasSuffix(filename, ".md"):
-		return mdOutputFormat
+		return mdOutputFormat, nil
 	case strings.HasSuffix(filename, ".json"):
-		return apiOutputFormat
+		return apiOutputFormat, nil
 	default:
-		return ""
+		return "", fmt.Errorf("bad output format")
 	}
 }

@@ -13,23 +13,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Output formats
-const (
-	tfOutputFormat      = "tf"
-	csvOutputFormat     = "csv"
-	mdOutputFormat      = "md"
-	apiOutputFormat     = "api"
-	defaultOutputFormat = csvOutputFormat
-)
-
 const (
 	configFlag     = "config"
 	specFlag       = "spec"
 	outputFmtFlag  = "format"
 	outputFileFlag = "output-file"
-	outputDirFlag  = "output-dur"
+	outputDirFlag  = "output-dir"
 	prefixFlag     = "prefix"
-	singleAclFlag  = "single"
+	singleACLFlag  = "single"
 )
 
 type inArgs struct {
@@ -53,19 +44,18 @@ func NewRootCommand() *cobra.Command {
 
 	rootCmd.PersistentFlags().StringVarP(&args.configFile, configFlag, "c", "", "JSON file containing config spec")
 	rootCmd.PersistentFlags().StringVarP(&args.specFile, specFlag, "s", "", "JSON file containing spec file")
-	rootCmd.PersistentFlags().StringVarP(&args.outputFmt, outputFmtFlag, "fmt", "", "Output format; "+mustBeOneOf(outputFormats))
+	rootCmd.PersistentFlags().StringVarP(&args.outputFmt, outputFmtFlag, "f", "", "Output format; "+mustBeOneOf(outputFormats))
 	rootCmd.PersistentFlags().StringVarP(&args.outputFile, outputFileFlag, "o", "", "Write all generated resources to the specified file.")
 	rootCmd.PersistentFlags().StringVarP(&args.outputDir, outputDirFlag, "d", "",
 		"Write generated resources to files in the specified directory, one file per VPC.")
 	rootCmd.PersistentFlags().StringVar(&args.prefix, prefixFlag, "", "The prefix of the files that will be created.")
 	rootCmd.PersistentFlags().SortFlags = false
 
-	if err := rootCmd.MarkFlagRequired(configFlag); err != nil {
-		log.Fatalf("%w", err)
+	if err := rootCmd.MarkPersistentFlagRequired(configFlag); err != nil {
+		log.Fatal("-config parameter must be supplied")
 	}
 	rootCmd.MarkFlagsMutuallyExclusive(outputFileFlag, outputDirFlag)
 	rootCmd.MarkFlagsMutuallyExclusive(outputFileFlag, outputFmtFlag)
-	// make sure fmt flag is set when dir flag is set
 
 	rootCmd.AddCommand(NewACLCommand(args))
 	rootCmd.AddCommand(NewSGCommand(args))
