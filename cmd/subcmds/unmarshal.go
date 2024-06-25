@@ -21,7 +21,7 @@ func unmarshal(args *inArgs) (*ir.Spec, error) {
 
 	model, err := jsonio.NewReader().ReadSpec(args.specFile, defs)
 	if err != nil {
-		return nil, fmt.Errorf("Could not parse connectivity file %s: %w", args.specFile, err)
+		return nil, fmt.Errorf("could not parse connectivity file %s: %w", args.specFile, err)
 	}
 
 	return model, nil

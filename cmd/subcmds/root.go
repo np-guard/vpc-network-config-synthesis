@@ -7,6 +7,7 @@ package subcmds
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -59,7 +60,9 @@ func NewRootCommand() *cobra.Command {
 	rootCmd.PersistentFlags().StringVar(&args.prefix, prefixFlag, "", "The prefix of the files that will be created.")
 	rootCmd.PersistentFlags().SortFlags = false
 
-	rootCmd.MarkFlagRequired(configFlag) // do something
+	if err := rootCmd.MarkFlagRequired(configFlag); err != nil {
+		log.Fatalf("%w", err)
+	}
 	rootCmd.MarkFlagsMutuallyExclusive(outputFileFlag, outputDirFlag)
 	rootCmd.MarkFlagsMutuallyExclusive(outputFileFlag, outputFmtFlag)
 	// make sure fmt flag is set when dir flag is set
@@ -68,7 +71,6 @@ func NewRootCommand() *cobra.Command {
 	rootCmd.AddCommand(NewSGCommand(args))
 
 	return rootCmd
-
 }
 
 func mustBeOneOf(values []string) string {
