@@ -11,7 +11,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/interval"
+	"github.com/np-guard/models/pkg/netp"
+
+	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/models/pkg/spec"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
@@ -109,9 +112,9 @@ func parseCidrSegments(jsonSegments spec.SpecSegments, configDefs *ir.ConfigDefs
 	result := make(map[ir.ID]*ir.CidrSegmentDetails)
 	for segmentName, segment := range cidrSegments {
 		// each cidr saves the contained subnets
-		segmentMap := make(map[*ipblock.IPBlock]ir.CIDRDetails)
+		segmentMap := make(map[*netset.IPBlock]ir.CIDRDetails)
 		for _, cidr := range segment {
-			c, err := ipblock.FromCidr(cidr)
+			c, err := netset.IPBlockFromCidr(cidr)
 			if err != nil {
 				return nil, err
 			}
@@ -137,7 +140,7 @@ func parseCidrSegments(jsonSegments spec.SpecSegments, configDefs *ir.ConfigDefs
 func translateExternals(m map[string]string) (map[ir.ID]*ir.ExternalDetails, error) {
 	result := make(map[ir.ID]*ir.ExternalDetails)
 	for k, v := range m {
-		address, err := ipblock.FromCidrOrAddress(v)
+		address, err := netset.IPBlockFromCidrOrAddress(v)
 		if err != nil {
 			return nil, err
 		}
@@ -261,26 +264,26 @@ func translateProtocols(protocols spec.ProtocolList) ([]ir.TrackedProtocol, erro
 			if len(protocols) != 1 {
 				return nil, fmt.Errorf("when allowing any protocol, no more protocols can be defined")
 			}
-			result[i].Protocol = ir.AnyProtocol{}
+			result[i].Protocol = netp.AnyProtocol{}
 		case spec.Icmp:
 			if p.Type == nil {
 				if p.Code != nil {
 					return nil, fmt.Errorf("defining ICMP code for unspecified ICMP type is not allowed")
 				}
-				result[i].Protocol = ir.TrackedProtocol{Protocol: ir.ICMP{}}
+				result[i].Protocol = ir.TrackedProtocol{Protocol: netp.ICMP{}}
 			} else {
-				err := ir.ValidateICMP(*p.Type, *p.Code)
+				icmp, err := netp.ICMPFromTypeAndCode(p.Type, p.Code)
 				if err != nil {
 					return nil, err
 				}
-				result[i].Protocol = ir.ICMP{ICMPCodeType: &ir.ICMPCodeType{Type: *p.Type, Code: p.Code}}
+				result[i].Protocol = icmp
 			}
 		case spec.TcpUdp:
-			result[i].Protocol = ir.TCPUDP{
-				Protocol: ir.TransportLayerProtocolName(p.Protocol),
-				PortRangePair: ir.PortRangePair{
-					SrcPort: ir.PortRange{Min: p.MinSourcePort, Max: p.MaxSourcePort},
-					DstPort: ir.PortRange{Min: p.MinDestinationPort, Max: p.MaxDestinationPort},
+			result[i].Protocol = netp.TCPUDP{
+				IsTCP: p.Protocol == spec.TcpUdpProtocolTCP,
+				PortRangePair: netp.PortRangePair{
+					SrcPort: interval.New(int64(p.MinSourcePort), int64(p.MaxSourcePort)),
+					DstPort: interval.New(int64(p.MinDestinationPort), int64(p.MaxDestinationPort)),
 				},
 			}
 		default:
@@ -356,7 +359,7 @@ func unmarshal(filename string) (*spec.Spec, error) {
 	return jsonSpec, err
 }
 
-func parseOverlappingVpcs(cidr *ipblock.IPBlock, vpcs map[ir.ID]*ir.VPCDetails) []ir.ID {
+func parseOverlappingVpcs(cidr *netset.IPBlock, vpcs map[ir.ID]*ir.VPCDetails) []ir.ID {
 	result := make([]ir.ID, 0)
 	for vpcName, vpcDetails := range vpcs {
 		if !vpcDetails.AddressPrefixes.Intersect(cidr).IsEmpty() {

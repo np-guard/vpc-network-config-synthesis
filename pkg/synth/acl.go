@@ -10,7 +10,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netp"
+
+	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
@@ -23,7 +25,7 @@ type Options struct {
 
 // MakeACL translates Spec to a collection of ACLs
 func MakeACL(s *ir.Spec, opt Options) *ir.ACLCollection {
-	aclSelector := func(cidr *ipblock.IPBlock) string {
+	aclSelector := func(cidr *netset.IPBlock) string {
 		result, ok := s.Defs.SubnetNameFromIP(cidr)
 		if !ok {
 			log.Fatalf(subnetNotFoundError)
@@ -31,7 +33,7 @@ func MakeACL(s *ir.Spec, opt Options) *ir.ACLCollection {
 		return result
 	}
 	if opt.SingleACL {
-		aclSelector = func(cidr *ipblock.IPBlock) string {
+		aclSelector = func(cidr *netset.IPBlock) string {
 			result, ok := s.Defs.SubnetNameFromIP(cidr)
 			if !ok {
 				log.Fatalf(subnetNotFoundError)
@@ -39,17 +41,16 @@ func MakeACL(s *ir.Spec, opt Options) *ir.ACLCollection {
 			return fmt.Sprintf("%s/singleACL", ir.VpcFromScopedResource(result))
 		}
 	}
-	collections := []*ir.ACLCollection{}
+	var collections = make([]*ir.ACLCollection, len(s.Connections))
 	for c := range s.Connections {
-		collection := generateACLCollectionFromConnection(s, &s.Connections[c], aclSelector)
-		collections = append(collections, collection)
+		collections[c] = generateACLCollectionFromConnection(s, &s.Connections[c], aclSelector)
 	}
 	collections = append(collections, generateACLCollectionForBlockedSubnets(s, aclSelector))
 	return ir.MergeACLCollections(collections...)
 }
 
 func generateACLCollectionFromConnection(s *ir.Spec, conn *ir.Connection,
-	aclSelector func(target *ipblock.IPBlock) string) *ir.ACLCollection {
+	aclSelector func(target *netset.IPBlock) string) *ir.ACLCollection {
 	internalSrc := conn.Src.Type != ir.ResourceTypeExternal
 	internalDst := conn.Dst.Type != ir.ResourceTypeExternal
 	internal := internalSrc && internalDst
@@ -84,8 +85,8 @@ func generateACLCollectionFromConnection(s *ir.Spec, conn *ir.Connection,
 	return result
 }
 
-func allowDirectedConnection(s *ir.Spec, srcCidr, dstCidr *ipblock.IPBlock, conn *ir.Connection, internalSrc, internalDst bool,
-	protocol ir.Protocol, reason explanation) []*ir.ACLRule {
+func allowDirectedConnection(s *ir.Spec, srcCidr, dstCidr *netset.IPBlock, conn *ir.Connection, internalSrc, internalDst bool,
+	protocol netp.Protocol, reason explanation) []*ir.ACLRule {
 	var request, response *ir.Packet
 
 	srcSubnetList := subnetsContainedInCidr(s, srcCidr, conn.Src)
@@ -124,7 +125,7 @@ func allowDirectedConnection(s *ir.Spec, srcCidr, dstCidr *ipblock.IPBlock, conn
 	return connection
 }
 
-func generateACLCollectionForBlockedSubnets(s *ir.Spec, aclSelector func(target *ipblock.IPBlock) string) *ir.ACLCollection {
+func generateACLCollectionForBlockedSubnets(s *ir.Spec, aclSelector func(target *netset.IPBlock) string) *ir.ACLCollection {
 	blockedSubnets := s.ComputeBlockedSubnets()
 	result := ir.NewACLCollection()
 	for _, subnet := range blockedSubnets {
@@ -141,13 +142,13 @@ func resourceRelevantToACL(e ir.ResourceType) bool {
 	return e == ir.ResourceTypeSubnet || e == ir.ResourceTypeSegment || e == ir.ResourceTypeCidr
 }
 
-func subnetsContainedInCidr(s *ir.Spec, cidr *ipblock.IPBlock, resource ir.Resource) []*ipblock.IPBlock {
+func subnetsContainedInCidr(s *ir.Spec, cidr *netset.IPBlock, resource ir.Resource) []*netset.IPBlock {
 	if resource.Type != ir.ResourceTypeCidr {
-		return []*ipblock.IPBlock{cidr}
+		return []*netset.IPBlock{cidr}
 	}
 	cidrSegmentDetails := s.Defs.CidrSegments[resource.Name]
 	cidrDetails := cidrSegmentDetails.Cidrs[cidr]
-	result := make([]*ipblock.IPBlock, len(cidrDetails.ContainedSubnets))
+	result := make([]*netset.IPBlock, len(cidrDetails.ContainedSubnets))
 	for i, subnet := range cidrDetails.ContainedSubnets {
 		result[i] = s.Defs.Subnets[subnet].Address()
 	}

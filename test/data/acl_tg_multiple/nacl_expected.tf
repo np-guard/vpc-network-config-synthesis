@@ -136,7 +136,6 @@ resource "ibm_is_network_acl" "acl-test-vpc0--subnet4" {
     destination = "10.240.9.0/24"
     icmp {
       type = 0
-      code = 0
     }
   }
   # Internal. response to required-connections[2]: (subnet test-vpc0/subnet4)->(subnet test-vpc0/subnet5); allowed-protocols[0]
@@ -148,7 +147,6 @@ resource "ibm_is_network_acl" "acl-test-vpc0--subnet4" {
     destination = "10.240.8.0/24"
     icmp {
       type = 8
-      code = 0
     }
   }
 }
@@ -167,7 +165,6 @@ resource "ibm_is_network_acl" "acl-test-vpc0--subnet5" {
     destination = "10.240.9.0/24"
     icmp {
       type = 0
-      code = 0
     }
   }
   # Internal. response to required-connections[2]: (subnet test-vpc0/subnet4)->(subnet test-vpc0/subnet5); allowed-protocols[0]
@@ -179,7 +176,6 @@ resource "ibm_is_network_acl" "acl-test-vpc0--subnet5" {
     destination = "10.240.8.0/24"
     icmp {
       type = 8
-      code = 0
     }
   }
 }
@@ -198,7 +194,6 @@ resource "ibm_is_network_acl" "acl-test-vpc1--subnet10" {
     destination = "10.240.80.0/24"
     icmp {
       type = 0
-      code = 0
     }
   }
   # Internal. response to required-connections[3]: (subnet test-vpc1/subnet10)->(subnet test-vpc1/subnet11); allowed-protocols[0]
@@ -210,7 +205,6 @@ resource "ibm_is_network_acl" "acl-test-vpc1--subnet10" {
     destination = "10.240.64.0/24"
     icmp {
       type = 8
-      code = 0
     }
   }
 }
@@ -229,7 +223,6 @@ resource "ibm_is_network_acl" "acl-test-vpc1--subnet11" {
     destination = "10.240.80.0/24"
     icmp {
       type = 0
-      code = 0
     }
   }
   # Internal. response to required-connections[3]: (subnet test-vpc1/subnet10)->(subnet test-vpc1/subnet11); allowed-protocols[0]
@@ -241,7 +234,6 @@ resource "ibm_is_network_acl" "acl-test-vpc1--subnet11" {
     destination = "10.240.64.0/24"
     icmp {
       type = 8
-      code = 0
     }
   }
 }

@@ -11,7 +11,6 @@ resource "ibm_is_network_acl" "acl-test-vpc1--singleACL" {
     destination = "10.240.80.0/24"
     icmp {
       type = 0
-      code = 0
     }
   }
   # Internal. response to required-connections[3]: (subnet test-vpc1/subnet10)->(subnet test-vpc1/subnet11); allowed-protocols[0]
@@ -23,7 +22,6 @@ resource "ibm_is_network_acl" "acl-test-vpc1--singleACL" {
     destination = "10.240.64.0/24"
     icmp {
       type = 8
-      code = 0
     }
   }
   # Internal. required-connections[3]: (subnet test-vpc1/subnet10)->(subnet test-vpc1/subnet11); allowed-protocols[0]
@@ -35,7 +33,6 @@ resource "ibm_is_network_acl" "acl-test-vpc1--singleACL" {
     destination = "10.240.80.0/24"
     icmp {
       type = 0
-      code = 0
     }
   }
   # Internal. response to required-connections[3]: (subnet test-vpc1/subnet10)->(subnet test-vpc1/subnet11); allowed-protocols[0]
@@ -47,7 +44,6 @@ resource "ibm_is_network_acl" "acl-test-vpc1--singleACL" {
     destination = "10.240.64.0/24"
     icmp {
       type = 8
-      code = 0
     }
   }
 }

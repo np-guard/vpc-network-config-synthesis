@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/np-guard/models/pkg/netp"
+
 	"github.com/IBM/vpc-go-sdk/vpcv1"
 
 	configModel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
@@ -25,7 +27,7 @@ func makeACLRuleItem(rule *ir.ACLRule, current,
 	source := ip(rule.Source)
 	destination := ip(rule.Destination)
 	switch p := rule.Protocol.(type) {
-	case ir.TCPUDP:
+	case netp.TCPUDP:
 		data := tcpudp(p)
 		result := &vpcv1.NetworkACLRuleItemNetworkACLRuleProtocolTcpudp{
 			Href:        current.Href,
@@ -45,7 +47,7 @@ func makeACLRuleItem(rule *ir.ACLRule, current,
 			DestinationPortMax: data.DestinationPortMax,
 		}
 		return result
-	case ir.ICMP:
+	case netp.ICMP:
 		data := icmp(p)
 		result := &vpcv1.NetworkACLRuleItemNetworkACLRuleProtocolIcmp{
 			Href:        current.Href,
@@ -63,7 +65,7 @@ func makeACLRuleItem(rule *ir.ACLRule, current,
 			Code:     data.Code,
 		}
 		return result
-	case ir.AnyProtocol:
+	case netp.AnyProtocol:
 		data := all()
 		result := &vpcv1.NetworkACLRuleItemNetworkACLRuleProtocolAll{
 			Href:        current.Href,

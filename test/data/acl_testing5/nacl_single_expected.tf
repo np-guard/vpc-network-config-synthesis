@@ -43,7 +43,6 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc--singleACL" {
     destination = "10.240.128.0/24"
     icmp {
       type = 0
-      code = 0
     }
   }
   # Internal. response to required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
@@ -55,7 +54,6 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc--singleACL" {
     destination = "10.240.1.0/24"
     icmp {
       type = 8
-      code = 0
     }
   }
   # Internal. required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
@@ -67,7 +65,6 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc--singleACL" {
     destination = "10.240.128.0/24"
     icmp {
       type = 0
-      code = 0
     }
   }
   # Internal. response to required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
@@ -79,7 +76,6 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc--singleACL" {
     destination = "10.240.1.0/24"
     icmp {
       type = 8
-      code = 0
     }
   }
   # Internal. required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
@@ -91,7 +87,6 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc--singleACL" {
     destination = "10.240.128.0/24"
     icmp {
       type = 0
-      code = 0
     }
   }
   # Internal. response to required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
@@ -103,7 +98,6 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc--singleACL" {
     destination = "10.240.64.0/24"
     icmp {
       type = 8
-      code = 0
     }
   }
   # Internal. required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
@@ -115,7 +109,6 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc--singleACL" {
     destination = "10.240.128.0/24"
     icmp {
       type = 0
-      code = 0
     }
   }
   # Internal. response to required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
@@ -127,7 +120,6 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc--singleACL" {
     destination = "10.240.64.0/24"
     icmp {
       type = 8
-      code = 0
     }
   }
   # Internal. required-connections[3]: (subnet testacl5-vpc/sub1-1)->(subnet testacl5-vpc/sub1-2); allowed-protocols[0]

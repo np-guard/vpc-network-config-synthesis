@@ -12,7 +12,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netp"
+
+	"github.com/np-guard/models/pkg/netset"
 )
 
 const MaximalIPv4PrefixLength = 32
@@ -47,14 +49,14 @@ type (
 		Name string
 
 		// list of CIDR / Ip addresses.
-		IPAddrs []*ipblock.IPBlock
+		IPAddrs []*netset.IPBlock
 
 		// Type of resource
 		Type ResourceType
 	}
 
 	TrackedProtocol struct {
-		Protocol
+		netp.Protocol
 		Origin fmt.Stringer
 	}
 
@@ -88,20 +90,20 @@ type (
 	}
 
 	VPCDetails struct {
-		AddressPrefixes *ipblock.IPBlock
+		AddressPrefixes *netset.IPBlock
 		// tg
 		// lb
 	}
 
 	SubnetDetails struct {
 		NamedEntity
-		CIDR *ipblock.IPBlock
+		CIDR *netset.IPBlock
 		VPC  ID
 	}
 
 	NifDetails struct {
 		NamedEntity
-		IP       *ipblock.IPBlock
+		IP       *netset.IPBlock
 		VPC      ID
 		Instance ID
 	}
@@ -114,7 +116,7 @@ type (
 
 	VPEReservedIPsDetails struct {
 		NamedEntity
-		IP      *ipblock.IPBlock
+		IP      *netset.IPBlock
 		VPEName ID
 		Subnet  ID
 		VPC     ID
@@ -132,7 +134,7 @@ type (
 	}
 
 	CidrSegmentDetails struct {
-		Cidrs map[*ipblock.IPBlock]CIDRDetails
+		Cidrs map[*netset.IPBlock]CIDRDetails
 	}
 
 	CIDRDetails struct {
@@ -141,7 +143,7 @@ type (
 	}
 
 	ExternalDetails struct {
-		ExternalAddrs *ipblock.IPBlock
+		ExternalAddrs *netset.IPBlock
 	}
 
 	Named interface {
@@ -149,7 +151,7 @@ type (
 	}
 
 	NWResource interface {
-		Address() *ipblock.IPBlock
+		Address() *netset.IPBlock
 	}
 
 	ResourceVpc interface {
@@ -161,19 +163,19 @@ func (n *NamedEntity) Name() string {
 	return string(*n)
 }
 
-func (s *SubnetDetails) Address() *ipblock.IPBlock {
+func (s *SubnetDetails) Address() *netset.IPBlock {
 	return s.CIDR
 }
 
-func (n *NifDetails) Address() *ipblock.IPBlock {
+func (n *NifDetails) Address() *netset.IPBlock {
 	return n.IP
 }
 
-func (v *VPEReservedIPsDetails) Address() *ipblock.IPBlock {
+func (v *VPEReservedIPsDetails) Address() *netset.IPBlock {
 	return v.IP
 }
 
-func (e *ExternalDetails) Address() *ipblock.IPBlock {
+func (e *ExternalDetails) Address() *netset.IPBlock {
 	return e.ExternalAddrs
 }
 
@@ -224,14 +226,14 @@ func getResourceVPCs[T ResourceVpc](m map[ID]T, name string) []ID {
 
 func lookupSingle[T NWResource](m map[ID]T, name string, t ResourceType) (Resource, error) {
 	if details, ok := m[name]; ok {
-		return Resource{name, []*ipblock.IPBlock{details.Address()}, t}, nil
+		return Resource{name, []*netset.IPBlock{details.Address()}, t}, nil
 	}
 	return Resource{}, resourceNotFoundError(name, t)
 }
 
 func (s *Definitions) lookupInstance(name string) (Resource, error) {
 	if instanceDetails, ok := s.Instances[name]; ok {
-		ips := make([]*ipblock.IPBlock, len(instanceDetails.Nifs))
+		ips := make([]*netset.IPBlock, len(instanceDetails.Nifs))
 		for i, elemName := range instanceDetails.Nifs {
 			nif, err := s.Lookup(ResourceTypeNIF, elemName)
 			if err != nil {
@@ -247,7 +249,7 @@ func (s *Definitions) lookupInstance(name string) (Resource, error) {
 
 func (s *Definitions) lookupVPE(name string) (Resource, error) {
 	if VPEDetails, ok := s.VPEs[name]; ok {
-		ips := make([]*ipblock.IPBlock, len(VPEDetails.VPEReservedIPs))
+		ips := make([]*netset.IPBlock, len(VPEDetails.VPEReservedIPs))
 		for i, vpeEndPoint := range VPEDetails.VPEReservedIPs {
 			ips[i] = s.VPEReservedIPs[vpeEndPoint].IP
 		}
@@ -258,7 +260,7 @@ func (s *Definitions) lookupVPE(name string) (Resource, error) {
 
 func (s *Definitions) lookupSubnetSegment(name string) (Resource, error) {
 	if subnetSegmentDetails, ok := s.SubnetSegments[name]; ok {
-		cidrs := make([]*ipblock.IPBlock, len(subnetSegmentDetails.Subnets))
+		cidrs := make([]*netset.IPBlock, len(subnetSegmentDetails.Subnets))
 		for i, subnetName := range subnetSegmentDetails.Subnets {
 			subnet, err := s.Lookup(ResourceTypeSubnet, subnetName)
 			if err != nil {
@@ -274,7 +276,7 @@ func (s *Definitions) lookupSubnetSegment(name string) (Resource, error) {
 
 func (s *Definitions) lookupCidrSegment(name string) (Resource, error) {
 	if cidrSegmentDetails, ok := s.CidrSegments[name]; ok {
-		cidrs := make([]*ipblock.IPBlock, len(cidrSegmentDetails.Cidrs))
+		cidrs := make([]*netset.IPBlock, len(cidrSegmentDetails.Cidrs))
 		i := 0
 		for cidr := range cidrSegmentDetails.Cidrs {
 			cidrs[i] = cidr
@@ -345,7 +347,7 @@ func (s *Definitions) ValidateConnection(srcVPCs, dstVPCs []ID) error {
 	return nil
 }
 
-func inverseLookup[T NWResource](m map[ID]T, address *ipblock.IPBlock) (result string, ok bool) {
+func inverseLookup[T NWResource](m map[ID]T, address *netset.IPBlock) (result string, ok bool) {
 	for name, details := range m {
 		if details.Address().Equal(address) {
 			return name, true
@@ -354,7 +356,7 @@ func inverseLookup[T NWResource](m map[ID]T, address *ipblock.IPBlock) (result s
 	return "", false
 }
 
-func (s *ConfigDefs) inverseLookupVPE(ip *ipblock.IPBlock) (result string, ok bool) {
+func (s *ConfigDefs) inverseLookupVPE(ip *netset.IPBlock) (result string, ok bool) {
 	for _, vpeEndpointDetails := range s.VPEReservedIPs {
 		if vpeEndpointDetails.Address().Equal(ip) {
 			return vpeEndpointDetails.VPEName, true
@@ -374,15 +376,15 @@ func inverseLookupInstance(m map[ID]*InstanceDetails, name string) (result strin
 	return "", false
 }
 
-func (s *ConfigDefs) SubnetNameFromIP(cidr *ipblock.IPBlock) (string, bool) {
+func (s *ConfigDefs) SubnetNameFromIP(cidr *netset.IPBlock) (string, bool) {
 	return inverseLookup(s.Subnets, cidr)
 }
 
-func (s *ConfigDefs) NIFFromIP(ip *ipblock.IPBlock) (string, bool) {
+func (s *ConfigDefs) NIFFromIP(ip *netset.IPBlock) (string, bool) {
 	return inverseLookup(s.NIFs, ip)
 }
 
-func (s *ConfigDefs) VPEFromIP(ip *ipblock.IPBlock) (string, bool) {
+func (s *ConfigDefs) VPEFromIP(ip *netset.IPBlock) (string, bool) {
 	return s.inverseLookupVPE(ip)
 }
 
@@ -390,7 +392,7 @@ func (s *ConfigDefs) InstanceFromNIF(nifName string) (string, bool) {
 	return inverseLookupInstance(s.Instances, nifName)
 }
 
-func (s *ConfigDefs) RemoteFromIP(ip *ipblock.IPBlock) RemoteType {
+func (s *ConfigDefs) RemoteFromIP(ip *netset.IPBlock) RemoteType {
 	if nif, okNIF := s.NIFFromIP(ip); okNIF {
 		if instance, okInstance := s.InstanceFromNIF(nif); okInstance {
 			return SGName(instance)
@@ -407,10 +409,10 @@ type Reader interface {
 	ReadSpec(filename string, defs *ConfigDefs) (*Spec, error)
 }
 
-func (s *ConfigDefs) SubnetsContainedInCidr(cidr ipblock.IPBlock) ([]ID, error) {
+func (s *ConfigDefs) SubnetsContainedInCidr(cidr netset.IPBlock) ([]ID, error) {
 	var containedSubnets []string
 	for subnet, subnetDetails := range s.Subnets {
-		if subnetDetails.CIDR.ContainedIn(&cidr) {
+		if subnetDetails.CIDR.IsSubset(&cidr) {
 			containedSubnets = append(containedSubnets, subnet)
 		}
 	}
@@ -448,7 +450,7 @@ func VpcFromScopedResource(resource ID) ID {
 	return ScopingComponents(resource)[0]
 }
 
-func IsIPAddress(address *ipblock.IPBlock) bool {
+func IsIPAddress(address *netset.IPBlock) bool {
 	prefixLength, err := address.PrefixLength()
 	if err != nil {
 		log.Fatal(err)
