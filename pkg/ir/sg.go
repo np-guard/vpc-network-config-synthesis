@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/np-guard/models/pkg/netp"
+
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
@@ -31,13 +33,13 @@ func (s SGName) String() string {
 
 type RemoteType interface {
 	fmt.Stringer
-	// *ipblock.IPBlock | SGName
+	// *netset.IPBlock | SGName
 }
 
 type SGRule struct {
 	Direction   Direction
 	Remote      RemoteType
-	Protocol    Protocol
+	Protocol    netp.Protocol
 	Explanation string
 }
 

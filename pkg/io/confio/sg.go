@@ -11,6 +11,7 @@ import (
 	"github.com/IBM/vpc-go-sdk/vpcv1"
 
 	configModel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
+	"github.com/np-guard/models/pkg/netp"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
@@ -22,7 +23,7 @@ func makeSGRuleItem(rule *ir.SGRule, i int, sgRemoteRef *vpcv1.SecurityGroupRule
 	ref := allocateRef()
 
 	switch p := rule.Protocol.(type) {
-	case ir.TCPUDP:
+	case netp.TCPUDP:
 		data := tcpudp(p)
 		return &vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp{
 			Href:      ref.Href,
@@ -35,7 +36,7 @@ func makeSGRuleItem(rule *ir.SGRule, i int, sgRemoteRef *vpcv1.SecurityGroupRule
 			PortMin:  data.remotePortMin(rule.Direction),
 			PortMax:  data.remotePortMax(rule.Direction),
 		}
-	case ir.ICMP:
+	case netp.ICMP:
 		data := icmp(p)
 		return &vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp{
 			Href:      ref.Href,
@@ -48,7 +49,7 @@ func makeSGRuleItem(rule *ir.SGRule, i int, sgRemoteRef *vpcv1.SecurityGroupRule
 			Type:     data.Type,
 			Code:     data.Code,
 		}
-	case ir.AnyProtocol:
+	case netp.AnyProtocol:
 		data := all()
 		return &vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolAll{
 			Href:      ref.Href,

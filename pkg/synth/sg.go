@@ -8,23 +8,22 @@ package synth
 import (
 	"log"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
 // MakeSG translates Spec to a collection of security groups
 func MakeSG(s *ir.Spec, opt Options) *ir.SGCollection {
-	collections := []*ir.SGCollection{}
+	var collections = make([]*ir.SGCollection, len(s.Connections))
 	for c := range s.Connections {
-		collection := generateSGCollectionFromConnection(&s.Connections[c], s.Defs.RemoteFromIP)
-		collections = append(collections, collection)
+		collections[c] = generateSGCollectionFromConnection(&s.Connections[c], s.Defs.RemoteFromIP)
 	}
 	collections = append(collections, generateSGCollectionForBlockedResources(s))
 	return ir.MergeSGCollections(collections...)
 }
 
-func generateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(target *ipblock.IPBlock) ir.RemoteType) *ir.SGCollection {
+func generateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(target *netset.IPBlock) ir.RemoteType) *ir.SGCollection {
 	internalSrc := conn.Src.Type != ir.ResourceTypeExternal
 	internalDst := conn.Dst.Type != ir.ResourceTypeExternal
 	if !internalSrc && !internalDst {

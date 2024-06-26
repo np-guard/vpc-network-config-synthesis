@@ -11,7 +11,9 @@ import (
 
 	"github.com/IBM/vpc-go-sdk/vpcv1"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/interval"
+	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
@@ -64,16 +66,16 @@ func direction(d ir.Direction) *string {
 	return nil
 }
 
-func ip(x *ipblock.IPBlock) *string {
+func ip(x *netset.IPBlock) *string {
 	return utils.Ptr(x.String())
 }
 
-func minPort(r ir.PortRange) *int64 {
-	return utils.Ptr(int64(r.Min))
+func minPort(r interval.Interval) *int64 {
+	return utils.Ptr(r.Start())
 }
 
-func maxPort(r ir.PortRange) *int64 {
-	return utils.Ptr(int64(r.Max))
+func maxPort(r interval.Interval) *int64 {
+	return utils.Ptr(r.End())
 }
 
 type tcpudpData struct {
@@ -108,10 +110,10 @@ type allData struct {
 	Protocol *string
 }
 
-func tcpudp(p ir.TCPUDP) tcpudpData {
+func tcpudp(p netp.TCPUDP) tcpudpData {
 	r := p.PortRangePair
 	res := tcpudpData{
-		Protocol:           utils.Ptr(strings.ToLower(string(p.Protocol))),
+		Protocol:           utils.Ptr(strings.ToLower(string(p.ProtocolString()))),
 		SourcePortMin:      minPort(r.SrcPort),
 		SourcePortMax:      maxPort(r.SrcPort),
 		DestinationPortMin: minPort(r.DstPort),
@@ -120,13 +122,15 @@ func tcpudp(p ir.TCPUDP) tcpudpData {
 	return res
 }
 
-func icmp(p ir.ICMP) icmpData {
+func icmp(p netp.ICMP) icmpData {
 	res := icmpData{
 		Protocol: utils.Ptr(icmpConst),
-		Type:     utils.Ptr(int64(p.Type)),
 	}
-	if p.Code != nil {
-		res.Code = utils.Ptr(int64(*p.Code))
+	if p.TypeCode != nil {
+		res.Type = utils.Ptr(int64(p.TypeCode.Type))
+		if p.TypeCode.Code != nil {
+			res.Code = utils.Ptr(int64(*p.TypeCode.Code))
+		}
 	}
 	return res
 }
