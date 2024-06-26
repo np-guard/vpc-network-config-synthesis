@@ -10,7 +10,6 @@ import (
 	"log"
 
 	"github.com/np-guard/models/pkg/netp"
-
 	"github.com/np-guard/models/pkg/netset"
 )
 

@@ -9,12 +9,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/IBM/vpc-go-sdk/vpcv1"
+
 	"github.com/np-guard/models/pkg/interval"
 	"github.com/np-guard/models/pkg/netp"
-
 	"github.com/np-guard/models/pkg/netset"
-
-	"github.com/IBM/vpc-go-sdk/vpcv1"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"

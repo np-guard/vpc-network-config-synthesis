@@ -13,7 +13,6 @@ import (
 	"github.com/IBM/vpc-go-sdk/vpcv1"
 
 	configModel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
-
 	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"

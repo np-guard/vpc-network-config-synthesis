@@ -8,11 +8,10 @@ package confio
 import (
 	"log"
 
-	"github.com/np-guard/models/pkg/netp"
-
 	"github.com/IBM/vpc-go-sdk/vpcv1"
 
 	configModel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
+	"github.com/np-guard/models/pkg/netp"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
