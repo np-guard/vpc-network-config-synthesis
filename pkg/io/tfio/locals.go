@@ -32,14 +32,15 @@ func WriteLocals(defs *ir.ConfigDefs, acl bool) (*bytes.Buffer, error) {
 
 func locals(defs *ir.ConfigDefs, acl bool) string {
 	result := "locals {\n"
-	for _, vpcName := range utils.SortedMapKeys(defs.VPCs) {
-		line := indentation + fmt.Sprintf("name_%s_id = <%s ID>", vpcName, vpcName) + "\n"
-		result += line
-	}
 	prefix := "sg"
 	if acl {
 		prefix = "acl"
 	}
+	for _, vpcName := range utils.SortedMapKeys(defs.VPCs) {
+		line := indentation + prefix + fmt.Sprintf("_synth_%s_id = <%s ID>", vpcName, vpcName) + "\n"
+		result += line
+	}
+
 	result += "\n" + indentation + fmt.Sprintf("%s_synth_resource_group_id = <RESOURCE-GROUP ID>", prefix) + "\n"
 	result += "}"
 	return result
