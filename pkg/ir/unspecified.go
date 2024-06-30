@@ -50,7 +50,26 @@ func (s *Spec) ComputeBlockedSubnets() []ID {
 				}
 			}
 		}
-		if !s.findResourceInConnections(cidrSegments, ResourceTypeCidr) {
+		if s.findResourceInConnections(cidrSegments, ResourceTypeCidr) {
+			continue
+		}
+
+		// nifs in the subnet
+		nifs := []ID{}
+		for instanceName, instance := range s.Defs.Instances {
+			instanceInList := false
+			for _, nif := range instance.Nifs {
+				if subnet == s.Defs.NIFs[nif].Subnet {
+					nifs = append(nifs, nif)
+					if !instanceInList {
+						nifs = append(nifs, instanceName)
+						instanceInList = true
+					}
+					break
+				}
+			}
+		}
+		if !s.findResourceInConnections(nifs, ResourceTypeNIF) {
 			blockedSubnets = append(blockedSubnets, subnet)
 		}
 	}

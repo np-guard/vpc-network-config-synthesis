@@ -24,7 +24,7 @@ type Options struct {
 // MakeACL translates Spec to a collection of ACLs
 func MakeACL(s *ir.Spec, opt Options) *ir.ACLCollection {
 	aclSelector := func(cidr *ipblock.IPBlock) string {
-		result, ok := s.Defs.SubnetNameFromIP(cidr)
+		result, ok := s.Defs.SubnetNameFromCidr(cidr)
 		if !ok {
 			log.Fatalf(subnetNotFoundError)
 		}
@@ -32,7 +32,7 @@ func MakeACL(s *ir.Spec, opt Options) *ir.ACLCollection {
 	}
 	if opt.SingleACL {
 		aclSelector = func(cidr *ipblock.IPBlock) string {
-			result, ok := s.Defs.SubnetNameFromIP(cidr)
+			result, ok := s.Defs.SubnetNameFromCidr(cidr)
 			if !ok {
 				log.Fatalf(subnetNotFoundError)
 			}
@@ -88,6 +88,9 @@ func allowDirectedConnection(s *ir.Spec, srcCidr, dstCidr *ipblock.IPBlock, conn
 	protocol ir.Protocol, reason explanation) []*ir.ACLRule {
 	var request, response *ir.Packet
 
+	srcCidr = updateEndpoint(&s.Defs.ConfigDefs, conn.Src, srcCidr)
+	dstCidr = updateEndpoint(&s.Defs.ConfigDefs, conn.Src, dstCidr)
+
 	srcSubnetList := subnetsContainedInCidr(s, srcCidr, conn.Src)
 	dstSubnetList := subnetsContainedInCidr(s, dstCidr, conn.Dst)
 
@@ -138,7 +141,7 @@ func generateACLCollectionForBlockedSubnets(s *ir.Spec, aclSelector func(target 
 }
 
 func resourceRelevantToACL(e ir.ResourceType) bool {
-	return e == ir.ResourceTypeSubnet || e == ir.ResourceTypeSegment || e == ir.ResourceTypeCidr
+	return e == ir.ResourceTypeSubnet || e == ir.ResourceTypeCidr || e == ir.ResourceTypeNIF
 }
 
 func subnetsContainedInCidr(s *ir.Spec, cidr *ipblock.IPBlock, resource ir.Resource) []*ipblock.IPBlock {
@@ -152,4 +155,13 @@ func subnetsContainedInCidr(s *ir.Spec, cidr *ipblock.IPBlock, resource ir.Resou
 		result[i] = s.Defs.Subnets[subnet].Address()
 	}
 	return result
+}
+
+func updateEndpoint(s *ir.ConfigDefs, resource ir.Resource, addr *ipblock.IPBlock) *ipblock.IPBlock {
+	if resource.Type == ir.ResourceTypeNIF {
+		nifName, _ := s.NIFFromIP(addr)
+		subnetName := s.NIFs[nifName].Subnet
+		return s.Subnets[subnetName].CIDR
+	}
+	return addr
 }

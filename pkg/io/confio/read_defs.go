@@ -123,6 +123,7 @@ func parseInstancesNifs(config *configModel.ResourcesContainerModel) (instances 
 				Instance:    ScopingString(*instance.VPC.Name, *instance.Name),
 				VPC:         *instance.VPC.Name,
 				IP:          nifIP,
+				Subnet:      ScopingString(*instance.VPC.Name, *instance.NetworkInterfaces[i].Subnet.Name),
 			}
 			nifs[nifUniqueName] = &nifDetails
 			instanceNifs[i] = nifUniqueName
