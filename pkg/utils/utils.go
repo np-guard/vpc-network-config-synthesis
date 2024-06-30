@@ -33,3 +33,11 @@ func SortedValuesInKey[T ~string, V any](m map[string]map[T]V, key string) []T {
 
 	return keys
 }
+
+func SortedMapKeys[T ~string, V any](m map[T]V) []T {
+	keys := maps.Keys(m)
+	cmp := func(i, j int) bool { return keys[i] < keys[j] }
+	sort.Slice(keys, cmp)
+
+	return keys
+}

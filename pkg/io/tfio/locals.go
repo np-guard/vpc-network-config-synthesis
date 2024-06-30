@@ -13,39 +13,34 @@ import (
 	"fmt"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
 const indentation = "  "
 
-func WriteLocals(defs *ir.ConfigDefs, acl bool) error {
+func WriteLocals(defs *ir.ConfigDefs, acl bool) (*bytes.Buffer, error) {
 	data := new(bytes.Buffer)
 	w := bufio.NewWriter(data)
-	// writer := NewWriter(w)
 
 	output := locals(defs, acl)
-	_, err := w.WriteString(output)
-	if err != nil {
-		return err
+	if _, err := w.WriteString(output); err != nil {
+		return nil, err
 	}
-	err = w.Flush()
-
-	// if err := os.WriteFile(args.outputFile, data.Bytes(), defaultFilePermission); err != nil {
-	//		return err
-	//	}
-	return err
+	err := w.Flush()
+	return data, err
 }
 
 func locals(defs *ir.ConfigDefs, acl bool) string {
 	result := "locals {\n"
-	for vpcName := range defs.VPCs {
+	for _, vpcName := range utils.SortedMapKeys(defs.VPCs) {
 		line := indentation + fmt.Sprintf("name_%s_id = <%s ID>", vpcName, vpcName) + "\n"
-		result = result + line
+		result += line
 	}
 	prefix := "sg"
 	if acl {
 		prefix = "acl"
 	}
-	result = result + "\n" + indentation + fmt.Sprintf("%s_synth_resource_group_id = <RESOURCE-GROUP ID>", prefix) + "\n"
-	result = result + "}"
+	result += "\n" + indentation + fmt.Sprintf("%s_synth_resource_group_id = <RESOURCE-GROUP ID>", prefix) + "\n"
+	result += "}"
 	return result
 }
