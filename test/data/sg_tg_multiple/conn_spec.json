@@ -6,8 +6,8 @@
                 "type": "instance"
             },
             "dst": {
-                "name": "speak-princess-washcloth-companion",
-                "type": "nif"
+                "name": "test-vpc0/vsi1-subnet4",
+                "type": "instance"
             }
         },
         {
