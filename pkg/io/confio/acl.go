@@ -111,8 +111,7 @@ func aclRules(acl *ir.ACL) []vpcv1.NetworkACLRuleItemIntf {
 }
 
 func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCollection) error {
-	for i := range model.SubnetList {
-		subnet := model.SubnetList[i]
+	for _, subnet := range model.SubnetList {
 		vpc := subnet.VPC
 		aclName := ScopingString(*vpc.Name, *subnet.Name)
 		acl := collection.ACLs[*vpc.Name][aclName]
@@ -145,7 +144,7 @@ func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCol
 			Name: utils.Ptr(*aclItem.Name),
 		}
 	}
-	GlobalIndex = 0 // making test results more predictable
+	globalIndex = 0 // making test results more predictable
 	return nil
 }
 
