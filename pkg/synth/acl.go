@@ -15,7 +15,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-const subnetNotFoundError = "ACL: src/dst of type network interface (or instance) is not supported."
+const resourceNotFoundError = "[%s] was not found"
 
 type Options struct {
 	SingleACL bool
@@ -26,7 +26,7 @@ func MakeACL(s *ir.Spec, opt Options) *ir.ACLCollection {
 	aclSelector := func(cidr *ipblock.IPBlock) string {
 		result, ok := s.Defs.SubnetNameFromCidr(cidr)
 		if !ok {
-			log.Fatalf(subnetNotFoundError)
+			log.Fatalf(fmt.Sprintf(resourceNotFoundError, cidr.ToCidrList()[0]))
 		}
 		return result
 	}
@@ -34,7 +34,7 @@ func MakeACL(s *ir.Spec, opt Options) *ir.ACLCollection {
 		aclSelector = func(cidr *ipblock.IPBlock) string {
 			result, ok := s.Defs.SubnetNameFromCidr(cidr)
 			if !ok {
-				log.Fatalf(subnetNotFoundError)
+				log.Fatalf(fmt.Sprintf(resourceNotFoundError, cidr.ToCidrList()[0]))
 			}
 			return fmt.Sprintf("%s/singleACL", ir.VpcFromScopedResource(result))
 		}
@@ -89,7 +89,7 @@ func allowDirectedConnection(s *ir.Spec, srcCidr, dstCidr *ipblock.IPBlock, conn
 	var request, response *ir.Packet
 
 	srcCidr = updateEndpoint(&s.Defs.ConfigDefs, conn.Src, srcCidr)
-	dstCidr = updateEndpoint(&s.Defs.ConfigDefs, conn.Src, dstCidr)
+	dstCidr = updateEndpoint(&s.Defs.ConfigDefs, conn.Dst, dstCidr)
 
 	srcSubnetList := subnetsContainedInCidr(s, srcCidr, conn.Src)
 	dstSubnetList := subnetsContainedInCidr(s, dstCidr, conn.Dst)

@@ -1,0 +1,36 @@
+{
+    "required-connections": [
+        {
+            "src": {
+                "name": "subnet4",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "vsi0-subnet0",
+                "type": "instance"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "ICMP",
+                    "type": 0,
+                    "code": 0
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "scale-clambake-endearing-abridged",
+                "type": "nif"
+            },
+            "dst": {
+                "name": "subnet4",
+                "type": "subnet"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ]
+        }
+    ]
+}
