@@ -16,6 +16,7 @@ const (
 	warningUnspecifiedSG  = "The following endpoints do not have required connections; the generated SGs will block all traffic: "
 )
 
+//nolint:gocyclo // look for the subnet in spec
 func (s *Spec) ComputeBlockedSubnets() []ID {
 	var blockedSubnets []ID
 
