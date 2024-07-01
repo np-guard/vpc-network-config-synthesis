@@ -3,17 +3,18 @@ module github.com/np-guard/vpc-network-config-synthesis
 go 1.22.2
 
 require (
-	github.com/IBM/vpc-go-sdk v0.52.0
-	github.com/np-guard/cloud-resource-collector v0.11.0
-	github.com/np-guard/models v0.3.2
 	github.com/spf13/cobra v1.8.1
+	github.com/IBM/vpc-go-sdk v0.53.0
+	github.com/np-guard/cloud-resource-collector v0.12.0
+	github.com/np-guard/models v0.3.4
+    github.com/spf13/cobra v1.8.1
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 )
 
 require (
 	github.com/IBM-Cloud/container-services-go-sdk v0.0.0-20240510130133-9f76aa34af27 // indirect
 	github.com/IBM/go-sdk-core/v5 v5.17.3 // indirect
-	github.com/IBM/networking-go-sdk v0.46.1 // indirect
+	github.com/IBM/networking-go-sdk v0.47.1 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.4 // indirect
 	github.com/go-openapi/errors v0.22.0 // indirect
