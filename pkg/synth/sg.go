@@ -6,40 +6,46 @@ SPDX-License-Identifier: Apache-2.0
 package synth
 
 import (
+	"fmt"
 	"log"
-
-	"github.com/np-guard/models/pkg/ipblock"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
+
+const SGTypeNotSupported = "SG: src/dst of type %s is not supported."
 
 // MakeSG translates Spec to a collection of security groups
 func MakeSG(s *ir.Spec, opt Options) *ir.SGCollection {
 	collections := []*ir.SGCollection{}
 	for c := range s.Connections {
-		collection := generateSGCollectionFromConnection(&s.Connections[c], s.Defs.RemoteFromIP)
+		collection := generateSGCollectionFromConnection(&s.Connections[c])
 		collections = append(collections, collection)
 	}
 	collections = append(collections, generateSGCollectionForBlockedResources(s))
 	return ir.MergeSGCollections(collections...)
 }
 
-func generateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(target *ipblock.IPBlock) ir.RemoteType) *ir.SGCollection {
+func generateSGCollectionFromConnection(conn *ir.Connection) *ir.SGCollection {
 	internalSrc := conn.Src.Type != ir.ResourceTypeExternal
 	internalDst := conn.Dst.Type != ir.ResourceTypeExternal
 	if !internalSrc && !internalDst {
 		log.Fatalf("SG: Both source and destination are external for connection %v", *conn)
 	}
+	if !resourceRelevantToSG(conn.Src.Type) {
+		log.Fatalf(fmt.Sprintf(SGTypeNotSupported, string(conn.Src.Type)))
+	}
+	if !resourceRelevantToSG(conn.Dst.Type) {
+		log.Fatalf(fmt.Sprintf(SGTypeNotSupported, string(conn.Dst.Type)))
+	}
 
 	result := ir.NewSGCollection()
 
-	if !resourceRelevantToSG(conn.Src.Type) && !resourceRelevantToSG(conn.Dst.Type) {
-		return result
-	}
+	srcEndpoints := updateEndpoints(conn.Src)
+	dstEndpoints := updateEndpoints(conn.Dst)
 
-	for _, src := range conn.Src.IPAddrs {
-		for _, dst := range conn.Dst.IPAddrs {
-			if src == dst {
+	for _, srcEndpoint := range srcEndpoints {
+		for _, dstEndpoint := range dstEndpoints {
+			if srcEndpoint.Addrs.Equal(dstEndpoint.Addrs) {
 				continue
 			}
 
@@ -83,7 +89,6 @@ func generateSGCollectionFromConnection(conn *ir.Connection, sgSelector func(tar
 			}
 		}
 	}
-
 	return result
 }
 
@@ -98,5 +103,16 @@ func generateSGCollectionForBlockedResources(s *ir.Spec) *ir.SGCollection {
 }
 
 func resourceRelevantToSG(e ir.ResourceType) bool {
-	return e == ir.ResourceTypeNIF
+	return e == ir.ResourceTypeNIF || e == ir.ResourceTypeExternal || e == ir.ResourceTypeVPE
+}
+
+func updateEndpoints(resource ir.Resource) []ir.ConnResource {
+	if resource.Type == ir.ResourceTypeExternal {
+		return []ir.ConnResource{{Name: resource.Name, Addrs: resource.IPAddrs[0]}}
+	}
+	result := make([]ir.ConnResource, len(resource.IPAddrs))
+	for i, ip := range resource.IPAddrs {
+		result[i] = ir.ConnResource{Name: resource.Name, Addrs: ip}
+	}
+	return result
 }
