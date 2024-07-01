@@ -4,8 +4,8 @@ github.com/IBM-Cloud/container-services-go-sdk v0.0.0-20240510130133-9f76aa34af2
 github.com/IBM/go-sdk-core/v5 v5.5.1/go.mod h1:Sn+z+qTDREQvCr+UFa22TqqfXNxx3o723y8GsfLV8e0=
 github.com/IBM/go-sdk-core/v5 v5.17.3 h1:CZSVCKzhQc/hRQZOtuEmi9dlNtWMnxJvOsPtQKP7cZ4=
 github.com/IBM/go-sdk-core/v5 v5.17.3/go.mod h1:GatGZpxlo1KaxiRN6E10/rNgWtUtx1hN/GoHSCaSPKA=
-github.com/IBM/networking-go-sdk v0.46.1 h1:DnnLR7YDJQRE38/nIeeD7PaKyxpoiIe/aW7NP6bcPHM=
-github.com/IBM/networking-go-sdk v0.46.1/go.mod h1:yF4XStkswGgVwQVqPUk6b4YTP0dVap52q8HDYwY4gXQ=
+github.com/IBM/networking-go-sdk v0.47.1 h1:Zqqu9CrZ86jkjMyuIJtBLLOE0D7YtirxnlFyAngEfLw=
+github.com/IBM/networking-go-sdk v0.47.1/go.mod h1:yF4XStkswGgVwQVqPUk6b4YTP0dVap52q8HDYwY4gXQ=
 github.com/IBM/vpc-go-sdk v0.53.0 h1:wlrROeQFTb4utkCKn72eSKGlS4zi3n5pTAJ2pcYTtwE=
 github.com/IBM/vpc-go-sdk v0.53.0/go.mod h1:FoZljso53oB/A2mW7ExsfHXZ3T3XWV7c7R5JSgS4QfY=
 github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
@@ -128,8 +128,8 @@ github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RR
 github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe/go.mod h1:wL8QJuTMNUDYhXwkmfOly8iTdp5TEcJFWZD2D7SIkUc=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e h1:fD57ERR4JtEqsWbfPhv4DMiApHyliiK5xCTNVSPiaAs=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
-github.com/np-guard/cloud-resource-collector v0.11.0 h1:dFjmk57VOsWNx4F16r8rrATwoXYT9l2ViVQKk8nSXiA=
-github.com/np-guard/cloud-resource-collector v0.11.0/go.mod h1:eFtMzSmxkEMWJ1Dt6XGKgopOqIg+dXLAZL/GtGLsKs4=
+github.com/np-guard/cloud-resource-collector v0.12.0 h1:m/g0tCuJrzz0GFWldaL1tzkSX13oZzqQdZpqbY/y1IQ=
+github.com/np-guard/cloud-resource-collector v0.12.0/go.mod h1:or4k01jfswTPGJECNUUgAw+AONL/QzAPwQikssvcc70=
 github.com/np-guard/models v0.3.4 h1:HOhVi6wyGvo+KmYBnQ5Km5HYCF+/PQlDs1v7mL1v05g=
 github.com/np-guard/models v0.3.4/go.mod h1:mqE2Irf8r+7HWh8fII0fWbWyQRMHGEo2SgSLN/6VKs8=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
