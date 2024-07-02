@@ -30,10 +30,7 @@ func writeOutput(args *inArgs, collection ir.Collection, defs *ir.ConfigDefs) er
 		return fmt.Errorf("-d cannot be used with format json")
 	}
 	if args.outputDir == "" {
-		if err := writeToFile(args, collection, ""); err != nil {
-			return err
-		}
-		return nil
+		return writeToFile(args, collection, "")
 	}
 	// create the directory if needed
 	err := os.MkdirAll(args.outputDir, defaultDirectoryPermission)
@@ -67,12 +64,9 @@ func writeToFile(args *inArgs, collection ir.Collection, vpc string) error {
 
 	if args.outputFile == "" {
 		fmt.Print(data.String())
-	} else {
-		if err := os.WriteFile(args.outputFile, data.Bytes(), defaultFilePermission); err != nil {
-			return err
-		}
+		return nil
 	}
-	return nil
+	return os.WriteFile(args.outputFile, data.Bytes(), defaultFilePermission)
 }
 
 func pickWriter(args *inArgs, data *bytes.Buffer) (ir.Writer, error) {
