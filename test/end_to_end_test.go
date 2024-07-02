@@ -66,7 +66,7 @@ func sgTestCase(folder, outputFormat string, separateOutputs bool) TestCase {
 		outputFormat: outputFormat,
 		separate:     separateOutputs,
 		maker: func(s *ir.Spec) ir.Collection {
-			return synth.MakeSG(s, synth.Options{})
+			return synth.MakeSG(s)
 		},
 	}
 }

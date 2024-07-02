@@ -3,6 +3,7 @@ module github.com/np-guard/vpc-network-config-synthesis
 go 1.22.2
 
 require (
+	github.com/spf13/cobra v1.8.1
 	github.com/IBM/vpc-go-sdk v0.53.0
 	github.com/np-guard/cloud-resource-collector v0.12.0
 	github.com/np-guard/models v0.3.4
@@ -23,9 +24,11 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.7 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
+	github.com/spf13/pflag v1.0.5 // indirect
 	go.mongodb.org/mongo-driver v1.15.0 // indirect
 	golang.org/x/crypto v0.24.0 // indirect
 	golang.org/x/net v0.26.0 // indirect
