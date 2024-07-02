@@ -22,9 +22,10 @@ const ResourceTypeNif = "network_interface"
 const ResourceTypeEndpointGateway = "endpoint_gateway"
 
 func findAndDeleteTargetFromSG(model *configModel.ResourcesContainerModel, sgIndex int, id *string) {
-	for i := range model.SecurityGroupList[sgIndex].Targets {
-		if target, ok := model.SecurityGroupList[sgIndex].Targets[i].(*vpcv1.SecurityGroupTargetReference); ok && *target.ID == *id {
-			model.SecurityGroupList[sgIndex].Targets = slices.Delete(model.SecurityGroupList[sgIndex].Targets, i, i+1) // deleteTargetFromSG
+	sg := model.SecurityGroupList[sgIndex]
+	for i := range sg.Targets {
+		if target, ok := sg.Targets[i].(*vpcv1.SecurityGroupTargetReference); ok && *target.ID == *id {
+			sg.Targets = slices.Delete(sg.Targets, i, i+1) // deleteTargetFromSG
 			break
 		}
 	}
