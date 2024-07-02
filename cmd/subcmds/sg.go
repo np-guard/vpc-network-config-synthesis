@@ -14,19 +14,16 @@ import (
 func NewSGCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "sg",
-		Short: "SG generation for nifs and vpes",
-		Long:  `The input supports Instances (VSIs), NIFs, VPEs and externals.`,
+		Short: "Generate Security Groups from connectivity specification",
+		Long: `Generate Security Groups for Network Interfaces and VPEs to only allow the specified connectivity. 
+		Endpoints in the required-connectivity specification may be Instances (VSIs), Network Interfaces, VPEs and externals.`,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			spec, err := unmarshal(args)
 			if err != nil {
 				return err
 			}
 			collection := synth.MakeSG(spec)
-			err = writeOutput(args, collection, &spec.Defs.ConfigDefs)
-			if err != nil {
-				return err
-			}
-			return nil
+			return writeOutput(args, collection, &spec.Defs.ConfigDefs)
 		},
 	}
 	return cmd

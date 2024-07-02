@@ -15,9 +15,9 @@ import (
 func NewACLCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "acl",
-		Short: "nACL generation for subnets",
-		Long: `generate an nACL for each subnet separately, or to generate a single nACL for all subnets in 
-			the same VPC. The input supports subnets, subnet segments, CIDR segments and externals.`,
+		Short: "Generate  Networks ACLs from connectivity specification",
+		Long: `Generate Network ACLs to only allow the specified connectivity, either for each subnet separately or per VPC.
+		Endpoints in the required-connectivity specification may be subnets, subnet segments, CIDR segments and externals.`,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			spec, err := unmarshal(args)
 			if err != nil {
@@ -29,11 +29,7 @@ func NewACLCommand(args *inArgs) *cobra.Command {
 			} else {
 				collection = synth.MakeACL(spec, synth.Options{SingleACL: false})
 			}
-			err = writeOutput(args, collection, &spec.Defs.ConfigDefs)
-			if err != nil {
-				return err
-			}
-			return nil
+			return writeOutput(args, collection, &spec.Defs.ConfigDefs)
 		},
 	}
 

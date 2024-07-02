@@ -11,7 +11,7 @@ Use the `vpcgen` CLI tool with one of the following commands to specify the type
 * `vpcgen acl --single` - generate a single nACL for all subnets in the same VPC.
 
 ### nACLs Generation
-There is an option to generate an nACL for each subnet separately, or to generate a single nACL for all subnets in the same VPC.
+Specifying the `--single` flag results in generating a single nACL for all subnets in the same VPC. Otherwise, an nACL is generated for each subnet separately.
 The input supports subnets, subnet segments, CIDR segments and externals.
 Note: The segments are defined in the `conn_spec.json` file.
 
@@ -26,15 +26,6 @@ The input supports Instances (VSIs), NIFs, VPEs and externals.
 
 ### Global options
 ```commandline
-Tool for automatic synthesis of VPC network configurations, namely Network ACLs and Security Groups.
-
-Usage:
-  vpc-synthesis [command]
-
-Available Commands:
-  acl         nACL generation for subnets
-  sg          SG generation for nifs and vpes
-
 Flags:
   -c, --config string        JSON file containing config spec
   -f, --format string        Output format; must be one of [tf, csv, md, json]
@@ -43,8 +34,8 @@ Flags:
   -o, --output-file string   Write all generated resources to the specified file.
       --prefix string        The prefix of the files that will be created.
   -s, --spec string          JSON file containing spec file
-
 ```
+**Note**: The infrastructure configuration must always be provided using the `--config` flag.
 
 ## Build the project
 Make sure you have golang 1.22+ on your platform.
