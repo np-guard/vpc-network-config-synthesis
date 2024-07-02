@@ -7,7 +7,6 @@ package subcmds
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -55,9 +54,9 @@ func NewRootCommand() *cobra.Command {
 		"whether to generate a locals.tf file (Possible when the output fmt is tf)")
 	rootCmd.PersistentFlags().SortFlags = false
 
-	if err := rootCmd.MarkPersistentFlagRequired(configFlag); err != nil {
-		log.Fatal("-config parameter must be supplied")
-	}
+	_ = rootCmd.MarkPersistentFlagRequired(configFlag)
+	_ = rootCmd.MarkPersistentFlagRequired(specFlag)
+
 	rootCmd.MarkFlagsMutuallyExclusive(outputFileFlag, outputDirFlag)
 	rootCmd.MarkFlagsMutuallyExclusive(outputFileFlag, outputFmtFlag)
 

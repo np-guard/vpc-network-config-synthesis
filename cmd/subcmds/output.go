@@ -30,13 +30,10 @@ func writeOutput(args *inArgs, collection ir.Collection, defs *ir.ConfigDefs) er
 		return err
 	}
 	if args.outputDir == "" {
-		if data, err = writeCollection(args, collection, ""); err != nil {
+    if data, err = writeCollection(args, collection, ""); err != nil {
 			return err
 		}
-		if err := writeToFile(args.outputFile, data); err != nil {
-			return err
-		}
-		return nil
+    return writeToFile(args, collection, "")
 	}
 
 	// create the directory if needed
@@ -91,12 +88,9 @@ func writeCollection(args *inArgs, collection ir.Collection, vpc string) (*bytes
 func writeToFile(outputFile string, data *bytes.Buffer) error {
 	if outputFile == "" {
 		fmt.Print(data.String())
-	} else {
-		if err := os.WriteFile(outputFile, data.Bytes(), defaultFilePermission); err != nil {
-			return err
-		}
+    return nil
 	}
-	return nil
+	return os.WriteFile(args.outputFile, data.Bytes(), defaultFilePermission)
 }
 
 func pickWriter(args *inArgs, data *bytes.Buffer) (ir.Writer, error) {
@@ -109,7 +103,7 @@ func pickWriter(args *inArgs, data *bytes.Buffer) (ir.Writer, error) {
 	case mdOutputFormat:
 		return mdio.NewWriter(w), nil
 	case apiOutputFormat:
-		return confio.NewWriter(w, args.specFile)
+		return confio.NewWriter(w, args.configFile)
 	default:
 		return nil, fmt.Errorf("bad output format: %q", args.outputFmt)
 	}

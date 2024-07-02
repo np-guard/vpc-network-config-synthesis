@@ -359,7 +359,7 @@ func unmarshal(filename string) (*spec.Spec, error) {
 func parseOverlappingVpcs(cidr *ipblock.IPBlock, vpcs map[ir.ID]*ir.VPCDetails) []ir.ID {
 	result := make([]ir.ID, 0)
 	for vpcName, vpcDetails := range vpcs {
-		if !vpcDetails.AddressPrefixes.Intersect(cidr).IsEmpty() {
+		if vpcDetails.AddressPrefixes.Overlap(cidr) {
 			result = append(result, vpcName)
 		}
 	}
