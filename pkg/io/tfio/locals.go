@@ -3,8 +3,7 @@ Copyright 2023- IBM Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-// Package tfio generates a locals.tf file that sets up all the local variables that
-// were used in the generated SGs/nACLs.
+// Package tfio generates a locals.tf file that sets up some of the tf variables
 package tfio
 
 import (
@@ -26,8 +25,7 @@ func WriteLocals(defs *ir.ConfigDefs, acl bool) (*bytes.Buffer, error) {
 	if _, err := w.WriteString(output); err != nil {
 		return nil, err
 	}
-	err := w.Flush()
-	return data, err
+	return data, w.Flush()
 }
 
 func locals(defs *ir.ConfigDefs, acl bool) string {
