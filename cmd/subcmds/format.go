@@ -10,7 +10,15 @@ import (
 	"strings"
 )
 
-var outputFormats = []string{"tf", "csv", "md", "json"}
+const (
+	tfOutputFormat      = "tf"
+	csvOutputFormat     = "csv"
+	mdOutputFormat      = "md"
+	apiOutputFormat     = "json"
+	defaultOutputFormat = csvOutputFormat
+)
+
+var outputFormats = []string{tfOutputFormat, csvOutputFormat, mdOutputFormat, apiOutputFormat}
 
 func updateFormat(args *inArgs) error {
 	var err error
@@ -22,14 +30,6 @@ func updateFormat(args *inArgs) error {
 	}
 	return nil
 }
-
-const (
-	tfOutputFormat      = "tf"
-	csvOutputFormat     = "csv"
-	mdOutputFormat      = "md"
-	apiOutputFormat     = "json"
-	defaultOutputFormat = csvOutputFormat
-)
 
 func inferFormatUsingFilename(filename string) (string, error) {
 	switch {
