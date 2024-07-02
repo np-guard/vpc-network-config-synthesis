@@ -30,10 +30,10 @@ func writeOutput(args *inArgs, collection ir.Collection, defs *ir.ConfigDefs) er
 		return err
 	}
 	if args.outputDir == "" {
-    if data, err = writeCollection(args, collection, ""); err != nil {
+		if data, err = writeCollection(args, collection, ""); err != nil {
 			return err
 		}
-    return writeToFile(args, collection, "")
+		return writeToFile(args.outputFile, data)
 	}
 
 	// create the directory if needed
@@ -88,9 +88,9 @@ func writeCollection(args *inArgs, collection ir.Collection, vpc string) (*bytes
 func writeToFile(outputFile string, data *bytes.Buffer) error {
 	if outputFile == "" {
 		fmt.Print(data.String())
-    return nil
+		return nil
 	}
-	return os.WriteFile(args.outputFile, data.Bytes(), defaultFilePermission)
+	return os.WriteFile(outputFile, data.Bytes(), defaultFilePermission)
 }
 
 func pickWriter(args *inArgs, data *bytes.Buffer) (ir.Writer, error) {
