@@ -58,7 +58,6 @@ func NewRootCommand() *cobra.Command {
 	_ = rootCmd.MarkPersistentFlagRequired(specFlag)
 
 	rootCmd.MarkFlagsMutuallyExclusive(outputFileFlag, outputDirFlag)
-	rootCmd.MarkFlagsMutuallyExclusive(outputFileFlag, outputFmtFlag)
 
 	rootCmd.AddCommand(NewACLCommand(args))
 	rootCmd.AddCommand(NewSGCommand(args))
