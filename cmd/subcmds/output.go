@@ -79,7 +79,7 @@ func pickWriter(args *inArgs, data *bytes.Buffer) (ir.Writer, error) {
 	case mdOutputFormat:
 		return mdio.NewWriter(w), nil
 	case apiOutputFormat:
-		return confio.NewWriter(w, args.specFile)
+		return confio.NewWriter(w, args.configFile)
 	default:
 		return nil, fmt.Errorf("bad output format: %q", args.outputFmt)
 	}
