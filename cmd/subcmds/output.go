@@ -26,9 +26,16 @@ const defaultDirectoryPermission = 0o755
 func writeOutput(args *inArgs, collection ir.Collection, defs *ir.ConfigDefs) error {
 	var data *bytes.Buffer
 	var err error
-	if err := checks(args, collection, defs); err != nil {
+	if err := updateFormat(args); err != nil {
 		return err
 	}
+	if args.outputDir != "" && args.outputFmt == apiOutputFormat {
+		return fmt.Errorf("-d cannot be used with format json")
+	}
+	if err := writeLocals(args, collection, defs); err != nil {
+		return err
+	}
+
 	if args.outputDir == "" {
 		if data, err = writeCollection(args, collection, ""); err != nil {
 			return err
@@ -58,21 +65,6 @@ func writeOutput(args *inArgs, collection ir.Collection, defs *ir.ConfigDefs) er
 	return nil
 }
 
-func checks(args *inArgs, collection ir.Collection, defs *ir.ConfigDefs) error {
-	if err := updateFormat(args); err != nil {
-		return err
-	}
-	if args.locals && args.outputFmt == tfOutputFormat && (args.outputDir != "" || args.outputFile != "") {
-		if err := writeLocals(args, collection, defs); err != nil {
-			return err
-		}
-	}
-	if args.outputDir != "" && args.outputFmt == apiOutputFormat {
-		return fmt.Errorf("-d cannot be used with format json")
-	}
-	return nil
-}
-
 func writeCollection(args *inArgs, collection ir.Collection, vpc string) (*bytes.Buffer, error) {
 	var data bytes.Buffer
 	writer, err := pickWriter(args, &data)
@@ -87,7 +79,7 @@ func writeCollection(args *inArgs, collection ir.Collection, vpc string) (*bytes
 
 func writeToFile(outputFile string, data *bytes.Buffer) error {
 	if outputFile == "" {
-		fmt.Print(data.String())
+		fmt.Println(data.String())
 		return nil
 	}
 	return os.WriteFile(outputFile, data.Bytes(), defaultFilePermission)
@@ -112,22 +104,26 @@ func pickWriter(args *inArgs, data *bytes.Buffer) (ir.Writer, error) {
 func writeLocals(args *inArgs, collection ir.Collection, defs *ir.ConfigDefs) error {
 	var data *bytes.Buffer
 	var err error
-	if _, ok := collection.(*ir.ACLCollection); ok {
-		if data, err = tfio.WriteLocals(defs, true); err != nil {
-			return err
-		}
-	} else {
-		if data, err = tfio.WriteLocals(defs, false); err != nil {
-			return err
-		}
+
+	if !args.locals {
+		return nil
 	}
-	var out string
+	if args.outputFmt != tfOutputFormat {
+		return fmt.Errorf("--locals flag can be supplied only when the output format is tf")
+	}
+
+	_, isACLCollection := collection.(*ir.ACLCollection)
+	if data, err = tfio.WriteLocals(defs, isACLCollection); err != nil {
+		return err
+	}
+
+	outputFile := ""
 	suffix := "/locals.tf"
 	if args.outputDir != "" {
-		out = args.outputDir + suffix
-	} else {
-		out = filepath.Dir(args.outputFile) + suffix
+		outputFile = args.outputDir + suffix
+	} else if args.outputFile != "" {
+		outputFile = filepath.Dir(args.outputFile) + suffix
 	}
-	err = writeToFile(out, data)
+	err = writeToFile(outputFile, data)
 	return err
 }

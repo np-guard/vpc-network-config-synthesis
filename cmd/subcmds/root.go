@@ -51,7 +51,7 @@ func NewRootCommand() *cobra.Command {
 		"Write generated resources to files in the specified directory, one file per VPC.")
 	rootCmd.PersistentFlags().StringVarP(&args.prefix, prefixFlag, "p", "", "The prefix of the files that will be created.")
 	rootCmd.PersistentFlags().BoolVarP(&args.locals, localsFlag, "l", false,
-		"whether to generate a locals.tf file (Possible when the output fmt is tf)")
+		"whether to generate a locals.tf file (only possible when the output format is tf)")
 	rootCmd.PersistentFlags().SortFlags = false
 
 	_ = rootCmd.MarkPersistentFlagRequired(configFlag)
