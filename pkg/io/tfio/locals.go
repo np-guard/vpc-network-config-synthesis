@@ -22,7 +22,6 @@ func WriteLocals(defs *ir.ConfigDefs, acl bool) (*bytes.Buffer, error) {
 	data := new(bytes.Buffer)
 	w := bufio.NewWriter(data)
 
-  
 	output := locals(defs, acl)
 	if _, err := w.WriteString(output); err != nil {
 		return nil, err
@@ -31,16 +30,16 @@ func WriteLocals(defs *ir.ConfigDefs, acl bool) (*bytes.Buffer, error) {
 }
 
 func locals(defs *ir.ConfigDefs, acl bool) string {
-  prefix := "sg"
+	result := []string{"locals {"}
+	prefix := "sg"
 	if acl {
 		prefix = "acl"
 	}
-  result := []string{"locals {"}
 	for _, vpcName := range utils.SortedMapKeys(defs.VPCs) {
 		line := indentation + fmt.Sprintf("_synth_%s_id = <%s ID>", vpcName, vpcName)
 		result = append(result, line)
 	}
-	
+
 	result = append(result, "") // empty line
 	line := indentation + fmt.Sprintf("%s_synth_resource_group_id = <RESOURCE-GROUP ID>\n}\n", prefix)
 	result = append(result, line)
