@@ -18,7 +18,9 @@ func NewACLCommand(args *inArgs) *cobra.Command {
 		Short: "Generate  Networks ACLs from connectivity specification",
 		Long: `Generate Network ACLs to only allow the specified connectivity, either for each subnet separately or per VPC.
 		Endpoints in the required-connectivity specification may be subnets, subnet segments, CIDR segments and externals.`,
-		RunE: func(_ *cobra.Command, _ []string) error {
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			cmd.SilenceUsage = true
 			spec, err := unmarshal(args)
 			if err != nil {
 				return err

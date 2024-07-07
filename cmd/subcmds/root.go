@@ -7,7 +7,6 @@ package subcmds
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -50,16 +49,15 @@ func NewRootCommand() *cobra.Command {
 	rootCmd.PersistentFlags().StringVarP(&args.outputFile, outputFileFlag, "o", "", "Write all generated resources to the specified file.")
 	rootCmd.PersistentFlags().StringVarP(&args.outputDir, outputDirFlag, "d", "",
 		"Write generated resources to files in the specified directory, one file per VPC.")
-	rootCmd.PersistentFlags().StringVar(&args.prefix, prefixFlag, "", "The prefix of the files that will be created.")
-	rootCmd.PersistentFlags().BoolVar(&args.locals, localsFlag, false,
-		"whether to generate a locals.tf file (Possible when the output fmt is tf)")
+	rootCmd.PersistentFlags().StringVarP(&args.prefix, prefixFlag, "p", "", "The prefix of the files that will be created.")
+	rootCmd.PersistentFlags().BoolVarP(&args.locals, localsFlag, "l", false,
+		"whether to generate a locals.tf file (only possible when the output format is tf)")
 	rootCmd.PersistentFlags().SortFlags = false
 
-	if err := rootCmd.MarkPersistentFlagRequired(configFlag); err != nil {
-		log.Fatal("-config parameter must be supplied")
-	}
+	_ = rootCmd.MarkPersistentFlagRequired(configFlag)
+	_ = rootCmd.MarkPersistentFlagRequired(specFlag)
+
 	rootCmd.MarkFlagsMutuallyExclusive(outputFileFlag, outputDirFlag)
-	rootCmd.MarkFlagsMutuallyExclusive(outputFileFlag, outputFmtFlag)
 
 	rootCmd.AddCommand(NewACLCommand(args))
 	rootCmd.AddCommand(NewSGCommand(args))
