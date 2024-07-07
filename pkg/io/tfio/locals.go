@@ -36,7 +36,7 @@ func locals(defs *ir.ConfigDefs, acl bool) string {
 		prefix = "acl"
 	}
 	for _, vpcName := range utils.SortedMapKeys(defs.VPCs) {
-		line := indentation + fmt.Sprintf("_synth_%s_id = <%s ID>", vpcName, vpcName)
+		line := indentation + fmt.Sprintf("%s_synth_%s_id = <%s ID>", prefix, vpcName, vpcName)
 		result = append(result, line)
 	}
 
