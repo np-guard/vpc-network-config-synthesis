@@ -20,17 +20,22 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-const defaultFilePermission = 0o666
+const defaultFilePermission = 0o644
 const defaultDirectoryPermission = 0o755
 
 func writeOutput(args *inArgs, collection ir.Collection, defs *ir.ConfigDefs) error {
 	var data *bytes.Buffer
 	var err error
-	if err := updateFormat(args); err != nil {
+	if err := updateOutputFormat(args); err != nil {
 		return err
 	}
 	if args.outputDir != "" && args.outputFmt == apiOutputFormat {
 		return fmt.Errorf("-d cannot be used with format json")
+	}
+	if args.outputDir != "" { // create the directory if needed
+		if err := os.MkdirAll(args.outputDir, defaultDirectoryPermission); err != nil {
+			return err
+		}
 	}
 	if err := writeLocals(args, collection, defs); err != nil {
 		return err
@@ -41,11 +46,6 @@ func writeOutput(args *inArgs, collection ir.Collection, defs *ir.ConfigDefs) er
 			return err
 		}
 		return writeToFile(args.outputFile, data)
-	}
-
-	// create the directory if needed
-	if err := os.MkdirAll(args.outputDir, defaultDirectoryPermission); err != nil {
-		return err
 	}
 
 	// write each file
@@ -102,17 +102,16 @@ func pickWriter(args *inArgs, data *bytes.Buffer) (ir.Writer, error) {
 }
 
 func writeLocals(args *inArgs, collection ir.Collection, defs *ir.ConfigDefs) error {
-	var data *bytes.Buffer
-	var err error
-
 	if !args.locals {
 		return nil
 	}
 	if args.outputFmt != tfOutputFormat {
-		return fmt.Errorf("--locals flag can be supplied only when the output format is tf")
+		return fmt.Errorf("--locals flag requires setting the output format to tf")
 	}
 
 	_, isACLCollection := collection.(*ir.ACLCollection)
+	var data *bytes.Buffer
+	var err error
 	if data, err = tfio.WriteLocals(defs, isACLCollection); err != nil {
 		return err
 	}
@@ -124,6 +123,5 @@ func writeLocals(args *inArgs, collection ir.Collection, defs *ir.ConfigDefs) er
 	} else if args.outputFile != "" {
 		outputFile = filepath.Dir(args.outputFile) + suffix
 	}
-	err = writeToFile(outputFile, data)
-	return err
+	return writeToFile(outputFile, data)
 }

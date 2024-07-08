@@ -17,7 +17,7 @@ import (
 
 const indentation = "  "
 
-// generate a locals.tf file that sets up some of the tf variables
+// WriteLocals generates a locals.tf file that sets up the VPCs and ResourceGroup tf variables
 func WriteLocals(defs *ir.ConfigDefs, acl bool) (*bytes.Buffer, error) {
 	data := new(bytes.Buffer)
 	w := bufio.NewWriter(data)
