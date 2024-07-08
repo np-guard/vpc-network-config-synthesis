@@ -77,7 +77,7 @@ func singleACL(t *ir.ACL, comment string) tf.Block {
 		Arguments: []tf.Argument{
 			{Name: "name", Value: ir.ChangeScoping(quote(t.Name()))}, //nolint:revive  // obvious false positive
 			{Name: "resource_group", Value: "local.acl_synth_resource_group_id"},
-			{Name: "vpc", Value: fmt.Sprintf("local.name_%s_id", ir.VpcFromScopedResource(t.Subnet))},
+			{Name: "vpc", Value: fmt.Sprintf("local.acl_synth_%s_id", ir.VpcFromScopedResource(t.Subnet))},
 		},
 		Blocks: blocks,
 	}
