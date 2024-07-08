@@ -17,7 +17,7 @@ import (
 
 const indentation = "  "
 
-// generate a locals.tf file that sets up some of the tf variables
+// WriteLocals generates a locals.tf file that sets up the VPCs and ResourceGroup tf variables
 func WriteLocals(defs *ir.ConfigDefs, acl bool) (*bytes.Buffer, error) {
 	data := new(bytes.Buffer)
 	w := bufio.NewWriter(data)
@@ -31,14 +31,15 @@ func WriteLocals(defs *ir.ConfigDefs, acl bool) (*bytes.Buffer, error) {
 
 func locals(defs *ir.ConfigDefs, acl bool) string {
 	result := []string{"locals {"}
-	for _, vpcName := range utils.SortedMapKeys(defs.VPCs) {
-		line := indentation + fmt.Sprintf("name_%s_id = <%s ID>", vpcName, vpcName)
-		result = append(result, line)
-	}
 	prefix := "sg"
 	if acl {
 		prefix = "acl"
 	}
+	for _, vpcName := range utils.SortedMapKeys(defs.VPCs) {
+		line := indentation + fmt.Sprintf("%s_synth_%s_id = <%s ID>", prefix, vpcName, vpcName)
+		result = append(result, line)
+	}
+
 	result = append(result, "") // empty line
 	line := indentation + fmt.Sprintf("%s_synth_resource_group_id = <RESOURCE-GROUP ID>\n}\n", prefix)
 	result = append(result, line)
