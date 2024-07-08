@@ -2,7 +2,7 @@
 resource "ibm_is_network_acl" "acl-test-vpc1--subnet1" {
   name           = "acl-test-vpc1--subnet1"
   resource_group = local.acl_synth_resource_group_id
-  vpc            = local.name_test-vpc1_id
+  vpc            = local.acl_synth_test-vpc1_id
   # Internal. required-connections[0]: (subnet test-vpc1/subnet1)->(subnet test-vpc1/subnet3); allowed-protocols[0]
   rules {
     name        = "rule0"
@@ -57,7 +57,7 @@ resource "ibm_is_network_acl" "acl-test-vpc1--subnet1" {
 resource "ibm_is_network_acl" "acl-test-vpc1--subnet2" {
   name           = "acl-test-vpc1--subnet2"
   resource_group = local.acl_synth_resource_group_id
-  vpc            = local.name_test-vpc1_id
+  vpc            = local.acl_synth_test-vpc1_id
   # Deny all communication; subnet test-vpc1/subnet2[10.240.20.0/24] does not have required connections
   rules {
     name        = "rule0"
@@ -80,7 +80,7 @@ resource "ibm_is_network_acl" "acl-test-vpc1--subnet2" {
 resource "ibm_is_network_acl" "acl-test-vpc1--subnet3" {
   name           = "acl-test-vpc1--subnet3"
   resource_group = local.acl_synth_resource_group_id
-  vpc            = local.name_test-vpc1_id
+  vpc            = local.acl_synth_test-vpc1_id
   # Internal. required-connections[0]: (subnet test-vpc1/subnet1)->(subnet test-vpc1/subnet3); allowed-protocols[0]
   rules {
     name        = "rule0"

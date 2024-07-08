@@ -2,7 +2,7 @@
 resource "ibm_is_security_group" "test-vpc1--vsi0-subnet10" {
   name           = "sg-test-vpc1--vsi0-subnet10"
   resource_group = local.sg_synth_resource_group_id
-  vpc            = local.name_test-vpc1_id
+  vpc            = local.sg_synth_test-vpc1_id
 }
 # Internal. required-connections[2]: (instance test-vpc1/vsi0-subnet10)->(instance test-vpc1/vsi0-subnet11); allowed-protocols[0]
 resource "ibm_is_security_group_rule" "test-vpc1--vsi0-subnet10-0" {
@@ -17,7 +17,7 @@ resource "ibm_is_security_group_rule" "test-vpc1--vsi0-subnet10-0" {
 resource "ibm_is_security_group" "test-vpc1--vsi0-subnet11" {
   name           = "sg-test-vpc1--vsi0-subnet11"
   resource_group = local.sg_synth_resource_group_id
-  vpc            = local.name_test-vpc1_id
+  vpc            = local.sg_synth_test-vpc1_id
 }
 # Internal. required-connections[2]: (instance test-vpc1/vsi0-subnet10)->(instance test-vpc1/vsi0-subnet11); allowed-protocols[0]
 resource "ibm_is_security_group_rule" "test-vpc1--vsi0-subnet11-0" {
