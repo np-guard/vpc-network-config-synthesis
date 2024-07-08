@@ -20,7 +20,7 @@ const (
 
 var outputFormats = []string{tfOutputFormat, csvOutputFormat, mdOutputFormat, apiOutputFormat}
 
-func updateFormat(args *inArgs) error {
+func updateOutputFormat(args *inArgs) error {
 	var err error
 	if args.outputFmt == "" {
 		args.outputFmt, err = inferFormatUsingFilename(args.outputFile)

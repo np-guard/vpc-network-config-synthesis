@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/confio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/csvio"
@@ -19,23 +20,32 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-const defaultFilePermission = 0o666
+const defaultFilePermission = 0o644
 const defaultDirectoryPermission = 0o755
 
 func writeOutput(args *inArgs, collection ir.Collection, defs *ir.ConfigDefs) error {
-	if err := updateFormat(args); err != nil {
+	if err := updateOutputFormat(args); err != nil {
 		return err
 	}
 	if args.outputDir != "" && args.outputFmt == apiOutputFormat {
 		return fmt.Errorf("-d cannot be used with format json")
 	}
-	if args.outputDir == "" {
-		return writeToFile(args, collection, "")
+	if args.outputDir != "" { // create the directory if needed
+		if err := os.MkdirAll(args.outputDir, defaultDirectoryPermission); err != nil {
+			return err
+		}
 	}
-	// create the directory if needed
-	err := os.MkdirAll(args.outputDir, defaultDirectoryPermission)
-	if err != nil {
+	if err := writeLocals(args, collection, defs); err != nil {
 		return err
+	}
+
+	var data *bytes.Buffer
+	var err error
+	if args.outputDir == "" {
+		if data, err = writeCollection(args, collection, ""); err != nil {
+			return err
+		}
+		return writeToFile(args.outputFile, data)
 	}
 
 	// write each file
@@ -45,28 +55,34 @@ func writeOutput(args *inArgs, collection ir.Collection, defs *ir.ConfigDefs) er
 		if args.prefix != "" {
 			args.outputFile = args.outputDir + "/" + args.prefix + "_" + suffix
 		}
-		if err := writeToFile(args, collection, vpc); err != nil {
+		if data, err = writeCollection(args, collection, vpc); err != nil {
+			return err
+		}
+		if err := writeToFile(args.outputFile, data); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func writeToFile(args *inArgs, collection ir.Collection, vpc string) error {
+func writeCollection(args *inArgs, collection ir.Collection, vpc string) (*bytes.Buffer, error) {
 	var data bytes.Buffer
 	writer, err := pickWriter(args, &data)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if err := collection.Write(writer, vpc); err != nil {
-		return err
+		return nil, err
 	}
+	return &data, nil
+}
 
-	if args.outputFile == "" {
-		fmt.Print(data.String())
+func writeToFile(outputFile string, data *bytes.Buffer) error {
+	if outputFile == "" {
+		fmt.Println(data.String())
 		return nil
 	}
-	return os.WriteFile(args.outputFile, data.Bytes(), defaultFilePermission)
+	return os.WriteFile(outputFile, data.Bytes(), defaultFilePermission)
 }
 
 func pickWriter(args *inArgs, data *bytes.Buffer) (ir.Writer, error) {
@@ -83,4 +99,29 @@ func pickWriter(args *inArgs, data *bytes.Buffer) (ir.Writer, error) {
 	default:
 		return nil, fmt.Errorf("bad output format: %q", args.outputFmt)
 	}
+}
+
+func writeLocals(args *inArgs, collection ir.Collection, defs *ir.ConfigDefs) error {
+	if !args.locals {
+		return nil
+	}
+	if args.outputFmt != tfOutputFormat {
+		return fmt.Errorf("--locals flag requires setting the output format to tf")
+	}
+
+	_, isACLCollection := collection.(*ir.ACLCollection)
+	var data *bytes.Buffer
+	var err error
+	if data, err = tfio.WriteLocals(defs, isACLCollection); err != nil {
+		return err
+	}
+
+	outputFile := ""
+	suffix := "/locals.tf"
+	if args.outputDir != "" {
+		outputFile = args.outputDir + suffix
+	} else if args.outputFile != "" {
+		outputFile = filepath.Dir(args.outputFile) + suffix
+	}
+	return writeToFile(outputFile, data)
 }

@@ -30,9 +30,10 @@ Flags:
   -c, --config string        JSON file containing config spec
   -f, --format string        Output format; must be one of [tf, csv, md, json]
   -h, --help                 help for vpc-synthesis
+  -l, --locals               whether to generate a locals.tf file (only possible when the output format is tf)
   -d, --output-dir string    Write generated resources to files in the specified directory, one file per VPC.
   -o, --output-file string   Write all generated resources to the specified file.
-      --prefix string        The prefix of the files that will be created.
+  -p, --prefix string        The prefix of the files that will be created.
   -s, --spec string          JSON file containing spec file
 ```
 **Note**: The infrastructure configuration must always be provided using the `--config` flag.
