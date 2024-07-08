@@ -16,7 +16,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-// WriteSG prints an entire collection of security groups as a sequence of terraform resources.
+// WriteSG prints an entire collection of Security Groups as a sequence of terraform resources.
 func (w *Writer) WriteSG(c *ir.SGCollection, vpc string) error {
 	output := sgCollection(c, vpc).Print()
 	_, err := w.w.WriteString(output)
@@ -88,7 +88,7 @@ func sg(sgName, comment string) tf.Block {
 		Arguments: []tf.Argument{
 			{Name: "name", Value: ir.ChangeScoping(quote("sg-" + sgName))},
 			{Name: "resource_group", Value: "local.sg_synth_resource_group_id"},
-			{Name: "vpc", Value: fmt.Sprintf("local.name_%s_id", ir.VpcFromScopedResource(sgName))},
+			{Name: "vpc", Value: fmt.Sprintf("local.sg_synth_%s_id", ir.VpcFromScopedResource(sgName))},
 		},
 	}
 }
