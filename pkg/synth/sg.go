@@ -15,7 +15,7 @@ import (
 const SGTypeNotSupported = "SG: src/dst of type %s is not supported."
 
 // MakeSG translates Spec to a collection of security groups
-func MakeSG(s *ir.Spec, opt Options) *ir.SGCollection {
+func MakeSG(s *ir.Spec) *ir.SGCollection {
 	collections := []*ir.SGCollection{}
 	for c := range s.Connections {
 		collection := generateSGCollectionFromConnection(&s.Defs, &s.Connections[c])

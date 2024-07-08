@@ -1,7 +1,7 @@
 resource "ibm_is_network_acl" "acl-testacl5-vpc--singleACL" {
   name           = "acl-testacl5-vpc--singleACL"
   resource_group = local.acl_synth_resource_group_id
-  vpc            = local.name_testacl5-vpc_id
+  vpc            = local.acl_synth_testacl5-vpc_id
   # Internal. required-connections[0]: (segment cidrSegment)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
   rules {
     name        = "rule0"
