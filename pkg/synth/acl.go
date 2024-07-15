@@ -159,7 +159,7 @@ func subnetsContainedInCidr(s *ir.Spec, cidr *ipblock.IPBlock, resource ir.Resou
 
 func expandNifToSubnet(s *ir.ConfigDefs, resource *ir.Resource, addr *ipblock.IPBlock) *ipblock.IPBlock {
 	if resource.Type == ir.ResourceTypeNIF {
-		nifName, _ := s.NIFFromIP(addr)
+		nifName, _ := s.NIFFromIP(addr) // already checked before (Lookup function) that the NIF exists
 		subnetName := s.NIFs[nifName].Subnet
 		return s.Subnets[subnetName].CIDR
 	}
