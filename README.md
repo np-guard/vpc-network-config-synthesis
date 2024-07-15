@@ -14,7 +14,7 @@ Use the `vpcgen` CLI tool with one of the following commands to specify the type
 Specifying the `--single` flag results in generating a single nACL for all subnets in the same VPC. Otherwise, an nACL is generated for each subnet separately.
 The input supports subnets, subnet segments, CIDR segments, NIFs, instances (VSIs) and externals.
 **Note 1**: The segments are defined in the `conn_spec.json` file.
-**Note 2**: A connection between NIFs implies a connection between the corresponding subnets.
+**Note 2**: A required connection between NIFs or VSIs implies connectivity will be allowed between the subnets they are contained in.
 
 ### SGs Generation
 The input supports Instances (VSIs), NIFs, VPEs and externals.

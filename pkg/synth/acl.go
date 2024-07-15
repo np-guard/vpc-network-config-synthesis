@@ -88,8 +88,8 @@ func allowDirectedConnection(s *ir.Spec, srcCidr, dstCidr *ipblock.IPBlock, conn
 	protocol ir.Protocol, reason explanation) []*ir.ACLRule {
 	var request, response *ir.Packet
 
-	srcCidr = updateEndpoint(&s.Defs.ConfigDefs, conn.Src, srcCidr)
-	dstCidr = updateEndpoint(&s.Defs.ConfigDefs, conn.Dst, dstCidr)
+	srcCidr = expandNifToSubnet(&s.Defs.ConfigDefs, &conn.Src, srcCidr)
+	dstCidr = expandNifToSubnet(&s.Defs.ConfigDefs, &conn.Dst, dstCidr)
 
 	srcSubnetList := subnetsContainedInCidr(s, srcCidr, conn.Src)
 	dstSubnetList := subnetsContainedInCidr(s, dstCidr, conn.Dst)
@@ -157,7 +157,7 @@ func subnetsContainedInCidr(s *ir.Spec, cidr *ipblock.IPBlock, resource ir.Resou
 	return result
 }
 
-func updateEndpoint(s *ir.ConfigDefs, resource ir.Resource, addr *ipblock.IPBlock) *ipblock.IPBlock {
+func expandNifToSubnet(s *ir.ConfigDefs, resource *ir.Resource, addr *ipblock.IPBlock) *ipblock.IPBlock {
 	if resource.Type == ir.ResourceTypeNIF {
 		nifName, _ := s.NIFFromIP(addr)
 		subnetName := s.NIFs[nifName].Subnet
