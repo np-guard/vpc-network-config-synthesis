@@ -53,9 +53,9 @@ func generateACLCollectionFromConnection(s *ir.Definitions, conn *ir.Connection,
 	}
 	result := ir.NewACLCollection()
 	for _, src := range conn.Src.IPAddrs {
-		srcCidrs, src := updateResource(s, src, conn.Src, single)
+		srcCidrs, src := adjustResource(s, src, conn.Src, single)
 		for _, dst := range conn.Dst.IPAddrs {
-			dstCidrs, dst := updateResource(s, dst, conn.Dst, single)
+			dstCidrs, dst := adjustResource(s, dst, conn.Dst, single)
 			if src == dst && conn.Src.Type != ir.ResourceTypeCidr && conn.Dst.Type != ir.ResourceTypeCidr {
 				continue
 			}
@@ -116,10 +116,10 @@ func generateACLCollectionForBlockedSubnets(s *ir.Spec, single bool) *ir.ACLColl
 	return result
 }
 
-func updateResource(s *ir.Definitions, addrs *ipblock.IPBlock, resource ir.Resource, single bool) ([]*ir.ConnResource, *ipblock.IPBlock) {
+func adjustResource(s *ir.Definitions, addrs *ipblock.IPBlock, resource ir.Resource, single bool) ([]*ir.ConnResource, *ipblock.IPBlock) {
 	switch resource.Type {
 	case ir.ResourceTypeSubnet:
-		return updateSubnet(s, addrs, resource.Name, single), addrs
+		return adjustSubnet(s, addrs, resource.Name, single), addrs
 	case ir.ResourceTypeExternal:
 		connResource := ir.ConnResource{Name: resource.Name, Addrs: addrs}
 		return []*ir.ConnResource{&connResource}, addrs
@@ -127,12 +127,12 @@ func updateResource(s *ir.Definitions, addrs *ipblock.IPBlock, resource ir.Resou
 		result := expandNifToSubnet(s, addrs, single)
 		return result, result[0].Addrs // return nif's subnet, not its IP address
 	case ir.ResourceTypeCidr:
-		return updateCidrSegment(s, addrs, resource.Name, single), addrs
+		return adjustCidrSegment(s, addrs, resource.Name, single), addrs
 	}
 	return []*ir.ConnResource{}, nil // dead code
 }
 
-func updateCidrSegment(s *ir.Definitions, cidr *ipblock.IPBlock, resourceName string, single bool) []*ir.ConnResource {
+func adjustCidrSegment(s *ir.Definitions, cidr *ipblock.IPBlock, resourceName string, single bool) []*ir.ConnResource {
 	cidrSegmentDetails := s.CidrSegments[resourceName]
 	cidrDetails := cidrSegmentDetails.Cidrs[cidr]
 	result := make([]*ir.ConnResource, len(cidrDetails.ContainedSubnets))
@@ -144,7 +144,7 @@ func updateCidrSegment(s *ir.Definitions, cidr *ipblock.IPBlock, resourceName st
 }
 
 func expandNifToSubnet(s *ir.Definitions, addr *ipblock.IPBlock, single bool) []*ir.ConnResource {
-	nifName, _ := s.NIFFromIP(addr)
+	nifName, _ := s.NIFFromIP(addr) // already checked before (Lookup function) that the NIF exists
 	subnetName := s.NIFs[nifName].Subnet
 	subnetCidr := s.Subnets[subnetName].Address()
 
@@ -152,7 +152,8 @@ func expandNifToSubnet(s *ir.Definitions, addr *ipblock.IPBlock, single bool) []
 	return []*ir.ConnResource{&connResource}
 }
 
-func updateSubnet(s *ir.Definitions, addrs *ipblock.IPBlock, resourceName string, single bool) []*ir.ConnResource {
+func adjustSubnet(s *ir.Definitions, addrs *ipblock.IPBlock, resourceName string, single bool) []*ir.ConnResource {
+	// Todo: Handle the case where there is a subnet and a subnetSegment with the same name
 	if subnetDetails, ok := s.Subnets[resourceName]; ok { // resource is a subnet
 		connResource := ir.ConnResource{Name: aclSelector(resourceName, single), Addrs: subnetDetails.Address()}
 		return []*ir.ConnResource{&connResource}
