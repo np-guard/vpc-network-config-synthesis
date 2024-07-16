@@ -6,7 +6,7 @@
                 "type": "instance"
             },
             "dst": {
-                "name": "vsi1-subnet4",
+                "name": "test-vpc0/vsi1-subnet4",
                 "type": "instance"
             }
         },

@@ -104,6 +104,7 @@ type (
 		IP       *ipblock.IPBlock
 		VPC      ID
 		Instance ID
+		Subnet   ID
 	}
 
 	InstanceDetails struct {
@@ -374,7 +375,7 @@ func inverseLookupInstance(m map[ID]*InstanceDetails, name string) (result strin
 	return "", false
 }
 
-func (s *ConfigDefs) SubnetNameFromIP(cidr *ipblock.IPBlock) (string, bool) {
+func (s *ConfigDefs) SubnetNameFromCidr(cidr *ipblock.IPBlock) (string, bool) {
 	return inverseLookup(s.Subnets, cidr)
 }
 

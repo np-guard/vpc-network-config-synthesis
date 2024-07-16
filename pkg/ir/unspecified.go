@@ -16,6 +16,7 @@ const (
 	warningUnspecifiedSG  = "The following endpoints do not have required connections; the generated SGs will block all traffic: "
 )
 
+//nolint:gocyclo // look for the subnet in spec
 func (s *Spec) ComputeBlockedSubnets() []ID {
 	var blockedSubnets []ID
 
@@ -41,16 +42,35 @@ func (s *Spec) ComputeBlockedSubnets() []ID {
 		// cidr segments which include the subnet
 		cidrSegments := []ID{}
 		for segmentName, cidrSegmentDetails := range s.Defs.CidrSegments {
+		segmentDetailsLoops:
 			for _, cidrDetails := range cidrSegmentDetails.Cidrs {
 				for _, s := range cidrDetails.ContainedSubnets {
 					if subnet == s {
 						cidrSegments = append(cidrSegments, segmentName)
-						break
+						break segmentDetailsLoops
 					}
 				}
 			}
 		}
-		if !s.findResourceInConnections(cidrSegments, ResourceTypeCidr) {
+		if s.findResourceInConnections(cidrSegments, ResourceTypeCidr) {
+			continue
+		}
+
+		// nifs in the subnet
+		nifs := []ID{}
+		for instanceName, instance := range s.Defs.Instances {
+			instanceInList := false
+			for _, nif := range instance.Nifs {
+				if subnet == s.Defs.NIFs[nif].Subnet {
+					nifs = append(nifs, nif)
+					if !instanceInList {
+						nifs = append(nifs, instanceName)
+						instanceInList = true
+					}
+				}
+			}
+		}
+		if !s.findResourceInConnections(nifs, ResourceTypeNIF) {
 			blockedSubnets = append(blockedSubnets, subnet)
 		}
 	}
@@ -101,14 +121,14 @@ func (s *Spec) computeBlockedNIFs() []ID {
 	return blockedResources
 }
 
-func (s *Spec) findResourceInConnections(resources []ID, epType ResourceType) bool {
+func (s *Spec) findResourceInConnections(resources []ID, resourceType ResourceType) bool {
 	// The slice of IDs represents all resources that include the resource we are looking for
 	for c := range s.Connections {
-		for _, ep := range resources {
-			if s.Connections[c].Src.Type == epType && ep == s.Connections[c].Src.Name {
+		for _, resource := range resources {
+			if s.Connections[c].Src.Type == resourceType && resource == s.Connections[c].Src.Name {
 				return true
 			}
-			if s.Connections[c].Dst.Type == epType && ep == s.Connections[c].Dst.Name {
+			if s.Connections[c].Dst.Type == resourceType && resource == s.Connections[c].Dst.Name {
 				return true
 			}
 		}

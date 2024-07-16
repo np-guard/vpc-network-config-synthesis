@@ -15,7 +15,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-const subnetNotFoundError = "ACL: src/dst of type network interface (or instance) is not supported."
+const resourceNotFoundError = "[%s] was not found"
 
 type Options struct {
 	SingleACL bool
@@ -24,17 +24,17 @@ type Options struct {
 // MakeACL translates Spec to a collection of ACLs
 func MakeACL(s *ir.Spec, opt Options) *ir.ACLCollection {
 	aclSelector := func(cidr *ipblock.IPBlock) string {
-		result, ok := s.Defs.SubnetNameFromIP(cidr)
+		result, ok := s.Defs.SubnetNameFromCidr(cidr)
 		if !ok {
-			log.Fatalf(subnetNotFoundError)
+			log.Fatalf(fmt.Sprintf(resourceNotFoundError, cidr.ToCidrList()[0]))
 		}
 		return result
 	}
 	if opt.SingleACL {
 		aclSelector = func(cidr *ipblock.IPBlock) string {
-			result, ok := s.Defs.SubnetNameFromIP(cidr)
+			result, ok := s.Defs.SubnetNameFromCidr(cidr)
 			if !ok {
-				log.Fatalf(subnetNotFoundError)
+				log.Fatalf(fmt.Sprintf(resourceNotFoundError, cidr.ToCidrList()[0]))
 			}
 			return fmt.Sprintf("%s/singleACL", ir.VpcFromScopedResource(result))
 		}
@@ -88,6 +88,9 @@ func allowDirectedConnection(s *ir.Spec, srcCidr, dstCidr *ipblock.IPBlock, conn
 	protocol ir.Protocol, reason explanation) []*ir.ACLRule {
 	var request, response *ir.Packet
 
+	srcCidr = expandNifToSubnet(&s.Defs.ConfigDefs, &conn.Src, srcCidr)
+	dstCidr = expandNifToSubnet(&s.Defs.ConfigDefs, &conn.Dst, dstCidr)
+
 	srcSubnetList := subnetsContainedInCidr(s, srcCidr, conn.Src)
 	dstSubnetList := subnetsContainedInCidr(s, dstCidr, conn.Dst)
 
@@ -138,7 +141,7 @@ func generateACLCollectionForBlockedSubnets(s *ir.Spec, aclSelector func(target 
 }
 
 func resourceRelevantToACL(e ir.ResourceType) bool {
-	return e == ir.ResourceTypeSubnet || e == ir.ResourceTypeSegment || e == ir.ResourceTypeCidr
+	return e == ir.ResourceTypeSubnet || e == ir.ResourceTypeCidr || e == ir.ResourceTypeNIF
 }
 
 func subnetsContainedInCidr(s *ir.Spec, cidr *ipblock.IPBlock, resource ir.Resource) []*ipblock.IPBlock {
@@ -152,4 +155,13 @@ func subnetsContainedInCidr(s *ir.Spec, cidr *ipblock.IPBlock, resource ir.Resou
 		result[i] = s.Defs.Subnets[subnet].Address()
 	}
 	return result
+}
+
+func expandNifToSubnet(s *ir.ConfigDefs, resource *ir.Resource, addr *ipblock.IPBlock) *ipblock.IPBlock {
+	if resource.Type == ir.ResourceTypeNIF {
+		nifName, _ := s.NIFFromIP(addr) // already checked before (Lookup function) that the NIF exists
+		subnetName := s.NIFs[nifName].Subnet
+		return s.Subnets[subnetName].CIDR
+	}
+	return addr
 }
