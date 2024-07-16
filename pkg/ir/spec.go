@@ -360,16 +360,16 @@ func inverseLookup[T NWResource](m map[ID]T, address *ipblock.IPBlock) (result s
 	return "", false
 }
 
-func (s *ConfigDefs) inverseLookupVPE(ip *ipblock.IPBlock) (result string, ok bool) {
+/*func (s *ConfigDefs) inverseLookupVPE(ip *ipblock.IPBlock) (result string, ok bool) {
 	for _, vpeEndpointDetails := range s.VPEReservedIPs {
 		if vpeEndpointDetails.Address().Equal(ip) {
 			return vpeEndpointDetails.VPEName, true
 		}
 	}
 	return "", false
-}
+}*/
 
-func inverseLookupInstance(m map[ID]*InstanceDetails, name string) (result string, ok bool) {
+/*func inverseLookupInstance(m map[ID]*InstanceDetails, name string) (result string, ok bool) {
 	for instanceName, instanceDetails := range m {
 		for _, nif := range instanceDetails.Nifs {
 			if nif == name {
@@ -378,25 +378,25 @@ func inverseLookupInstance(m map[ID]*InstanceDetails, name string) (result strin
 		}
 	}
 	return "", false
-}
+}*/
 
-func (s *ConfigDefs) SubnetNameFromCidr(cidr *ipblock.IPBlock) (string, bool) {
+/*func (s *ConfigDefs) SubnetNameFromCidr(cidr *ipblock.IPBlock) (string, bool) {
 	return inverseLookup(s.Subnets, cidr)
-}
+}*/
 
 func (s *ConfigDefs) NIFFromIP(ip *ipblock.IPBlock) (string, bool) {
 	return inverseLookup(s.NIFs, ip)
 }
 
-func (s *ConfigDefs) VPEFromIP(ip *ipblock.IPBlock) (string, bool) {
+/*func (s *ConfigDefs) VPEFromIP(ip *ipblock.IPBlock) (string, bool) {
 	return s.inverseLookupVPE(ip)
-}
+}*/
 
-func (s *ConfigDefs) InstanceFromNIF(nifName string) (string, bool) {
+/*func (s *ConfigDefs) InstanceFromNIF(nifName string) (string, bool) {
 	return inverseLookupInstance(s.Instances, nifName)
-}
+}*/
 
-func (s *ConfigDefs) RemoteFromIP(ip *ipblock.IPBlock) RemoteType {
+/*func (s *ConfigDefs) RemoteFromIP(ip *ipblock.IPBlock) RemoteType {
 	if nif, okNIF := s.NIFFromIP(ip); okNIF {
 		if instance, okInstance := s.InstanceFromNIF(nif); okInstance {
 			return SGName(instance)
@@ -407,7 +407,7 @@ func (s *ConfigDefs) RemoteFromIP(ip *ipblock.IPBlock) RemoteType {
 		return SGName(vpe)
 	}
 	return ip
-}
+}*/
 
 type Reader interface {
 	ReadSpec(filename string, defs *ConfigDefs) (*Spec, error)
