@@ -24,8 +24,8 @@ type ACLSynthesizer struct {
 }
 
 // MakeACL translates Spec to a collection of ACLs
-// (1) generate nACL rules for relevant subnets for each connection
-// (2) generate nACL rules for blocked subnets (subnets that do not appear in Spec)
+// 1. generate nACL rules for relevant subnets for each connection
+// 2. generate nACL rules for blocked subnets (subnets that do not appear in Spec)
 func MakeACL(s *ir.Spec, singleacl bool) *ir.ACLCollection {
 	ACLSynthesizer := ACLSynthesizer{spec: s, singleACL: singleacl, result: ir.NewACLCollection()}
 
@@ -36,14 +36,12 @@ func MakeACL(s *ir.Spec, singleacl bool) *ir.ACLCollection {
 	return ACLSynthesizer.result
 }
 
-// (1) check that both resources are supported in nACL generation.
-// (2) check that at least one resource is internal.
-// (3) convert src and dst resources to namedAddrs slices to make it more convenient to go through the addrs
-//
-//	and add the rule to the relevant acl. Note: in case where the resource in a nif, src/dst will be
-//	updated to be its subnet.
-//
-// (4) generate rules and add them to relevant ACL to allow traffic for all pairs of IPAddrs of both resources.
+//  1. check that both resources are supported in nACL generation.
+//  2. check that at least one resource is internal.
+//  3. convert src and dst resources to namedAddrs slices to make it more convenient to go through the addrs
+//     and add the rule to the relevant acl. Note: in case where the resource in a nif, src/dst will be
+//     updated to be its subnet.
+//  4. generate rules and add them to relevant ACL to allow traffic for all pairs of IPAddrs of both resources.
 func (a ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection) {
 	if !resourceRelevantToACL(conn.Src.Type) {
 		log.Fatalf(fmt.Sprintf(ACLTypeNotSupported, string(conn.Src.Type)))
