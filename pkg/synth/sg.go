@@ -20,6 +20,8 @@ type SGSynthesizer struct {
 }
 
 // MakeSG translates Spec to a collection of security groups
+// 1. generate SGs for relevant endpoints for each connection
+// 2. generate SGs for blocked endpoints (endpoints that do not appear in Spec)
 func (s *SGSynthesizer) MakeSG() *ir.SGCollection {
 	for c := range s.Spec.Connections {
 		s.generateSGRulesFromConnection(&s.Spec.Connections[c])
@@ -28,16 +30,21 @@ func (s *SGSynthesizer) MakeSG() *ir.SGCollection {
 	return s.Result
 }
 
+//  1. check that both resources are supported in SG generation.
+//  2. check that at least one resource is internal.
+//  3. convert src and dst resources to namedAddrs slices to make it more convenient to go through the addrs
+//     and add the rule to the relevant SG.
+//  4. generate rules and add them to relevant SG to allow traffic for all pairs of IPAddrs of both resources.
 func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection) {
-	internalSrc, internalDst, _ := internalConn(conn)
-	if !internalSrc && !internalDst {
-		log.Fatalf("SG: Both source and destination are external for connection %v", *conn)
-	}
 	if !resourceRelevantToSG(conn.Src.Type) {
 		log.Fatalf(fmt.Sprintf(SGTypeNotSupported, string(conn.Src.Type)))
 	}
 	if !resourceRelevantToSG(conn.Dst.Type) {
 		log.Fatalf(fmt.Sprintf(SGTypeNotSupported, string(conn.Dst.Type)))
+	}
+	internalSrc, internalDst, _ := internalConn(conn)
+	if !internalSrc && !internalDst {
+		log.Fatalf("SG: Both source and destination are external for connection %v", *conn)
 	}
 
 	srcEndpoints := updateEndpoints(&s.Spec.Defs, conn.Src)
@@ -57,6 +64,7 @@ func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection) {
 	}
 }
 
+// if the src in internal, a rule will be created to allow traffic.
 func (s *SGSynthesizer) allowConnectionFromSrc(conn *ir.Connection, trackedProtocol ir.TrackedProtocol,
 	srcEndpoint, dstEndpoint *namedAddrs) {
 	internalSrc, _, internal := internalConn(conn)
@@ -76,6 +84,7 @@ func (s *SGSynthesizer) allowConnectionFromSrc(conn *ir.Connection, trackedProto
 	}
 }
 
+// if the dst in internal, a rule will be created to allow traffic.
 func (s *SGSynthesizer) allowConnectionToDst(conn *ir.Connection, trackedProtocol ir.TrackedProtocol,
 	srcEndpoint, dstEndpoint *namedAddrs) {
 	_, internalDst, internal := internalConn(conn)
@@ -99,6 +108,7 @@ func (s *SGSynthesizer) allowConnectionToDst(conn *ir.Connection, trackedProtoco
 	}
 }
 
+// generate SGs for blocked endpoints (endpoints that do not appear in Spec)
 func (s *SGSynthesizer) generateSGsForBlockedResources() {
 	blockedResources := s.Spec.ComputeBlockedResources()
 	for _, resource := range blockedResources {
@@ -107,6 +117,8 @@ func (s *SGSynthesizer) generateSGsForBlockedResources() {
 	}
 }
 
+// convert src and dst resources to namedAddrs slices to make it more convenient to go through the addrs and add
+// the rule to the relevant sg.
 func updateEndpoints(s *ir.Definitions, resource ir.Resource) []*namedAddrs {
 	if resource.Type == ir.ResourceTypeExternal {
 		return []*namedAddrs{{Name: resource.Name, Addrs: resource.IPAddrs[0]}}
