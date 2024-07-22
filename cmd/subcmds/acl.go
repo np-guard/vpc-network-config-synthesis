@@ -27,9 +27,9 @@ func NewACLCommand(args *inArgs) *cobra.Command {
 			}
 			var collection *ir.ACLCollection
 			if args.singleacl {
-				collection = synth.MakeACL(spec, synth.Options{SingleACL: true})
+				collection = synth.MakeACL(spec, true)
 			} else {
-				collection = synth.MakeACL(spec, synth.Options{SingleACL: false})
+				collection = synth.MakeACL(spec, false)
 			}
 			return writeOutput(args, collection, &spec.Defs.ConfigDefs)
 		},

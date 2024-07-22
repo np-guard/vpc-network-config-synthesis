@@ -18,15 +18,15 @@ type Packet struct {
 	Explanation string
 }
 
-func AllowSend(packet Packet) *ACLRule {
+func AllowSend(packet *Packet) *ACLRule {
 	return packetACLRule(packet, Outbound, Allow)
 }
 
-func AllowReceive(packet Packet) *ACLRule {
+func AllowReceive(packet *Packet) *ACLRule {
 	return packetACLRule(packet, Inbound, Allow)
 }
 
-func packetACLRule(packet Packet, direction Direction, action Action) *ACLRule {
+func packetACLRule(packet *Packet, direction Direction, action Action) *ACLRule {
 	return &ACLRule{
 		Action:      action,
 		Source:      packet.Src,
@@ -57,8 +57,8 @@ func makeDenyInternal() []ACLRule {
 		for j, anyLocalCidrDst := range localCidrs {
 			explanation := fmt.Sprintf("Deny other internal communication; see rfc1918#3; item %v,%v", i, j)
 			denyInternal = append(denyInternal, []ACLRule{
-				*packetACLRule(Packet{Src: anyLocalCidrSrc, Dst: anyLocalCidrDst, Protocol: AnyProtocol{}, Explanation: explanation}, Outbound, Deny),
-				*packetACLRule(Packet{Src: anyLocalCidrDst, Dst: anyLocalCidrSrc, Protocol: AnyProtocol{}, Explanation: explanation}, Inbound, Deny),
+				*packetACLRule(&Packet{Src: anyLocalCidrSrc, Dst: anyLocalCidrDst, Protocol: AnyProtocol{}, Explanation: explanation}, Outbound, Deny),
+				*packetACLRule(&Packet{Src: anyLocalCidrDst, Dst: anyLocalCidrSrc, Protocol: AnyProtocol{}, Explanation: explanation}, Inbound, Deny),
 			}...)
 		}
 	}
@@ -67,13 +67,13 @@ func makeDenyInternal() []ACLRule {
 
 func DenyAllSend(subnetName ID, cidr *ipblock.IPBlock) *ACLRule {
 	explanation := DenyAllExplanation(subnetName, cidr)
-	ACLRule := *packetACLRule(Packet{Src: cidr, Dst: ipblock.GetCidrAll(), Protocol: AnyProtocol{}, Explanation: explanation}, Outbound, Deny)
+	ACLRule := *packetACLRule(&Packet{Src: cidr, Dst: ipblock.GetCidrAll(), Protocol: AnyProtocol{}, Explanation: explanation}, Outbound, Deny)
 	return &ACLRule
 }
 
 func DenyAllReceive(subnetName ID, cidr *ipblock.IPBlock) *ACLRule {
 	explanation := DenyAllExplanation(subnetName, cidr)
-	ACLRule := *packetACLRule(Packet{Src: ipblock.GetCidrAll(), Dst: cidr, Protocol: AnyProtocol{}, Explanation: explanation}, Inbound, Deny)
+	ACLRule := *packetACLRule(&Packet{Src: ipblock.GetCidrAll(), Dst: cidr, Protocol: AnyProtocol{}, Explanation: explanation}, Inbound, Deny)
 	return &ACLRule
 }
 

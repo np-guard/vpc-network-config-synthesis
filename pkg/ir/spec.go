@@ -156,11 +156,6 @@ type (
 	ResourceVpc interface {
 		getOverlappingVPCs() []ID
 	}
-
-	ConnResource struct {
-		Name  ID
-		Addrs *ipblock.IPBlock
-	}
 )
 
 func (n *NamedEntity) Name() string {

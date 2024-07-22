@@ -54,7 +54,7 @@ func aclTestCase(folder, outputFormat string, single, separateOutputs bool) Test
 		outputFormat: outputFormat,
 		separate:     separateOutputs,
 		maker: func(s *ir.Spec) ir.Collection {
-			return synth.MakeACL(s, synth.Options{SingleACL: single})
+			return synth.MakeACL(s, single)
 		},
 	}
 }
