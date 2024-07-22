@@ -23,7 +23,7 @@ type ACLSynthesizer struct {
 	Result    *ir.ACLCollection
 }
 
-// MakeACL translatea.Spec to a collection of ACLs
+// MakeACL translates Spec to a collection of ACLs
 // 1. generate nACL rules for relevant subnets for each connection
 // 2. generate nACL rules for blocked subnets (subnets that do not appear in Spec)
 func (a *ACLSynthesizer) MakeACL() *ir.ACLCollection {
