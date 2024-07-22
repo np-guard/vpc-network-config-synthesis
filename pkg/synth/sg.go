@@ -98,5 +98,5 @@ func generateSGCollectionForBlockedResources(s *ir.Spec) *ir.SGCollection {
 }
 
 func resourceRelevantToSG(e ir.ResourceType) bool {
-	return e == ir.ResourceTypeNIF || e == ir.ResourceTypeInstance
+	return e == ir.ResourceTypeNIF
 }
