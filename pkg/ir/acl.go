@@ -81,10 +81,9 @@ func (a *ACL) AppendInternal(rule *ACLRule) {
 	if a.External == nil {
 		panic("ACLs should be created with non-null Internal")
 	}
-	if rule.isRedundant(a.Internal) {
-		return
+	if !rule.isRedundant(a.Internal) {
+		a.Internal = append(a.Internal, *rule)
 	}
-	a.Internal = append(a.Internal, *rule)
 }
 
 func (a *ACL) Name() string {

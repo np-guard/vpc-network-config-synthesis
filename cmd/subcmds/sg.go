@@ -8,6 +8,7 @@ package subcmds
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/synth"
 )
 
@@ -24,8 +25,8 @@ func NewSGCommand(args *inArgs) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			collection := synth.MakeSG(spec)
-			return writeOutput(args, collection, &spec.Defs.ConfigDefs)
+			sgSynthesizer := synth.SGSynthesizer{Spec: spec, Result: ir.NewSGCollection()}
+			return writeOutput(args, sgSynthesizer.MakeSG(), &spec.Defs.ConfigDefs)
 		},
 	}
 	return cmd

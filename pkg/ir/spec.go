@@ -355,54 +355,9 @@ func inverseLookup[T NWResource](m map[ID]T, address *ipblock.IPBlock) (result s
 	return "", false
 }
 
-/*func (s *ConfigDefs) inverseLookupVPE(ip *ipblock.IPBlock) (result string, ok bool) {
-	for _, vpeEndpointDetails := range s.VPEReservedIPs {
-		if vpeEndpointDetails.Address().Equal(ip) {
-			return vpeEndpointDetails.VPEName, true
-		}
-	}
-	return "", false
-}*/
-
-/*func inverseLookupInstance(m map[ID]*InstanceDetails, name string) (result string, ok bool) {
-	for instanceName, instanceDetails := range m {
-		for _, nif := range instanceDetails.Nifs {
-			if nif == name {
-				return instanceName, true
-			}
-		}
-	}
-	return "", false
-}*/
-
-/*func (s *ConfigDefs) SubnetNameFromCidr(cidr *ipblock.IPBlock) (string, bool) {
-	return inverseLookup(s.Subnets, cidr)
-}*/
-
 func (s *ConfigDefs) NIFFromIP(ip *ipblock.IPBlock) (string, bool) {
 	return inverseLookup(s.NIFs, ip)
 }
-
-/*func (s *ConfigDefs) VPEFromIP(ip *ipblock.IPBlock) (string, bool) {
-	return s.inverseLookupVPE(ip)
-}*/
-
-/*func (s *ConfigDefs) InstanceFromNIF(nifName string) (string, bool) {
-	return inverseLookupInstance(s.Instances, nifName)
-}*/
-
-/*func (s *ConfigDefs) RemoteFromIP(ip *ipblock.IPBlock) RemoteType {
-	if nif, okNIF := s.NIFFromIP(ip); okNIF {
-		if instance, okInstance := s.InstanceFromNIF(nif); okInstance {
-			return SGName(instance)
-		}
-		return SGName(fmt.Sprintf("<unknown instance %v>", nif))
-	}
-	if vpe, okVPE := s.VPEFromIP(ip); okVPE {
-		return SGName(vpe)
-	}
-	return ip
-}*/
 
 type Reader interface {
 	ReadSpec(filename string, defs *ConfigDefs) (*Spec, error)

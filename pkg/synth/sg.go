@@ -14,20 +14,22 @@ import (
 
 const SGTypeNotSupported = "SG: src/dst of type %s is not supported."
 
-// MakeSG translates Spec to a collection of security groups
-func MakeSG(s *ir.Spec) *ir.SGCollection {
-	collections := []*ir.SGCollection{}
-	for c := range s.Connections {
-		collection := generateSGCollectionFromConnection(&s.Defs, &s.Connections[c])
-		collections = append(collections, collection)
-	}
-	collections = append(collections, generateSGCollectionForBlockedResources(s))
-	return ir.MergeSGCollections(collections...)
+type SGSynthesizer struct {
+	Spec   *ir.Spec
+	Result *ir.SGCollection
 }
 
-func generateSGCollectionFromConnection(s *ir.Definitions, conn *ir.Connection) *ir.SGCollection {
-	internalSrc := conn.Src.Type != ir.ResourceTypeExternal
-	internalDst := conn.Dst.Type != ir.ResourceTypeExternal
+// MakeSG translates Spec to a collection of security groups
+func (s *SGSynthesizer) MakeSG() *ir.SGCollection {
+	for c := range s.Spec.Connections {
+		s.generateSGRulesFromConnection(&s.Spec.Connections[c])
+	}
+	s.generateSGsForBlockedResources()
+	return s.Result
+}
+
+func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection) {
+	internalSrc, internalDst, _ := internalConn(conn)
 	if !internalSrc && !internalDst {
 		log.Fatalf("SG: Both source and destination are external for connection %v", *conn)
 	}
@@ -38,10 +40,8 @@ func generateSGCollectionFromConnection(s *ir.Definitions, conn *ir.Connection) 
 		log.Fatalf(fmt.Sprintf(SGTypeNotSupported, string(conn.Dst.Type)))
 	}
 
-	result := ir.NewSGCollection()
-
-	srcEndpoints := updateEndpoints(s, conn.Src)
-	dstEndpoints := updateEndpoints(s, conn.Dst)
+	srcEndpoints := updateEndpoints(&s.Spec.Defs, conn.Src)
+	dstEndpoints := updateEndpoints(&s.Spec.Defs, conn.Dst)
 
 	for _, srcEndpoint := range srcEndpoints {
 		for _, dstEndpoint := range dstEndpoints {
@@ -50,69 +50,80 @@ func generateSGCollectionFromConnection(s *ir.Definitions, conn *ir.Connection) 
 			}
 
 			for _, trackedProtocol := range conn.TrackedProtocols {
-				reason := explanation{
-					internal:         internalSrc && internalDst,
-					connectionOrigin: conn.Origin,
-					protocolOrigin:   trackedProtocol.Origin,
-				}.String()
-
-				if internalSrc {
-					sgSrcName := ir.SGName(srcEndpoint.Name)
-					sgSrc := result.LookupOrCreate(sgSrcName)
-					sgSrc.Attached = []ir.ID{ir.ID(sgSrcName)}
-					rule := ir.SGRule{
-						Remote:      remote(s, dstEndpoint),
-						Direction:   ir.Outbound,
-						Protocol:    trackedProtocol.Protocol,
-						Explanation: reason,
-					}
-					sgSrc.Rules = append(sgSrc.Rules, rule)
-				}
-				if internalDst {
-					sgDstName := ir.SGName(dstEndpoint.Name)
-					sgDst := result.LookupOrCreate(sgDstName)
-					sgDst.Attached = []ir.ID{ir.ID(sgDstName)}
-					rule := ir.SGRule{
-						Remote:      remote(s, srcEndpoint),
-						Direction:   ir.Inbound,
-						Protocol:    trackedProtocol.Protocol.InverseDirection(),
-						Explanation: reason,
-					}
-					sgDst.Rules = append(sgDst.Rules, rule)
-				}
+				s.allowConnectionFromSrc(conn, trackedProtocol, srcEndpoint, dstEndpoint)
+				s.allowConnectionToDst(conn, trackedProtocol, srcEndpoint, dstEndpoint)
 			}
 		}
 	}
-	return result
 }
 
-func generateSGCollectionForBlockedResources(s *ir.Spec) *ir.SGCollection {
-	blockedResources := s.ComputeBlockedResources()
-	result := ir.NewSGCollection()
+func (s *SGSynthesizer) allowConnectionFromSrc(conn *ir.Connection, trackedProtocol ir.TrackedProtocol,
+	srcEndpoint, dstEndpoint *namedAddrs) {
+	internalSrc, _, internal := internalConn(conn)
+	reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}.String()
+
+	if internalSrc {
+		sgSrcName := ir.SGName(srcEndpoint.Name)
+		sgSrc := s.Result.LookupOrCreate(sgSrcName)
+		sgSrc.Attached = []ir.ID{ir.ID(sgSrcName)}
+		rule := &ir.SGRule{
+			Remote:      sgRemote(&s.Spec.Defs, dstEndpoint),
+			Direction:   ir.Outbound,
+			Protocol:    trackedProtocol.Protocol,
+			Explanation: reason,
+		}
+		sgSrc.Add(rule)
+	}
+}
+
+func (s *SGSynthesizer) allowConnectionToDst(conn *ir.Connection, trackedProtocol ir.TrackedProtocol,
+	srcEndpoint, dstEndpoint *namedAddrs) {
+	_, internalDst, internal := internalConn(conn)
+	reason := explanation{
+		internal:         internal,
+		connectionOrigin: conn.Origin,
+		protocolOrigin:   trackedProtocol.Origin,
+	}.String()
+
+	if internalDst {
+		sgDstName := ir.SGName(dstEndpoint.Name)
+		sgDst := s.Result.LookupOrCreate(sgDstName)
+		sgDst.Attached = []ir.ID{ir.ID(sgDstName)}
+		rule := &ir.SGRule{
+			Remote:      sgRemote(&s.Spec.Defs, srcEndpoint),
+			Direction:   ir.Inbound,
+			Protocol:    trackedProtocol.Protocol.InverseDirection(),
+			Explanation: reason,
+		}
+		sgDst.Add(rule)
+	}
+}
+
+func (s *SGSynthesizer) generateSGsForBlockedResources() {
+	blockedResources := s.Spec.ComputeBlockedResources()
 	for _, resource := range blockedResources {
-		sg := result.LookupOrCreate(ir.SGName(resource)) // an empty SG allows no connections
+		sg := s.Result.LookupOrCreate(ir.SGName(resource)) // an empty SG allows no connections
 		sg.Attached = []ir.ID{resource}
 	}
-	return result
 }
 
-func updateEndpoints(s *ir.Definitions, resource ir.Resource) []ir.ConnResource {
+func updateEndpoints(s *ir.Definitions, resource ir.Resource) []*namedAddrs {
 	if resource.Type == ir.ResourceTypeExternal {
-		return []ir.ConnResource{{Name: resource.Name, Addrs: resource.IPAddrs[0]}}
+		return []*namedAddrs{{Name: resource.Name, Addrs: resource.IPAddrs[0]}}
 	}
-	result := make([]ir.ConnResource, len(resource.IPAddrs))
+	result := make([]*namedAddrs, len(resource.IPAddrs))
 	for i, ip := range resource.IPAddrs {
 		name := resource.Name
-		// TODO: delete the if statement when there will be a support in VSIs with multiple NIFs
+		// TODO: delete the following if statement when there will be a support in VSIs with multiple NIFs
 		if nifDetails, ok := s.NIFs[resource.Name]; ok {
 			name = nifDetails.Instance
 		}
-		result[i] = ir.ConnResource{Name: name, Addrs: ip}
+		result[i] = &namedAddrs{Name: name, Addrs: ip}
 	}
 	return result
 }
 
-func remote(s *ir.Definitions, resource ir.ConnResource) ir.RemoteType {
+func sgRemote(s *ir.Definitions, resource *namedAddrs) ir.RemoteType {
 	if _, ok := s.Externals[resource.Name]; ok {
 		return resource.Addrs
 	}

@@ -36,9 +36,8 @@ type TestCase struct {
 	expectedName string
 	outputFormat string
 	separate     bool
-	acl          bool // Todo: delete this line
-	single       bool // Todo: delete this line
-	// maker        func(s *ir.Spec) ir.Collection
+	acl          bool
+	single       bool
 }
 
 func (c *TestCase) resolve(name string) string {
@@ -57,9 +56,6 @@ func aclTestCase(folder, outputFormat string, single, separateOutputs bool) Test
 		separate:     separateOutputs,
 		acl:          true,
 		single:       single,
-		/*maker: func(s *ir.Spec) ir.Collection {
-			return synth.MakeACL(s, single)
-		},*/
 	}
 }
 
@@ -70,9 +66,6 @@ func sgTestCase(folder, outputFormat string, separateOutputs bool) TestCase {
 		outputFormat: outputFormat,
 		separate:     separateOutputs,
 		acl:          false,
-		/*maker: func(s *ir.Spec) ir.Collection {
-			return synth.MakeSG(s)
-		},*/
 	}
 }
 
@@ -124,7 +117,8 @@ func TestCSVCompare(t *testing.T) {
 				synthesizer := synth.ACLSynthesizer{Spec: s, SingleACL: testCase.single, Result: ir.NewACLCollection()}
 				collection = synthesizer.MakeACL()
 			} else {
-				collection = synth.MakeSG(s)
+				synthesizer := synth.SGSynthesizer{Spec: s, Result: ir.NewSGCollection()}
+				collection = synthesizer.MakeSG()
 			}
 
 			if testCase.separate {
