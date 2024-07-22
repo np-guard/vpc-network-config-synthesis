@@ -18,22 +18,20 @@ import (
 const ACLTypeNotSupported = "ACL: src/dst of type %s is not supported."
 
 type ACLSynthesizer struct {
-	spec      *ir.Spec
-	singleACL bool
-	result    *ir.ACLCollection
+	Spec      *ir.Spec
+	SingleACL bool
+	Result    *ir.ACLCollection
 }
 
-// MakeACL translates Spec to a collection of ACLs
+// MakeACL translatea.Spec to a collection of ACLs
 // 1. generate nACL rules for relevant subnets for each connection
 // 2. generate nACL rules for blocked subnets (subnets that do not appear in Spec)
-func MakeACL(s *ir.Spec, singleacl bool) *ir.ACLCollection {
-	ACLSynthesizer := ACLSynthesizer{spec: s, singleACL: singleacl, result: ir.NewACLCollection()}
-
-	for c := range ACLSynthesizer.spec.Connections {
-		ACLSynthesizer.generateACLRulesFromConnection(&ACLSynthesizer.spec.Connections[c])
+func (a *ACLSynthesizer) MakeACL() *ir.ACLCollection {
+	for c := range a.Spec.Connections {
+		a.generateACLRulesFromConnection(&a.Spec.Connections[c])
 	}
-	ACLSynthesizer.generateACLRulesForBlockedSubnets()
-	return ACLSynthesizer.result
+	a.generateACLRulesForBlockedSubnets()
+	return a.Result
 }
 
 //  1. check that both resources are supported in nACL generation.
@@ -42,7 +40,7 @@ func MakeACL(s *ir.Spec, singleacl bool) *ir.ACLCollection {
 //     and add the rule to the relevant acl. Note: in case where the resource in a nif, src/dst will be
 //     updated to be its subnet.
 //  4. generate rules and add them to relevant ACL to allow traffic for all pairs of IPAddrs of both resources.
-func (a ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection) {
+func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection) {
 	if !resourceRelevantToACL(conn.Src.Type) {
 		log.Fatalf(fmt.Sprintf(ACLTypeNotSupported, string(conn.Src.Type)))
 	}
@@ -54,9 +52,9 @@ func (a ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection) {
 		log.Fatalf("ACL: Both source and destination are external for connection %v", *conn)
 	}
 	for _, src := range conn.Src.IPAddrs {
-		srcSubnets, srcCidr := adjustResource(&a.spec.Defs, src, conn.Src)
+		srcSubnets, srcCidr := adjustResource(&a.Spec.Defs, src, conn.Src)
 		for _, dst := range conn.Dst.IPAddrs {
-			dstSubnets, dstCidr := adjustResource(&a.spec.Defs, dst, conn.Dst)
+			dstSubnets, dstCidr := adjustResource(&a.Spec.Defs, dst, conn.Dst)
 			if src == dst && conn.Src.Type != ir.ResourceTypeCidr && conn.Dst.Type != ir.ResourceTypeCidr {
 				continue
 			}
@@ -70,7 +68,7 @@ func (a ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection) {
 
 // if the src in internal, rule(s) will be created to allow traffic.
 // if the protocol allows response, more rules will be created.
-func (a ACLSynthesizer) allowConnectionFromSrc(conn *ir.Connection, trackedProtocol ir.TrackedProtocol,
+func (a *ACLSynthesizer) allowConnectionFromSrc(conn *ir.Connection, trackedProtocol ir.TrackedProtocol,
 	srcSubnets []*namedAddrs, dstCidr *ipblock.IPBlock) {
 	internalSrc, _, internal := internalConn(conn)
 
@@ -81,10 +79,10 @@ func (a ACLSynthesizer) allowConnectionFromSrc(conn *ir.Connection, trackedProto
 				continue
 			}
 			request := &ir.Packet{Src: srcSubnet.Addrs, Dst: dstCidr, Protocol: trackedProtocol.Protocol, Explanation: reason.String()}
-			a.addRuleToACL(ir.AllowSend(request), srcSubnet, internal, a.singleACL)
+			a.addRuleToACL(ir.AllowSend(request), srcSubnet, internal, a.SingleACL)
 			if inverseProtocol := trackedProtocol.Protocol.InverseDirection(); inverseProtocol != nil {
 				response := &ir.Packet{Src: dstCidr, Dst: srcSubnet.Addrs, Protocol: inverseProtocol, Explanation: reason.response().String()}
-				a.addRuleToACL(ir.AllowReceive(response), srcSubnet, internal, a.singleACL)
+				a.addRuleToACL(ir.AllowReceive(response), srcSubnet, internal, a.SingleACL)
 			}
 		}
 	}
@@ -92,7 +90,7 @@ func (a ACLSynthesizer) allowConnectionFromSrc(conn *ir.Connection, trackedProto
 
 // if the dst in internal, rule(s) will be created to allow traffic.
 // if the protocol allows response, more rules will be created.
-func (a ACLSynthesizer) allowConnectionToDst(conn *ir.Connection, trackedProtocol ir.TrackedProtocol,
+func (a *ACLSynthesizer) allowConnectionToDst(conn *ir.Connection, trackedProtocol ir.TrackedProtocol,
 	dstSubnets []*namedAddrs, srcCidr *ipblock.IPBlock) {
 	_, internalDst, internal := internalConn(conn)
 
@@ -103,21 +101,21 @@ func (a ACLSynthesizer) allowConnectionToDst(conn *ir.Connection, trackedProtoco
 				continue
 			}
 			request := &ir.Packet{Src: srcCidr, Dst: dstSubnet.Addrs, Protocol: trackedProtocol.Protocol, Explanation: reason.String()}
-			a.addRuleToACL(ir.AllowReceive(request), dstSubnet, internal, a.singleACL)
+			a.addRuleToACL(ir.AllowReceive(request), dstSubnet, internal, a.SingleACL)
 			if inverseProtocol := trackedProtocol.Protocol.InverseDirection(); inverseProtocol != nil {
 				response := &ir.Packet{Src: dstSubnet.Addrs, Dst: srcCidr, Protocol: inverseProtocol, Explanation: reason.response().String()}
-				a.addRuleToACL(ir.AllowSend(response), dstSubnet, internal, a.singleACL)
+				a.addRuleToACL(ir.AllowSend(response), dstSubnet, internal, a.SingleACL)
 			}
 		}
 	}
 }
 
 // generate nACL rules for blocked subnets (subnets that do not appear in Spec)
-func (a ACLSynthesizer) generateACLRulesForBlockedSubnets() {
-	blockedSubnets := a.spec.ComputeBlockedSubnets()
+func (a *ACLSynthesizer) generateACLRulesForBlockedSubnets() {
+	blockedSubnets := a.Spec.ComputeBlockedSubnets()
 	for _, subnet := range blockedSubnets {
-		acl := a.result.LookupOrCreate(aclSelector(subnet, a.singleACL))
-		cidr := a.spec.Defs.Subnets[subnet].Address()
+		acl := a.Result.LookupOrCreate(aclSelector(subnet, a.SingleACL))
+		cidr := a.Spec.Defs.Subnets[subnet].Address()
 		acl.AppendInternal(ir.DenyAllReceive(subnet, cidr))
 		acl.AppendInternal(ir.DenyAllSend(subnet, cidr))
 	}
@@ -183,8 +181,8 @@ func resourceRelevantToACL(e ir.ResourceType) bool {
 	return e == ir.ResourceTypeSubnet || e == ir.ResourceTypeCidr || e == ir.ResourceTypeNIF || e == ir.ResourceTypeExternal
 }
 
-func (a ACLSynthesizer) addRuleToACL(rule *ir.ACLRule, resource *namedAddrs, internal, single bool) {
-	acl := a.result.LookupOrCreate(aclSelector(resource.Name, single))
+func (a *ACLSynthesizer) addRuleToACL(rule *ir.ACLRule, resource *namedAddrs, internal, single bool) {
+	acl := a.Result.LookupOrCreate(aclSelector(resource.Name, single))
 	if internal {
 		acl.AppendInternal(rule)
 	} else {

@@ -56,10 +56,10 @@ func makeDenyInternal() []ACLRule {
 	for i, anyLocalCidrSrc := range localCidrs {
 		for j, anyLocalCidrDst := range localCidrs {
 			explanation := fmt.Sprintf("Deny other internal communication; see rfc1918#3; item %v,%v", i, j)
-			denyInternal = append(denyInternal, []ACLRule{
+			denyInternal = append(denyInternal,
 				*packetACLRule(&Packet{Src: anyLocalCidrSrc, Dst: anyLocalCidrDst, Protocol: AnyProtocol{}, Explanation: explanation}, Outbound, Deny),
 				*packetACLRule(&Packet{Src: anyLocalCidrDst, Dst: anyLocalCidrSrc, Protocol: AnyProtocol{}, Explanation: explanation}, Inbound, Deny),
-			}...)
+			)
 		}
 	}
 	return denyInternal
@@ -67,14 +67,12 @@ func makeDenyInternal() []ACLRule {
 
 func DenyAllSend(subnetName ID, cidr *ipblock.IPBlock) *ACLRule {
 	explanation := DenyAllExplanation(subnetName, cidr)
-	ACLRule := *packetACLRule(&Packet{Src: cidr, Dst: ipblock.GetCidrAll(), Protocol: AnyProtocol{}, Explanation: explanation}, Outbound, Deny)
-	return &ACLRule
+	return packetACLRule(&Packet{Src: cidr, Dst: ipblock.GetCidrAll(), Protocol: AnyProtocol{}, Explanation: explanation}, Outbound, Deny)
 }
 
 func DenyAllReceive(subnetName ID, cidr *ipblock.IPBlock) *ACLRule {
 	explanation := DenyAllExplanation(subnetName, cidr)
-	ACLRule := *packetACLRule(&Packet{Src: ipblock.GetCidrAll(), Dst: cidr, Protocol: AnyProtocol{}, Explanation: explanation}, Inbound, Deny)
-	return &ACLRule
+	return packetACLRule(&Packet{Src: ipblock.GetCidrAll(), Dst: cidr, Protocol: AnyProtocol{}, Explanation: explanation}, Inbound, Deny)
 }
 
 func DenyAllExplanation(subnetName ID, cidr *ipblock.IPBlock) string {
