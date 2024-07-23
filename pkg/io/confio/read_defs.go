@@ -144,44 +144,44 @@ func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]*ir.
 	vpeReservedIPs = make(map[ir.ID]*ir.VPEReservedIPsDetails)
 
 	for _, vpe := range config.EndpointGWList {
-		if *vpe.ResourceType == EndpointVPE {
-			uniqueVpeName := ScopingString(*vpe.VPC.Name, *vpe.Name)
-			vpeDetails := ir.VPEDetails{
-				NamedEntity:    ir.NamedEntity(*vpe.Name),
-				VPEReservedIPs: []ir.ID{},
-				VPC:            *vpe.VPC.Name,
-			}
-			vpes[uniqueVpeName] = &vpeDetails
+		if *vpe.ResourceType != EndpointVPE {
+			continue
 		}
+		uniqueVpeName := ScopingString(*vpe.VPC.Name, *vpe.Name)
+		vpeDetails := ir.VPEDetails{
+			NamedEntity:    ir.NamedEntity(*vpe.Name),
+			VPEReservedIPs: []ir.ID{},
+			VPC:            *vpe.VPC.Name,
+		}
+		vpes[uniqueVpeName] = &vpeDetails
 	}
 
 	for _, subnet := range config.SubnetList {
 		for _, r := range subnet.ReservedIps {
-			if t, ok := r.Target.(*vpcv1.ReservedIPTarget); ok && t != nil && r.Address != nil {
-				if r.ResourceType != nil && *t.ResourceType == EndpointVPE && t.Name != nil {
-					VPEName := ScopingString(*subnet.VPC.Name, *t.Name)
-					subnetName := ScopingString(*subnet.VPC.Name, *subnet.Name)
-					uniqueVpeReservedIPName := ScopingString(VPEName, *r.Name)
-					vpeIP, err := ipblock.FromIPAddress(*r.Address)
-					if err != nil {
-						return nil, nil, err
-					}
-					vpeReservedIPDetails := ir.VPEReservedIPsDetails{
-						NamedEntity: ir.NamedEntity(*r.Name),
-						VPEName:     VPEName,
-						Subnet:      subnetName,
-						IP:          vpeIP,
-						VPC:         vpes[VPEName].VPC,
-					}
-					vpeReservedIPs[uniqueVpeReservedIPName] = &vpeReservedIPDetails
-					vpe := vpes[VPEName]
-					vpe.VPEReservedIPs = append(vpe.VPEReservedIPs, uniqueVpeReservedIPName)
-					vpes[VPEName] = vpe
-				}
+			t, ok := r.Target.(*vpcv1.ReservedIPTarget)
+			if !ok || t == nil || r.Address == nil || t.ResourceType == nil || *t.ResourceType != EndpointVPE || t.Name == nil {
+				continue
 			}
+			VPEName := ScopingString(*subnet.VPC.Name, *t.Name)
+			subnetName := ScopingString(*subnet.VPC.Name, *subnet.Name)
+			uniqueVpeReservedIPName := ScopingString(VPEName, *r.Name)
+			vpeIP, err := ipblock.FromIPAddress(*r.Address)
+			if err != nil {
+				return nil, nil, err
+			}
+			vpeReservedIPDetails := ir.VPEReservedIPsDetails{
+				NamedEntity: ir.NamedEntity(*r.Name),
+				VPEName:     VPEName,
+				Subnet:      subnetName,
+				IP:          vpeIP,
+				VPC:         vpes[VPEName].VPC,
+			}
+			vpeReservedIPs[uniqueVpeReservedIPName] = &vpeReservedIPDetails
+			vpe := vpes[VPEName]
+			vpe.VPEReservedIPs = append(vpe.VPEReservedIPs, uniqueVpeReservedIPName)
+			vpes[VPEName] = vpe
 		}
 	}
-
 	return vpes, vpeReservedIPs, nil
 }
 
