@@ -247,14 +247,15 @@ func (s *Definitions) lookupInstance(name string) (Resource, error) {
 }
 
 func (s *Definitions) lookupVPE(name string) (Resource, error) {
-	if VPEDetails, ok := s.VPEs[name]; ok {
-		ips := make([]*ipblock.IPBlock, len(VPEDetails.VPEReservedIPs))
-		for i, vpeEndPoint := range VPEDetails.VPEReservedIPs {
-			ips[i] = s.VPEReservedIPs[vpeEndPoint].IP
-		}
-		return Resource{name, ips, ResourceTypeVPE}, nil
+	VPEDetails, ok := s.VPEs[name]
+	if !ok {
+		return Resource{}, resourceNotFoundError(name, ResourceTypeVPE)
 	}
-	return Resource{}, resourceNotFoundError(name, ResourceTypeVPE)
+	ips := make([]*ipblock.IPBlock, len(VPEDetails.VPEReservedIPs))
+	for i, vpeEndPoint := range VPEDetails.VPEReservedIPs {
+		ips[i] = s.VPEReservedIPs[vpeEndPoint].IP
+	}
+	return Resource{name, ips, ResourceTypeVPE}, nil
 }
 
 func (s *Definitions) lookupSubnetSegment(name string) (Resource, error) {
@@ -274,16 +275,17 @@ func (s *Definitions) lookupSubnetSegment(name string) (Resource, error) {
 }
 
 func (s *Definitions) lookupCidrSegment(name string) (Resource, error) {
-	if cidrSegmentDetails, ok := s.CidrSegments[name]; ok {
-		cidrs := make([]*ipblock.IPBlock, len(cidrSegmentDetails.Cidrs))
-		i := 0
-		for cidr := range cidrSegmentDetails.Cidrs {
-			cidrs[i] = cidr
-			i++
-		}
-		return Resource{name, cidrs, ResourceTypeCidr}, nil
+	cidrSegmentDetails, ok := s.CidrSegments[name]
+	if !ok {
+		return Resource{}, containerNotFoundError(name, ResourceTypeSegment)
 	}
-	return Resource{}, containerNotFoundError(name, ResourceTypeSegment)
+	cidrs := make([]*ipblock.IPBlock, len(cidrSegmentDetails.Cidrs))
+	i := 0
+	for cidr := range cidrSegmentDetails.Cidrs {
+		cidrs[i] = cidr
+		i++
+	}
+	return Resource{name, cidrs, ResourceTypeCidr}, nil
 }
 
 func (s *Definitions) Lookup(t ResourceType, name string) (Resource, error) {

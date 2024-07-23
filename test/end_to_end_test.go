@@ -113,14 +113,13 @@ func TestCSVCompare(t *testing.T) {
 				t.Fatal(err)
 				return
 			}
-			var collection ir.Collection
+			var s synth.Synthesizer
 			if testCase.acl {
-				synthesizer := synth.NewACLSynthesizer(spec, testCase.single)
-				collection = synthesizer.MakeACL()
+				s = synth.NewACLSynthesizer(spec, testCase.single)
 			} else {
-				synthesizer := synth.NewSGSynthesizer(spec)
-				collection = synthesizer.MakeSG()
+				s = synth.NewSGSynthesizer(spec, false)
 			}
+			collection := s.Synth()
 
 			if testCase.separate {
 				writeMultipleFiles(testCase, t, collection, spec)

@@ -20,14 +20,18 @@ type SGSynthesizer struct {
 }
 
 // NewSGSynthesizer creates and returns a new SGSynthesizer instance
-func NewSGSynthesizer(s *ir.Spec) *SGSynthesizer {
+func NewSGSynthesizer(s *ir.Spec, _ bool) Synthesizer {
 	return &SGSynthesizer{spec: s, result: ir.NewSGCollection()}
 }
 
-// MakeSG translates.spec to a collection of security groups
+func (s *SGSynthesizer) Synth() ir.Collection {
+	return s.makeSG()
+}
+
+// this method translates spec to a collection of Security Groups
 // 1. generate SGs for relevant endpoints for each connection
 // 2. generate SGs for blocked endpoints (endpoints that do not appear in Spec)
-func (s *SGSynthesizer) MakeSG() *ir.SGCollection {
+func (s *SGSynthesizer) makeSG() *ir.SGCollection {
 	for c := range s.spec.Connections {
 		s.generateSGRulesFromConnection(&s.spec.Connections[c])
 	}

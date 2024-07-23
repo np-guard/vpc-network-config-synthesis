@@ -19,13 +19,7 @@ func NewACLCommand(args *inArgs) *cobra.Command {
 		Endpoints in the required-connectivity specification may be subnets, subnet segments, CIDR segments and externals.`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			cmd.SilenceUsage = true
-			spec, err := unmarshal(args)
-			if err != nil {
-				return err
-			}
-			aclSynthesizer := synth.NewACLSynthesizer(spec, args.singleacl)
-			return writeOutput(args, aclSynthesizer.MakeACL(), &spec.Defs.ConfigDefs)
+			return synthesis(cmd, args, synth.NewACLSynthesizer, args.singleacl)
 		},
 	}
 
