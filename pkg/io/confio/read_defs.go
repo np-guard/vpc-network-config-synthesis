@@ -155,9 +155,6 @@ func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]*ir.
 		}
 		vpes[uniqueVpeName] = &vpeDetails
 	}
-	var t *vpcv1.ReservedIPTarget
-	var ok bool
-
 	for _, subnet := range config.SubnetList {
 		for _, r := range subnet.ReservedIps {
 			t, ok := r.Target.(*vpcv1.ReservedIPTarget)
