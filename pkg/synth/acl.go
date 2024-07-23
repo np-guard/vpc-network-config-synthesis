@@ -17,146 +17,164 @@ import (
 
 const ACLTypeNotSupported = "ACL: src/dst of type %s is not supported."
 
-type Options struct {
-	SingleACL bool
+type ACLSynthesizer struct {
+	spec      *ir.Spec
+	singleACL bool
+	result    *ir.ACLCollection
+}
+
+// NewACLSynthesizer creates and returns a new ACLSynthesizer instance
+func NewACLSynthesizer(s *ir.Spec, single bool) *ACLSynthesizer {
+	return &ACLSynthesizer{spec: s, singleACL: single, result: ir.NewACLCollection()}
 }
 
 // MakeACL translates Spec to a collection of ACLs
-func MakeACL(s *ir.Spec, opt Options) *ir.ACLCollection {
-	collections := []*ir.ACLCollection{}
-	for c := range s.Connections {
-		collection := generateACLCollectionFromConnection(&s.Defs, &s.Connections[c], opt.SingleACL)
-		collections = append(collections, collection)
+// 1. generate nACL rules for relevant subnets for each connection
+// 2. generate nACL rules for blocked subnets (subnets that do not appear in Spec)
+func (a *ACLSynthesizer) MakeACL() *ir.ACLCollection {
+	for c := range a.spec.Connections {
+		a.generateACLRulesFromConnection(&a.spec.Connections[c])
 	}
-	collections = append(collections, generateACLCollectionForBlockedSubnets(s, opt.SingleACL))
-	return ir.MergeACLCollections(collections...)
+	a.generateACLRulesForBlockedSubnets()
+	return a.result
 }
 
-func generateACLCollectionFromConnection(s *ir.Definitions, conn *ir.Connection, single bool) *ir.ACLCollection {
-	internalSrc := conn.Src.Type != ir.ResourceTypeExternal
-	internalDst := conn.Dst.Type != ir.ResourceTypeExternal
-	internal := internalSrc && internalDst
-	if !internalSrc && !internalDst {
-		log.Fatalf("ACL: Both source and destination are external for connection %v", *conn)
-	}
-	result := ir.NewACLCollection()
+//  1. check that both resources are supported in nACL generation.
+//  2. check that at least one resource is internal.
+//  3. convert src and dst resources to namedAddrs slices to make it more convenient to go through the addrs
+//     and add the rule to the relevant acl. Note: in case where the resource in a nif, src/dst will be
+//     updated to be its subnet.
+//  4. generate rules and add them to relevant ACL to allow traffic for all pairs of IPAddrs of both resources.
+func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection) {
 	if !resourceRelevantToACL(conn.Src.Type) {
 		log.Fatalf(fmt.Sprintf(ACLTypeNotSupported, string(conn.Src.Type)))
 	}
 	if !resourceRelevantToACL(conn.Dst.Type) {
 		log.Fatalf(fmt.Sprintf(ACLTypeNotSupported, string(conn.Dst.Type)))
 	}
+	internalSrc, internalDst, _ := internalConn(conn)
+	if !internalSrc && !internalDst {
+		log.Fatalf("ACL: Both source and destination are external for connection %v", *conn)
+	}
 	for _, src := range conn.Src.IPAddrs {
+		srcSubnets, srcCidr := adjustResource(&a.spec.Defs, src, conn.Src)
 		for _, dst := range conn.Dst.IPAddrs {
+			dstSubnets, dstCidr := adjustResource(&a.spec.Defs, dst, conn.Dst)
 			if src == dst && conn.Src.Type != ir.ResourceTypeCidr && conn.Dst.Type != ir.ResourceTypeCidr {
 				continue
 			}
-			srcEndpoints, src := updateResource(s, src, conn.Src, single)
-			dstEndpoints, dst := updateResource(s, dst, conn.Dst, single)
 			for _, trackedProtocol := range conn.TrackedProtocols {
-				reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}
-				allowDirectedConnection(src, dst, srcEndpoints, dstEndpoints, internalSrc, internalDst, trackedProtocol.Protocol, reason, result)
-			}
-		}
-	}
-	return result
-}
-
-func allowDirectedConnection(srcCidr, dstCidr *ipblock.IPBlock, srcEndpoints, dstEndpoints []ir.ConnResource, internalSrc, internalDst bool,
-	protocol ir.Protocol, reason explanation, result *ir.ACLCollection) {
-	var request, response *ir.Packet
-	internal := internalSrc && internalDst
-
-	if internalSrc {
-		for _, srcSubnet := range srcEndpoints {
-			if srcSubnet.Addrs.Equal(dstCidr) { // srcSubnet and dstCidr are the same subnet
-				continue
-			}
-			request = &ir.Packet{Src: srcSubnet.Addrs, Dst: dstCidr, Protocol: protocol, Explanation: reason.String()}
-			addRuleToACL(result, ir.AllowSend(*request), srcSubnet, internal)
-			if inverseProtocol := protocol.InverseDirection(); inverseProtocol != nil {
-				response = &ir.Packet{Src: dstCidr, Dst: srcSubnet.Addrs, Protocol: inverseProtocol, Explanation: reason.response().String()}
-				addRuleToACL(result, ir.AllowReceive(*response), srcSubnet, internal)
-			}
-		}
-	}
-
-	if internalDst {
-		for _, dstSubnet := range dstEndpoints {
-			if dstSubnet.Addrs.Equal(srcCidr) {
-				continue
-			}
-			request = &ir.Packet{Src: srcCidr, Dst: dstSubnet.Addrs, Protocol: protocol, Explanation: reason.String()}
-			addRuleToACL(result, ir.AllowReceive(*request), dstSubnet, internal)
-			if inverseProtocol := protocol.InverseDirection(); inverseProtocol != nil {
-				response = &ir.Packet{Src: dstSubnet.Addrs, Dst: srcCidr, Protocol: inverseProtocol, Explanation: reason.response().String()}
-				addRuleToACL(result, ir.AllowSend(*response), dstSubnet, internal)
+				a.allowConnectionFromSrc(conn, trackedProtocol, srcSubnets, dstCidr)
+				a.allowConnectionToDst(conn, trackedProtocol, dstSubnets, srcCidr)
 			}
 		}
 	}
 }
 
-func generateACLCollectionForBlockedSubnets(s *ir.Spec, single bool) *ir.ACLCollection {
-	blockedSubnets := s.ComputeBlockedSubnets()
-	result := ir.NewACLCollection()
+// if the src in internal, rule(s) will be created to allow traffic.
+// if the protocol allows response, more rules will be created.
+func (a *ACLSynthesizer) allowConnectionFromSrc(conn *ir.Connection, trackedProtocol ir.TrackedProtocol,
+	srcSubnets []*namedAddrs, dstCidr *ipblock.IPBlock) {
+	internalSrc, _, internal := internalConn(conn)
+
+	if !internalSrc {
+		return
+	}
+	reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}
+	for _, srcSubnet := range srcSubnets {
+		if srcSubnet.Addrs.Equal(dstCidr) { // srcSubnet and dstCidr are the same subnet
+			continue
+		}
+		request := &ir.Packet{Src: srcSubnet.Addrs, Dst: dstCidr, Protocol: trackedProtocol.Protocol, Explanation: reason.String()}
+		a.addRuleToACL(ir.AllowSend(request), srcSubnet, internal, a.singleACL)
+		if inverseProtocol := trackedProtocol.Protocol.InverseDirection(); inverseProtocol != nil {
+			response := &ir.Packet{Src: dstCidr, Dst: srcSubnet.Addrs, Protocol: inverseProtocol, Explanation: reason.response().String()}
+			a.addRuleToACL(ir.AllowReceive(response), srcSubnet, internal, a.singleACL)
+		}
+	}
+}
+
+// if the dst in internal, rule(s) will be created to allow traffic.
+// if the protocol allows response, more rules will be created.
+func (a *ACLSynthesizer) allowConnectionToDst(conn *ir.Connection, trackedProtocol ir.TrackedProtocol,
+	dstSubnets []*namedAddrs, srcCidr *ipblock.IPBlock) {
+	_, internalDst, internal := internalConn(conn)
+
+	if !internalDst {
+		return
+	}
+	reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}
+	for _, dstSubnet := range dstSubnets {
+		if dstSubnet.Addrs.Equal(srcCidr) { // dstSubnet and srcCidr are the same subnet
+			continue
+		}
+		request := &ir.Packet{Src: srcCidr, Dst: dstSubnet.Addrs, Protocol: trackedProtocol.Protocol, Explanation: reason.String()}
+		a.addRuleToACL(ir.AllowReceive(request), dstSubnet, internal, a.singleACL)
+		if inverseProtocol := trackedProtocol.Protocol.InverseDirection(); inverseProtocol != nil {
+			response := &ir.Packet{Src: dstSubnet.Addrs, Dst: srcCidr, Protocol: inverseProtocol, Explanation: reason.response().String()}
+			a.addRuleToACL(ir.AllowSend(response), dstSubnet, internal, a.singleACL)
+		}
+	}
+}
+
+// generate nACL rules for blocked subnets (subnets that do not appear in Spec)
+func (a *ACLSynthesizer) generateACLRulesForBlockedSubnets() {
+	blockedSubnets := a.spec.ComputeBlockedSubnets()
 	for _, subnet := range blockedSubnets {
-		acl := result.LookupOrCreate(aclSelector(subnet, single))
-		cidr := s.Defs.Subnets[subnet].Address()
+		acl := a.result.LookupOrCreate(aclSelector(subnet, a.singleACL))
+		cidr := a.spec.Defs.Subnets[subnet].Address()
 		acl.AppendInternal(ir.DenyAllReceive(subnet, cidr))
 		acl.AppendInternal(ir.DenyAllSend(subnet, cidr))
 	}
-	return result
 }
 
-func updateResource(s *ir.Definitions, addrs *ipblock.IPBlock, resource ir.Resource, single bool) ([]ir.ConnResource, *ipblock.IPBlock) {
+// convert src and dst resources to namedAddrs slices to make it more convenient to go through the addrs and add
+// the rule to the relevant acl. Note: in case where the resource in a nif, src/dst will be updated to be its subnet.
+func adjustResource(s *ir.Definitions, addrs *ipblock.IPBlock, resource ir.Resource) ([]*namedAddrs, *ipblock.IPBlock) {
 	switch resource.Type {
 	case ir.ResourceTypeSubnet:
-		return updateSubnet(s, addrs, resource.Name, single), addrs
+		return adjustSubnet(s, addrs, resource.Name), addrs
 	case ir.ResourceTypeExternal:
-		connResource := ir.ConnResource{Name: resource.Name, Addrs: addrs}
-		return []ir.ConnResource{connResource}, addrs
+		return []*namedAddrs{{Name: resource.Name, Addrs: addrs}}, addrs
 	case ir.ResourceTypeNIF:
-		result := updateNif(s, addrs, single)
-		return result, result[0].Addrs // should return nif's subnet
+		result := expandNifToSubnet(s, addrs)
+		return result, result[0].Addrs // return nif's subnet, not its IP address
 	case ir.ResourceTypeCidr:
-		return updateCidrSegment(s, addrs, resource.Name, single), addrs
+		return adjustCidrSegment(s, addrs, resource.Name), addrs
 	}
-	return []ir.ConnResource{}, nil // dead code
+	return []*namedAddrs{}, nil // shouldn't happen
 }
 
-func updateCidrSegment(s *ir.Definitions, cidr *ipblock.IPBlock, resourceName string, single bool) []ir.ConnResource {
-	cidrSegmentDetails := s.CidrSegments[resourceName]
-	cidrDetails := cidrSegmentDetails.Cidrs[cidr]
-	result := make([]ir.ConnResource, len(cidrDetails.ContainedSubnets))
-	for i, subnet := range cidrDetails.ContainedSubnets {
-		connResource := ir.ConnResource{Name: aclSelector(subnet, single), Addrs: s.Subnets[subnet].Address()}
-		result[i] = connResource
-	}
-	return result
-}
-
-func updateNif(s *ir.Definitions, addr *ipblock.IPBlock, single bool) []ir.ConnResource {
-	nifName, _ := s.NIFFromIP(addr)
-	subnetName := s.NIFs[nifName].Subnet
-	subnetCidr := s.Subnets[subnetName].Address()
-
-	connResource := ir.ConnResource{Name: aclSelector(subnetName, single), Addrs: subnetCidr}
-	return []ir.ConnResource{connResource}
-}
-
-func updateSubnet(s *ir.Definitions, addrs *ipblock.IPBlock, resourceName string, single bool) []ir.ConnResource {
+func adjustSubnet(s *ir.Definitions, addrs *ipblock.IPBlock, resourceName string) []*namedAddrs {
+	// Todo: Handle the case where there is a subnet and a subnetSegment with the same name
 	if subnetDetails, ok := s.Subnets[resourceName]; ok { // resource is a subnet
-		connResource := ir.ConnResource{Name: aclSelector(resourceName, single), Addrs: subnetDetails.Address()}
-		return []ir.ConnResource{connResource}
+		return []*namedAddrs{{Name: resourceName, Addrs: subnetDetails.Address()}}
 	}
 	// resource is a subnet segment
 	for _, subnetName := range s.SubnetSegments[resourceName].Subnets {
 		if s.Subnets[subnetName].Address().Equal(addrs) {
-			connResource := ir.ConnResource{Name: aclSelector(subnetName, single), Addrs: s.Subnets[subnetName].Address()}
-			return []ir.ConnResource{connResource}
+			return []*namedAddrs{{Name: subnetName, Addrs: s.Subnets[subnetName].Address()}}
 		}
 	}
-	return []ir.ConnResource{} // dead code
+	return []*namedAddrs{} // shouldn't happen
+}
+
+func adjustCidrSegment(s *ir.Definitions, cidr *ipblock.IPBlock, resourceName string) []*namedAddrs {
+	cidrSegmentDetails := s.CidrSegments[resourceName]
+	cidrDetails := cidrSegmentDetails.Cidrs[cidr]
+	result := make([]*namedAddrs, len(cidrDetails.ContainedSubnets))
+	for i, subnet := range cidrDetails.ContainedSubnets {
+		result[i] = &namedAddrs{Name: subnet, Addrs: s.Subnets[subnet].Address()}
+	}
+	return result
+}
+
+func expandNifToSubnet(s *ir.Definitions, addr *ipblock.IPBlock) []*namedAddrs {
+	nifName, _ := s.NIFFromIP(addr) // already checked before (Lookup function) that the NIF exists
+	subnetName := s.NIFs[nifName].Subnet
+	subnetCidr := s.Subnets[subnetName].Address()
+
+	return []*namedAddrs{{Name: subnetName, Addrs: subnetCidr}}
 }
 
 func aclSelector(subnetName ir.ID, single bool) string {
@@ -170,8 +188,8 @@ func resourceRelevantToACL(e ir.ResourceType) bool {
 	return e == ir.ResourceTypeSubnet || e == ir.ResourceTypeCidr || e == ir.ResourceTypeNIF || e == ir.ResourceTypeExternal
 }
 
-func addRuleToACL(result *ir.ACLCollection, rule *ir.ACLRule, resource ir.ConnResource, internal bool) {
-	acl := result.LookupOrCreate(resource.Name)
+func (a *ACLSynthesizer) addRuleToACL(rule *ir.ACLRule, resource *namedAddrs, internal, single bool) {
+	acl := a.result.LookupOrCreate(aclSelector(resource.Name, single))
 	if internal {
 		acl.AppendInternal(rule)
 	} else {

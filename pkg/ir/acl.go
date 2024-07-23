@@ -81,10 +81,9 @@ func (a *ACL) AppendInternal(rule *ACLRule) {
 	if a.External == nil {
 		panic("ACLs should be created with non-null Internal")
 	}
-	if rule.isRedundant(a.Internal) {
-		return
+	if !rule.isRedundant(a.Internal) {
+		a.Internal = append(a.Internal, *rule)
 	}
-	a.Internal = append(a.Internal, *rule)
 }
 
 func (a *ACL) Name() string {
@@ -103,24 +102,6 @@ func (a *ACL) AppendExternal(rule *ACLRule) {
 
 func NewACLCollection() *ACLCollection {
 	return &ACLCollection{ACLs: map[ID]map[string]*ACL{}}
-}
-
-func MergeACLCollections(collections ...*ACLCollection) *ACLCollection {
-	result := NewACLCollection()
-	for _, c := range collections {
-		for _, vpc := range c.ACLs {
-			for a := range vpc {
-				acl := c.LookupOrCreate(a)
-				for r := range acl.Internal {
-					result.LookupOrCreate(a).AppendInternal(&acl.Internal[r])
-				}
-				for r := range acl.External {
-					result.LookupOrCreate(a).AppendExternal(&acl.External[r])
-				}
-			}
-		}
-	}
-	return result
 }
 
 func NewACL() *ACL {

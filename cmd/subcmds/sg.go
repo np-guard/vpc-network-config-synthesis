@@ -24,8 +24,8 @@ func NewSGCommand(args *inArgs) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			collection := synth.MakeSG(spec)
-			return writeOutput(args, collection, &spec.Defs.ConfigDefs)
+			sgSynthesizer := synth.NewSGSynthesizer(spec)
+			return writeOutput(args, sgSynthesizer.MakeSG(), &spec.Defs.ConfigDefs)
 		},
 	}
 	return cmd

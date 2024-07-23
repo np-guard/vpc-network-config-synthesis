@@ -93,26 +93,9 @@ func (c *SGCollection) LookupOrCreate(name SGName) *SG {
 }
 
 func (a *SG) Add(rule *SGRule) {
-	if rule.isRedundant(a.Rules) {
-		return
+	if !rule.isRedundant(a.Rules) {
+		a.Rules = append(a.Rules, *rule)
 	}
-	a.Rules = append(a.Rules, *rule)
-}
-
-func MergeSGCollections(collections ...*SGCollection) *SGCollection {
-	result := NewSGCollection()
-	for _, c := range collections {
-		for _, vpc := range c.SGs {
-			for sgName := range vpc {
-				sg := c.LookupOrCreate(sgName)
-				rsg := result.LookupOrCreate(sgName)
-				for r := range sg.Rules {
-					rsg.Add(&sg.Rules[r])
-				}
-			}
-		}
-	}
-	return result
 }
 
 func (c *SGCollection) Write(w Writer, vpc string) error {
