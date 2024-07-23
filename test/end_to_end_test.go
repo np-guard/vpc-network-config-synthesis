@@ -107,22 +107,22 @@ func TestCSVCompare(t *testing.T) {
 	for testName := range suite {
 		testCase := suite[testName]
 		t.Run(testName, func(t *testing.T) {
-			s, err := readSpec(&testCase)
+			spec, err := readSpec(&testCase)
 			if err != nil {
 				t.Fatal(err)
 				return
 			}
 			var collection ir.Collection
 			if testCase.acl {
-				synthesizer := synth.ACLSynthesizer{Spec: s, SingleACL: testCase.single, Result: ir.NewACLCollection()}
+				synthesizer := synth.NewACLSynthesizer(spec, testCase.single)
 				collection = synthesizer.MakeACL()
 			} else {
-				synthesizer := synth.SGSynthesizer{Spec: s, Result: ir.NewSGCollection()}
+				synthesizer := synth.NewSGSynthesizer(spec)
 				collection = synthesizer.MakeSG()
 			}
 
 			if testCase.separate {
-				writeMultipleFiles(testCase, t, collection, s)
+				writeMultipleFiles(testCase, t, collection, spec)
 			} else {
 				writeSingleFile(testCase, t, collection)
 			}

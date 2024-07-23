@@ -15,19 +15,24 @@ import (
 const SGTypeNotSupported = "SG: src/dst of type %s is not supported."
 
 type SGSynthesizer struct {
-	Spec   *ir.Spec
-	Result *ir.SGCollection
+	spec   *ir.Spec
+	result *ir.SGCollection
 }
 
-// MakeSG translates Spec to a collection of security groups
+// NewSGSynthesizer creates and returns a new SGSynthesizer instance
+func NewSGSynthesizer(s *ir.Spec) *SGSynthesizer {
+	return &SGSynthesizer{spec: s, result: ir.NewSGCollection()}
+}
+
+// MakeSG translates.spec to a collection of security groups
 // 1. generate SGs for relevant endpoints for each connection
 // 2. generate SGs for blocked endpoints (endpoints that do not appear in Spec)
 func (s *SGSynthesizer) MakeSG() *ir.SGCollection {
-	for c := range s.Spec.Connections {
-		s.generateSGRulesFromConnection(&s.Spec.Connections[c])
+	for c := range s.spec.Connections {
+		s.generateSGRulesFromConnection(&s.spec.Connections[c])
 	}
 	s.generateSGsForBlockedResources()
-	return s.Result
+	return s.result
 }
 
 //  1. check that both resources are supported in SG generation.
@@ -47,8 +52,8 @@ func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection) {
 		log.Fatalf("SG: Both source and destination are external for connection %v", *conn)
 	}
 
-	srcEndpoints := updateEndpoints(&s.Spec.Defs, conn.Src)
-	dstEndpoints := updateEndpoints(&s.Spec.Defs, conn.Dst)
+	srcEndpoints := updateEndpoints(&s.spec.Defs, conn.Src)
+	dstEndpoints := updateEndpoints(&s.spec.Defs, conn.Dst)
 
 	for _, srcEndpoint := range srcEndpoints {
 		for _, dstEndpoint := range dstEndpoints {
@@ -68,51 +73,49 @@ func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection) {
 func (s *SGSynthesizer) allowConnectionFromSrc(conn *ir.Connection, trackedProtocol ir.TrackedProtocol,
 	srcEndpoint, dstEndpoint *namedAddrs) {
 	internalSrc, _, internal := internalConn(conn)
-	reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}.String()
 
-	if internalSrc {
-		sgSrcName := ir.SGName(srcEndpoint.Name)
-		sgSrc := s.Result.LookupOrCreate(sgSrcName)
-		sgSrc.Attached = []ir.ID{ir.ID(sgSrcName)}
-		rule := &ir.SGRule{
-			Remote:      sgRemote(&s.Spec.Defs, dstEndpoint),
-			Direction:   ir.Outbound,
-			Protocol:    trackedProtocol.Protocol,
-			Explanation: reason,
-		}
-		sgSrc.Add(rule)
+	if !internalSrc {
+		return
 	}
+	reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}.String()
+	sgSrcName := ir.SGName(srcEndpoint.Name)
+	sgSrc := s.result.LookupOrCreate(sgSrcName)
+	sgSrc.Attached = []ir.ID{ir.ID(sgSrcName)}
+	rule := &ir.SGRule{
+		Remote:      sgRemote(&s.spec.Defs, dstEndpoint),
+		Direction:   ir.Outbound,
+		Protocol:    trackedProtocol.Protocol,
+		Explanation: reason,
+	}
+	sgSrc.Add(rule)
 }
 
 // if the dst in internal, a rule will be created to allow traffic.
 func (s *SGSynthesizer) allowConnectionToDst(conn *ir.Connection, trackedProtocol ir.TrackedProtocol,
 	srcEndpoint, dstEndpoint *namedAddrs) {
 	_, internalDst, internal := internalConn(conn)
-	reason := explanation{
-		internal:         internal,
-		connectionOrigin: conn.Origin,
-		protocolOrigin:   trackedProtocol.Origin,
-	}.String()
 
-	if internalDst {
-		sgDstName := ir.SGName(dstEndpoint.Name)
-		sgDst := s.Result.LookupOrCreate(sgDstName)
-		sgDst.Attached = []ir.ID{ir.ID(sgDstName)}
-		rule := &ir.SGRule{
-			Remote:      sgRemote(&s.Spec.Defs, srcEndpoint),
-			Direction:   ir.Inbound,
-			Protocol:    trackedProtocol.Protocol.InverseDirection(),
-			Explanation: reason,
-		}
-		sgDst.Add(rule)
+	if !internalDst {
+		return
 	}
+	reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}.String()
+	sgDstName := ir.SGName(dstEndpoint.Name)
+	sgDst := s.result.LookupOrCreate(sgDstName)
+	sgDst.Attached = []ir.ID{ir.ID(sgDstName)}
+	rule := &ir.SGRule{
+		Remote:      sgRemote(&s.spec.Defs, srcEndpoint),
+		Direction:   ir.Inbound,
+		Protocol:    trackedProtocol.Protocol.InverseDirection(),
+		Explanation: reason,
+	}
+	sgDst.Add(rule)
 }
 
 // generate SGs for blocked endpoints (endpoints that do not appear in Spec)
 func (s *SGSynthesizer) generateSGsForBlockedResources() {
-	blockedResources := s.Spec.ComputeBlockedResources()
+	blockedResources := s.spec.ComputeBlockedResources()
 	for _, resource := range blockedResources {
-		sg := s.Result.LookupOrCreate(ir.SGName(resource)) // an empty SG allows no connections
+		sg := s.result.LookupOrCreate(ir.SGName(resource)) // an empty SG allows no connections
 		sg.Attached = []ir.ID{resource}
 	}
 }

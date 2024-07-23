@@ -8,7 +8,6 @@ package subcmds
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/synth"
 )
 
@@ -25,7 +24,7 @@ func NewACLCommand(args *inArgs) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			aclSynthesizer := synth.ACLSynthesizer{Spec: spec, SingleACL: args.singleacl, Result: ir.NewACLCollection()}
+			aclSynthesizer := synth.NewACLSynthesizer(spec, args.singleacl)
 			return writeOutput(args, aclSynthesizer.MakeACL(), &spec.Defs.ConfigDefs)
 		},
 	}
