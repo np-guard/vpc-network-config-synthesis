@@ -24,14 +24,18 @@ type ACLSynthesizer struct {
 }
 
 // NewACLSynthesizer creates and returns a new ACLSynthesizer instance
-func NewACLSynthesizer(s *ir.Spec, single bool) *ACLSynthesizer {
+func NewACLSynthesizer(s *ir.Spec, single bool) Synthesizer {
 	return &ACLSynthesizer{spec: s, singleACL: single, result: ir.NewACLCollection()}
 }
 
-// MakeACL translates Spec to a collection of ACLs
+func (a *ACLSynthesizer) Synth() ir.Collection {
+	return a.makeACL()
+}
+
+// makeACL translates Spec to a collection of nACLs
 // 1. generate nACL rules for relevant subnets for each connection
 // 2. generate nACL rules for blocked subnets (subnets that do not appear in Spec)
-func (a *ACLSynthesizer) MakeACL() *ir.ACLCollection {
+func (a *ACLSynthesizer) makeACL() *ir.ACLCollection {
 	for c := range a.spec.Connections {
 		a.generateACLRulesFromConnection(&a.spec.Connections[c])
 	}
