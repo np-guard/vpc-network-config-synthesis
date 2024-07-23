@@ -155,13 +155,11 @@ func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]*ir.
 		}
 		vpes[uniqueVpeName] = &vpeDetails
 	}
-	var t *vpcv1.ReservedIPTarget
-	var ok bool
 
 	for _, subnet := range config.SubnetList {
 		for _, r := range subnet.ReservedIps {
-			if t, ok = r.Target.(*vpcv1.ReservedIPTarget); !ok || t == nil || r.Address == nil || t.ResourceType == nil ||
-				*t.ResourceType != EndpointVPE || t.Name == nil {
+			t, ok := r.Target.(*vpcv1.ReservedIPTarget)
+			if !ok || t == nil || r.Address == nil || t.ResourceType == nil || *t.ResourceType != EndpointVPE || t.Name == nil {
 				continue
 			}
 			VPEName := ScopingString(*subnet.VPC.Name, *t.Name)
