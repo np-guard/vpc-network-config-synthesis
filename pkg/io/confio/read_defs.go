@@ -160,7 +160,7 @@ func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]*ir.
 
 	for _, subnet := range config.SubnetList {
 		for _, r := range subnet.ReservedIps {
-			if t, ok = r.Target.(*vpcv1.ReservedIPTarget); !ok || t == nil || r.Address == nil || r.ResourceType == nil ||
+			if t, ok = r.Target.(*vpcv1.ReservedIPTarget); !ok || t == nil || r.Address == nil || t.ResourceType == nil ||
 				*t.ResourceType != EndpointVPE || t.Name == nil {
 				continue
 			}
