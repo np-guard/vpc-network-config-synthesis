@@ -36,9 +36,8 @@ type TestCase struct {
 	expectedName string
 	outputFormat string
 	separate     bool
-	acl          bool // Todo: delete this line
-	single       bool // Todo: delete this line
-	// maker        func(s *ir.Spec) ir.Collection
+	acl          bool
+	single       bool
 }
 
 func (c *TestCase) resolve(name string) string {
@@ -57,9 +56,6 @@ func aclTestCase(folder, outputFormat string, single, separateOutputs bool) Test
 		separate:     separateOutputs,
 		acl:          true,
 		single:       single,
-		/*maker: func(s *ir.Spec) ir.Collection {
-			return synth.MakeACL(s, single)
-		},*/
 	}
 }
 
@@ -70,9 +66,6 @@ func sgTestCase(folder, outputFormat string, separateOutputs bool) TestCase {
 		outputFormat: outputFormat,
 		separate:     separateOutputs,
 		acl:          false,
-		/*maker: func(s *ir.Spec) ir.Collection {
-			return synth.MakeSG(s)
-		},*/
 	}
 }
 
@@ -114,21 +107,21 @@ func TestCSVCompare(t *testing.T) {
 	for testName := range suite {
 		testCase := suite[testName]
 		t.Run(testName, func(t *testing.T) {
-			s, err := readSpec(&testCase)
+			spec, err := readSpec(&testCase)
 			if err != nil {
 				t.Fatal(err)
 				return
 			}
-			var collection ir.Collection
+			var s synth.Synthesizer
 			if testCase.acl {
-				synthesizer := synth.ACLSynthesizer{Spec: s, SingleACL: testCase.single, Result: ir.NewACLCollection()}
-				collection = synthesizer.MakeACL()
+				s = synth.NewACLSynthesizer(spec, testCase.single)
 			} else {
-				collection = synth.MakeSG(s)
+				s = synth.NewSGSynthesizer(spec, false)
 			}
+			collection := s.Synth()
 
 			if testCase.separate {
-				writeMultipleFiles(testCase, t, collection, s)
+				writeMultipleFiles(testCase, t, collection, spec)
 			} else {
 				writeSingleFile(testCase, t, collection)
 			}

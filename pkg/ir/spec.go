@@ -247,14 +247,15 @@ func (s *Definitions) lookupInstance(name string) (Resource, error) {
 }
 
 func (s *Definitions) lookupVPE(name string) (Resource, error) {
-	if VPEDetails, ok := s.VPEs[name]; ok {
-		ips := make([]*ipblock.IPBlock, len(VPEDetails.VPEReservedIPs))
-		for i, vpeEndPoint := range VPEDetails.VPEReservedIPs {
-			ips[i] = s.VPEReservedIPs[vpeEndPoint].IP
-		}
-		return Resource{name, ips, ResourceTypeVPE}, nil
+	VPEDetails, ok := s.VPEs[name]
+	if !ok {
+		return Resource{}, resourceNotFoundError(name, ResourceTypeVPE)
 	}
-	return Resource{}, resourceNotFoundError(name, ResourceTypeVPE)
+	ips := make([]*ipblock.IPBlock, len(VPEDetails.VPEReservedIPs))
+	for i, vpeEndPoint := range VPEDetails.VPEReservedIPs {
+		ips[i] = s.VPEReservedIPs[vpeEndPoint].IP
+	}
+	return Resource{name, ips, ResourceTypeVPE}, nil
 }
 
 func (s *Definitions) lookupSubnetSegment(name string) (Resource, error) {
@@ -274,16 +275,17 @@ func (s *Definitions) lookupSubnetSegment(name string) (Resource, error) {
 }
 
 func (s *Definitions) lookupCidrSegment(name string) (Resource, error) {
-	if cidrSegmentDetails, ok := s.CidrSegments[name]; ok {
-		cidrs := make([]*ipblock.IPBlock, len(cidrSegmentDetails.Cidrs))
-		i := 0
-		for cidr := range cidrSegmentDetails.Cidrs {
-			cidrs[i] = cidr
-			i++
-		}
-		return Resource{name, cidrs, ResourceTypeCidr}, nil
+	cidrSegmentDetails, ok := s.CidrSegments[name]
+	if !ok {
+		return Resource{}, containerNotFoundError(name, ResourceTypeSegment)
 	}
-	return Resource{}, containerNotFoundError(name, ResourceTypeSegment)
+	cidrs := make([]*ipblock.IPBlock, len(cidrSegmentDetails.Cidrs))
+	i := 0
+	for cidr := range cidrSegmentDetails.Cidrs {
+		cidrs[i] = cidr
+		i++
+	}
+	return Resource{name, cidrs, ResourceTypeCidr}, nil
 }
 
 func (s *Definitions) Lookup(t ResourceType, name string) (Resource, error) {
@@ -355,53 +357,8 @@ func inverseLookup[T NWResource](m map[ID]T, address *ipblock.IPBlock) (result s
 	return "", false
 }
 
-func (s *ConfigDefs) inverseLookupVPE(ip *ipblock.IPBlock) (result string, ok bool) {
-	for _, vpeEndpointDetails := range s.VPEReservedIPs {
-		if vpeEndpointDetails.Address().Equal(ip) {
-			return vpeEndpointDetails.VPEName, true
-		}
-	}
-	return "", false
-}
-
-func inverseLookupInstance(m map[ID]*InstanceDetails, name string) (result string, ok bool) {
-	for instanceName, instanceDetails := range m {
-		for _, nif := range instanceDetails.Nifs {
-			if nif == name {
-				return instanceName, true
-			}
-		}
-	}
-	return "", false
-}
-
-func (s *ConfigDefs) SubnetNameFromCidr(cidr *ipblock.IPBlock) (string, bool) {
-	return inverseLookup(s.Subnets, cidr)
-}
-
 func (s *ConfigDefs) NIFFromIP(ip *ipblock.IPBlock) (string, bool) {
 	return inverseLookup(s.NIFs, ip)
-}
-
-func (s *ConfigDefs) VPEFromIP(ip *ipblock.IPBlock) (string, bool) {
-	return s.inverseLookupVPE(ip)
-}
-
-func (s *ConfigDefs) InstanceFromNIF(nifName string) (string, bool) {
-	return inverseLookupInstance(s.Instances, nifName)
-}
-
-func (s *ConfigDefs) RemoteFromIP(ip *ipblock.IPBlock) RemoteType {
-	if nif, okNIF := s.NIFFromIP(ip); okNIF {
-		if instance, okInstance := s.InstanceFromNIF(nif); okInstance {
-			return SGName(instance)
-		}
-		return SGName(fmt.Sprintf("<unknown instance %v>", nif))
-	}
-	if vpe, okVPE := s.VPEFromIP(ip); okVPE {
-		return SGName(vpe)
-	}
-	return ip
 }
 
 type Reader interface {
