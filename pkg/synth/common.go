@@ -14,6 +14,10 @@ import (
 )
 
 type (
+	Synthesizer interface {
+		Synth() ir.Collection
+	}
+
 	namedAddrs struct {
 		Name  ir.ID
 		Addrs *ipblock.IPBlock

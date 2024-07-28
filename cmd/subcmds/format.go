@@ -22,13 +22,11 @@ var outputFormats = []string{tfOutputFormat, csvOutputFormat, mdOutputFormat, ap
 
 func updateOutputFormat(args *inArgs) error {
 	var err error
-	if args.outputFmt == "" {
-		args.outputFmt, err = inferFormatUsingFilename(args.outputFile)
-		if err != nil {
-			return err
-		}
+	if args.outputFmt != "" {
+		return nil
 	}
-	return nil
+	args.outputFmt, err = inferFormatUsingFilename(args.outputFile)
+	return err
 }
 
 func inferFormatUsingFilename(filename string) (string, error) {
