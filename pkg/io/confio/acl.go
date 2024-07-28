@@ -121,7 +121,7 @@ func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCol
 
 		acl, ok = collection.ACLs[*vpcName][aclName]
 
-		if !ok {
+		if !ok { // single acl
 			acl = collection.ACLs[*vpcName][ScopingString(*vpcName, "singleACL")]
 			if i == 0 {
 				aclItem = newACLItem(subnet, acl)
