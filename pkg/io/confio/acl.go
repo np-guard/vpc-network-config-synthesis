@@ -110,20 +110,19 @@ func aclRules(acl *ir.ACL) []vpcv1.NetworkACLRuleItemIntf {
 	return ruleItems
 }
 
-func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCollection) error {
+func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCollection) {
 	var ok bool
 	var acl *ir.ACL
 	var aclItem *configModel.NetworkACL
 
 	for i, subnet := range model.SubnetList {
-		vpc := subnet.VPC
-		aclName := ScopingString(*vpc.Name, *subnet.Name)
+		vpcName := subnet.VPC.Name
+		aclName := ScopingString(*vpcName, *subnet.Name)
 
-		if acl, ok = collection.ACLs[*vpc.Name][aclName]; !ok {
-			acl = collection.ACLs[*vpc.Name][ScopingString(*vpc.Name, "singleACL")]
-		}
+		acl, ok = collection.ACLs[*vpcName][aclName]
 
-		if !ok { // single nACL
+		if !ok {
+			acl = collection.ACLs[*vpcName][ScopingString(*vpcName, "singleACL")]
 			if i == 0 {
 				aclItem = newACLItem(subnet, acl)
 				model.NetworkACLList = append(model.NetworkACLList, aclItem)
@@ -143,7 +142,6 @@ func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCol
 		}
 	}
 	globalIndex = 0 // making test results more predictable
-	return nil
 }
 
 func newACLItem(subnet *configModel.Subnet, acl *ir.ACL) *configModel.NetworkACL {
@@ -173,8 +171,6 @@ func subnetRef(subnet *configModel.Subnet) *vpcv1.SubnetReference {
 }
 
 func (w *Writer) WriteACL(collection *ir.ACLCollection, _ string) error {
-	if err := updateACL(w.model, collection); err != nil {
-		return err
-	}
+	updateACL(w.model, collection)
 	return w.writeModel()
 }
