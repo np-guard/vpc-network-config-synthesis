@@ -111,18 +111,16 @@ func aclRules(acl *ir.ACL) []vpcv1.NetworkACLRuleItemIntf {
 }
 
 func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCollection) {
-	var ok bool
-	var acl *ir.ACL
 	var aclItem *configModel.NetworkACL
 
 	for i, subnet := range model.SubnetList {
-		vpcName := subnet.VPC.Name
-		aclName := ScopingString(*vpcName, *subnet.Name)
+		vpcName := *subnet.VPC.Name
+		aclName := ScopingString(vpcName, *subnet.Name)
 
-		acl, ok = collection.ACLs[*vpcName][aclName]
+		acl, ok := collection.ACLs[vpcName][aclName]
 
 		if !ok { // single acl
-			acl = collection.ACLs[*vpcName][ScopingString(*vpcName, "singleACL")]
+			acl = collection.ACLs[vpcName][ScopingString(vpcName, "singleACL")]
 			if i == 0 {
 				aclItem = newACLItem(subnet, acl)
 				model.NetworkACLList = append(model.NetworkACLList, aclItem)
