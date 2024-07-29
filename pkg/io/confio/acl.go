@@ -110,33 +110,28 @@ func aclRules(acl *ir.ACL) []vpcv1.NetworkACLRuleItemIntf {
 	return ruleItems
 }
 
-func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCollection) error {
-	for _, subnet := range model.SubnetList {
-		vpc := subnet.VPC
-		aclName := ScopingString(*vpc.Name, *subnet.Name)
-		acl := collection.ACLs[*vpc.Name][aclName]
-		subnetRef := &vpcv1.SubnetReference{
-			Name:         subnet.Name,
-			CRN:          subnet.CRN,
-			Href:         subnet.Href,
-			ID:           subnet.ID,
-			ResourceType: subnet.ResourceType,
+func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCollection) {
+	var aclItem *configModel.NetworkACL
+
+	for i, subnet := range model.SubnetList {
+		vpcName := *subnet.VPC.Name
+		aclName := ScopingString(vpcName, *subnet.Name)
+
+		acl, ok := collection.ACLs[vpcName][aclName]
+
+		if !ok { // single acl
+			acl = collection.ACLs[vpcName][ScopingString(vpcName, "singleACL")]
+			if i == 0 {
+				aclItem = newACLItem(subnet, acl)
+				model.NetworkACLList = append(model.NetworkACLList, aclItem)
+			} else {
+				aclItem.Subnets = append(aclItem.Subnets, *subnetRef(subnet))
+			}
+		} else {
+			aclItem = newACLItem(subnet, acl)
+			model.NetworkACLList = append(model.NetworkACLList, aclItem)
 		}
 
-		ref := allocateRef()
-		aclItem := configModel.NewNetworkACL(&vpcv1.NetworkACL{
-			CRN:           ref.CRN,
-			Href:          ref.Href,
-			ID:            ref.ID,
-			Name:          utils.Ptr(ir.ChangeScoping(acl.Name())),
-			ResourceGroup: subnet.ResourceGroup,
-			Rules:         aclRules(acl),
-			Subnets:       []vpcv1.SubnetReference{*subnetRef},
-			VPC:           subnet.VPC,
-		})
-		aclItem.Tags = []string{}
-
-		model.NetworkACLList = append(model.NetworkACLList, aclItem)
 		subnet.NetworkACL = &vpcv1.NetworkACLReference{
 			ID:   aclItem.ID,
 			CRN:  aclItem.CRN,
@@ -145,12 +140,35 @@ func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCol
 		}
 	}
 	globalIndex = 0 // making test results more predictable
-	return nil
+}
+
+func newACLItem(subnet *configModel.Subnet, acl *ir.ACL) *configModel.NetworkACL {
+	ref := allocateRef()
+	aclItem := configModel.NewNetworkACL(&vpcv1.NetworkACL{
+		CRN:           ref.CRN,
+		Href:          ref.Href,
+		ID:            ref.ID,
+		Name:          utils.Ptr(ir.ChangeScoping(acl.Name())),
+		ResourceGroup: subnet.ResourceGroup,
+		Rules:         aclRules(acl),
+		Subnets:       []vpcv1.SubnetReference{*subnetRef(subnet)},
+		VPC:           subnet.VPC,
+	})
+	aclItem.Tags = []string{}
+	return aclItem
+}
+
+func subnetRef(subnet *configModel.Subnet) *vpcv1.SubnetReference {
+	return &vpcv1.SubnetReference{
+		Name:         subnet.Name,
+		CRN:          subnet.CRN,
+		Href:         subnet.Href,
+		ID:           subnet.ID,
+		ResourceType: subnet.ResourceType,
+	}
 }
 
 func (w *Writer) WriteACL(collection *ir.ACLCollection, _ string) error {
-	if err := updateACL(w.model, collection); err != nil {
-		return err
-	}
+	updateACL(w.model, collection)
 	return w.writeModel()
 }

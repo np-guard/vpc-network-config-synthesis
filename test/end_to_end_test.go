@@ -74,6 +74,7 @@ func TestCSVCompare(t *testing.T) {
 		"acl_testing5 csv":                   aclTestCase("acl_testing5", "csv", false, false),
 		"acl_testing5 tf":                    aclTestCase("acl_testing5", "tf", false, false),
 		"acl_testing5 json":                  aclTestCase("acl_testing5", "json", false, false),
+		"acl_testing5 single json":           aclTestCase("acl_testing5", "json", true, false),
 		"acl_testing5 single csv":            aclTestCase("acl_testing5", "csv", true, false),
 		"acl_testing5 single tf":             aclTestCase("acl_testing5", "tf", true, false),
 		"acl_single_conn csv":                aclTestCase("acl_single_conn", "csv", false, false),

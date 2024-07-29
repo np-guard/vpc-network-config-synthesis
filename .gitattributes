@@ -1,0 +1,2 @@
+# Exclude HCL files from language statistics
+*.hcl linguist-vendored

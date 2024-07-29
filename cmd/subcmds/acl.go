@@ -14,7 +14,7 @@ import (
 func NewACLCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "acl",
-		Short: "Generate  Networks ACLs from connectivity specification",
+		Short: "Generate Networks ACLs from connectivity specification",
 		Long: `Generate Network ACLs to only allow the specified connectivity, either for each subnet separately or per VPC.
 		Endpoints in the required-connectivity specification may be subnets, subnet segments, CIDR segments and externals.`,
 		Args: cobra.NoArgs,
