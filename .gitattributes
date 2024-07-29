@@ -1,2 +1,5 @@
-# Exclude HCL files from language statistics
-*.hcl linguist-vendored
+# Exclude json, tf, csv and md files from language statistics
+*.json linguist-vendored
+*.tf linguist-vendored
+*.csv linguist-vendored
+*.md linguist-vendored
