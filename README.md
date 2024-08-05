@@ -6,9 +6,9 @@ Multi-vpc input is supported. Required connections cannot cross vpc boundaries.
 
 ## Usage
 Use the `vpcgen` CLI tool with one of the following commands to specify the type of network resources to generate.
-* `vpcgen sg` - generate Security Groups.
-* `vpcgen acl` - generate an nACL for each subnet separately.
-* `vpcgen acl --single` - generate a single nACL for all subnets in the same VPC.
+* `vpcgen synth sg` - generate Security Groups.
+* `vpcgen synth acl` - generate an nACL for each subnet separately.
+* `vpcgen synth acl --single` - generate a single nACL for all subnets in the same VPC.
 
 ### nACLs Generation
 Specifying the `--single` flag results in generating a single nACL for all subnets in the same VPC. Otherwise, an nACL is generated for each subnet separately.
@@ -55,9 +55,9 @@ make build
 ## Run an example
 
 ```commandline
-bin/vpcgen acl -c test/data/acl_testing5/config_object.json -s test/data/acl_testing5/conn_spec.json
+bin/vpcgen synth acl -c test/data/acl_testing5/config_object.json -s test/data/acl_testing5/conn_spec.json
 
-bin/vpcgen sg -c test/data/sg_testing3/config_object.json -s test/data/sg_testing3/conn_spec.json
+bin/vpcgen synth sg -c test/data/sg_testing3/config_object.json -s test/data/sg_testing3/conn_spec.json
 ```
 
 **Note**: Windows environment users should replace all `/` with `\`.
