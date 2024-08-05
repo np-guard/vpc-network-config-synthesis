@@ -11,7 +11,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/synth"
 )
 
-func NewSGCommand(args *inArgs) *cobra.Command {
+func NewSynthSGCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "sg",
 		Short: "Generate Security Groups from connectivity specification",

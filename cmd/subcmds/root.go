@@ -55,12 +55,10 @@ func NewRootCommand() *cobra.Command {
 	rootCmd.PersistentFlags().SortFlags = false
 
 	_ = rootCmd.MarkPersistentFlagRequired(configFlag)
-	_ = rootCmd.MarkPersistentFlagRequired(specFlag)
-
 	rootCmd.MarkFlagsMutuallyExclusive(outputFileFlag, outputDirFlag)
 
-	rootCmd.AddCommand(NewACLCommand(args))
-	rootCmd.AddCommand(NewSGCommand(args))
+	rootCmd.AddCommand(NewSynthCommand(args))
+	// Todo: add optimize command
 
 	rootCmd.CompletionOptions.HiddenDefaultCmd = true
 	rootCmd.SetHelpCommand(&cobra.Command{Hidden: true}) // disable help command. should use --help flag instead
