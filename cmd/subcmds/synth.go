@@ -17,7 +17,7 @@ func NewSynthCommand(args *inArgs) *cobra.Command {
 		Use:   "synth",
 		Short: "generate a SG/nACL collection",
 		Long: `Generate nACLS or Security Groups to only allow the specified connectivity.
-		should give spec and defs blah blah blah`,
+		--config and --spec parameters must be supplied.`,
 	}
 
 	cmd.PersistentFlags().StringVarP(&args.specFile, specFlag, "s", "", "JSON file containing spec file")
