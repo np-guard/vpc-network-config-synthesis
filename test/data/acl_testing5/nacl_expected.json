@@ -1758,7 +1758,6 @@
                     "ip_version": "ipv4",
                     "name": "rule2",
                     "source": "10.240.1.0/24",
-                    "code": 0,
                     "protocol": "icmp",
                     "type": 0
                 },
@@ -1777,7 +1776,6 @@
                     "ip_version": "ipv4",
                     "name": "rule3",
                     "source": "10.240.128.0/24",
-                    "code": 0,
                     "protocol": "icmp",
                     "type": 8
                 },
@@ -2267,7 +2265,6 @@
                     "ip_version": "ipv4",
                     "name": "rule2",
                     "source": "10.240.64.0/24",
-                    "code": 0,
                     "protocol": "icmp",
                     "type": 0
                 },
@@ -2286,7 +2283,6 @@
                     "ip_version": "ipv4",
                     "name": "rule3",
                     "source": "10.240.128.0/24",
-                    "code": 0,
                     "protocol": "icmp",
                     "type": 8
                 },
@@ -2904,7 +2900,6 @@
                     "ip_version": "ipv4",
                     "name": "rule0",
                     "source": "10.240.1.0/24",
-                    "code": 0,
                     "protocol": "icmp",
                     "type": 0
                 },
@@ -2923,7 +2918,6 @@
                     "ip_version": "ipv4",
                     "name": "rule1",
                     "source": "10.240.128.0/24",
-                    "code": 0,
                     "protocol": "icmp",
                     "type": 8
                 },
@@ -2942,7 +2936,6 @@
                     "ip_version": "ipv4",
                     "name": "rule2",
                     "source": "10.240.64.0/24",
-                    "code": 0,
                     "protocol": "icmp",
                     "type": 0
                 },
@@ -2961,7 +2954,6 @@
                     "ip_version": "ipv4",
                     "name": "rule3",
                     "source": "10.240.128.0/24",
-                    "code": 0,
                     "protocol": "icmp",
                     "type": 8
                 },
