@@ -44,7 +44,6 @@ func NewRootCommand() *cobra.Command {
 	}
 
 	rootCmd.PersistentFlags().StringVarP(&args.configFile, configFlag, "c", "", "JSON file containing config spec")
-	rootCmd.PersistentFlags().StringVarP(&args.specFile, specFlag, "s", "", "JSON file containing spec file")
 	rootCmd.PersistentFlags().StringVarP(&args.outputFmt, outputFmtFlag, "f", "", "Output format; "+mustBeOneOf(outputFormats))
 	rootCmd.PersistentFlags().StringVarP(&args.outputFile, outputFileFlag, "o", "", "Write all generated resources to the specified file.")
 	rootCmd.PersistentFlags().StringVarP(&args.outputDir, outputDirFlag, "d", "",
@@ -55,12 +54,10 @@ func NewRootCommand() *cobra.Command {
 	rootCmd.PersistentFlags().SortFlags = false
 
 	_ = rootCmd.MarkPersistentFlagRequired(configFlag)
-	_ = rootCmd.MarkPersistentFlagRequired(specFlag)
-
 	rootCmd.MarkFlagsMutuallyExclusive(outputFileFlag, outputDirFlag)
 
-	rootCmd.AddCommand(NewACLCommand(args))
-	rootCmd.AddCommand(NewSGCommand(args))
+	rootCmd.AddCommand(NewSynthCommand(args))
+	// Todo: add optimize command
 
 	rootCmd.CompletionOptions.HiddenDefaultCmd = true
 	rootCmd.SetHelpCommand(&cobra.Command{Hidden: true}) // disable help command. should use --help flag instead
