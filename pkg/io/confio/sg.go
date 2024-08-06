@@ -12,7 +12,8 @@ import (
 	"github.com/IBM/vpc-go-sdk/vpcv1"
 
 	configModel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
@@ -51,7 +52,7 @@ func sgRemote(nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurit
 	rule *ir.SGRule) vpcv1.SecurityGroupRuleRemoteIntf {
 	st := rule.Remote.String()
 	switch t := rule.Remote.(type) {
-	case *ipblock.IPBlock:
+	case *netset.IPBlock:
 		if ir.IsIPAddress(t) {
 			return &vpcv1.SecurityGroupRuleRemoteIP{
 				Address: &st,
@@ -70,7 +71,7 @@ func makeSGRuleItem(nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteS
 	rule *ir.SGRule, i int) vpcv1.SecurityGroupRuleIntf {
 	iPVersion := utils.Ptr(ipv4Const)
 	direction := direction(rule.Direction)
-	cidrAll := ipblock.CidrAll
+	cidrAll := netset.CidrAll
 	local := &vpcv1.SecurityGroupRuleLocal{
 		CIDRBlock: &cidrAll,
 	}
@@ -78,7 +79,7 @@ func makeSGRuleItem(nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteS
 	remote := sgRemote(nameToSGRemoteRef, rule)
 
 	switch p := rule.Protocol.(type) {
-	case ir.TCPUDP:
+	case netp.TCPUDP:
 		data := tcpudp(p)
 		return &vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp{
 			Direction: direction,
@@ -91,7 +92,7 @@ func makeSGRuleItem(nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteS
 			PortMin:   data.remotePortMin(rule.Direction),
 			PortMax:   data.remotePortMax(rule.Direction),
 		}
-	case ir.ICMP:
+	case netp.ICMP:
 		data := icmp(p)
 		return &vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp{
 			Direction: direction,
@@ -104,7 +105,7 @@ func makeSGRuleItem(nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteS
 			Type:      data.Type,
 			Code:      data.Code,
 		}
-	case ir.AnyProtocol:
+	case netp.AnyProtocol:
 		data := all()
 		return &vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolAll{
 			Direction: direction,
