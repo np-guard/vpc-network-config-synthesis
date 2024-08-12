@@ -6,6 +6,8 @@ SPDX-License-Identifier: Apache-2.0
 package subcmds
 
 import (
+	"golang.org/x/exp/maps"
+
 	"github.com/spf13/cobra"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
@@ -31,10 +33,10 @@ func NewSynthCommand(args *inArgs) *cobra.Command {
 
 func synthesis(cmd *cobra.Command, args *inArgs, newSynthesizer func(*ir.Spec, bool) synth.Synthesizer, single bool) error {
 	cmd.SilenceUsage = true // if we got this far, flags are syntactically correct, so no need to print usage
-	spec, err := unmarshal(args)
+	spec, err := unmarshalSynth(args)
 	if err != nil {
 		return err
 	}
 	synthesizer := newSynthesizer(spec, single)
-	return writeOutput(args, synthesizer.Synth(), &spec.Defs.ConfigDefs)
+	return writeOutput(args, synthesizer.Synth(), maps.Keys(spec.Defs.VPCs))
 }

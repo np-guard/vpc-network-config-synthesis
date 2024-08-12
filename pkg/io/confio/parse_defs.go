@@ -6,9 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 package confio
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/IBM/vpc-go-sdk/vpcv1"
 
@@ -21,21 +19,8 @@ import (
 
 const EndpointVPE string = "endpoint_gateway"
 
-func readModel(filename string) (*configModel.ResourcesContainerModel, error) {
-	bytes, err := os.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-	model := configModel.ResourcesContainerModel{}
-	err = json.Unmarshal(bytes, &model)
-	if err != nil {
-		return nil, err
-	}
-	return &model, nil
-}
-
 func ReadDefs(filename string) (*ir.ConfigDefs, error) {
-	config, err := readModel(filename)
+	config, err := ReadModel(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -52,11 +37,7 @@ func ReadDefs(filename string) (*ir.ConfigDefs, error) {
 	if err != nil {
 		return nil, err
 	}
-	vpcs, err := parseVPCs(config)
-	if err != nil {
-		return nil, err
-	}
-	err = validateVpcs(vpcs)
+	vpcs, err := ParseVPCs(config)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +52,7 @@ func ReadDefs(filename string) (*ir.ConfigDefs, error) {
 	}, nil
 }
 
-func parseVPCs(config *configModel.ResourcesContainerModel) (map[ir.ID]*ir.VPCDetails, error) {
+func ParseVPCs(config *configModel.ResourcesContainerModel) (map[ir.ID]*ir.VPCDetails, error) {
 	VPCs := make(map[ir.ID]*ir.VPCDetails, len(config.VpcList))
 	for _, vpc := range config.VpcList {
 		addressPrefixes := netset.NewIPBlock()
@@ -84,7 +65,8 @@ func parseVPCs(config *configModel.ResourcesContainerModel) (map[ir.ID]*ir.VPCDe
 		}
 		VPCs[*vpc.Name] = &ir.VPCDetails{AddressPrefixes: addressPrefixes}
 	}
-	return VPCs, nil
+
+	return VPCs, validateVpcs(VPCs)
 }
 
 func parseSubnets(config *configModel.ResourcesContainerModel) (map[ir.ID]*ir.SubnetDetails, error) {

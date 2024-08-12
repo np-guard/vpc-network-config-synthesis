@@ -94,7 +94,7 @@ func (s *SGSynthesizer) allowConnectionFromSrc(conn *ir.Connection, trackedProto
 	sgSrc.Add(rule)
 }
 
-// if the dst in internal, a rule will be created to allow traffic.
+// if the dst is internal, a rule will be created to allow traffic.
 func (s *SGSynthesizer) allowConnectionToDst(conn *ir.Connection, trackedProtocol ir.TrackedProtocol,
 	srcEndpoint, dstEndpoint *namedAddrs) {
 	_, internalDst, internal := internalConn(conn)

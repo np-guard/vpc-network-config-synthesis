@@ -14,8 +14,8 @@ func NewOptimizeCommand(args *inArgs) *cobra.Command {
 		Long:  `Optimize is not supported yet`,
 	}
 
-	cmd.AddCommand(NewOptimizeACLCommand(args))
 	cmd.AddCommand(NewOptimizeSGCommand(args))
+	// Todo: add OptimizeACL cmd
 
 	return cmd
 }

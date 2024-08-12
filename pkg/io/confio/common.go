@@ -19,7 +19,7 @@ type Writer struct {
 }
 
 func NewWriter(w io.Writer, inputFilename string) (*Writer, error) {
-	model, err := readModel(inputFilename)
+	model, err := ReadModel(inputFilename)
 	if err != nil {
 		return nil, err
 	}

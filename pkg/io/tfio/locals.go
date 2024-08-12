@@ -12,30 +12,30 @@ import (
 	"strings"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
 const indentation = "  "
 
 // WriteLocals generates a locals.tf file that sets up the VPCs and ResourceGroup tf variables
-func WriteLocals(defs *ir.ConfigDefs, acl bool) (*bytes.Buffer, error) {
+func WriteLocals(vpcNames []ir.ID, acl bool) (*bytes.Buffer, error) {
 	data := new(bytes.Buffer)
 	w := bufio.NewWriter(data)
 
-	output := locals(defs, acl)
+	output := locals(vpcNames, acl)
 	if _, err := w.WriteString(output); err != nil {
 		return nil, err
 	}
 	return data, w.Flush()
 }
 
-func locals(defs *ir.ConfigDefs, acl bool) string {
+func locals(vpcNames []ir.ID, acl bool) string {
 	result := []string{"locals {"}
 	prefix := "sg"
 	if acl {
 		prefix = "acl"
 	}
-	for _, vpcName := range utils.SortedMapKeys(defs.VPCs) {
+
+	for _, vpcName := range vpcNames {
 		line := indentation + fmt.Sprintf("%s_synth_%s_id = <%s ID>", prefix, vpcName, vpcName)
 		result = append(result, line)
 	}
