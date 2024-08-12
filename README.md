@@ -28,7 +28,7 @@ The input supports Instances (VSIs), NIFs, VPEs and externals.
 ### Global options
 ```commandline
 Flags:
-  -c, --config string        JSON file containing config spec
+  -c, --config string        JSON file containing a configuration object of existing resources
   -f, --format string        Output format; must be one of [tf, csv, md, json]
   -h, --help                 help for vpc-synthesis
   -l, --locals               whether to generate a locals.tf file (only possible when the output format is tf)
