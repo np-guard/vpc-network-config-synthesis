@@ -12,7 +12,7 @@ import (
 	configModel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 )
 
-func ReadModel(filename string) (*configModel.ResourcesContainerModel, error) {
+func readModel(filename string) (*configModel.ResourcesContainerModel, error) {
 	bytes, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err

@@ -10,8 +10,8 @@ import "github.com/spf13/cobra"
 func NewOptimizeCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "optimize",
-		Short: "Optimize is not supported yet",
-		Long:  `Optimize is not supported yet`,
+		Short: "optimization of existing SG (nACLS are not supported yet)",
+		Long:  `optimization of existing SG (nACLS are not supported yet)`,
 	}
 
 	cmd.AddCommand(NewOptimizeSGCommand(args))

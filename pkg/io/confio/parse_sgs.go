@@ -6,11 +6,13 @@ SPDX-License-Identifier: Apache-2.0
 package confio
 
 import (
-	configModel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
-
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-func ReadSGs(config *configModel.ResourcesContainerModel) (*ir.ConfigDefs, error) {
+func ReadSGs(filename string) (*ir.Spec, error) {
+	_, err := readModel(filename)
+	if err != nil {
+		return nil, err
+	}
 	return nil, nil
 }

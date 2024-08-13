@@ -20,7 +20,7 @@ import (
 const EndpointVPE string = "endpoint_gateway"
 
 func ReadDefs(filename string) (*ir.ConfigDefs, error) {
-	config, err := ReadModel(filename)
+	config, err := readModel(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func ReadDefs(filename string) (*ir.ConfigDefs, error) {
 	if err != nil {
 		return nil, err
 	}
-	vpcs, err := ParseVPCs(config)
+	vpcs, err := parseVPCs(config)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func ReadDefs(filename string) (*ir.ConfigDefs, error) {
 	}, nil
 }
 
-func ParseVPCs(config *configModel.ResourcesContainerModel) (map[ir.ID]*ir.VPCDetails, error) {
+func parseVPCs(config *configModel.ResourcesContainerModel) (map[ir.ID]*ir.VPCDetails, error) {
 	VPCs := make(map[ir.ID]*ir.VPCDetails, len(config.VpcList))
 	for _, vpc := range config.VpcList {
 		addressPrefixes := netset.NewIPBlock()

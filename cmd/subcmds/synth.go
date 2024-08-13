@@ -33,7 +33,7 @@ func NewSynthCommand(args *inArgs) *cobra.Command {
 
 func synthesis(cmd *cobra.Command, args *inArgs, newSynthesizer func(*ir.Spec, bool) synth.Synthesizer, single bool) error {
 	cmd.SilenceUsage = true // if we got this far, flags are syntactically correct, so no need to print usage
-	spec, err := unmarshalSynth(args)
+	spec, err := unmarshal(args)
 	if err != nil {
 		return err
 	}
