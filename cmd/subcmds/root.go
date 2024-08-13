@@ -21,6 +21,7 @@ const (
 	prefixFlag     = "prefix"
 	singleACLFlag  = "single"
 	localsFlag     = "locals"
+	sgNameFlag     = "sg-name"
 )
 
 type inArgs struct {
@@ -30,6 +31,7 @@ type inArgs struct {
 	outputFile string
 	outputDir  string
 	prefix     string
+	sgName     string
 	singleacl  bool
 	locals     bool
 }
@@ -43,25 +45,22 @@ func NewRootCommand() *cobra.Command {
 		Long:  `Tool for automatic synthesis of VPC network configurations, namely Network ACLs and Security Groups.`,
 	}
 
+	// flags
 	rootCmd.PersistentFlags().StringVarP(&args.configFile, configFlag, "c", "",
 		"JSON file containing a configuration object of existing resources")
-	rootCmd.PersistentFlags().StringVarP(&args.outputFmt, outputFmtFlag, "f", "", "Output format; "+mustBeOneOf(outputFormats))
 	rootCmd.PersistentFlags().StringVarP(&args.outputFile, outputFileFlag, "o", "", "Write all generated resources to the specified file.")
-	rootCmd.PersistentFlags().StringVarP(&args.outputDir, outputDirFlag, "d", "",
-		"Write generated resources to files in the specified directory, one file per VPC.")
-	rootCmd.PersistentFlags().StringVarP(&args.prefix, prefixFlag, "p", "", "The prefix of the files that will be created.")
-	rootCmd.PersistentFlags().BoolVarP(&args.locals, localsFlag, "l", false,
-		"whether to generate a locals.tf file (only possible when the output format is tf)")
+
+	// flag settings
 	rootCmd.PersistentFlags().SortFlags = false
-
 	_ = rootCmd.MarkPersistentFlagRequired(configFlag)
-	rootCmd.MarkFlagsMutuallyExclusive(outputFileFlag, outputDirFlag)
 
+	// sub commands
 	rootCmd.AddCommand(NewSynthCommand(args))
 	rootCmd.AddCommand(NewOptimizeCommand(args))
 
+	// disable help command. should use --help flag instead
 	rootCmd.CompletionOptions.HiddenDefaultCmd = true
-	rootCmd.SetHelpCommand(&cobra.Command{Hidden: true}) // disable help command. should use --help flag instead
+	rootCmd.SetHelpCommand(&cobra.Command{Hidden: true})
 
 	return rootCmd
 }

@@ -23,6 +23,10 @@ func NewOptimizeSGCommand(args *inArgs) *cobra.Command {
 			return optimize(cmd, args)
 		},
 	}
+
+	cmd.Flags().StringVarP(&args.sgName, sgNameFlag, "s", "", "which SG to optimize")
+	_ = cmd.MarkFlagRequired(sgNameFlag) // Todo: delete this line. if sgName flag is not supplied - optimize all SGs
+
 	return cmd
 }
 
