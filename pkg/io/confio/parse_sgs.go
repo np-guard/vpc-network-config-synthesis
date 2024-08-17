@@ -18,7 +18,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
-// get a slice of ir.SG from a config_object file
+// translate SGs from a config_object file to []ir.SG
 func ReadSGs(filename string) ([]ir.SG, error) {
 	config, err := readModel(filename)
 	if err != nil {
