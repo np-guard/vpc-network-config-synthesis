@@ -68,7 +68,7 @@ func makeSGRow(rule *ir.SGRule, sgName ir.SGName) []string {
 }
 
 func makeSGTable(t *ir.SG, sgName ir.SGName) [][]string {
-	rules := t.Rules
+	rules := t.AllRules()
 	rows := make([][]string, len(rules))
 	for i := range rules {
 		rows[i] = makeSGRow(&rules[i], sgName)

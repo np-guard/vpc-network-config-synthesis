@@ -10,6 +10,7 @@ import (
 	"reflect"
 
 	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
@@ -40,12 +41,14 @@ type SGRule struct {
 	Direction   Direction
 	Remote      RemoteType
 	Protocol    netp.Protocol
+	Local       *netset.IPBlock
 	Explanation string
 }
 
 type SG struct {
-	Rules    []SGRule
-	Attached []ID
+	InboundRules  []SGRule
+	OutboundRules []SGRule
+	Attached      []ID
 }
 
 type SGCollection struct {
@@ -74,7 +77,7 @@ func (r *SGRule) mustSupersede(other *SGRule) bool {
 }
 
 func NewSG() *SG {
-	return &SG{Rules: []SGRule{}, Attached: []ID{}}
+	return &SG{InboundRules: []SGRule{}, OutboundRules: []SGRule{}, Attached: []ID{}}
 }
 
 func NewSGCollection() *SGCollection {
@@ -95,9 +98,16 @@ func (c *SGCollection) LookupOrCreate(name SGName) *SG {
 }
 
 func (a *SG) Add(rule *SGRule) {
-	if !rule.isRedundant(a.Rules) {
-		a.Rules = append(a.Rules, *rule)
+	if rule.Direction == Outbound && !rule.isRedundant(a.OutboundRules) {
+		a.OutboundRules = append(a.OutboundRules, *rule)
 	}
+	if rule.Direction == Inbound && !rule.isRedundant(a.InboundRules) {
+		a.InboundRules = append(a.InboundRules, *rule)
+	}
+}
+
+func (a *SG) AllRules() []SGRule {
+	return append(a.InboundRules, a.OutboundRules...)
 }
 
 func (c *SGCollection) Write(w Writer, vpc string) error {

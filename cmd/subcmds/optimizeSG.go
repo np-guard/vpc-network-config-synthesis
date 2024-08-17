@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/confio"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/opt"
 )
 
 func NewOptimizeSGCommand(args *inArgs) *cobra.Command {
@@ -32,13 +33,17 @@ func NewOptimizeSGCommand(args *inArgs) *cobra.Command {
 
 func optimize(cmd *cobra.Command, args *inArgs) error {
 	cmd.SilenceUsage = true // if we got this far, flags are syntactically correct, so no need to print usage
-	_, err := confio.ReadSGs(args.configFile)
+	sgs, err := confio.ReadSGs(args.configFile)
 	if err != nil {
 		return fmt.Errorf("could not parse config file %v: %w", args.configFile, err)
 	}
-	return algo()
-}
+	_, err = opt.ReduceSGRules(sgs, args.sgName)
+	if err != nil {
+		return err
+	}
 
-func algo() error {
+	// Output
+
 	return nil
+
 }

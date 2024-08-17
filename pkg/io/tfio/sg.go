@@ -100,7 +100,7 @@ func sgCollection(t *ir.SGCollection, vpc string) *tf.ConfigFile {
 	for _, sgName := range t.SortedSGNames(vpc) {
 		comment := ""
 		vpcName := ir.VpcFromScopedResource(string(sgName))
-		rules := t.SGs[vpcName][sgName].Rules
+		rules := t.SGs[vpcName][sgName].AllRules()
 		comment = fmt.Sprintf("\n### SG attached to %v", sgName)
 		resources = append(resources, sg(sgName.String(), comment))
 		for i := range rules {
