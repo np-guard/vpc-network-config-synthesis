@@ -18,20 +18,22 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
-// translate SGs from a config_object file to []ir.SG
-func ReadSGs(filename string) ([]ir.SG, error) {
+// translate SGs from a config_object file to map[ir.SGName]*SG
+func ReadSGs(filename string) (map[ir.SGName]*ir.SG, error) {
 	config, err := readModel(filename)
 	if err != nil {
 		return nil, err
 	}
-	result := make([]ir.SG, len(config.SecurityGroupList))
+	result := make(map[ir.SGName]*ir.SG, len(config.SecurityGroupList))
 
-	for i, sg := range config.SecurityGroupList {
+	for _, sg := range config.SecurityGroupList {
 		inbound, outbound, err := translateSGRules(&sg.SecurityGroup)
 		if err != nil {
 			return nil, err
 		}
-		result[i] = ir.SG{InboundRules: inbound, OutboundRules: outbound}
+		if sg.Name != nil {
+			result[ir.SGName(*sg.Name)] = &ir.SG{InboundRules: inbound, OutboundRules: outbound}
+		}
 	}
 	return result, nil
 }

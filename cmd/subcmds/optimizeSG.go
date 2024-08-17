@@ -37,13 +37,11 @@ func optimize(cmd *cobra.Command, args *inArgs) error {
 	if err != nil {
 		return fmt.Errorf("could not parse config file %v: %w", args.configFile, err)
 	}
-	_, err = opt.ReduceSGRules(sgs, args.sgName)
-	if err != nil {
+	if opt.ReduceSGRules(sgs, args.sgName) != nil {
 		return err
 	}
 
 	// Output
 
 	return nil
-
 }
