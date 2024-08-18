@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/np-guard/models/pkg/interval"
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/models/pkg/spec"
@@ -265,26 +264,18 @@ func translateProtocols(protocols spec.ProtocolList) ([]ir.TrackedProtocol, erro
 			}
 			result[i].Protocol = netp.AnyProtocol{}
 		case spec.Icmp:
-			if p.Type == nil {
-				if p.Code != nil {
-					return nil, fmt.Errorf("defining ICMP code for unspecified ICMP type is not allowed")
-				}
-				result[i].Protocol = ir.TrackedProtocol{Protocol: netp.ICMP{}}
-			} else {
-				icmp, err := netp.ICMPFromTypeAndCode(p.Type, p.Code)
-				if err != nil {
-					return nil, err
-				}
-				result[i].Protocol = icmp
+			icmp, err := netp.ICMPFromTypeAndCode(p.Type, p.Code)
+			if err != nil {
+				return nil, err
 			}
+			result[i].Protocol = icmp
 		case spec.TcpUdp:
-			result[i].Protocol = netp.TCPUDP{
-				IsTCP: p.Protocol == spec.TcpUdpProtocolTCP,
-				PortRangePair: netp.PortRangePair{
-					SrcPort: interval.New(int64(p.MinSourcePort), int64(p.MaxSourcePort)),
-					DstPort: interval.New(int64(p.MinDestinationPort), int64(p.MaxDestinationPort)),
-				},
+			tcpudp, err := netp.NewTCPUDP(p.Protocol == spec.TcpUdpProtocolTCP, p.MinSourcePort, p.MaxSourcePort,
+				p.MinDestinationPort, p.MaxDestinationPort)
+			if err != nil {
+				return nil, err
 			}
+			result[i].Protocol = tcpudp
 		default:
 			return nil, fmt.Errorf("impossible protocol: %v", p)
 		}
@@ -361,7 +352,7 @@ func unmarshal(filename string) (*spec.Spec, error) {
 func parseOverlappingVpcs(cidr *netset.IPBlock, vpcs map[ir.ID]*ir.VPCDetails) []ir.ID {
 	result := make([]ir.ID, 0)
 	for vpcName, vpcDetails := range vpcs {
-		if ir.Overlap(vpcDetails.AddressPrefixes, cidr) {
+		if vpcDetails.AddressPrefixes.Overlap(cidr) {
 			result = append(result, vpcName)
 		}
 	}

@@ -34,8 +34,8 @@ func aclProtocol(t netp.Protocol) []tf.Block {
 		return []tf.Block{{
 			Name: strings.ToLower(string(p.ProtocolString())),
 			Arguments: append(
-				portRange(p.PortRangePair.DstPort, "port"),
-				portRange(p.PortRangePair.SrcPort, "source_port")...,
+				portRange(p.DstPorts(), "port"),
+				portRange(p.SrcPorts(), "source_port")...,
 			),
 		}}
 	case netp.ICMP:

@@ -46,9 +46,9 @@ func sgProtocol(t netp.Protocol, d ir.Direction) []tf.Block {
 	case netp.TCPUDP:
 		var remotePort interval.Interval
 		if d == ir.Inbound {
-			remotePort = p.PortRangePair.SrcPort
+			remotePort = p.SrcPorts()
 		} else {
-			remotePort = p.PortRangePair.DstPort
+			remotePort = p.DstPorts()
 		}
 		return []tf.Block{{
 			Name:      strings.ToLower(string(p.ProtocolString())),

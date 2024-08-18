@@ -37,10 +37,10 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
-// Todo: 
+// Todo:
 // (1) delete the following line when np-guard/models#33 is merged.
-// (2) replace lines 137 and 138 in go.sum with 
+// (2) replace lines 137 and 138 in go.sum with
 // github.com/np-guard/models v0.3.4 h1:HOhVi6wyGvo+KmYBnQ5Km5HYCF+/PQlDs1v7mL1v05g=
 // github.com/np-guard/models v0.3.4/go.mod h1:mqE2Irf8r+7HWh8fII0fWbWyQRMHGEo2SgSLN/6VKs8=
 //nolint:gomoddirectives // this line is temporary
-replace github.com/np-guard/models => github.com/np-guard/models v0.3.5-0.20240708150421-8d8e4354057d
+replace github.com/np-guard/models => github.com/np-guard/models v0.3.5-0.20240818081750-bb83d7f53d64
