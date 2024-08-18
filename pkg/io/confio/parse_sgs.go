@@ -10,7 +10,6 @@ import (
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
-	"github.com/np-guard/models/pkg/interval"
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
 
@@ -132,15 +131,5 @@ func translateProtocolTCPUDP(rule *vpc1.SecurityGroupRuleSecurityGroupRuleProtoc
 	isTCP := *rule.Protocol == string(netp.ProtocolStringTCP)
 	minDstPort := utils.GetProperty(rule.PortMin, netp.MinPort)
 	maxDstPort := utils.GetProperty(rule.PortMax, netp.MaxPort)
-	return newTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(minDstPort), int(maxDstPort)) // Todo: replace with netp.NewTCPUDP
-}
-
-// Todo: remove func when netp.NewTCPUDP is added
-func newTCPUDP(isTCP bool, minSrcPort, maxSrcPort, minDstPort, maxDstPort int) (netp.TCPUDP, error) {
-	if min(minSrcPort, minDstPort) < netp.MinPort || max(maxSrcPort, maxDstPort) > netp.MaxPort {
-		return netp.TCPUDP{}, fmt.Errorf("TCPUDP ports are in range %d-%d", netp.MinPort, netp.MaxPort)
-	}
-	srcPorts := interval.New(int64(minSrcPort), int64(maxSrcPort))
-	dstPorts := interval.New(int64(minDstPort), int64(maxDstPort))
-	return netp.TCPUDP{IsTCP: isTCP, PortRangePair: netp.PortRangePair{SrcPort: srcPorts, DstPort: dstPorts}}, nil
+	return netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(minDstPort), int(maxDstPort))
 }
