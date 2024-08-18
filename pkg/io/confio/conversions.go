@@ -11,7 +11,6 @@ import (
 
 	"github.com/IBM/vpc-go-sdk/vpcv1"
 
-	"github.com/np-guard/models/pkg/interval"
 	"github.com/np-guard/models/pkg/netp"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
@@ -65,14 +64,6 @@ func direction(d ir.Direction) *string {
 	return nil
 }
 
-func minPort(r interval.Interval) *int64 {
-	return utils.Ptr(r.Start())
-}
-
-func maxPort(r interval.Interval) *int64 {
-	return utils.Ptr(r.End())
-}
-
 type tcpudpData struct {
 	Protocol           *string
 	SourcePortMin      *int64
@@ -106,13 +97,14 @@ type allData struct {
 }
 
 func tcpudp(p netp.TCPUDP) tcpudpData {
-	r := p.PortRangePair
+	srcPorts := p.SrcPorts()
+	dstPorts := p.DstPorts()
 	res := tcpudpData{
 		Protocol:           utils.Ptr(strings.ToLower(string(p.ProtocolString()))),
-		SourcePortMin:      minPort(r.SrcPort),
-		SourcePortMax:      maxPort(r.SrcPort),
-		DestinationPortMin: minPort(r.DstPort),
-		DestinationPortMax: maxPort(r.DstPort),
+		SourcePortMin:      utils.Ptr(srcPorts.Start()),
+		SourcePortMax:      utils.Ptr(srcPorts.End()),
+		DestinationPortMin: utils.Ptr(dstPorts.Start()),
+		DestinationPortMax: utils.Ptr(dstPorts.End()),
 	}
 	return res
 }

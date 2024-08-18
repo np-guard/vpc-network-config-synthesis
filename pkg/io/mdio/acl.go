@@ -114,9 +114,9 @@ func printIP(ip *netset.IPBlock, protocol netp.Protocol, isSource bool) string {
 	case netp.TCPUDP:
 		var r interval.Interval
 		if isSource {
-			r = p.PortRangePair.SrcPort
+			r = p.SrcPorts()
 		} else {
-			r = p.PortRangePair.DstPort
+			r = p.DstPorts()
 		}
 		return fmt.Sprintf("%v, %v", ipString, ACLPort(r))
 	case netp.AnyProtocol:

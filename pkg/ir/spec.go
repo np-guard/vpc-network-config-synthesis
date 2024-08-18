@@ -418,8 +418,3 @@ func IsIPAddress(address *netset.IPBlock) bool {
 func ChangeScoping(s string) string {
 	return strings.ReplaceAll(s, "/", "--")
 }
-
-// Todo: move this function to models repo (as a method)
-func Overlap(a, b *netset.IPBlock) bool {
-	return !a.Intersect(b).IsEmpty()
-}
