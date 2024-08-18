@@ -40,8 +40,5 @@ func optimize(cmd *cobra.Command, args *inArgs) error {
 	if opt.ReduceSGRules(sgs, args.sgName) != nil {
 		return err
 	}
-
-	// Output
-
-	return nil
+	return writeOptimizeOutput(args, sgs)
 }

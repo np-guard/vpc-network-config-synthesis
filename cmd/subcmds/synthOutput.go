@@ -24,7 +24,7 @@ import (
 const defaultFilePermission = 0o644
 const defaultDirectoryPermission = 0o755
 
-func writeOutput(args *inArgs, collection ir.Collection, vpcNames []ir.ID) error {
+func writeSynthOutput(args *inArgs, collection ir.Collection, vpcNames []ir.ID) error {
 	sort.Strings(vpcNames) // make output results more predictable
 	if err := updateOutputFormat(args); err != nil {
 		return err
