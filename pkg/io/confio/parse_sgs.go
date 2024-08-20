@@ -7,6 +7,7 @@ package confio
 
 import (
 	"fmt"
+	"reflect"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
@@ -17,7 +18,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
-// translate SGs from a config_object file to map[ir.SGName]*SG
+// ReadSG translates SGs from a config_object file to map[ir.SGName]*SG
 func ReadSGs(filename string) (map[ir.SGName]*ir.SG, error) {
 	config, err := readModel(filename)
 	if err != nil {
@@ -37,7 +38,7 @@ func ReadSGs(filename string) (map[ir.SGName]*ir.SG, error) {
 	return result, nil
 }
 
-// parse ingress and egress rules of a security group
+// parse security rules, splitted into ingress and egress rules
 func translateSGRules(sg *vpc1.SecurityGroup) (ingressRules, egressRules []ir.SGRule, err error) {
 	ingressRules = []ir.SGRule{}
 	egressRules = []ir.SGRule{}
@@ -55,29 +56,74 @@ func translateSGRules(sg *vpc1.SecurityGroup) (ingressRules, egressRules []ir.SG
 	return ingressRules, egressRules, nil
 }
 
-// translate the rule to ir.SGRule
+// translateSGRule translates a security group rule to ir.SGRule
 func translateSGRule(sg *vpc1.SecurityGroup, index int) (sgRule ir.SGRule, err error) {
-	if r, ok := sg.Rules[index].(*vpc1.SecurityGroupRule); ok {
-		direction, err := translateDirection(*r.Direction)
-		if err != nil {
-			return ir.SGRule{}, err
-		}
-		remote, err := translateRemote(r.Remote)
-		if err != nil {
-			return ir.SGRule{}, err
-		}
-		protocol, err := translateProtocol(sg.Rules[index])
-		if err != nil {
-			return ir.SGRule{}, err
-		}
-		local, err := translateLocal(r.Local)
-		if err != nil {
-			return ir.SGRule{}, err
-		}
-
-		return ir.SGRule{Direction: direction, Remote: remote, Protocol: protocol, Local: local}, nil
+	fmt.Printf("Type of sgRule[%d]: %s \n", index, reflect.TypeOf(sg.Rules[index]))
+	switch r := sg.Rules[index].(type) {
+	case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolAll:
+		return translateSGRuleProtocolAll(r)
+	case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp:
+		return translateSGRuleProtocolTCPUDP(r)
+	case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp:
+		return translateSGRuleProtocolIcmp(r)
 	}
 	return ir.SGRule{}, fmt.Errorf("error parsing rule number %d in %s sg", index, *sg.Name)
+}
+
+func translateSGRuleProtocolAll(rule *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolAll) (sgRule ir.SGRule, err error) {
+	direction, err := translateDirection(*rule.Direction)
+	if err != nil {
+		return ir.SGRule{}, err
+	}
+	remote, err := translateRemote(rule.Remote)
+	if err != nil {
+		return ir.SGRule{}, err
+	}
+	local, err := translateLocal(rule.Local)
+	if err != nil {
+		return ir.SGRule{}, err
+	}
+	return ir.SGRule{Direction: direction, Remote: remote, Protocol: netp.AnyProtocol{}, Local: local}, nil
+}
+
+func translateSGRuleProtocolTCPUDP(rule *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp) (sgRule ir.SGRule, err error) {
+	direction, err := translateDirection(*rule.Direction)
+	if err != nil {
+		return ir.SGRule{}, err
+	}
+	remote, err := translateRemote(rule.Remote)
+	if err != nil {
+		return ir.SGRule{}, err
+	}
+	local, err := translateLocal(rule.Local)
+	if err != nil {
+		return ir.SGRule{}, err
+	}
+	protocol, err := translateProtocolTCPUDP(rule)
+	if err != nil {
+		return ir.SGRule{}, err
+	}
+	return ir.SGRule{Direction: direction, Remote: remote, Protocol: protocol, Local: local}, nil
+}
+
+func translateSGRuleProtocolIcmp(rule *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp) (sgRule ir.SGRule, err error) {
+	direction, err := translateDirection(*rule.Direction)
+	if err != nil {
+		return ir.SGRule{}, err
+	}
+	remote, err := translateRemote(rule.Remote)
+	if err != nil {
+		return ir.SGRule{}, err
+	}
+	local, err := translateLocal(rule.Local)
+	if err != nil {
+		return ir.SGRule{}, err
+	}
+	protocol, err := netp.ICMPFromTypeAndCode64(rule.Type, rule.Code)
+	if err != nil {
+		return ir.SGRule{}, err
+	}
+	return ir.SGRule{Direction: direction, Remote: remote, Protocol: protocol, Local: local}, nil
 }
 
 func translateDirection(direction string) (ir.Direction, error) {
@@ -90,29 +136,17 @@ func translateDirection(direction string) (ir.Direction, error) {
 }
 
 func translateRemote(remote vpc1.SecurityGroupRuleRemoteIntf) (ir.RemoteType, error) {
-	switch r := remote.(type) {
-	case *vpc1.SecurityGroupRuleRemoteSecurityGroupReference:
-		return ir.SGName(*r.Name), nil
-	case *vpc1.SecurityGroupRuleRemoteCIDR:
-		return netset.IPBlockFromCidr(*r.CIDRBlock)
-	case *vpc1.SecurityGroupRuleRemoteIP:
-		return netset.IPBlockFromIPAddress(*r.Address)
+	if r, ok := remote.(*vpc1.SecurityGroupRuleRemote); ok {
+		switch {
+		case r.CIDRBlock != nil:
+			return netset.IPBlockFromCidr(*r.CIDRBlock)
+		case r.Address != nil:
+			return netset.IPBlockFromIPAddress(*r.Address)
+		case r.Name != nil:
+			return ir.SGName(*r.Name), nil
+		}
 	}
-
 	return nil, fmt.Errorf("unexpected SG rule remote")
-}
-
-func translateProtocol(rule vpc1.SecurityGroupRuleIntf) (netp.Protocol, error) {
-	switch r := rule.(type) {
-	case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolAll:
-		return netp.AnyProtocol{}, nil
-	case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp:
-		return translateProtocolTCPUDP(r)
-	case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp:
-		return netp.ICMPFromTypeAndCode64(r.Type, r.Code)
-	default:
-		return nil, fmt.Errorf("unsupported rule protocol type")
-	}
 }
 
 func translateLocal(local vpc1.SecurityGroupRuleLocalIntf) (*netset.IPBlock, error) {

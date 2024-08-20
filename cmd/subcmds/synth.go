@@ -33,7 +33,7 @@ func NewSynthCommand(args *inArgs) *cobra.Command {
 
 	// flags settings
 	_ = cmd.MarkPersistentFlagRequired(specFlag)
-	cmd.MarkFlagsMutuallyExclusive(outputFileFlag, outputDirFlag)
+	// cmd.MarkFlagsMutuallyExclusive(outputFileFlag, outputDirFlag)
 
 	// sub commands
 	cmd.AddCommand(NewSynthACLCommand(args))
