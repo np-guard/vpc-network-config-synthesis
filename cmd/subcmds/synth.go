@@ -6,6 +6,8 @@ SPDX-License-Identifier: Apache-2.0
 package subcmds
 
 import (
+	"golang.org/x/exp/maps"
+
 	"github.com/spf13/cobra"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
@@ -36,5 +38,5 @@ func synthesis(cmd *cobra.Command, args *inArgs, newSynthesizer func(*ir.Spec, b
 		return err
 	}
 	synthesizer := newSynthesizer(spec, single)
-	return writeOutput(args, synthesizer.Synth(), &spec.Defs.ConfigDefs)
+	return writeOutput(args, synthesizer.Synth(), maps.Keys(spec.Defs.ConfigDefs.VPCs))
 }
