@@ -38,12 +38,13 @@ func NewRootCommand() *cobra.Command {
 	args := &inArgs{}
 
 	rootCmd := &cobra.Command{
-		Use:   "vpc-synthesis",
+		Use:   "vpcgen",
 		Short: "Tool for automatic synthesis of VPC network configurations",
 		Long:  `Tool for automatic synthesis of VPC network configurations, namely Network ACLs and Security Groups.`,
 	}
 
-	rootCmd.PersistentFlags().StringVarP(&args.configFile, configFlag, "c", "", "JSON file containing config spec")
+	rootCmd.PersistentFlags().StringVarP(&args.configFile, configFlag, "c", "",
+		"JSON file containing a configuration object of existing resources")
 	rootCmd.PersistentFlags().StringVarP(&args.outputFmt, outputFmtFlag, "f", "", "Output format; "+mustBeOneOf(outputFormats))
 	rootCmd.PersistentFlags().StringVarP(&args.outputFile, outputFileFlag, "o", "", "Write all generated resources to the specified file.")
 	rootCmd.PersistentFlags().StringVarP(&args.outputDir, outputDirFlag, "d", "",
