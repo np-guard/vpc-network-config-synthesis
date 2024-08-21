@@ -19,7 +19,7 @@ func MapKeys[T comparable, V any](m map[T]V) []T {
 	return slices.Collect(maps.Keys(m))
 }
 
-func SortedMapKeys[T ~string, V any](m map[T]V) []T {
+func SortedMapKeys[T cmp.Ordered, V any](m map[T]V) []T {
 	return slices.Sorted(maps.Keys(m))
 }
 
