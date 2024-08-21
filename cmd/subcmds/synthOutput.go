@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/confio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/csvio"
@@ -25,7 +24,6 @@ const defaultFilePermission = 0o644
 const defaultDirectoryPermission = 0o755
 
 func writeSynthOutput(args *inArgs, collection ir.Collection, vpcNames []ir.ID) error {
-	sort.Strings(vpcNames) // make output results more predictable
 	if err := updateOutputFormat(args); err != nil {
 		return err
 	}

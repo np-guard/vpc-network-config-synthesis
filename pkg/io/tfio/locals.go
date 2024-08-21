@@ -34,7 +34,10 @@ func locals(vpcNames []ir.ID, acl bool) string {
 	if acl {
 		prefix = "acl"
 	}
+<<<<<<< HEAD
 
+=======
+>>>>>>> use_models
 	for _, vpcName := range vpcNames {
 		line := indentation + fmt.Sprintf("%s_synth_%s_id = <%s ID>", prefix, vpcName, vpcName)
 		result = append(result, line)

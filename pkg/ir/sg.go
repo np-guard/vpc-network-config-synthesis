@@ -116,7 +116,7 @@ func (c *SGCollection) Write(w Writer, vpc string) error {
 
 func (c *SGCollection) SortedSGNames(vpc ID) []SGName {
 	if vpc == "" {
-		return utils.SortedKeys(c.SGs)
+		return utils.SortedAllInnerMapsKeys(c.SGs)
 	}
-	return utils.SortedValuesInKey(c.SGs, vpc)
+	return utils.SortedMapKeys(c.SGs[vpc])
 }
