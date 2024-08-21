@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 package subcmds
 
 import (
-	"golang.org/x/exp/maps"
+	"maps"
 
 	"github.com/spf13/cobra"
 

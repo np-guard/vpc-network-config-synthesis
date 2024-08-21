@@ -6,10 +6,9 @@ SPDX-License-Identifier: Apache-2.0
 package utils
 
 import (
+	"maps"
 	"slices"
 	"sort"
-
-	"golang.org/x/exp/maps"
 )
 
 func Ptr[T any](t T) *T {
