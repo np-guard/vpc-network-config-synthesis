@@ -6,6 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 package utils
 
 import (
+	"cmp"
 	"maps"
 	"slices"
 )
@@ -22,7 +23,7 @@ func SortedMapKeys[T ~string, V any](m map[T]V) []T {
 	return slices.Sorted(maps.Keys(m))
 }
 
-func SortedAllInnerMapsKeys[T ~string, V any](m map[string]map[T]V) []T {
+func SortedAllInnerMapsKeys[T, K cmp.Ordered, V any](m map[K]map[T]V) []T {
 	keys := make([]T, 0)
 	for _, vpc := range m {
 		keys = append(keys, MapKeys(vpc)...)
