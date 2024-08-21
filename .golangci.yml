@@ -77,7 +77,7 @@ linters:
     - errcheck
     - errname
     - errorlint
-    - exportloopref
+    - copyloopvar
     - funlen
     - ginkgolinter
     - gochecknoinits

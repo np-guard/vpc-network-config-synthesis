@@ -130,5 +130,5 @@ func (c *ACLCollection) SortedACLSubnets(vpc string) []string {
 	if vpc == "" {
 		return utils.SortedAllInnerMapsKeys(c.ACLs)
 	}
-	return utils.SortedInnerMapKeys(c.ACLs, vpc)
+	return utils.SortedMapKeys(c.ACLs[vpc])
 }

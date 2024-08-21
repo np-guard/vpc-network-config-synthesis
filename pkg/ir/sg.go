@@ -114,5 +114,5 @@ func (c *SGCollection) SortedSGNames(vpc ID) []SGName {
 	if vpc == "" {
 		return utils.SortedAllInnerMapsKeys(c.SGs)
 	}
-	return utils.SortedInnerMapKeys(c.SGs, vpc)
+	return utils.SortedMapKeys(c.SGs[vpc])
 }
