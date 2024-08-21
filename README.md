@@ -40,7 +40,7 @@ Flags:
 **Note**: The infrastructure configuration must always be provided using the `--config` flag.
 
 ## Build the project
-Make sure you have golang 1.22+ on your platform.
+Make sure you have golang 1.23+ on your platform.
 
 ```commandline
 git clone git@github.com:np-guard/vpc-network-config-synthesis.git

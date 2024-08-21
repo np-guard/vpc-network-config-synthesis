@@ -51,10 +51,10 @@ func (a *ACLSynthesizer) makeACL() *ir.ACLCollection {
 //  4. generate rules and add them to relevant ACL to allow traffic for all pairs of IPAddrs of both resources.
 func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection) {
 	if !resourceRelevantToACL(conn.Src.Type) {
-		log.Fatalf(fmt.Sprintf(ACLTypeNotSupported, string(conn.Src.Type)))
+		log.Fatalf(ACLTypeNotSupported, string(conn.Src.Type))
 	}
 	if !resourceRelevantToACL(conn.Dst.Type) {
-		log.Fatalf(fmt.Sprintf(ACLTypeNotSupported, string(conn.Dst.Type)))
+		log.Fatalf(ACLTypeNotSupported, string(conn.Dst.Type))
 	}
 	internalSrc, internalDst, _ := internalConn(conn)
 	if !internalSrc && !internalDst {

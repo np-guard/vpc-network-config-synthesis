@@ -128,7 +128,7 @@ func (c *ACLCollection) Write(w Writer, vpc string) error {
 
 func (c *ACLCollection) SortedACLSubnets(vpc string) []string {
 	if vpc == "" {
-		return utils.SortedKeys(c.ACLs)
+		return utils.SortedAllInnerMapsKeys(c.ACLs)
 	}
-	return utils.SortedValuesInKey(c.ACLs, vpc)
+	return utils.SortedMapKeys(c.ACLs[vpc])
 }

@@ -6,9 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 package confio
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/IBM/vpc-go-sdk/vpcv1"
 
@@ -20,19 +18,6 @@ import (
 )
 
 const EndpointVPE string = "endpoint_gateway"
-
-func readModel(filename string) (*configModel.ResourcesContainerModel, error) {
-	bytes, err := os.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-	model := configModel.ResourcesContainerModel{}
-	err = json.Unmarshal(bytes, &model)
-	if err != nil {
-		return nil, err
-	}
-	return &model, nil
-}
 
 func ReadDefs(filename string) (*ir.ConfigDefs, error) {
 	config, err := readModel(filename)
