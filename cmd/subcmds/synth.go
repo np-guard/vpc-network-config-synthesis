@@ -6,12 +6,11 @@ SPDX-License-Identifier: Apache-2.0
 package subcmds
 
 import (
-	"maps"
-
 	"github.com/spf13/cobra"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/synth"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
 func NewSynthCommand(args *inArgs) *cobra.Command {
@@ -38,5 +37,5 @@ func synthesis(cmd *cobra.Command, args *inArgs, newSynthesizer func(*ir.Spec, b
 		return err
 	}
 	synthesizer := newSynthesizer(spec, single)
-	return writeOutput(args, synthesizer.Synth(), maps.Keys(spec.Defs.ConfigDefs.VPCs))
+	return writeOutput(args, synthesizer.Synth(), utils.MapKeys(spec.Defs.ConfigDefs.VPCs))
 }

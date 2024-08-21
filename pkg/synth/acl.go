@@ -13,7 +13,6 @@ import (
 	"github.com/np-guard/models/pkg/ipblock"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/logging"
 )
 
 const ACLTypeNotSupported = "ACL: src/dst of type %s is not supported."
@@ -52,10 +51,10 @@ func (a *ACLSynthesizer) makeACL() *ir.ACLCollection {
 //  4. generate rules and add them to relevant ACL to allow traffic for all pairs of IPAddrs of both resources.
 func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection) {
 	if !resourceRelevantToACL(conn.Src.Type) {
-		logging.Fatal(fmt.Sprintf(ACLTypeNotSupported, string(conn.Src.Type)))
+		log.Fatalf(ACLTypeNotSupported, string(conn.Src.Type))
 	}
 	if !resourceRelevantToACL(conn.Dst.Type) {
-		logging.Fatal(fmt.Sprintf(ACLTypeNotSupported, string(conn.Dst.Type)))
+		log.Fatalf(ACLTypeNotSupported, string(conn.Dst.Type))
 	}
 	internalSrc, internalDst, _ := internalConn(conn)
 	if !internalSrc && !internalDst {

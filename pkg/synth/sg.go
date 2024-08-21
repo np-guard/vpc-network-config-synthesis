@@ -6,11 +6,9 @@ SPDX-License-Identifier: Apache-2.0
 package synth
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/logging"
 )
 
 const SGTypeNotSupported = "SG: src/dst of type %s is not supported."
@@ -47,10 +45,10 @@ func (s *SGSynthesizer) makeSG() *ir.SGCollection {
 //  4. generate rules and add them to relevant SG to allow traffic for all pairs of IPAddrs of both resources.
 func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection) {
 	if !resourceRelevantToSG(conn.Src.Type) {
-		logging.Fatal(fmt.Sprintf(SGTypeNotSupported, string(conn.Src.Type)))
+		log.Fatalf(SGTypeNotSupported, string(conn.Src.Type))
 	}
 	if !resourceRelevantToSG(conn.Dst.Type) {
-		logging.Fatal(fmt.Sprintf(SGTypeNotSupported, string(conn.Dst.Type)))
+		log.Fatalf(SGTypeNotSupported, string(conn.Dst.Type))
 	}
 	internalSrc, internalDst, _ := internalConn(conn)
 	if !internalSrc && !internalDst {
