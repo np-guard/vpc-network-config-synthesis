@@ -23,7 +23,7 @@ import (
 const defaultFilePermission = 0o644
 const defaultDirectoryPermission = 0o755
 
-func writeOutput(args *inArgs, collection ir.Collection, defs *ir.ConfigDefs) error {
+func writeOutput(args *inArgs, collection ir.Collection, vpcNames []ir.ID) error {
 	if err := updateOutputFormat(args); err != nil {
 		return err
 	}
@@ -35,7 +35,7 @@ func writeOutput(args *inArgs, collection ir.Collection, defs *ir.ConfigDefs) er
 			return err
 		}
 	}
-	if err := writeLocals(args, collection, defs); err != nil {
+	if err := writeLocals(args, collection, vpcNames); err != nil {
 		return err
 	}
 
@@ -49,7 +49,7 @@ func writeOutput(args *inArgs, collection ir.Collection, defs *ir.ConfigDefs) er
 	}
 
 	// write each file
-	for vpc := range defs.VPCs {
+	for _, vpc := range vpcNames {
 		suffix := vpc + "." + args.outputFmt
 		args.outputFile = args.outputDir + "/" + suffix
 		if args.prefix != "" {
@@ -101,7 +101,7 @@ func pickWriter(args *inArgs, data *bytes.Buffer) (ir.Writer, error) {
 	}
 }
 
-func writeLocals(args *inArgs, collection ir.Collection, defs *ir.ConfigDefs) error {
+func writeLocals(args *inArgs, collection ir.Collection, vpcNames []ir.ID) error {
 	if !args.locals {
 		return nil
 	}
@@ -112,7 +112,7 @@ func writeLocals(args *inArgs, collection ir.Collection, defs *ir.ConfigDefs) er
 	_, isACLCollection := collection.(*ir.ACLCollection)
 	var data *bytes.Buffer
 	var err error
-	if data, err = tfio.WriteLocals(defs, isACLCollection); err != nil {
+	if data, err = tfio.WriteLocals(vpcNames, isACLCollection); err != nil {
 		return err
 	}
 

@@ -44,8 +44,9 @@ type SGRule struct {
 }
 
 type SG struct {
-	Rules    []SGRule
-	Attached []ID
+	InboundRules  []SGRule
+	OutboundRules []SGRule
+	Attached      []ID
 }
 
 type SGCollection struct {
@@ -74,7 +75,7 @@ func (r *SGRule) mustSupersede(other *SGRule) bool {
 }
 
 func NewSG() *SG {
-	return &SG{Rules: []SGRule{}, Attached: []ID{}}
+	return &SG{InboundRules: []SGRule{}, OutboundRules: []SGRule{}, Attached: []ID{}}
 }
 
 func NewSGCollection() *SGCollection {
@@ -95,9 +96,16 @@ func (c *SGCollection) LookupOrCreate(name SGName) *SG {
 }
 
 func (a *SG) Add(rule *SGRule) {
-	if !rule.isRedundant(a.Rules) {
-		a.Rules = append(a.Rules, *rule)
+	if rule.Direction == Outbound && !rule.isRedundant(a.OutboundRules) {
+		a.OutboundRules = append(a.OutboundRules, *rule)
 	}
+	if rule.Direction == Inbound && !rule.isRedundant(a.InboundRules) {
+		a.InboundRules = append(a.InboundRules, *rule)
+	}
+}
+
+func (a *SG) AllRules() []SGRule {
+	return append(a.InboundRules, a.OutboundRules...)
 }
 
 func (c *SGCollection) Write(w Writer, vpc string) error {
@@ -106,7 +114,7 @@ func (c *SGCollection) Write(w Writer, vpc string) error {
 
 func (c *SGCollection) SortedSGNames(vpc ID) []SGName {
 	if vpc == "" {
-		return utils.SortedKeys(c.SGs)
+		return utils.SortedAllInnerMapsKeys(c.SGs)
 	}
-	return utils.SortedValuesInKey(c.SGs, vpc)
+	return utils.SortedMapKeys(c.SGs[vpc])
 }

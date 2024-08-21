@@ -6,38 +6,28 @@ SPDX-License-Identifier: Apache-2.0
 package utils
 
 import (
+	"cmp"
+	"maps"
 	"slices"
-	"sort"
-
-	"golang.org/x/exp/maps"
 )
 
 func Ptr[T any](t T) *T {
 	return &t
 }
 
-func SortedKeys[T ~string, V any](m map[string]map[T]V) []T {
+func MapKeys[T comparable, V any](m map[T]V) []T {
+	return slices.Collect(maps.Keys(m))
+}
+
+func SortedMapKeys[T cmp.Ordered, V any](m map[T]V) []T {
+	return slices.Sorted(maps.Keys(m))
+}
+
+func SortedAllInnerMapsKeys[T, K cmp.Ordered, V any](m map[K]map[T]V) []T {
 	keys := make([]T, 0)
 	for _, vpc := range m {
-		keys = append(keys, maps.Keys(vpc)...)
+		keys = append(keys, MapKeys(vpc)...)
 	}
-	cmp := func(i, j int) bool { return keys[i] < keys[j] }
-	sort.Slice(keys, cmp)
-
-	return keys
-}
-
-func SortedValuesInKey[T ~string, V any](m map[string]map[T]V, key string) []T {
-	keys := maps.Keys(m[key])
-	cmp := func(i, j int) bool { return keys[i] < keys[j] }
-	sort.Slice(keys, cmp)
-
-	return keys
-}
-
-func SortedMapKeys[T ~string, V any](m map[T]V) []T {
-	keys := maps.Keys(m)
 	slices.Sort(keys)
-
 	return keys
 }

@@ -10,6 +10,7 @@ import (
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/synth"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
 func NewSynthCommand(args *inArgs) *cobra.Command {
@@ -36,5 +37,5 @@ func synthesis(cmd *cobra.Command, args *inArgs, newSynthesizer func(*ir.Spec, b
 		return err
 	}
 	synthesizer := newSynthesizer(spec, single)
-	return writeOutput(args, synthesizer.Synth(), &spec.Defs.ConfigDefs)
+	return writeOutput(args, synthesizer.Synth(), utils.MapKeys(spec.Defs.ConfigDefs.VPCs))
 }
