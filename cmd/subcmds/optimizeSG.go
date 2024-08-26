@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/confio"
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/optimize.go"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/optimize"
 )
 
 func NewOptimizeSGCommand(args *inArgs) *cobra.Command {
