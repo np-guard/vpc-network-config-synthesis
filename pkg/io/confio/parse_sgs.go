@@ -24,8 +24,8 @@ func ReadSGs(filename string) (map[ir.SGName]*ir.SG, error) {
 	if err != nil {
 		return nil, err
 	}
-	result := make(map[ir.SGName]*ir.SG, len(config.SecurityGroupList))
 
+	result := make(map[ir.SGName]*ir.SG, len(config.SecurityGroupList))
 	for _, sg := range config.SecurityGroupList {
 		inbound, outbound, err := translateSGRules(&sg.SecurityGroup)
 		if err != nil {
