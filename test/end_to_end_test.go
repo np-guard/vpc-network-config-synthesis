@@ -146,7 +146,7 @@ func shrinkWhitespace(s string) string {
 
 func write(collection ir.Collection, outputFormat, conn, vpc string) (text string, err error) {
 	buf := new(bytes.Buffer)
-	var writer ir.Writer
+	var writer ir.SynthWriter
 	switch outputFormat {
 	case "csv":
 		writer = csvio.NewWriter(buf)

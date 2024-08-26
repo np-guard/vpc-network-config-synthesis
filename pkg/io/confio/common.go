@@ -12,7 +12,7 @@ import (
 	configModel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 )
 
-// Writer implements ir.Writer
+// Writer implements ir.SynthWriter
 type Writer struct {
 	w     *bufio.Writer
 	model *configModel.ResourcesContainerModel
