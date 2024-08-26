@@ -8,15 +8,12 @@ package ir
 
 import (
 	"fmt"
-	"log"
 	"sort"
 	"strings"
 
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
 )
-
-const MaximalIPv4PrefixLength = 32
 
 type (
 	ID          = string
@@ -405,14 +402,6 @@ func ScopingComponents(s string) []string {
 
 func VpcFromScopedResource(resource ID) ID {
 	return ScopingComponents(resource)[0]
-}
-
-func IsIPAddress(address *netset.IPBlock) bool {
-	prefixLength, err := address.PrefixLength()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return prefixLength == MaximalIPv4PrefixLength
 }
 
 func ChangeScoping(s string) string {
