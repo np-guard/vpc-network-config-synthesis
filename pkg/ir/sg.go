@@ -26,37 +26,39 @@ const (
 	SGResourceFileShareMountTarget SGResource = "fsmt"
 )
 
-type SGName string
+type (
+	SGName string
+
+	RemoteType interface {
+		fmt.Stringer
+		// *netset.IPBlock | SGName
+	}
+
+	SGRule struct {
+		Direction   Direction
+		Remote      RemoteType
+		Protocol    netp.Protocol
+		Local       *netset.IPBlock
+		Explanation string
+	}
+
+	SG struct {
+		InboundRules  []SGRule
+		OutboundRules []SGRule
+		Attached      []ID
+	}
+
+	SGCollection struct {
+		SGs map[ID]map[SGName]*SG
+	}
+
+	SynthSGWriter interface {
+		WriteSynthSG(sgColl *SGCollection, vpc string) error
+	}
+)
 
 func (s SGName) String() string {
 	return string(s)
-}
-
-type RemoteType interface {
-	fmt.Stringer
-	// *netset.IPBlock | SGName
-}
-
-type SGRule struct {
-	Direction   Direction
-	Remote      RemoteType
-	Protocol    netp.Protocol
-	Local       *netset.IPBlock
-	Explanation string
-}
-
-type SG struct {
-	InboundRules  []SGRule
-	OutboundRules []SGRule
-	Attached      []ID
-}
-
-type SGCollection struct {
-	SGs map[ID]map[SGName]*SG
-}
-
-type SGWriter interface {
-	WriteSG(sgColl *SGCollection, vpc string) error
 }
 
 func (r *SGRule) isRedundant(rules []SGRule) bool {
@@ -110,8 +112,8 @@ func (a *SG) AllRules() []SGRule {
 	return append(a.InboundRules, a.OutboundRules...)
 }
 
-func (c *SGCollection) Write(w Writer, vpc string) error {
-	return w.WriteSG(c, vpc)
+func (c *SGCollection) Write(w SynthWriter, vpc string) error {
+	return w.WriteSynthSG(c, vpc)
 }
 
 func (c *SGCollection) SortedSGNames(vpc ID) []SGName {

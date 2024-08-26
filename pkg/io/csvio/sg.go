@@ -16,7 +16,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-func (w *Writer) WriteSG(collection *ir.SGCollection, vpc string) error {
+func (w *Writer) WriteSynthSG(collection *ir.SGCollection, vpc string) error {
 	if err := w.w.WriteAll(sgHeader()); err != nil {
 		return err
 	}

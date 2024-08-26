@@ -36,7 +36,7 @@ func ACLPort(p interval.Interval) string {
 }
 
 // Write prints an entire collection of acls as a single MD table.
-func (w *Writer) WriteACL(collection *ir.ACLCollection, vpc string) error {
+func (w *Writer) WriteSynthACL(collection *ir.ACLCollection, vpc string) error {
 	if err := w.writeAll(aclHeader()); err != nil {
 		return err
 	}

@@ -85,7 +85,7 @@ func writeToFile(outputFile string, data *bytes.Buffer) error {
 	return os.WriteFile(outputFile, data.Bytes(), defaultFilePermission)
 }
 
-func pickWriter(args *inArgs, data *bytes.Buffer) (ir.Writer, error) {
+func pickWriter(args *inArgs, data *bytes.Buffer) (ir.SynthWriter, error) {
 	w := bufio.NewWriter(data)
 	switch args.outputFmt {
 	case tfOutputFormat:

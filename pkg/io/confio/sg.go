@@ -245,7 +245,7 @@ func updateSG(model *configModel.ResourcesContainerModel, collection *ir.SGColle
 	globalIndex = 0 // making test results more predictable
 }
 
-func (w *Writer) WriteSG(collection *ir.SGCollection, _ string) error {
+func (w *Writer) WriteSynthSG(collection *ir.SGCollection, _ string) error {
 	updateSG(w.model, collection)
 	return w.writeModel()
 }

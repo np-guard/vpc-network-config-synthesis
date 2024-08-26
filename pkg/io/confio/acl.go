@@ -169,7 +169,7 @@ func subnetRef(subnet *configModel.Subnet) *vpcv1.SubnetReference {
 	}
 }
 
-func (w *Writer) WriteACL(collection *ir.ACLCollection, _ string) error {
+func (w *Writer) WriteSynthACL(collection *ir.ACLCollection, _ string) error {
 	updateACL(w.model, collection)
 	return w.writeModel()
 }

@@ -20,7 +20,7 @@ import (
 
 const leftAlign = " :--- "
 
-// Writer implements ir.Writer
+// Writer implements ir.SynthWriter
 type Writer struct {
 	w *bufio.Writer
 }
