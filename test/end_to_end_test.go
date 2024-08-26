@@ -144,7 +144,7 @@ func shrinkWhitespace(s string) string {
 	return regexp.MustCompile(`[ \t]+`).ReplaceAllString(s, " ")
 }
 
-func write(collection ir.Collection, outputFormat, conn, vpc string) (text string, err error) {
+func write(collection ir.SynthCollection, outputFormat, conn, vpc string) (text string, err error) {
 	buf := new(bytes.Buffer)
 	var writer ir.SynthWriter
 	switch outputFormat {
@@ -160,7 +160,7 @@ func write(collection ir.Collection, outputFormat, conn, vpc string) (text strin
 	if err != nil {
 		return "", err
 	}
-	err = collection.Write(writer, vpc)
+	err = collection.WriteSynth(writer, vpc)
 	if err != nil {
 		return "", err
 	}
@@ -175,7 +175,7 @@ func readExpectedFile(filename string) string {
 	return shrinkWhitespace(string(buf))
 }
 
-func writeSingleFile(testCase TestCase, t *testing.T, collection ir.Collection) {
+func writeSingleFile(testCase TestCase, t *testing.T, collection ir.SynthCollection) {
 	actual, err := write(collection, testCase.outputFormat, fmt.Sprintf("../test/%s", testCase.resolve(defaultConfigName)), "")
 	if err != nil {
 		t.Fatal(err)
@@ -188,7 +188,7 @@ func writeSingleFile(testCase TestCase, t *testing.T, collection ir.Collection) 
 	}
 }
 
-func writeMultipleFiles(testCase TestCase, t *testing.T, collection ir.Collection, s *ir.Spec) {
+func writeMultipleFiles(testCase TestCase, t *testing.T, collection ir.SynthCollection, s *ir.Spec) {
 	for vpcName := range s.Defs.VPCs {
 		actual, err := write(collection, testCase.outputFormat, fmt.Sprintf("../test/%s", testCase.resolve(defaultConfigName)), vpcName)
 		if err != nil {

@@ -29,6 +29,10 @@ func (w *Writer) WriteSynthSG(c *ir.SGCollection, vpc string) error {
 	return err
 }
 
+func (w *Writer) WriteOptimizeSG(c *ir.SGCollection, vpc string) error {
+	return nil
+}
+
 func value(x interface{}) string {
 	switch v := x.(type) {
 	case *netset.IPBlock:

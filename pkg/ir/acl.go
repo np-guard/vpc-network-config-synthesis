@@ -40,6 +40,10 @@ type (
 	SynthACLWriter interface {
 		WriteSynthACL(aclColl *ACLCollection, vpc string) error
 	}
+
+	OptimizeACLWriter interface {
+		WriteOptimizeACL(aclColl *ACLCollection) error
+	}
 )
 
 const (
@@ -125,8 +129,12 @@ func (c *ACLCollection) LookupOrCreate(name string) *ACL {
 	return newACL
 }
 
-func (c *ACLCollection) Write(w SynthWriter, vpc string) error {
+func (c *ACLCollection) WriteSynth(w SynthWriter, vpc string) error {
 	return w.WriteSynthACL(c, vpc)
+}
+
+func (c *ACLCollection) WriteOptimize(w OptimizeWriter) error {
+	return w.WriteOptimizeACL(c)
 }
 
 func (c *ACLCollection) SortedACLSubnets(vpc string) []string {

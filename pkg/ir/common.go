@@ -8,9 +8,22 @@ package ir
 type (
 	Direction string
 
+	SynthCollection interface {
+		WriteSynth(writer SynthWriter, vpc string) error
+	}
+
+	OptimizeCollection interface {
+		WriteOptimize(writer OptimizeWriter) error
+	}
+
 	SynthWriter interface {
 		SynthACLWriter
 		SynthSGWriter
+	}
+
+	OptimizeWriter interface {
+		OptimizeACLWriter
+		OptimizeSGWriter
 	}
 )
 
@@ -18,7 +31,3 @@ const (
 	Outbound Direction = "outbound"
 	Inbound  Direction = "inbound"
 )
-
-type Collection interface {
-	Write(writer SynthWriter, vpc string) error
-}

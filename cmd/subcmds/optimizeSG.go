@@ -12,6 +12,7 @@ import (
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/confio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/optimize"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
 func NewOptimizeSGCommand(args *inArgs) *cobra.Command {
@@ -40,5 +41,5 @@ func optimization(cmd *cobra.Command, args *inArgs) error {
 	if optimize.ReduceSGRules(sgs, args.sgName) != nil {
 		return err
 	}
-	return writeOptimizeOutput(args, sgs)
+	return writeOptimizeOutput(args, sgs, utils.MapKeys(sgs.SGs))
 }

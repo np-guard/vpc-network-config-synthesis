@@ -10,7 +10,6 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/confio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/csvio"
@@ -23,26 +22,24 @@ import (
 const defaultFilePermission = 0o644
 const defaultDirectoryPermission = 0o755
 
-func writeOutput(args *inArgs, collection ir.Collection, vpcNames []ir.ID) error {
-	if err := updateOutputFormat(args); err != nil {
+func writeOutput(args *inArgs, collection ir.SynthCollection, vpcNames []ir.ID) error {
+	if err := checkOutputFlags(args); err != nil {
 		return err
-	}
-	if args.outputDir != "" && args.outputFmt == apiOutputFormat {
-		return fmt.Errorf("-d cannot be used with format json")
 	}
 	if args.outputDir != "" { // create the directory if needed
 		if err := os.MkdirAll(args.outputDir, defaultDirectoryPermission); err != nil {
 			return err
 		}
 	}
-	if err := writeLocals(args, collection, vpcNames); err != nil {
+	_, isACLCollection := collection.(*ir.ACLCollection)
+	if err := writeLocals(args, vpcNames, isACLCollection); err != nil {
 		return err
 	}
 
 	var data *bytes.Buffer
 	var err error
 	if args.outputDir == "" {
-		if data, err = writeCollection(args, collection, ""); err != nil {
+		if data, err = writeSynthCollection(args, collection, ""); err != nil {
 			return err
 		}
 		return writeToFile(args.outputFile, data)
@@ -55,7 +52,7 @@ func writeOutput(args *inArgs, collection ir.Collection, vpcNames []ir.ID) error
 		if args.prefix != "" {
 			args.outputFile = args.outputDir + "/" + args.prefix + "_" + suffix
 		}
-		if data, err = writeCollection(args, collection, vpc); err != nil {
+		if data, err = writeSynthCollection(args, collection, vpc); err != nil {
 			return err
 		}
 		if err := writeToFile(args.outputFile, data); err != nil {
@@ -65,27 +62,19 @@ func writeOutput(args *inArgs, collection ir.Collection, vpcNames []ir.ID) error
 	return nil
 }
 
-func writeCollection(args *inArgs, collection ir.Collection, vpc string) (*bytes.Buffer, error) {
+func writeSynthCollection(args *inArgs, collection ir.SynthCollection, vpc string) (*bytes.Buffer, error) {
 	var data bytes.Buffer
-	writer, err := pickWriter(args, &data)
+	writer, err := pickSynthWriter(args, &data)
 	if err != nil {
 		return nil, err
 	}
-	if err := collection.Write(writer, vpc); err != nil {
+	if err := collection.WriteSynth(writer, vpc); err != nil {
 		return nil, err
 	}
 	return &data, nil
 }
 
-func writeToFile(outputFile string, data *bytes.Buffer) error {
-	if outputFile == "" {
-		fmt.Println(data.String())
-		return nil
-	}
-	return os.WriteFile(outputFile, data.Bytes(), defaultFilePermission)
-}
-
-func pickWriter(args *inArgs, data *bytes.Buffer) (ir.SynthWriter, error) {
+func pickSynthWriter(args *inArgs, data *bytes.Buffer) (ir.SynthWriter, error) {
 	w := bufio.NewWriter(data)
 	switch args.outputFmt {
 	case tfOutputFormat:
@@ -99,29 +88,4 @@ func pickWriter(args *inArgs, data *bytes.Buffer) (ir.SynthWriter, error) {
 	default:
 		return nil, fmt.Errorf("bad output format: %q", args.outputFmt)
 	}
-}
-
-func writeLocals(args *inArgs, collection ir.Collection, vpcNames []ir.ID) error {
-	if !args.locals {
-		return nil
-	}
-	if args.outputFmt != tfOutputFormat {
-		return fmt.Errorf("--locals flag requires setting the output format to tf")
-	}
-
-	_, isACLCollection := collection.(*ir.ACLCollection)
-	var data *bytes.Buffer
-	var err error
-	if data, err = tfio.WriteLocals(vpcNames, isACLCollection); err != nil {
-		return err
-	}
-
-	outputFile := ""
-	suffix := "/locals.tf"
-	if args.outputDir != "" {
-		outputFile = args.outputDir + suffix
-	} else if args.outputFile != "" {
-		outputFile = filepath.Dir(args.outputFile) + suffix
-	}
-	return writeToFile(outputFile, data)
 }
