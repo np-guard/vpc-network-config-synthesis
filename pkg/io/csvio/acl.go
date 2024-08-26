@@ -17,24 +17,6 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-func makeACLTable(t *ir.ACL, subnet string) [][]string {
-	rules := t.Rules()
-	rows := make([][]string, len(rules))
-	for i := range rules {
-		rows[i] = makeACLRow(i+1, &rules[i], t.Name(), subnet)
-	}
-	return rows
-}
-
-func ACLPort(p interval.Interval) string {
-	switch {
-	case p.Start() == netp.MinPort && p.End() == netp.MaxPort:
-		return "any port" //nolint:goconst // independent decision for SG and ACL
-	default:
-		return fmt.Sprintf("ports %v-%v", p.Start(), p.End())
-	}
-}
-
 // Write prints an entire collection of acls as a single CSV table.
 func (w *Writer) WriteSynthACL(collection *ir.ACLCollection, vpc string) error {
 	if err := w.w.WriteAll(aclHeader()); err != nil {
@@ -47,6 +29,24 @@ func (w *Writer) WriteSynthACL(collection *ir.ACLCollection, vpc string) error {
 		}
 	}
 	return nil
+}
+
+func makeACLTable(t *ir.ACL, subnet string) [][]string {
+	rules := t.Rules()
+	rows := make([][]string, len(rules))
+	for i := range rules {
+		rows[i] = makeACLRow(i+1, &rules[i], t.Name(), subnet)
+	}
+	return rows
+}
+
+func aclPort(p interval.Interval) string {
+	switch {
+	case p.Start() == netp.MinPort && p.End() == netp.MaxPort:
+		return "any port" //nolint:goconst // independent decision for SG and ACL
+	default:
+		return fmt.Sprintf("ports %v-%v", p.Start(), p.End())
+	}
 }
 
 func action(a ir.Action) string {
@@ -101,7 +101,7 @@ func printIP(ip *netset.IPBlock, protocol netp.Protocol, isSource bool) string {
 		} else {
 			r = p.DstPorts()
 		}
-		return fmt.Sprintf("%v, %v", ipString, ACLPort(r))
+		return fmt.Sprintf("%v, %v", ipString, aclPort(r))
 	case netp.AnyProtocol:
 		return ipString
 	default:

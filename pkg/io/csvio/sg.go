@@ -45,7 +45,7 @@ func makeSGRow(rule *ir.SGRule, sgName ir.SGName) []string {
 	return []string{
 		string(sgName),
 		direction(rule.Direction),
-		sGRemoteType(rule.Remote),
+		sgRemoteType(rule.Remote),
 		sgRemote(rule.Remote),
 		printProtocolName(rule.Protocol),
 		printProtocolParams(rule.Protocol, rule.Direction == ir.Inbound),
@@ -62,7 +62,7 @@ func makeSGTable(t *ir.SG, sgName ir.SGName) [][]string {
 	return rows
 }
 
-func sGPort(p interval.Interval) string {
+func sgPort(p interval.Interval) string {
 	switch {
 	case p.Start() == netp.MinPort && p.End() == netp.MaxPort:
 		return "any port"
@@ -71,7 +71,7 @@ func sGPort(p interval.Interval) string {
 	}
 }
 
-func sGRemoteType(t ir.RemoteType) string {
+func sgRemoteType(t ir.RemoteType) string {
 	switch t := t.(type) {
 	case *netset.IPBlock:
 		if t.Size() == 1 {
@@ -112,7 +112,7 @@ func printProtocolParams(protocol netp.Protocol, isSource bool) string {
 		} else {
 			r = p.DstPorts()
 		}
-		return sGPort(r)
+		return sgPort(r)
 	case netp.AnyProtocol:
 		return ""
 	default:
