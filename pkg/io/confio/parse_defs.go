@@ -41,10 +41,6 @@ func ReadDefs(filename string) (*ir.ConfigDefs, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = validateVpcs(vpcs)
-	if err != nil {
-		return nil, err
-	}
 
 	return &ir.ConfigDefs{
 		VPCs:           vpcs,
@@ -69,7 +65,7 @@ func parseVPCs(config *configModel.ResourcesContainerModel) (map[ir.ID]*ir.VPCDe
 		}
 		VPCs[*vpc.Name] = &ir.VPCDetails{AddressPrefixes: addressPrefixes}
 	}
-	return VPCs, nil
+	return VPCs, validateVpcs(VPCs)
 }
 
 func parseSubnets(config *configModel.ResourcesContainerModel) (map[ir.ID]*ir.SubnetDetails, error) {
