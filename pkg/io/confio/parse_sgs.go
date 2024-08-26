@@ -19,20 +19,25 @@ import (
 )
 
 // ReadSG translates SGs from a config_object file to map[ir.SGName]*SG
-func ReadSGs(filename string) (map[ir.SGName]*ir.SG, error) {
+func ReadSGs(filename string) (*ir.SGCollection, error) {
 	config, err := readModel(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	result := make(map[ir.SGName]*ir.SG, len(config.SecurityGroupList))
+	result := ir.NewSGCollection()
+
 	for _, sg := range config.SecurityGroupList {
 		inbound, outbound, err := translateSGRules(&sg.SecurityGroup)
 		if err != nil {
 			return nil, err
 		}
 		if sg.Name != nil {
-			result[ir.SGName(*sg.Name)] = &ir.SG{InboundRules: inbound, OutboundRules: outbound}
+			vpcName := *sg.VPC.Name
+			if result.SGs[vpcName] == nil {
+				result.SGs[vpcName] = make(map[ir.SGName]*ir.SG)
+			}
+			result.SGs[vpcName][ir.SGName(*sg.Name)] = &ir.SG{InboundRules: inbound, OutboundRules: outbound}
 		}
 	}
 	return result, nil
