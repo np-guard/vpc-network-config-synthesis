@@ -21,7 +21,7 @@ func NewOptimizeSGCommand(args *inArgs) *cobra.Command {
 		Long:  `OptimizeSG attempts to reduce the number of security group rules in a SG without changing the semantic.`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			return nil
+			return optimization(cmd, args)
 		},
 	}
 
