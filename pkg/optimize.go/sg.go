@@ -9,6 +9,6 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-func ReduceSGRules(sgs map[ir.SGName]*ir.SG, sgName string) error {
+func ReduceSGRules(_ map[ir.SGName]*ir.SG, _ string) error {
 	return nil
 }

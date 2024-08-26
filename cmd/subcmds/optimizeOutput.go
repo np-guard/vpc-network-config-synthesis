@@ -9,6 +9,6 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-func writeOptimizeOutput(args *inArgs, sgs map[ir.SGName]*ir.SG) error {
+func writeOptimizeOutput(_ *inArgs, _ map[ir.SGName]*ir.SG) error {
 	return nil
 }
