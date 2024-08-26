@@ -19,6 +19,7 @@ const (
 	outputFileFlag = "output-file"
 	outputDirFlag  = "output-dir"
 	prefixFlag     = "prefix"
+	sgNameFlag     = "sg-name"
 	singleACLFlag  = "single"
 	localsFlag     = "locals"
 )
@@ -30,6 +31,7 @@ type inArgs struct {
 	outputFile string
 	outputDir  string
 	prefix     string
+	sgName     string
 	singleacl  bool
 	locals     bool
 }

@@ -5,7 +5,14 @@ SPDX-License-Identifier: Apache-2.0
 
 package subcmds
 
-import "github.com/spf13/cobra"
+import (
+	"fmt"
+
+	"github.com/spf13/cobra"
+
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/confio"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/optimize.go"
+)
 
 func NewOptimizeSGCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
@@ -18,5 +25,20 @@ func NewOptimizeSGCommand(args *inArgs) *cobra.Command {
 		},
 	}
 
+	cmd.Flags().StringVarP(&args.sgName, sgNameFlag, "s", "", "which SG to optimize")
+	_ = cmd.MarkFlagRequired(sgNameFlag) // Todo: delete this line. if sgName flag is not supplied - optimize all SGs
+
 	return cmd
+}
+
+func optimization(cmd *cobra.Command, args *inArgs) error {
+	cmd.SilenceUsage = true // if we got this far, flags are syntactically correct, so no need to print usage
+	sgs, err := confio.ReadSGs(args.configFile)
+	if err != nil {
+		return fmt.Errorf("could not parse config file %v: %w", args.configFile, err)
+	}
+	if optimize.ReduceSGRules(sgs, args.sgName) != nil {
+		return err
+	}
+	return writeOptimizeOutput(args, sgs)
 }
