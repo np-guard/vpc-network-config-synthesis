@@ -21,9 +21,16 @@ func NewSynthCommand(args *inArgs) *cobra.Command {
 		--config and --spec parameters must be supplied.`,
 	}
 
+	// flags
 	cmd.PersistentFlags().StringVarP(&args.specFile, specFlag, "s", "", "JSON file containing spec file")
+	cmd.PersistentFlags().StringVarP(&args.outputDir, outputDirFlag, "d", "",
+		"Write generated resources to files in the specified directory, one file per VPC.")
+	cmd.PersistentFlags().StringVarP(&args.prefix, prefixFlag, "p", "", "The prefix of the files that will be created.")
+
+	// flags settings
 	_ = cmd.MarkPersistentFlagRequired(specFlag)
 
+	// sub cmds
 	cmd.AddCommand(NewSynthACLCommand(args))
 	cmd.AddCommand(NewSynthSGCommand(args))
 

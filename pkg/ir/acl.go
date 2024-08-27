@@ -129,6 +129,10 @@ func (c *ACLCollection) LookupOrCreate(name string) *ACL {
 	return newACL
 }
 
+func (c *ACLCollection) VpcNames() []string {
+	return utils.MapKeys(c.ACLs)
+}
+
 func (c *ACLCollection) WriteSynth(w SynthWriter, vpc string) error {
 	return w.WriteSynthACL(c, vpc)
 }

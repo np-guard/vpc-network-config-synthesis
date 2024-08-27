@@ -116,6 +116,10 @@ func (a *SG) AllRules() []SGRule {
 	return append(a.InboundRules, a.OutboundRules...)
 }
 
+func (c *SGCollection) VpcNames() []string {
+	return utils.MapKeys(c.SGs)
+}
+
 func (c *SGCollection) WriteSynth(w SynthWriter, vpc string) error {
 	return w.WriteSynthSG(c, vpc)
 }

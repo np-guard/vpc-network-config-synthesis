@@ -16,6 +16,9 @@ import (
 )
 
 func checkOutputFlags(args *inArgs) error {
+	if args.outputDir != "" && args.outputFile != "" {
+		return fmt.Errorf("only one of -d and -o can be supplied")
+	}
 	if err := updateOutputFormat(args); err != nil {
 		return err
 	}

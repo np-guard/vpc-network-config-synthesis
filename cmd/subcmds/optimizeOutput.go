@@ -22,10 +22,26 @@ func writeOptimizeOutput(args *inArgs, collection ir.OptimizeCollection, vpcName
 	if err := writeLocals(args, vpcNames, isACLCollection); err != nil {
 		return err
 	}
-	return nil
+	data, err := writeOptimizeCollection(args, collection)
+	if err != nil {
+		return err
+	}
+	return writeToFile(args.outputFile, data)
 }
 
-func pickOptimizeWriter(args *inArgs, data *bytes.Buffer) (ir.SynthWriter, error) {
+func writeOptimizeCollection(args *inArgs, collection ir.OptimizeCollection) (*bytes.Buffer, error) {
+	var data bytes.Buffer
+	writer, err := pickOptimizeWriter(args, &data)
+	if err != nil {
+		return nil, err
+	}
+	if err := collection.WriteOptimize(writer); err != nil {
+		return nil, err
+	}
+	return &data, nil
+}
+
+func pickOptimizeWriter(args *inArgs, data *bytes.Buffer) (ir.OptimizeWriter, error) {
 	w := bufio.NewWriter(data)
 	switch args.outputFmt {
 	case tfOutputFormat:

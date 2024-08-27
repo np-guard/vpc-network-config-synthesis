@@ -29,7 +29,7 @@ func (w *Writer) WriteSynthSG(c *ir.SGCollection, vpc string) error {
 	return err
 }
 
-func (w *Writer) WriteOptimizeSG(c *ir.SGCollection, vpc string) error {
+func (w *Writer) WriteOptimizeSG(c *ir.SGCollection) error {
 	return nil
 }
 
