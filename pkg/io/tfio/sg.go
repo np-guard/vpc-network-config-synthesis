@@ -18,19 +18,23 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-// WriteSG prints an entire collection of Security Groups as a sequence of terraform resources.
 func (w *Writer) WriteSynthSG(c *ir.SGCollection, vpc string) error {
-	output := sgCollection(c, vpc).Print()
+	return w.writeSGCollection(c, vpc, true)
+}
+
+func (w *Writer) WriteOptimizeSG(c *ir.SGCollection) error {
+	return w.writeSGCollection(c, "", false)
+}
+
+// writeSGCollection prints an entire collection of Security Groups as a sequence of terraform resources.
+func (w *Writer) writeSGCollection(c *ir.SGCollection, vpc string, writeComments bool) error {
+	output := sgCollection(c, vpc, writeComments).Print()
 	_, err := w.w.WriteString(output)
 	if err != nil {
 		return err
 	}
 	err = w.w.Flush()
 	return err
-}
-
-func (w *Writer) WriteOptimizeSG(c *ir.SGCollection) error {
-	return nil
 }
 
 func value(x interface{}) string {
@@ -69,13 +73,17 @@ func sgProtocol(t netp.Protocol, d ir.Direction) []tf.Block {
 	return nil
 }
 
-func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) tf.Block {
+func sgRule(rule *ir.SGRule, sgName ir.SGName, i int, writeComment bool) tf.Block {
 	ruleName := fmt.Sprintf("%v-%v", sgName, i)
 	verifyName(ruleName)
+	comment := ""
+	if writeComment {
+		comment = fmt.Sprintf("# %v", rule.Explanation)
+	}
 	return tf.Block{
 		Name:    "resource",
 		Labels:  []string{quote("ibm_is_security_group_rule"), ir.ChangeScoping(quote(ruleName))},
-		Comment: fmt.Sprintf("# %v", rule.Explanation),
+		Comment: comment,
 		Arguments: []tf.Argument{
 			{Name: "group", Value: value(sgName)},
 			{Name: "direction", Value: quote(direction(rule.Direction))},
@@ -85,7 +93,8 @@ func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) tf.Block {
 	}
 }
 
-func sg(sgName, comment string) tf.Block {
+func sgBlock(sg *ir.SG, comment string) tf.Block {
+	sgName := sg.SGName.String()
 	verifyName(sgName)
 	return tf.Block{
 		Name:    "resource", //nolint:revive  // obvious false positive
@@ -94,22 +103,28 @@ func sg(sgName, comment string) tf.Block {
 		Arguments: []tf.Argument{
 			{Name: "name", Value: ir.ChangeScoping(quote("sg-" + sgName))},
 			{Name: "resource_group", Value: "local.sg_synth_resource_group_id"},
-			{Name: "vpc", Value: fmt.Sprintf("local.sg_synth_%s_id", ir.VpcFromScopedResource(sgName))},
+			{Name: "vpc", Value: fmt.Sprintf("local.sg_synth_%s_id", sg.VpcName)},
 		},
 	}
 }
 
-func sgCollection(t *ir.SGCollection, vpc string) *tf.ConfigFile {
-	var resources []tf.Block //nolint:prealloc  // nontrivial to calculate, and an unlikely performance bottleneck
-	for _, sgName := range t.SortedSGNames(vpc) {
-		comment := ""
-		vpcName := ir.VpcFromScopedResource(string(sgName))
-		rules := t.SGs[vpcName][sgName].AllRules()
-		comment = fmt.Sprintf("\n### SG attached to %v", sgName)
-		resources = append(resources, sg(sgName.String(), comment))
-		for i := range rules {
-			rule := sgRule(&rules[i], sgName, i)
-			resources = append(resources, rule)
+func sgCollection(t *ir.SGCollection, vpc string, writeComments bool) *tf.ConfigFile {
+	var resources []tf.Block
+	for _, vpcName := range t.VpcNames() {
+		if vpc != vpcName && vpc != "" {
+			continue
+		}
+		for _, sgName := range t.SortedSGNames(vpcName) {
+			sg := t.SGs[vpcName][sgName]
+			comment := "\n"
+			if writeComments {
+				comment = fmt.Sprintf("\n### SG attached to %v", sgName)
+			}
+			resources = append(resources, sgBlock(sg, comment))
+			rules := sg.AllRules()
+			for i := range rules {
+				resources = append(resources, sgRule(&rules[i], sgName, i, writeComments))
+			}
 		}
 	}
 	return &tf.ConfigFile{

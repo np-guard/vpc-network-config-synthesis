@@ -44,5 +44,5 @@ func synthesis(cmd *cobra.Command, args *inArgs, newSynthesizer func(*ir.Spec, b
 		return err
 	}
 	synthesizer := newSynthesizer(spec, single)
-	return writeOutput(args, synthesizer.Synth(), utils.MapKeys(spec.Defs.ConfigDefs.VPCs))
+	return writeOutput(args, synthesizer.Synth(), utils.SortedMapKeys(spec.Defs.ConfigDefs.VPCs))
 }

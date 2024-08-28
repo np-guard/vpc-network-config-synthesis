@@ -35,7 +35,9 @@ func ReadSGs(filename string) (*ir.SGCollection, error) {
 			if result.SGs[vpcName] == nil {
 				result.SGs[vpcName] = make(map[ir.SGName]*ir.SG)
 			}
-			result.SGs[vpcName][ir.SGName(*sg.Name)] = &ir.SG{InboundRules: inbound, OutboundRules: outbound}
+			sgName := ir.SGName(*sg.Name)
+			result.SGs[vpcName][sgName] = &ir.SG{SGName: sgName, VpcName: vpcName,
+				InboundRules: inbound, OutboundRules: outbound}
 		}
 	}
 	return result, nil

@@ -29,7 +29,7 @@ func (w *Writer) WriteSynthACL(c *ir.ACLCollection, vpc string) error {
 }
 
 func (w *Writer) WriteOptimizeACL(c *ir.ACLCollection) error {
-	return nil
+	return fmt.Errorf("OptimizeACL is not supported yet")
 }
 
 func aclProtocol(t netp.Protocol) []tf.Block {

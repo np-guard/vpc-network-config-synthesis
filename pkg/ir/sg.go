@@ -43,6 +43,8 @@ type (
 	}
 
 	SG struct {
+		SGName        SGName
+		VpcName       string
 		InboundRules  []SGRule
 		OutboundRules []SGRule
 		Attached      []ID
@@ -82,8 +84,8 @@ func (r *SGRule) mustSupersede(other *SGRule) bool {
 	return res
 }
 
-func NewSG() *SG {
-	return &SG{InboundRules: []SGRule{}, OutboundRules: []SGRule{}, Attached: []ID{}}
+func NewSG(vpcName string, sgName SGName) *SG {
+	return &SG{SGName: sgName, VpcName: vpcName, InboundRules: []SGRule{}, OutboundRules: []SGRule{}, Attached: []ID{}}
 }
 
 func NewSGCollection() *SGCollection {
@@ -95,7 +97,7 @@ func (c *SGCollection) LookupOrCreate(name SGName) *SG {
 	if sg, ok := c.SGs[vpcName][name]; ok {
 		return sg
 	}
-	newSG := NewSG()
+	newSG := NewSG(vpcName, name)
 	if c.SGs[vpcName] == nil {
 		c.SGs[vpcName] = make(map[SGName]*SG)
 	}
@@ -117,7 +119,7 @@ func (a *SG) AllRules() []SGRule {
 }
 
 func (c *SGCollection) VpcNames() []string {
-	return utils.MapKeys(c.SGs)
+	return utils.SortedMapKeys(c.SGs)
 }
 
 func (c *SGCollection) WriteSynth(w SynthWriter, vpc string) error {

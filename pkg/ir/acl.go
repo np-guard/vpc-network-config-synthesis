@@ -29,6 +29,7 @@ type (
 
 	ACL struct {
 		Subnet   string
+		VpcName  string
 		Internal []ACLRule
 		External []ACLRule
 	}
@@ -111,26 +112,25 @@ func NewACLCollection() *ACLCollection {
 	return &ACLCollection{ACLs: map[ID]map[string]*ACL{}}
 }
 
-func NewACL() *ACL {
-	return &ACL{Internal: []ACLRule{}, External: []ACLRule{}}
+func NewACL(subnet, vpcName string) *ACL {
+	return &ACL{Subnet: subnet, VpcName: vpcName, Internal: []ACLRule{}, External: []ACLRule{}}
 }
 
-func (c *ACLCollection) LookupOrCreate(name string) *ACL {
-	vpcName := VpcFromScopedResource(name)
-	if acl, ok := c.ACLs[vpcName][name]; ok {
+func (c *ACLCollection) LookupOrCreate(subnet string) *ACL {
+	vpcName := VpcFromScopedResource(subnet)
+	if acl, ok := c.ACLs[vpcName][subnet]; ok {
 		return acl
 	}
-	newACL := NewACL()
-	newACL.Subnet = name
+	newACL := NewACL(subnet, vpcName)
 	if c.ACLs[vpcName] == nil {
 		c.ACLs[vpcName] = make(map[string]*ACL)
 	}
-	c.ACLs[vpcName][name] = newACL
+	c.ACLs[vpcName][subnet] = newACL
 	return newACL
 }
 
 func (c *ACLCollection) VpcNames() []string {
-	return utils.MapKeys(c.ACLs)
+	return utils.SortedMapKeys(c.ACLs)
 }
 
 func (c *ACLCollection) WriteSynth(w SynthWriter, vpc string) error {
