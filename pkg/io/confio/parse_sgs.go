@@ -154,19 +154,34 @@ func translateRemote(remote vpcv1.SecurityGroupRuleRemoteIntf) (ir.RemoteType, e
 }
 
 func translateLocal(local vpcv1.SecurityGroupRuleLocalIntf) (*netset.IPBlock, error) {
+	var err error
+	var ipAddrs *netset.IPBlock
+
 	if l, ok := local.(*vpcv1.SecurityGroupRuleLocal); ok {
 		if l.CIDRBlock != nil {
-			return netset.IPBlockFromCidr(*l.CIDRBlock)
+			ipAddrs, err = netset.IPBlockFromCidr(*l.CIDRBlock)
 		}
 		if l.Address != nil {
-			return netset.IPBlockFromIPAddress(*l.CIDRBlock)
+			ipAddrs, err = netset.IPBlockFromIPAddress(*l.CIDRBlock)
 		}
+		if err != nil {
+			return nil, err
+		}
+		return verifyLocalsValue(ipAddrs)
 	}
 	return nil, fmt.Errorf("error parsing Local field")
 }
 
+// temporary
+func verifyLocalsValue(ipAddrs *netset.IPBlock) (*netset.IPBlock, error) {
+	if !ipAddrs.Equal(netset.GetCidrAll()) {
+		return nil, fmt.Errorf("only 0.0.0.0/32 CIDR block is supported for locals values")
+	}
+	return ipAddrs, nil
+}
+
 func translateProtocolTCPUDP(rule *vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp) (netp.Protocol, error) {
-	isTCP := *rule.Protocol == string(netp.ProtocolStringTCP)
+	isTCP := *rule.Protocol == "tcp"
 	minDstPort := utils.GetProperty(rule.PortMin, netp.MinPort)
 	maxDstPort := utils.GetProperty(rule.PortMax, netp.MaxPort)
 	return netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(minDstPort), int(maxDstPort))

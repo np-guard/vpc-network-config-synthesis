@@ -15,6 +15,8 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
+const defaultFilePermission = 0o644
+
 func checkOutputFlags(args *inArgs) error {
 	if args.outputDir != "" && args.outputFile != "" {
 		return fmt.Errorf("only one of -d and -o can be supplied")
