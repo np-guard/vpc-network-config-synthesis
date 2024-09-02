@@ -53,7 +53,7 @@ func sgRemote(nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurit
 	st := rule.Remote.String()
 	switch t := rule.Remote.(type) {
 	case *netset.IPBlock:
-		if t.Size() == 1 { // single IP address
+		if ipString := t.ToIPAddressString(); ipString != "" { // single IP address
 			return &vpcv1.SecurityGroupRuleRemoteIP{
 				Address: &st,
 			}
