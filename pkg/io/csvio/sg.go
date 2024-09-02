@@ -74,7 +74,7 @@ func sgPort(p interval.Interval) string {
 func sgRemoteType(t ir.RemoteType) string {
 	switch t := t.(type) {
 	case *netset.IPBlock:
-		if t.Size() == 1 {
+		if ipString := t.ToIPAddressString(); ipString != "" {
 			return "IP address"
 		}
 		return "CIDR block"
