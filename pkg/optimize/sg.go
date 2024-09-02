@@ -63,7 +63,7 @@ func (s *SGOptimizer) Optimize() ir.OptimizeCollection {
 	for vpcName := range s.sgCollection.SGs {
 		var sg *ir.SG
 		var ok bool
-		if sg, ok = s.sgCollection.SGs[vpcName][s.sgName]; !ok && s.sgName != "" {
+		if sg, ok = s.sgCollection.SGs[vpcName][s.sgName]; !ok {
 			continue
 		}
 		reducedRules := 0
@@ -78,6 +78,7 @@ func (s *SGOptimizer) Optimize() ir.OptimizeCollection {
 			s.sgCollection.SGs[vpcName][s.sgName].OutboundRules = newOutboundRules
 		}
 
+		// print a message to the log
 		switch {
 		case reducedRules == 0:
 			log.Printf("no rules were reduced in sg %s", string(s.sgName))
