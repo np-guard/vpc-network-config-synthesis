@@ -5,7 +5,16 @@ SPDX-License-Identifier: Apache-2.0
 
 package optimize
 
-import "github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
+import (
+	"sort"
+
+	"github.com/np-guard/models/pkg/ds"
+	"github.com/np-guard/models/pkg/interval"
+	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
+
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
+)
 
 type Optimizer interface {
 	// read the collection from the config object file
@@ -16,4 +25,15 @@ type Optimizer interface {
 
 	// returns a slice of all vpc names. used to generate locals file
 	VpcNames() []string
+}
+
+// each IPBlock is a single CIDR/IP address. The IPBlocks are disjoint.
+func sortPartitionsByIPAddrs(p []ds.Pair[*netset.IPBlock, *interval.CanonicalSet]) []ds.Pair[*netset.IPBlock, *interval.CanonicalSet] {
+	cmp := func(i, j int) bool { return p[i].Left.FirstIPAddress() < p[j].Left.FirstIPAddress() }
+	sort.Slice(p, cmp)
+	return p
+}
+
+func allPorts(ports *interval.CanonicalSet) bool {
+	return ports.Equal(netp.AllPorts().ToSet())
 }

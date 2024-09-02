@@ -7,9 +7,7 @@ package optimize
 
 import (
 	"log"
-	"sort"
 
-	"github.com/np-guard/models/pkg/ds"
 	"github.com/np-guard/models/pkg/interval"
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
@@ -35,6 +33,10 @@ type (
 		allToAddrs  []ir.SGRule
 		allToSG     []ir.SGRule
 	}
+
+	sgRemotePortsSpan map[*ir.SGName]*interval.CanonicalSet
+	sgRemoteIcmpSpan  map[*ir.SGName]*icmp
+	sgRemoteAllSpan   []*ir.SGName
 )
 
 func NewSGOptimizer(sgName string) Optimizer {
@@ -67,11 +69,15 @@ func (s *SGOptimizer) Optimize() ir.OptimizeCollection {
 			continue
 		}
 		reducedRules := 0
+
+		// reduce inbound rules first
 		newInboundRules := s.reduceSGRules(sg.InboundRules, ir.Inbound)
 		if len(sg.InboundRules) > len(newInboundRules) {
 			reducedRules += len(sg.InboundRules) - len(newInboundRules)
 			s.sgCollection.SGs[vpcName][s.sgName].InboundRules = newInboundRules
 		}
+
+		// reduce outbound rules second
 		newOutboundRules := s.reduceSGRules(sg.OutboundRules, ir.Outbound)
 		if len(sg.OutboundRules) > len(newOutboundRules) {
 			reducedRules += len(sg.OutboundRules) - len(newOutboundRules)
@@ -95,78 +101,61 @@ func (s *SGOptimizer) Optimize() ir.OptimizeCollection {
 // and attempts to reduce each group separately
 func (s *SGOptimizer) reduceSGRules(rules []ir.SGRule, direction ir.Direction) []ir.SGRule {
 	ruleGroups := divideSGRules(rules)
-	tcpToAddrs := s.reduceSGRulesTcpudpToAddrs(rulesToIPAddrsToPortsSpan(ruleGroups.tcpToAddrs), direction, true)
-	tcpToSg := s.reduceSGRulesTcpudpToSG(rulesToSGToPortsSpan(rules), direction, true)
-	return append(tcpToAddrs, tcpToSg...)
+
+	// rules with SG as a remote
+	tcpToSGSpan := tcpudpRulesToSGToPortsSpan(ruleGroups.tcpToSG)
+	udpToSGSpan := tcpudpRulesToSGToPortsSpan(ruleGroups.udpToSG)
+	icmpToSGSpan := icmpRulesToSGToIcmpSpan(ruleGroups.icmpToSG)
+	protocolAllToSGSpan := allProtocolRulesToSGToSpan(ruleGroups.allToSG)
+	rulesToSG := reduceSGRulesToSG(tcpToSGSpan, udpToSGSpan, icmpToSGSpan, protocolAllToSGSpan, direction)
+
+	// rules with IPBlock as a remote
+	tcpToIPAddrsSpan := tcpudpRulesToIPAddrsToPortsSpan(ruleGroups.tcpToAddrs)
+	udpToIPAddrsSpan := tcpudpRulesToIPAddrsToPortsSpan(ruleGroups.udpToAddrs)
+	icmpToAddrsSpan := icmpRulesToIPAddrsToIcmpSpan(ruleGroups.icmpToSG)
+	protocolAllToIPAddrsSpan := allProtocolRulesToIPAddrsToSpan(ruleGroups.allToAddrs)
+	rulesToIPAddrs := reduceSGRulesToIPAddrs(tcpToIPAddrsSpan, udpToIPAddrsSpan, icmpToAddrsSpan, protocolAllToIPAddrsSpan, direction)
+
+	// append both slices together
+	return append(rulesToSG, rulesToIPAddrs...)
 }
 
-// reduceSGRulesTcpudpToAddrs attempts to reduce the number of rules of tcp/udp rules with ipAddrs as remote
-func (s *SGOptimizer) reduceSGRulesTcpudpToAddrs(span []ds.Pair[*netset.IPBlock, *interval.CanonicalSet],
-	direction ir.Direction, isTCP bool) []ir.SGRule {
-	result := make([]ir.SGRule, len(span))
-	for i := range span {
-		for _, dstPorts := range span[i].Right.Intervals() {
-			p, _ := netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(dstPorts.Start()), int(dstPorts.End()))
-			rule := ir.SGRule{
-				Direction: direction,
-				Remote:    span[i].Left,
-				Protocol:  p,
-				Local:     netset.GetCidrAll(),
+func reduceSGRulesToSG(tcp, udp sgRemotePortsSpan, icmp sgRemoteIcmpSpan, all sgRemoteAllSpan, direction ir.Direction) []ir.SGRule {
+	// delete other protocols if all protocol rule exists
+	for _, sgName := range all {
+		delete(tcp, sgName)
+		delete(udp, sgName)
+		delete(icmp, sgName)
+	}
+
+	// merge tcp, udp and icmp rules into all protocol rule
+	for sgName, tcpPorts := range tcp {
+		if udpPorts, ok := udp[sgName]; ok {
+			if i, ok := icmp[sgName]; ok {
+				if i.all() && allPorts(tcpPorts) && allPorts(udpPorts) { // all tcp&udp ports and all icmp types&codes
+					delete(tcp, sgName)
+					delete(udp, sgName)
+					delete(icmp, sgName)
+					all = append(all, sgName)
+				}
 			}
-			result[i] = rule
 		}
 	}
-	return result
+
+	// convert to spans to SG rules
+	tcpRules := tcpudpToSGSpanToSGRules(tcp, direction, true)
+	udpRules := tcpudpToSGSpanToSGRules(tcp, direction, false)
+	icmpRules := icmpToSGSpanToSGRules(icmp, direction)
+	protocolAll := protocolAllToSGSpanToSGRules(all, direction)
+
+	// merge all rules together
+	tcpudp := append(tcpRules, udpRules...)
+	icmpAll := append(icmpRules, protocolAll...)
+	return append(tcpudp, icmpAll...)
 }
 
-// reduceSGRulesTcpudpToAddrs attempts to reduce the number of rules of tcp/udp rules with a sg as remote
-func (s *SGOptimizer) reduceSGRulesTcpudpToSG(span map[ir.SGName]*interval.CanonicalSet, direction ir.Direction, isTCP bool) []ir.SGRule {
-	result := make([]ir.SGRule, 0)
-	for sgName, intervals := range span {
-		for _, dstPorts := range intervals.Intervals() {
-			p, _ := netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(dstPorts.Start()), int(dstPorts.End()))
-			rule := ir.SGRule{
-				Direction: direction,
-				Remote:    sgName,
-				Protocol:  p,
-				Local:     netset.GetCidrAll(),
-			}
-			result = append(result, rule)
-		}
-	}
-	return result
-}
-
-// converts []ir.SGRule (where all rules or either TCP/UDP but not both) to a span of (IPBlock X ports)
-func rulesToIPAddrsToPortsSpan(rules []ir.SGRule) (p []ds.Pair[*netset.IPBlock, *interval.CanonicalSet]) {
-	span := ds.NewProductLeft[*netset.IPBlock, *interval.CanonicalSet]()
-	for i := range rules {
-		p := rules[i].Protocol.(netp.TCPUDP) // already checked
-		r := ds.CartesianPairLeft(rules[i].Remote.(*netset.IPBlock), p.DstPorts().ToSet())
-		span = span.Union(r).(*ds.ProductLeft[*netset.IPBlock, *interval.CanonicalSet])
-	}
-	return sortPartitionsByIPAddrs(span.Partitions())
-}
-
-// converts []ir.SGRule (where all rules or either TCP/UDP but not both) to a span intervals for each remote
-func rulesToSGToPortsSpan(rules []ir.SGRule) map[ir.SGName]*interval.CanonicalSet {
-	result := make(map[ir.SGName]*interval.CanonicalSet)
-	for i := range rules {
-		p := rules[i].Protocol.(netp.TCPUDP)  // already checked
-		remote := rules[i].Remote.(ir.SGName) // already checked
-		if result[remote] == nil {
-			result[remote] = interval.NewCanonicalSet()
-		}
-		result[remote].AddInterval(p.DstPorts())
-	}
-	return result
-}
-
-// each IPBlock is a single CIDR/IP address. The IPBlocks are disjoint.
-func sortPartitionsByIPAddrs(p []ds.Pair[*netset.IPBlock, *interval.CanonicalSet]) []ds.Pair[*netset.IPBlock, *interval.CanonicalSet] {
-	cmp := func(i, j int) bool { return p[i].Left.FirstIPAddress() < p[j].Left.FirstIPAddress() }
-	sort.Slice(p, cmp)
-	return p
+func reduceSGRulesToIPAddrs() []ir.SGRule {
+	return []ir.SGRule{}
 }
 
 // divide SGCollection to TCP/UDP/ICMP/ProtocolALL X SGRemote/IPAddrs rules
