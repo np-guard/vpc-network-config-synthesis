@@ -8,6 +8,7 @@ package optimize
 import (
 	"log"
 
+	"github.com/np-guard/models/pkg/ds"
 	"github.com/np-guard/models/pkg/interval"
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
@@ -24,19 +25,30 @@ type (
 	}
 
 	sgRuleGroups struct {
-		tcpToAddrs  []ir.SGRule
-		tcpToSG     []ir.SGRule
-		udpToAddrs  []ir.SGRule
-		udpToSG     []ir.SGRule
-		icmpToAddrs []ir.SGRule
-		icmpToSG    []ir.SGRule
-		allToAddrs  []ir.SGRule
-		allToSG     []ir.SGRule
+		rulesToSG      *sgRulesPerProtocol
+		rulesToIPAddrs *sgRulesPerProtocol
 	}
 
-	sgRemotePortsSpan map[*ir.SGName]*interval.CanonicalSet
-	sgRemoteIcmpSpan  map[*ir.SGName]*icmp
-	sgRemoteAllSpan   []*ir.SGName
+	sgRulesPerProtocol struct {
+		tcp  []ir.SGRule
+		udp  []ir.SGRule
+		icmp []ir.SGRule
+		all  []ir.SGRule
+	}
+
+	sgRulesToSGSpans struct {
+		tcp  map[*ir.SGName]*interval.CanonicalSet
+		udp  map[*ir.SGName]*interval.CanonicalSet
+		icmp map[*ir.SGName]*icmp
+		all  []*ir.SGName
+	}
+
+	sgRulesToIPAddrsSpans struct {
+		tcp  []ds.Pair[*netset.IPBlock, *interval.CanonicalSet]
+		udp  []ds.Pair[*netset.IPBlock, *interval.CanonicalSet]
+		icmp []ds.Pair[*netset.IPBlock, *icmp]
+		all  []*netset.IPBlock
+	}
 )
 
 func NewSGOptimizer(sgName string) Optimizer {
@@ -58,7 +70,7 @@ func (s *SGOptimizer) VpcNames() []string {
 	return utils.SortedMapKeys(s.sgCollection.SGs)
 }
 
-// Optimize attempts to reduce thr number of SG rules
+// Optimize attempts to reduce the number of SG rules
 // the algorithm attempts to reduce both inbound and outbound rules separately
 // A message is printed to the log at the end of the algorithm
 func (s *SGOptimizer) Optimize() ir.OptimizeCollection {
@@ -97,117 +109,129 @@ func (s *SGOptimizer) Optimize() ir.OptimizeCollection {
 	return s.sgCollection
 }
 
-// divideSGRules divides the rules into groups based on their protocol and remote
-// and attempts to reduce each group separately
+// reduceSGRules attempts to reduce the number of rules with different remote types separately
 func (s *SGOptimizer) reduceSGRules(rules []ir.SGRule, direction ir.Direction) []ir.SGRule {
 	ruleGroups := divideSGRules(rules)
 
 	// rules with SG as a remote
-	tcpToSGSpan := tcpudpRulesToSGToPortsSpan(ruleGroups.tcpToSG)
-	udpToSGSpan := tcpudpRulesToSGToPortsSpan(ruleGroups.udpToSG)
-	icmpToSGSpan := icmpRulesToSGToIcmpSpan(ruleGroups.icmpToSG)
-	protocolAllToSGSpan := allProtocolRulesToSGToSpan(ruleGroups.allToSG)
-	rulesToSG := reduceSGRulesToSG(tcpToSGSpan, udpToSGSpan, icmpToSGSpan, protocolAllToSGSpan, direction)
+	optimizedRulesToSG := reduceSGRulesToSG(sgRulesToSGToSpans(ruleGroups.rulesToSG), direction)
+	if len(ruleGroups.rulesToSG.allRules()) < len(optimizedRulesToSG) {
+		optimizedRulesToSG = ruleGroups.rulesToSG.allRules()
+	}
 
 	// rules with IPBlock as a remote
-	tcpToIPAddrsSpan := tcpudpRulesToIPAddrsToPortsSpan(ruleGroups.tcpToAddrs)
-	udpToIPAddrsSpan := tcpudpRulesToIPAddrsToPortsSpan(ruleGroups.udpToAddrs)
-	icmpToAddrsSpan := icmpRulesToIPAddrsToIcmpSpan(ruleGroups.icmpToSG)
-	protocolAllToIPAddrsSpan := allProtocolRulesToIPAddrsToSpan(ruleGroups.allToAddrs)
-	rulesToIPAddrs := reduceSGRulesToIPAddrs(tcpToIPAddrsSpan, udpToIPAddrsSpan, icmpToAddrsSpan, protocolAllToIPAddrsSpan, direction)
+	optimizedRulesToIPAddrs := reduceSGRulesToIPAddrs(sgRulesToIPAddrsToSpans(ruleGroups.rulesToIPAddrs), direction)
+	if len(ruleGroups.rulesToIPAddrs.allRules()) < len(optimizedRulesToSG) {
+		optimizedRulesToIPAddrs = ruleGroups.rulesToIPAddrs.allRules()
+	}
 
 	// append both slices together
-	return append(rulesToSG, rulesToIPAddrs...)
+	return append(optimizedRulesToSG, optimizedRulesToIPAddrs...)
 }
 
-func reduceSGRulesToSG(tcp, udp sgRemotePortsSpan, icmp sgRemoteIcmpSpan, all sgRemoteAllSpan, direction ir.Direction) []ir.SGRule {
+func reduceSGRulesToSG(spans *sgRulesToSGSpans, direction ir.Direction) []ir.SGRule {
 	// delete other protocols if all protocol rule exists
-	for _, sgName := range all {
-		delete(tcp, sgName)
-		delete(udp, sgName)
-		delete(icmp, sgName)
+	for _, sgName := range spans.all {
+		delete(spans.tcp, sgName)
+		delete(spans.udp, sgName)
+		delete(spans.icmp, sgName)
 	}
 
 	// merge tcp, udp and icmp rules into all protocol rule
-	for sgName, tcpPorts := range tcp {
-		if udpPorts, ok := udp[sgName]; ok {
-			if i, ok := icmp[sgName]; ok {
+	for sgName, tcpPorts := range spans.tcp {
+		if udpPorts, ok := spans.udp[sgName]; ok {
+			if i, ok := spans.icmp[sgName]; ok {
 				if i.all() && allPorts(tcpPorts) && allPorts(udpPorts) { // all tcp&udp ports and all icmp types&codes
-					delete(tcp, sgName)
-					delete(udp, sgName)
-					delete(icmp, sgName)
-					all = append(all, sgName)
+					delete(spans.tcp, sgName)
+					delete(spans.udp, sgName)
+					delete(spans.icmp, sgName)
+					spans.all = append(spans.all, sgName)
 				}
 			}
 		}
 	}
 
 	// convert to spans to SG rules
-	tcpRules := tcpudpToSGSpanToSGRules(tcp, direction, true)
-	udpRules := tcpudpToSGSpanToSGRules(tcp, direction, false)
-	icmpRules := icmpToSGSpanToSGRules(icmp, direction)
-	protocolAll := protocolAllToSGSpanToSGRules(all, direction)
+	tcpRules := tcpudpToSGSpanToSGRules(spans.tcp, direction, true)
+	udpRules := tcpudpToSGSpanToSGRules(spans.tcp, direction, false)
+	icmpRules := icmpToSGSpanToSGRules(spans.icmp, direction)
+	protocolAll := protocolAllToSGSpanToSGRules(spans.all, direction)
 
 	// merge all rules together
-	tcpudp := append(tcpRules, udpRules...)
-	icmpAll := append(icmpRules, protocolAll...)
+	tcpudp := append(tcpRules, udpRules...)      //nolint:gocritic // should merge all rules together
+	icmpAll := append(icmpRules, protocolAll...) //nolint:gocritic // should merge all rules together
 	return append(tcpudp, icmpAll...)
 }
 
-func reduceSGRulesToIPAddrs() []ir.SGRule {
+func reduceSGRulesToIPAddrs(spans *sgRulesToIPAddrsSpans, direction ir.Direction) []ir.SGRule {
+	// update spans
+
+	result1 := reduceSGRulesToIPAddrsAlgo1(spans, direction)
+	result2 := reduceSGRulesToIPAddrsAlgo2(spans, direction)
+
+	if len(result1) < len(result2) {
+		return result1
+	}
+	return result2
+}
+
+func reduceSGRulesToIPAddrsAlgo1(spans *sgRulesToIPAddrsSpans, direction ir.Direction) []ir.SGRule {
+	return []ir.SGRule{}
+}
+
+func reduceSGRulesToIPAddrsAlgo2(spans *sgRulesToIPAddrsSpans, direction ir.Direction) []ir.SGRule {
 	return []ir.SGRule{}
 }
 
 // divide SGCollection to TCP/UDP/ICMP/ProtocolALL X SGRemote/IPAddrs rules
 func divideSGRules(rules []ir.SGRule) *sgRuleGroups {
-	tcpAddrs := make([]ir.SGRule, 0)
-	tcpSG := make([]ir.SGRule, 0)
-	udpAddrs := make([]ir.SGRule, 0)
-	udpSG := make([]ir.SGRule, 0)
-	icmpAddrs := make([]ir.SGRule, 0)
-	icmpSG := make([]ir.SGRule, 0)
-	allAddrs := make([]ir.SGRule, 0)
-	allSG := make([]ir.SGRule, 0)
+	rulesToSG := &sgRulesPerProtocol{tcp: make([]ir.SGRule, 0), udp: make([]ir.SGRule, 0),
+		icmp: make([]ir.SGRule, 0), all: make([]ir.SGRule, 0)}
+	rulesToIPAddrs := &sgRulesPerProtocol{tcp: make([]ir.SGRule, 0), udp: make([]ir.SGRule, 0),
+		icmp: make([]ir.SGRule, 0), all: make([]ir.SGRule, 0)}
 
 	for _, rule := range rules {
 		// TCP rule
 		if p, ok := rule.Protocol.(netp.TCPUDP); ok && p.ProtocolString() == "TCP" {
 			if _, ok := rule.Remote.(*netset.IPBlock); ok {
-				tcpAddrs = append(tcpAddrs, rule)
+				rulesToIPAddrs.tcp = append(rulesToIPAddrs.tcp, rule)
 			} else {
-				tcpSG = append(tcpSG, rule)
+				rulesToSG.tcp = append(rulesToSG.tcp, rule)
 			}
 		}
 
 		// UDP rule
 		if p, ok := rule.Protocol.(netp.TCPUDP); ok && p.ProtocolString() == "UDP" {
 			if _, ok := rule.Remote.(*netset.IPBlock); ok {
-				udpAddrs = append(udpAddrs, rule)
+				rulesToIPAddrs.udp = append(rulesToIPAddrs.udp, rule)
 			} else {
-				udpSG = append(udpSG, rule)
+				rulesToSG.udp = append(rulesToSG.udp, rule)
 			}
 		}
 
 		// ICMP rule
 		if _, ok := rule.Protocol.(netp.ICMP); ok {
 			if _, ok := rule.Remote.(*netset.IPBlock); ok {
-				icmpAddrs = append(icmpAddrs, rule)
+				rulesToIPAddrs.icmp = append(rulesToIPAddrs.icmp, rule)
 			} else {
-				icmpSG = append(icmpSG, rule)
+				rulesToSG.icmp = append(rulesToSG.icmp, rule)
 			}
 		}
 
 		// all protocol rules
 		if _, ok := rule.Protocol.(netp.AnyProtocol); ok {
 			if _, ok := rule.Remote.(*netset.IPBlock); ok {
-				allAddrs = append(allAddrs, rule)
+				rulesToIPAddrs.all = append(rulesToIPAddrs.all, rule)
 			} else {
-				allSG = append(allSG, rule)
+				rulesToSG.all = append(rulesToSG.all, rule)
 			}
 		}
 	}
-	return utils.Ptr(sgRuleGroups{tcpToAddrs: tcpAddrs, tcpToSG: tcpSG,
-		udpToAddrs: udpAddrs, udpToSG: udpSG,
-		icmpToAddrs: icmpAddrs, icmpToSG: icmpSG,
-		allToAddrs: allAddrs, allToSG: allSG})
+	return &sgRuleGroups{rulesToSG: rulesToSG, rulesToIPAddrs: rulesToIPAddrs}
+}
+
+func (s *sgRulesPerProtocol) allRules() []ir.SGRule {
+	tcpudp := append(s.tcp, s.udp...)
+	icmpAll := append(s.icmp, s.all...)
+	return append(tcpudp, icmpAll...)
 }

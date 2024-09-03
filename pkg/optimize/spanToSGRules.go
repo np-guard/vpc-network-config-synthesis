@@ -35,7 +35,7 @@ func tcpudpToSGSpanToSGRules(span map[*ir.SGName]*interval.CanonicalSet, directi
 func icmpToSGSpanToSGRules(span map[*ir.SGName]*icmp, direction ir.Direction) []ir.SGRule {
 	result := make([]ir.SGRule, 0)
 	for sgName, icmp := range span {
-		result = append(result, icmp.toSGRulestoSG(sgName)...)
+		result = append(result, icmp.toSGRulestoSG(sgName, direction)...)
 	}
 	return result
 }
@@ -69,5 +69,15 @@ func tcpudpToIPAddrsSpanToSGRules(span []ds.Pair[*netset.IPBlock, *interval.Cano
 			result[i] = rule
 		}
 	}
+	return result
+}
+
+func icmpToIPAddrsSpanToSGRules(span []ds.Pair[*netset.IPBlock, *icmp], direction ir.Direction) []ir.SGRule {
+	result := make([]ir.SGRule, 0)
+	return result
+}
+
+func allToIPAddrsSpanToSGRules(span []*netset.IPBlock, direction ir.Direction) []ir.SGRule {
+	result := make([]ir.SGRule, 0)
 	return result
 }

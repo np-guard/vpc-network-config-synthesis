@@ -13,7 +13,7 @@ import (
 )
 
 type icmp struct {
-	allowed map[int]bool // type X code X allow/deny
+	allowed map[int]bool // type x code X allow/deny
 }
 
 func newIcmp() *icmp {
@@ -24,22 +24,19 @@ func (i *icmp) add(*netp.ICMPTypeCode) {
 
 }
 
-func (i *icmp) allCodes(t int) bool {
-	return true
-}
-
-func (i *icmp) allTypesAndCodes() bool {
-	return true
-}
-
-func (i *icmp) toSGRulestoSG(sgName *ir.SGName) []ir.SGRule {
-	return []ir.SGRule{}
-}
-
-func (i *icmp) toSGRulestoIPAddrs(ipAddrs *netset.IPBlock) []ir.SGRule {
-	return []ir.SGRule{}
-}
-
 func (i *icmp) all() bool {
 	return false
+}
+
+func (i *icmp) toSGRulestoSG(sgName *ir.SGName, direction ir.Direction) []ir.SGRule {
+	return []ir.SGRule{}
+}
+
+func (i *icmp) toSGRulestoIPAddrs(ipAddrs *netset.IPBlock, direction ir.Direction) []ir.SGRule {
+	return []ir.SGRule{}
+}
+
+// returns true if i is a subset of other
+func (i *icmp) subset(other *icmp) bool {
+	return true
 }

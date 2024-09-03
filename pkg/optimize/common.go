@@ -27,11 +27,17 @@ type Optimizer interface {
 	VpcNames() []string
 }
 
-// each IPBlock is a single CIDR/IP address. The IPBlocks are disjoint.
-func sortPartitionsByIPAddrs(p []ds.Pair[*netset.IPBlock, *interval.CanonicalSet]) []ds.Pair[*netset.IPBlock, *interval.CanonicalSet] {
+// each IPBlock is a single CIDR. The CIDRs are disjoint.
+func sortPartitionsByIPAddrs[T any](p []ds.Pair[*netset.IPBlock, T]) []ds.Pair[*netset.IPBlock, T] {
 	cmp := func(i, j int) bool { return p[i].Left.FirstIPAddress() < p[j].Left.FirstIPAddress() }
 	sort.Slice(p, cmp)
 	return p
+}
+
+func sortIPBlockSlice(s []*netset.IPBlock) []*netset.IPBlock {
+	cmp := func(i, j int) bool { return s[i].FirstIPAddress() < s[j].FirstIPAddress() }
+	sort.Slice(s, cmp)
+	return s
 }
 
 func allPorts(ports *interval.CanonicalSet) bool {

@@ -16,6 +16,14 @@ import (
 )
 
 // Rules with SG remote
+func sgRulesToSGToSpans(rules *sgRulesPerProtocol) *sgRulesToSGSpans {
+	tcpSpan := tcpudpRulesToSGToPortsSpan(rules.tcp)
+	udpSpan := tcpudpRulesToSGToPortsSpan(rules.udp)
+	icmpSpan := icmpRulesToSGToSpan(rules.icmp)
+	allSpan := allProtocolRulesToSGToSpan(rules.all)
+	return &sgRulesToSGSpans{tcp: tcpSpan, udp: udpSpan, icmp: icmpSpan, all: allSpan}
+}
+
 func tcpudpRulesToSGToPortsSpan(rules []ir.SGRule) map[*ir.SGName]*interval.CanonicalSet {
 	result := make(map[*ir.SGName]*interval.CanonicalSet)
 	for i := range rules {
@@ -29,7 +37,7 @@ func tcpudpRulesToSGToPortsSpan(rules []ir.SGRule) map[*ir.SGName]*interval.Cano
 	return result
 }
 
-func icmpRulesToSGToIcmpSpan(rules []ir.SGRule) map[*ir.SGName]*icmp {
+func icmpRulesToSGToSpan(rules []ir.SGRule) map[*ir.SGName]*icmp {
 	result := make(map[*ir.SGName]*icmp)
 	for i := range rules {
 		p := rules[i].Protocol.(netp.ICMP)               // already checked
@@ -51,20 +59,29 @@ func allProtocolRulesToSGToSpan(rules []ir.SGRule) []*ir.SGName {
 }
 
 // Rules with IPAddrs remote
+func sgRulesToIPAddrsToSpans(rules *sgRulesPerProtocol) *sgRulesToIPAddrsSpans {
+	tcpSpan := tcpudpRulesToIPAddrsToPortsSpan(rules.tcp)
+	udpSpan := tcpudpRulesToIPAddrsToPortsSpan(rules.udp)
+	icmpSpan := icmpRulesToIPAddrsToSpan(rules.icmp)
+	allSpan := allProtocolRulesToIPAddrsToSpan(rules.all)
+	return &sgRulesToIPAddrsSpans{tcp: tcpSpan, udp: udpSpan, icmp: icmpSpan, all: allSpan}
+}
 
 // converts []ir.SGRule (where all rules or either TCP/UDP but not both) to a span of (IPBlock X ports)
-func tcpudpRulesToIPAddrsToPortsSpan(rules []ir.SGRule) (p []ds.Pair[*netset.IPBlock, *interval.CanonicalSet]) {
+func tcpudpRulesToIPAddrsToPortsSpan(rules []ir.SGRule) []ds.Pair[*netset.IPBlock, *interval.CanonicalSet] {
 	span := ds.NewProductLeft[*netset.IPBlock, *interval.CanonicalSet]()
 	for i := range rules {
 		p := rules[i].Protocol.(netp.TCPUDP) // already checked
 		r := ds.CartesianPairLeft(rules[i].Remote.(*netset.IPBlock), p.DstPorts().ToSet())
 		span = span.Union(r).(*ds.ProductLeft[*netset.IPBlock, *interval.CanonicalSet])
 	}
+	// a := ds.NewLeftTripleSet[*netset.IPBlock, *interval.CanonicalSet, bool]()
+
 	return sortPartitionsByIPAddrs(span.Partitions())
 }
 
-func icmpRulesToIPAddrsToIcmpSpan(rules []ir.SGRule) bool {
-	return true
+func icmpRulesToIPAddrsToSpan(rules []ir.SGRule) []ds.Pair[*netset.IPBlock, *icmp] {
+	return sortPartitionsByIPAddrs([]ds.Pair[*netset.IPBlock, *icmp]{})
 }
 
 func allProtocolRulesToIPAddrsToSpan(rules []ir.SGRule) []*netset.IPBlock {
@@ -72,5 +89,5 @@ func allProtocolRulesToIPAddrsToSpan(rules []ir.SGRule) []*netset.IPBlock {
 	for i := range rules {
 		result[i] = rules[i].Remote.(*netset.IPBlock)
 	}
-	return result // should sort !!
+	return sortIPBlockSlice(result)
 }
