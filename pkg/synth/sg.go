@@ -105,13 +105,16 @@ func (s *SGSynthesizer) allowConnectionToDst(conn *ir.Connection, trackedProtoco
 	sgDstName := ir.SGName(dstEndpoint.Name)
 	sgDst := s.result.LookupOrCreate(sgDstName)
 	sgDst.Attached = []ir.ID{ir.ID(sgDstName)}
-	rule := &ir.SGRule{
-		Remote:      sgRemote(&s.spec.Defs, srcEndpoint),
-		Direction:   ir.Inbound,
-		Protocol:    trackedProtocol.Protocol.InverseDirection(),
-		Explanation: reason,
+	if p := trackedProtocol.Protocol.InverseDirection(); p != nil {
+		rule := &ir.SGRule{
+			Remote:      sgRemote(&s.spec.Defs, srcEndpoint),
+			Direction:   ir.Inbound,
+			Protocol:    trackedProtocol.Protocol.InverseDirection(),
+			Explanation: reason,
+		}
+		sgDst.Add(rule)
 	}
-	sgDst.Add(rule)
+
 }
 
 // generate SGs for blocked endpoints (endpoints that do not appear in Spec)
