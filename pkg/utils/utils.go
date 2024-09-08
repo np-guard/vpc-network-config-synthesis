@@ -47,3 +47,11 @@ func Int64PointerToIntPointer(v *int64) *int {
 	}
 	return Ptr(int(*v))
 }
+
+func ToPtrSlice[T any](s []T) []*T {
+	res := make([]*T, len(s))
+	for i := range s {
+		res[i] = Ptr(s[i])
+	}
+	return res
+}

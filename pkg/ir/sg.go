@@ -84,6 +84,11 @@ func (r *SGRule) mustSupersede(other *SGRule) bool {
 	return res
 }
 
+func NewSGRule(direction Direction, remote RemoteType, p netp.Protocol, local *netset.IPBlock, e string) SGRule {
+	return SGRule{Direction: direction, Remote: remote, Protocol: p,
+		Local: local, Explanation: e}
+}
+
 func NewSG(vpcName string, sgName SGName) *SG {
 	return &SG{SGName: sgName, VpcName: vpcName, InboundRules: []SGRule{}, OutboundRules: []SGRule{}, Attached: []ID{}}
 }

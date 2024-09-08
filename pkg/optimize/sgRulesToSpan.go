@@ -15,7 +15,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
-// Rules with SG remote
+// Rules with remote SG
 func sgRulesToSGToSpans(rules *sgRulesPerProtocol) *sgRulesToSGSpans {
 	tcpSpan := tcpudpRulesToSGToPortsSpan(rules.tcp)
 	udpSpan := tcpudpRulesToSGToPortsSpan(rules.udp)
@@ -37,25 +37,26 @@ func tcpudpRulesToSGToPortsSpan(rules []ir.SGRule) map[*ir.SGName]*interval.Cano
 	return result
 }
 
-func icmpRulesToSGToSpan(rules []ir.SGRule) map[*ir.SGName]*icmp {
-	result := make(map[*ir.SGName]*icmp)
+func icmpRulesToSGToSpan(rules []ir.SGRule) map[*ir.SGName]*netset.ICMPSet {
+	result := make(map[*ir.SGName]*netset.ICMPSet)
 	for i := range rules {
 		p := rules[i].Protocol.(netp.ICMP)               // already checked
 		remote := utils.Ptr(rules[i].Remote.(ir.SGName)) // already checked
 		if result[remote] == nil {
-			result[remote] = newIcmp()
+			result[remote] = netset.EmptyICMPSet()
 		}
-		result[remote].add(p.TypeCode)
+		result[remote].Union(netset.NewICMPSet(p))
 	}
 	return result
 }
 
 func allProtocolRulesToSGToSpan(rules []ir.SGRule) []*ir.SGName {
-	result := make([]*ir.SGName, len(rules))
+	result := make(map[ir.SGName]struct{})
 	for i := range rules {
-		result[i] = rules[i].Remote.(*ir.SGName)
+		remote := rules[i].Remote.(ir.SGName)
+		result[remote] = struct{}{}
 	}
-	return result
+	return utils.ToPtrSlice(utils.SortedMapKeys(result))
 }
 
 // Rules with IPAddrs remote
@@ -75,19 +76,23 @@ func tcpudpRulesToIPAddrsToPortsSpan(rules []ir.SGRule) []ds.Pair[*netset.IPBloc
 		r := ds.CartesianPairLeft(rules[i].Remote.(*netset.IPBlock), p.DstPorts().ToSet())
 		span = span.Union(r).(*ds.ProductLeft[*netset.IPBlock, *interval.CanonicalSet])
 	}
-	// a := ds.NewLeftTripleSet[*netset.IPBlock, *interval.CanonicalSet, bool]()
-
 	return sortPartitionsByIPAddrs(span.Partitions())
 }
 
-func icmpRulesToIPAddrsToSpan(rules []ir.SGRule) []ds.Pair[*netset.IPBlock, *icmp] {
-	return sortPartitionsByIPAddrs([]ds.Pair[*netset.IPBlock, *icmp]{})
+func icmpRulesToIPAddrsToSpan(rules []ir.SGRule) []ds.Pair[*netset.IPBlock, *netset.ICMPSet] {
+	span := ds.NewProductLeft[*netset.IPBlock, *netset.ICMPSet]()
+	for i := range rules {
+		p := rules[i].Protocol.(netp.ICMP) // already checked
+		r := ds.CartesianPairLeft(rules[i].Remote.(*netset.IPBlock), netset.NewICMPSet(p))
+		span = span.Union(r).(*ds.ProductLeft[*netset.IPBlock, *netset.ICMPSet])
+	}
+	return sortPartitionsByIPAddrs(span.Partitions())
 }
 
 func allProtocolRulesToIPAddrsToSpan(rules []ir.SGRule) []*netset.IPBlock {
-	result := make([]*netset.IPBlock, len(rules))
+	res := netset.NewIPBlock()
 	for i := range rules {
-		result[i] = rules[i].Remote.(*netset.IPBlock)
+		res.Union(rules[i].Remote.(*netset.IPBlock))
 	}
-	return sortIPBlockSlice(result)
+	return sortIPBlockSlice(res.Split())
 }
