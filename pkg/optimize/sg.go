@@ -130,7 +130,7 @@ func (s *SGOptimizer) reduceSGRules(rules []ir.SGRule, direction ir.Direction) [
 }
 
 func reduceSGRulesToSG(spans *sgRulesToSGSpans, direction ir.Direction) []ir.SGRule {
-	// delete other protocols if all protocol rule exists
+	// delete other protocols rules if all protocol rule exists
 	for _, sgName := range spans.all {
 		delete(spans.tcp, sgName)
 		delete(spans.udp, sgName)
@@ -151,7 +151,7 @@ func reduceSGRulesToSG(spans *sgRulesToSGSpans, direction ir.Direction) []ir.SGR
 		}
 	}
 
-	// convert to spans to SG rules
+	// convert spans to SG rules
 	tcpRules := tcpudpSGSpanToSGRules(spans.tcp, direction, true)
 	udpRules := tcpudpSGSpanToSGRules(spans.tcp, direction, false)
 	icmpRules := icmpSGSpanToSGRules(spans.icmp, direction)
@@ -166,6 +166,7 @@ func reduceSGRulesToSG(spans *sgRulesToSGSpans, direction ir.Direction) []ir.SGR
 func reduceSGRulesToIPAddrs(spans *sgRulesToIPAddrsSpans, direction ir.Direction) []ir.SGRule {
 	// Todo: check if we can replace tcp, udp, icmp with protocol all
 
+	// spans to SG rules
 	tcpRules := tcpudpIPSpanToSGRules(spans.tcp, spans.all, direction, true)
 	udpRules := tcpudpIPSpanToSGRules(spans.tcp, spans.all, direction, false)
 	icmpRules := icmpSpanToSGRules(spans.icmp, spans.all, direction)

@@ -76,9 +76,9 @@ func tcpudpIPSpanToSGRules(span []ds.Pair[*netset.IPBlock, *interval.CanonicalSe
 			}
 		}
 
-		// open new rules
+		// new rules
 		for _, ports := range span[i].Right.Intervals() {
-			if !ports.ToSet().IsSubset(activePorts) { // it does not contained in other rules
+			if !ports.ToSet().IsSubset(activePorts) { // it is not contained in other rules
 				r := ds.Pair[*netset.IPBlock, *interval.Interval]{Left: FirstIPAddress(span[i].Left), Right: &ports}
 				rules = append(rules, r)
 			}
@@ -128,7 +128,7 @@ func icmpSpanToSGRules(span []ds.Pair[*netset.IPBlock, *netset.ICMPSet], _ []*ne
 
 		// new rules
 		for _, p := range span[i].Right.Partitions() {
-			if !netset.NewICMPSet(p).IsSubset(activeICMP) { // it does not contained in other rules
+			if !netset.NewICMPSet(p).IsSubset(activeICMP) {
 				r := ds.Pair[*netset.IPBlock, *netp.ICMP]{Left: FirstIPAddress(span[i].Left), Right: &p}
 				rules = append(rules, r)
 			}
