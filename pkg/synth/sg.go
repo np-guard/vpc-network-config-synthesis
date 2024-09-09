@@ -8,6 +8,7 @@ package synth
 import (
 	"log"
 
+	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
@@ -105,16 +106,20 @@ func (s *SGSynthesizer) allowConnectionToDst(conn *ir.Connection, trackedProtoco
 	sgDstName := ir.SGName(dstEndpoint.Name)
 	sgDst := s.result.LookupOrCreate(sgDstName)
 	sgDst.Attached = []ir.ID{ir.ID(sgDstName)}
-	if p := trackedProtocol.Protocol.InverseDirection(); p != nil {
-		rule := &ir.SGRule{
-			Remote:      sgRemote(&s.spec.Defs, srcEndpoint),
-			Direction:   ir.Inbound,
-			Protocol:    trackedProtocol.Protocol.InverseDirection(),
-			Explanation: reason,
-		}
-		sgDst.Add(rule)
+
+	// udp protocol does not have inverse direction
+	inverseP := trackedProtocol.Protocol.InverseDirection()
+	if p, ok := trackedProtocol.Protocol.(netp.TCPUDP); ok && p.ProtocolString() == netp.ProtocolStringUDP {
+		inverseP, _ = netp.NewTCPUDP(false, netp.MinPort, netp.MaxPort, netp.MinPort, netp.MaxPort)
 	}
 
+	rule := &ir.SGRule{
+		Remote:      sgRemote(&s.spec.Defs, srcEndpoint),
+		Direction:   ir.Inbound,
+		Protocol:    inverseP,
+		Explanation: reason,
+	}
+	sgDst.Add(rule)
 }
 
 // generate SGs for blocked endpoints (endpoints that do not appear in Spec)
