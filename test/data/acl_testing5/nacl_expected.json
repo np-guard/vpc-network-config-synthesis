@@ -3127,6 +3127,7 @@
     ],
     "endpoint_gateways": [],
     "instances": [],
+    "virtual_nis": null,
     "routing_tables": [
         {
             "accept_routes_from": [
