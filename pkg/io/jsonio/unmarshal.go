@@ -78,14 +78,14 @@ func (*Reader) ReadSpec(filename string, configDefs *ir.ConfigDefs) (*ir.Spec, e
 
 func validateSegments(jsonSegments spec.SpecSegments) error {
 	for _, v := range jsonSegments {
-		if v.Type != spec.TypeSubnet && v.Type != spec.TypeCidr {
+		if v.Type != spec.SegmentTypeSubnet && v.Type != spec.SegmentTypeCidr {
 			return fmt.Errorf("only subnet and cidr segments are supported, not %q", v.Type)
 		}
 	}
 	return nil
 }
 
-func filterSegmentsByType(jsonSegments spec.SpecSegments, segmentType spec.Type) map[string][]string {
+func filterSegmentsByType(jsonSegments spec.SpecSegments, segmentType spec.SegmentType) map[string][]string {
 	result := make(map[string][]string)
 	for k, v := range jsonSegments {
 		if v.Type == segmentType {
@@ -96,7 +96,7 @@ func filterSegmentsByType(jsonSegments spec.SpecSegments, segmentType spec.Type)
 }
 
 func parseSubnetSegments(jsonSegments spec.SpecSegments) map[string][]ir.ID {
-	subnetSegments := filterSegmentsByType(jsonSegments, spec.TypeSubnet)
+	subnetSegments := filterSegmentsByType(jsonSegments, spec.SegmentTypeSubnet)
 	result := make(map[string][]ir.ID)
 	for segmentName, subnets := range subnetSegments {
 		result[segmentName] = subnets
@@ -105,7 +105,7 @@ func parseSubnetSegments(jsonSegments spec.SpecSegments) map[string][]ir.ID {
 }
 
 func parseCidrSegments(jsonSegments spec.SpecSegments, configDefs *ir.ConfigDefs) (map[ir.ID]*ir.CidrSegmentDetails, error) {
-	cidrSegments := filterSegmentsByType(jsonSegments, spec.TypeCidr)
+	cidrSegments := filterSegmentsByType(jsonSegments, spec.SegmentTypeCidr)
 	result := make(map[ir.ID]*ir.CidrSegmentDetails)
 	for segmentName, segment := range cidrSegments {
 		// each cidr saves the contained subnets
