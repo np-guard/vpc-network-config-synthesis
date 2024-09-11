@@ -8,6 +8,7 @@ package synth
 import (
 	"log"
 
+	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
@@ -65,53 +66,32 @@ func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection) {
 			}
 
 			for _, trackedProtocol := range conn.TrackedProtocols {
-				s.allowConnectionFromSrc(conn, trackedProtocol, srcEndpoint, dstEndpoint)
-				s.allowConnectionToDst(conn, trackedProtocol, srcEndpoint, dstEndpoint)
+				internalSrc, internalDst, internalConn := internalConn(conn)
+
+				ruleExplanation := explanation{internal: internalConn, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}.String()
+				s.allowConnectionEndpoint(srcEndpoint, dstEndpoint, trackedProtocol.Protocol, ir.Outbound, internalSrc, ruleExplanation)
+				s.allowConnectionEndpoint(dstEndpoint, srcEndpoint, trackedProtocol.Protocol, ir.Inbound, internalDst, ruleExplanation)
 			}
 		}
 	}
 }
 
-// if the src in internal, a rule will be created to allow traffic.
-func (s *SGSynthesizer) allowConnectionFromSrc(conn *ir.Connection, trackedProtocol ir.TrackedProtocol,
-	srcEndpoint, dstEndpoint *namedAddrs) {
-	internalSrc, _, internal := internalConn(conn)
-
-	if !internalSrc {
+func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *namedAddrs, protocol netp.Protocol,
+	direction ir.Direction, internalEndpoint bool, ruleExplanation string) {
+	if !internalEndpoint {
 		return
 	}
-	reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}.String()
-	sgSrcName := ir.SGName(srcEndpoint.Name)
-	sgSrc := s.result.LookupOrCreate(sgSrcName)
-	sgSrc.Attached = []ir.ID{ir.ID(sgSrcName)}
-	rule := &ir.SGRule{
-		Remote:      sgRemote(&s.spec.Defs, dstEndpoint),
-		Direction:   ir.Outbound,
-		Protocol:    trackedProtocol.Protocol,
-		Explanation: reason,
-	}
-	sgSrc.Add(rule)
-}
 
-// if the dst in internal, a rule will be created to allow traffic.
-func (s *SGSynthesizer) allowConnectionToDst(conn *ir.Connection, trackedProtocol ir.TrackedProtocol,
-	srcEndpoint, dstEndpoint *namedAddrs) {
-	_, internalDst, internal := internalConn(conn)
-
-	if !internalDst {
-		return
-	}
-	reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}.String()
-	sgDstName := ir.SGName(dstEndpoint.Name)
-	sgDst := s.result.LookupOrCreate(sgDstName)
-	sgDst.Attached = []ir.ID{ir.ID(sgDstName)}
+	localSGName := ir.SGName(localEndpoint.Name)
+	localSG := s.result.LookupOrCreate(ir.SGName(localEndpoint.Name))
+	localSG.Attached = []ir.ID{ir.ID(localSGName)}
 	rule := &ir.SGRule{
-		Remote:      sgRemote(&s.spec.Defs, srcEndpoint),
-		Direction:   ir.Inbound,
-		Protocol:    trackedProtocol.Protocol,
-		Explanation: reason,
+		Remote:      sgRemote(&s.spec.Defs, remoteEndpoint),
+		Direction:   direction,
+		Protocol:    protocol,
+		Explanation: ruleExplanation,
 	}
-	sgDst.Add(rule)
+	localSG.Add(rule)
 }
 
 // generate SGs for blocked endpoints (endpoints that do not appear in Spec)
