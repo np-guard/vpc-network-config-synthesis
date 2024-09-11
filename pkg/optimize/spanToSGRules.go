@@ -15,7 +15,7 @@ import (
 )
 
 // SG remote
-func tcpudpSGSpanToSGRules(span map[*ir.SGName]*interval.CanonicalSet, direction ir.Direction, isTCP bool) []ir.SGRule {
+func tcpudpSGSpanToSGRules(span map[ir.SGName]*interval.CanonicalSet, direction ir.Direction, isTCP bool) []ir.SGRule {
 	result := make([]ir.SGRule, 0)
 	for sgName, intervals := range span {
 		for _, dstPorts := range intervals.Intervals() {
@@ -26,7 +26,7 @@ func tcpudpSGSpanToSGRules(span map[*ir.SGName]*interval.CanonicalSet, direction
 	return result
 }
 
-func icmpSGSpanToSGRules(span map[*ir.SGName]*netset.ICMPSet, direction ir.Direction) []ir.SGRule {
+func icmpSGSpanToSGRules(span map[ir.SGName]*netset.ICMPSet, direction ir.Direction) []ir.SGRule {
 	result := make([]ir.SGRule, 0)
 	for sgName, icmpSet := range span {
 		for _, icmp := range icmpSet.Partitions() {

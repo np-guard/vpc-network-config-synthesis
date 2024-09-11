@@ -24,11 +24,11 @@ func sgRulesToSGToSpans(rules *sgRulesPerProtocol) *sgRulesToSGSpans {
 	return &sgRulesToSGSpans{tcp: tcpSpan, udp: udpSpan, icmp: icmpSpan, all: allSpan}
 }
 
-func tcpudpRulesToSGToPortsSpan(rules []ir.SGRule) map[*ir.SGName]*interval.CanonicalSet {
-	result := make(map[*ir.SGName]*interval.CanonicalSet)
+func tcpudpRulesToSGToPortsSpan(rules []ir.SGRule) map[ir.SGName]*interval.CanonicalSet {
+	result := make(map[ir.SGName]*interval.CanonicalSet)
 	for i := range rules {
-		p := rules[i].Protocol.(netp.TCPUDP)             // already checked
-		remote := utils.Ptr(rules[i].Remote.(ir.SGName)) // already checked
+		p := rules[i].Protocol.(netp.TCPUDP)  // already checked
+		remote := rules[i].Remote.(ir.SGName) // already checked
 		if result[remote] == nil {
 			result[remote] = interval.NewCanonicalSet()
 		}
@@ -37,11 +37,11 @@ func tcpudpRulesToSGToPortsSpan(rules []ir.SGRule) map[*ir.SGName]*interval.Cano
 	return result
 }
 
-func icmpRulesToSGToSpan(rules []ir.SGRule) map[*ir.SGName]*netset.ICMPSet {
-	result := make(map[*ir.SGName]*netset.ICMPSet)
+func icmpRulesToSGToSpan(rules []ir.SGRule) map[ir.SGName]*netset.ICMPSet {
+	result := make(map[ir.SGName]*netset.ICMPSet)
 	for i := range rules {
-		p := rules[i].Protocol.(netp.ICMP)               // already checked
-		remote := utils.Ptr(rules[i].Remote.(ir.SGName)) // already checked
+		p := rules[i].Protocol.(netp.ICMP)    // already checked
+		remote := rules[i].Remote.(ir.SGName) // already checked
 		if result[remote] == nil {
 			result[remote] = netset.EmptyICMPSet()
 		}
@@ -68,25 +68,26 @@ func sgRulesToIPAddrsToSpans(rules *sgRulesPerProtocol) *sgRulesToIPAddrsSpans {
 	return &sgRulesToIPAddrsSpans{tcp: tcpSpan, udp: udpSpan, icmp: icmpSpan, all: allSpan}
 }
 
-// converts []ir.SGRule (where all rules or either TCP/UDP but not both) to a span of (IPBlock X ports)
+// converts []ir.SGRule (where all rules or either TCP/UDP but not both) to a span of (IPBlock X ports).
+// all IPBlocks are disjoint.
 func tcpudpRulesToIPAddrsToPortsSpan(rules []ir.SGRule) []ds.Pair[*netset.IPBlock, *interval.CanonicalSet] {
-	span := ds.NewProductLeft[*netset.IPBlock, *interval.CanonicalSet]()
-	for i := range rules {
-		p := rules[i].Protocol.(netp.TCPUDP) // already checked
-		r := ds.CartesianPairLeft(rules[i].Remote.(*netset.IPBlock), p.DstPorts().ToSet())
-		span = span.Union(r).(*ds.ProductLeft[*netset.IPBlock, *interval.CanonicalSet])
+	span := tcpudpMapSpan(rules)
+	result := ds.NewProductLeft[*netset.IPBlock, *interval.CanonicalSet]()
+	for ipblock, portsSet := range span {
+		r := ds.CartesianPairLeft(ipblock, portsSet)
+		result = result.Union(r).(*ds.ProductLeft[*netset.IPBlock, *interval.CanonicalSet])
 	}
-	return sortPartitionsByIPAddrs(span.Partitions())
+	return sortPartitionsByIPAddrs(result.Partitions())
 }
 
 func icmpRulesToIPAddrsToSpan(rules []ir.SGRule) []ds.Pair[*netset.IPBlock, *netset.ICMPSet] {
-	span := ds.NewProductLeft[*netset.IPBlock, *netset.ICMPSet]()
-	for i := range rules {
-		p := rules[i].Protocol.(netp.ICMP) // already checked
-		r := ds.CartesianPairLeft(rules[i].Remote.(*netset.IPBlock), netset.NewICMPSet(p))
-		span = span.Union(r).(*ds.ProductLeft[*netset.IPBlock, *netset.ICMPSet])
+	span := icmpMapSpan((rules))
+	result := ds.NewProductLeft[*netset.IPBlock, *netset.ICMPSet]()
+	for ipblock, icmpSet := range span {
+		r := ds.CartesianPairLeft(ipblock, icmpSet)
+		result = result.Union(r).(*ds.ProductLeft[*netset.IPBlock, *netset.ICMPSet])
 	}
-	return sortPartitionsByIPAddrs(span.Partitions())
+	return sortPartitionsByIPAddrs(result.Partitions())
 }
 
 func allProtocolRulesToIPAddrsToSpan(rules []ir.SGRule) []*netset.IPBlock {
@@ -95,4 +96,78 @@ func allProtocolRulesToIPAddrsToSpan(rules []ir.SGRule) []*netset.IPBlock {
 		res.Union(rules[i].Remote.(*netset.IPBlock))
 	}
 	return sortIPBlockSlice(res.Split())
+}
+
+// Help functions
+func tcpudpMapSpan(rules []ir.SGRule) map[*netset.IPBlock]*interval.CanonicalSet {
+	span := make(map[*netset.IPBlock]*interval.CanonicalSet, 0) // all keys are disjoint
+	for i := range rules {
+		p := rules[i].Protocol.(netp.TCPUDP) // already checked
+		portsSet := p.DstPorts().ToSet()
+		ruleIP := rules[i].Remote.(*netset.IPBlock) // already checked
+
+		if ports, ok := span[ruleIP]; ok {
+			span[ruleIP] = ports.Union(portsSet)
+			continue
+		}
+
+		newMap := make(map[*netset.IPBlock]*interval.CanonicalSet, 0)
+		for ipblock := range span {
+			if ipblock.Overlap(ruleIP) {
+				overlappingIPs := ruleIP.Subtract(ipblock)
+				for _, ip := range overlappingIPs.Split() {
+					newMap[ip] = span[ipblock].Copy().Union(portsSet)
+				}
+				notOverlappingIPs := ipblock.Subtract(overlappingIPs)
+				for _, ip := range notOverlappingIPs.Split() {
+					newMap[ip] = span[ipblock].Copy()
+				}
+			}
+		}
+		span = mergeTcpudpMaps(span, newMap)
+	}
+	return span
+}
+
+func icmpMapSpan(rules []ir.SGRule) map[*netset.IPBlock]*netset.ICMPSet {
+	span := make(map[*netset.IPBlock]*netset.ICMPSet, 0) // all keys are disjoint
+	for i := range rules {
+		icmpSet := netset.NewICMPSet(rules[i].Protocol.(netp.ICMP)) // already checked
+		ruleIP := rules[i].Remote.(*netset.IPBlock)                 // already checked
+
+		if ports, ok := span[ruleIP]; ok {
+			span[ruleIP] = ports.Union(icmpSet)
+			continue
+		}
+
+		newMap := make(map[*netset.IPBlock]*netset.ICMPSet, 0)
+		for ipblock := range span {
+			if ipblock.Overlap(ruleIP) {
+				overlappingIPs := ruleIP.Subtract(ipblock)
+				for _, ip := range overlappingIPs.Split() {
+					newMap[ip] = span[ipblock].Copy().Union(icmpSet)
+				}
+				notOverlappingIPs := ipblock.Subtract(overlappingIPs)
+				for _, ip := range notOverlappingIPs.Split() {
+					newMap[ip] = span[ipblock].Copy()
+				}
+			}
+		}
+		span = mergeIcmpMaps(span, newMap)
+	}
+	return span
+}
+
+func mergeTcpudpMaps(m1, m2 map[*netset.IPBlock]*interval.CanonicalSet) map[*netset.IPBlock]*interval.CanonicalSet {
+	for ipblock, portsSet := range m2 {
+		m1[ipblock] = portsSet.Copy()
+	}
+	return m1
+}
+
+func mergeIcmpMaps(m1, m2 map[*netset.IPBlock]*netset.ICMPSet) map[*netset.IPBlock]*netset.ICMPSet {
+	for ipblock, portsSet := range m2 {
+		m1[ipblock] = portsSet.Copy()
+	}
+	return m1
 }

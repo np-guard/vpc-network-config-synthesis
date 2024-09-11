@@ -37,9 +37,9 @@ type (
 	}
 
 	sgRulesToSGSpans struct {
-		tcp  map[*ir.SGName]*interval.CanonicalSet
-		udp  map[*ir.SGName]*interval.CanonicalSet
-		icmp map[*ir.SGName]*netset.ICMPSet
+		tcp  map[ir.SGName]*interval.CanonicalSet
+		udp  map[ir.SGName]*interval.CanonicalSet
+		icmp map[ir.SGName]*netset.ICMPSet
 		all  []*ir.SGName
 	}
 
@@ -132,9 +132,9 @@ func (s *SGOptimizer) reduceSGRules(rules []ir.SGRule, direction ir.Direction) [
 func reduceSGRulesToSG(spans *sgRulesToSGSpans, direction ir.Direction) []ir.SGRule {
 	// delete other protocols rules if all protocol rule exists
 	for _, sgName := range spans.all {
-		delete(spans.tcp, sgName)
-		delete(spans.udp, sgName)
-		delete(spans.icmp, sgName)
+		delete(spans.tcp, *sgName)
+		delete(spans.udp, *sgName)
+		delete(spans.icmp, *sgName)
 	}
 
 	// merge tcp, udp and icmp rules into all protocol rule
@@ -145,7 +145,7 @@ func reduceSGRulesToSG(spans *sgRulesToSGSpans, direction ir.Direction) []ir.SGR
 					delete(spans.tcp, sgName)
 					delete(spans.udp, sgName)
 					delete(spans.icmp, sgName)
-					spans.all = append(spans.all, sgName)
+					spans.all = append(spans.all, utils.Ptr(sgName))
 				}
 			}
 		}
@@ -153,7 +153,7 @@ func reduceSGRulesToSG(spans *sgRulesToSGSpans, direction ir.Direction) []ir.SGR
 
 	// convert spans to SG rules
 	tcpRules := tcpudpSGSpanToSGRules(spans.tcp, direction, true)
-	udpRules := tcpudpSGSpanToSGRules(spans.tcp, direction, false)
+	udpRules := tcpudpSGSpanToSGRules(spans.udp, direction, false)
 	icmpRules := icmpSGSpanToSGRules(spans.icmp, direction)
 	protocolAll := protocolAllSGSpanToSGRules(spans.all, direction)
 
@@ -166,9 +166,20 @@ func reduceSGRulesToSG(spans *sgRulesToSGSpans, direction ir.Direction) []ir.SGR
 func reduceSGRulesToIPAddrs(spans *sgRulesToIPAddrsSpans, direction ir.Direction) []ir.SGRule {
 	// Todo: check if we can replace tcp, udp, icmp with protocol all
 
+	for i, p := range spans.tcp {
+		log.Println("pair ", i)
+
+		log.Print("l: ", p.Left.String())
+		log.Println("intervals: ")
+		for _, interval := range p.Right.Intervals() {
+			log.Println(interval.String())
+		}
+		log.Println("\n\n")
+	}
+
 	// spans to SG rules
 	tcpRules := tcpudpIPSpanToSGRules(spans.tcp, spans.all, direction, true)
-	udpRules := tcpudpIPSpanToSGRules(spans.tcp, spans.all, direction, false)
+	udpRules := tcpudpIPSpanToSGRules(spans.udp, spans.all, direction, false)
 	icmpRules := icmpSpanToSGRules(spans.icmp, spans.all, direction)
 	allRules := allSpanToSGRules(spans.all, direction)
 
