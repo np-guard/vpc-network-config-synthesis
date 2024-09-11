@@ -43,10 +43,10 @@ func makeSGRow(rule *ir.SGRule, sgName ir.SGName) []string {
 	return []string{
 		string(sgName),
 		direction(rule.Direction),
-		sGRemoteType(rule.Remote),
+		sgRemoteType(rule.Remote),
 		sgRemote(rule.Remote),
 		printProtocolName(rule.Protocol),
-		printProtocolParams(rule.Protocol, rule.Direction == ir.Inbound),
+		printProtocolParams(rule.Protocol),
 		rule.Explanation,
 	}
 }
@@ -60,7 +60,7 @@ func makeSGTable(t *ir.SG, sgName ir.SGName) [][]string {
 	return rows
 }
 
-func sGPort(p ir.PortRange) string {
+func sgPort(p ir.PortRange) string {
 	switch {
 	case p.Min == ir.DefaultMinPort && p.Max == ir.DefaultMaxPort:
 		return "any port"
@@ -69,7 +69,7 @@ func sGPort(p ir.PortRange) string {
 	}
 }
 
-func sGRemoteType(t ir.RemoteType) string {
+func sgRemoteType(t ir.RemoteType) string {
 	switch tr := t.(type) {
 	case *ipblock.IPBlock:
 		if ir.IsIPAddress(tr) {
@@ -99,18 +99,12 @@ func sgRemote(r ir.RemoteType) string {
 	return ""
 }
 
-func printProtocolParams(protocol ir.Protocol, isSource bool) string {
+func printProtocolParams(protocol ir.Protocol) string {
 	switch p := protocol.(type) {
 	case ir.ICMP:
 		return printICMPTypeCode(protocol)
 	case ir.TCPUDP:
-		var r ir.PortRange
-		if isSource {
-			r = p.PortRangePair.SrcPort
-		} else {
-			r = p.PortRangePair.DstPort
-		}
-		return sGPort(r)
+		return sgPort(p.PortRangePair.DstPort)
 	case ir.AnyProtocol:
 		return ""
 	default:

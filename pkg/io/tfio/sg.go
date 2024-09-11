@@ -39,18 +39,12 @@ func value(x interface{}) string {
 	return ""
 }
 
-func sgProtocol(t ir.Protocol, d ir.Direction) []tf.Block {
+func sgProtocol(t ir.Protocol) []tf.Block {
 	switch p := t.(type) {
 	case ir.TCPUDP:
-		var remotePort ir.PortRange
-		if d == ir.Inbound {
-			remotePort = p.PortRangePair.SrcPort
-		} else {
-			remotePort = p.PortRangePair.DstPort
-		}
 		return []tf.Block{{
 			Name:      strings.ToLower(string(p.Protocol)),
-			Arguments: portRange(remotePort, "port"),
+			Arguments: portRange(p.PortRangePair.DstPort, "port"),
 		}}
 	case ir.ICMP:
 		return []tf.Block{{
@@ -75,7 +69,7 @@ func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) tf.Block {
 			{Name: "direction", Value: quote(direction(rule.Direction))},
 			{Name: "remote", Value: value(rule.Remote)},
 		},
-		Blocks: sgProtocol(rule.Protocol, rule.Direction),
+		Blocks: sgProtocol(rule.Protocol),
 	}
 }
 
