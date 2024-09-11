@@ -114,7 +114,6 @@ func (s *SGSynthesizer) allowConnectionToDst(conn *ir.Connection, trackedProtoco
 		}
 		sgDst.Add(rule)
 	}
-
 }
 
 // generate SGs for blocked endpoints (endpoints that do not appear in Spec)
