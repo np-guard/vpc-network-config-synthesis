@@ -89,8 +89,8 @@ func makeSGRuleItem(nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteS
 			Local:     local,
 			Remote:    remote,
 			Protocol:  data.Protocol,
-			PortMin:   data.remotePortMin(rule.Direction),
-			PortMax:   data.remotePortMax(rule.Direction),
+			PortMin:   data.dstPortMin,
+			PortMax:   data.dstPortMax,
 		}
 	case netp.ICMP:
 		data := icmp(p)

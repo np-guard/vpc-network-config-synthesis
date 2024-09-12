@@ -156,7 +156,6 @@ func translateRemote(remote vpcv1.SecurityGroupRuleRemoteIntf) (ir.RemoteType, e
 func translateLocal(local vpcv1.SecurityGroupRuleLocalIntf) (*netset.IPBlock, error) {
 	var err error
 	var ipAddrs *netset.IPBlock
-
 	if l, ok := local.(*vpcv1.SecurityGroupRuleLocal); ok {
 		if l.CIDRBlock != nil {
 			ipAddrs, err = netset.IPBlockFromCidr(*l.CIDRBlock)
@@ -167,15 +166,15 @@ func translateLocal(local vpcv1.SecurityGroupRuleLocalIntf) (*netset.IPBlock, er
 		if err != nil {
 			return nil, err
 		}
-		return verifyLocalsValue(ipAddrs)
+		return verifyLocalValue(ipAddrs)
 	}
 	return nil, fmt.Errorf("error parsing Local field")
 }
 
-// temporary
-func verifyLocalsValue(ipAddrs *netset.IPBlock) (*netset.IPBlock, error) {
+// temporary - first version of optimization requires that local value will be 0.0.0.0/32
+func verifyLocalValue(ipAddrs *netset.IPBlock) (*netset.IPBlock, error) {
 	if !ipAddrs.Equal(netset.GetCidrAll()) {
-		return nil, fmt.Errorf("only 0.0.0.0/32 CIDR block is supported for locals values")
+		return nil, fmt.Errorf("only 0.0.0.0/32 CIDR block is supported for local values")
 	}
 	return ipAddrs, nil
 }

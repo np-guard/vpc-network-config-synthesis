@@ -45,10 +45,10 @@ func makeACLRuleItem(rule *ir.ACLRule, current,
 			Before:      next,
 
 			Protocol:           data.Protocol,
-			SourcePortMin:      data.SourcePortMin,
-			SourcePortMax:      data.SourcePortMax,
-			DestinationPortMin: data.DestinationPortMin,
-			DestinationPortMax: data.DestinationPortMax,
+			SourcePortMin:      data.srcPortMin,
+			SourcePortMax:      data.srcPortMax,
+			DestinationPortMin: data.dstPortMin,
+			DestinationPortMax: data.dstPortMax,
 		}
 		return result
 	case netp.ICMP:

@@ -48,7 +48,7 @@ func makeSGRow(rule *ir.SGRule, sgName ir.SGName) []string {
 		sgRemoteType(rule.Remote),
 		sgRemote(rule.Remote),
 		printProtocolName(rule.Protocol),
-		printProtocolParams(rule.Protocol, rule.Direction == ir.Inbound),
+		printProtocolParams(rule.Protocol),
 		rule.Explanation,
 	}
 }
@@ -72,9 +72,9 @@ func sgPort(p interval.Interval) string {
 }
 
 func sgRemoteType(t ir.RemoteType) string {
-	switch t := t.(type) {
+	switch p := t.(type) {
 	case *netset.IPBlock:
-		if ipString := t.ToIPAddressString(); ipString != "" {
+		if ipString := p.ToIPAddressString(); ipString != "" {
 			return "IP address"
 		}
 		return "CIDR block"
@@ -101,18 +101,12 @@ func sgRemote(r ir.RemoteType) string {
 	return ""
 }
 
-func printProtocolParams(protocol netp.Protocol, isSource bool) string {
+func printProtocolParams(protocol netp.Protocol) string {
 	switch p := protocol.(type) {
 	case netp.ICMP:
 		return printICMPTypeCode(protocol)
 	case netp.TCPUDP:
-		var r interval.Interval
-		if isSource {
-			r = p.SrcPorts()
-		} else {
-			r = p.DstPorts()
-		}
-		return sgPort(r)
+		return sgPort(p.DstPorts())
 	case netp.AnyProtocol:
 		return ""
 	default:
