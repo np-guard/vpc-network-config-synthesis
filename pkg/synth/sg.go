@@ -50,7 +50,7 @@ func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection) {
 	if !resourceRelevantToSG(conn.Dst.Type) {
 		log.Fatalf(SGTypeNotSupported, string(conn.Dst.Type))
 	}
-	internalSrc, internalDst, _ := internalConn(conn)
+	internalSrc, internalDst, internalConn := internalConn(conn)
 	if !internalSrc && !internalDst {
 		log.Fatalf("SG: Both source and destination are external for connection %v", *conn)
 	}
@@ -65,53 +65,30 @@ func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection) {
 			}
 
 			for _, trackedProtocol := range conn.TrackedProtocols {
-				s.allowConnectionFromSrc(conn, trackedProtocol, srcEndpoint, dstEndpoint)
-				s.allowConnectionToDst(conn, trackedProtocol, srcEndpoint, dstEndpoint)
+				ruleExplanation := explanation{internal: internalConn, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}.String()
+				s.allowConnectionEndpoint(srcEndpoint, dstEndpoint, trackedProtocol.Protocol, ir.Outbound, internalSrc, ruleExplanation)
+				s.allowConnectionEndpoint(dstEndpoint, srcEndpoint, trackedProtocol.Protocol, ir.Inbound, internalDst, ruleExplanation)
 			}
 		}
 	}
 }
 
-// if the src in internal, a rule will be created to allow traffic.
-func (s *SGSynthesizer) allowConnectionFromSrc(conn *ir.Connection, trackedProtocol ir.TrackedProtocol,
-	srcEndpoint, dstEndpoint *namedAddrs) {
-	internalSrc, _, internal := internalConn(conn)
-
-	if !internalSrc {
+// if the endpoint in internal, a rule will be created to allow traffic.
+func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *namedAddrs, protocol ir.Protocol,
+	direction ir.Direction, internalEndpoint bool, ruleExplanation string) {
+	if !internalEndpoint {
 		return
 	}
-	reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}.String()
-	sgSrcName := ir.SGName(srcEndpoint.Name)
-	sgSrc := s.result.LookupOrCreate(sgSrcName)
-	sgSrc.Attached = []ir.ID{ir.ID(sgSrcName)}
+	localSGName := ir.SGName(localEndpoint.Name)
+	localSG := s.result.LookupOrCreate(localSGName)
+	localSG.Attached = []ir.ID{ir.ID(localSGName)}
 	rule := &ir.SGRule{
-		Remote:      sgRemote(&s.spec.Defs, dstEndpoint),
-		Direction:   ir.Outbound,
-		Protocol:    trackedProtocol.Protocol,
-		Explanation: reason,
+		Remote:      sgRemote(&s.spec.Defs, remoteEndpoint),
+		Direction:   direction,
+		Protocol:    protocol,
+		Explanation: ruleExplanation,
 	}
-	sgSrc.Add(rule)
-}
-
-// if the dst in internal, a rule will be created to allow traffic.
-func (s *SGSynthesizer) allowConnectionToDst(conn *ir.Connection, trackedProtocol ir.TrackedProtocol,
-	srcEndpoint, dstEndpoint *namedAddrs) {
-	_, internalDst, internal := internalConn(conn)
-
-	if !internalDst {
-		return
-	}
-	reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}.String()
-	sgDstName := ir.SGName(dstEndpoint.Name)
-	sgDst := s.result.LookupOrCreate(sgDstName)
-	sgDst.Attached = []ir.ID{ir.ID(sgDstName)}
-	rule := &ir.SGRule{
-		Remote:      sgRemote(&s.spec.Defs, srcEndpoint),
-		Direction:   ir.Inbound,
-		Protocol:    trackedProtocol.Protocol.InverseDirection(),
-		Explanation: reason,
-	}
-	sgDst.Add(rule)
+	localSG.Add(rule)
 }
 
 // generate SGs for blocked endpoints (endpoints that do not appear in Spec)
