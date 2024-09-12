@@ -164,18 +164,7 @@ func reduceSGRulesToSG(spans *sgRulesToSGSpans, direction ir.Direction) []ir.SGR
 }
 
 func reduceSGRulesToIPAddrs(spans *sgRulesToIPAddrsSpans, direction ir.Direction) []ir.SGRule {
-	// Todo: check if we can replace tcp, udp, icmp with protocol all
-
-	for i, p := range spans.tcp {
-		log.Println("pair ", i)
-
-		log.Print("l: ", p.Left.String())
-		log.Println("intervals: ")
-		for _, interval := range p.Right.Intervals() {
-			log.Println(interval.String())
-		}
-		log.Println("\n\n")
-	}
+	// Todo: check if we can replace tcp, udp, icmp with protocol all. Maybe we should not?
 
 	// spans to SG rules
 	tcpRules := tcpudpIPSpanToSGRules(spans.tcp, spans.all, direction, true)

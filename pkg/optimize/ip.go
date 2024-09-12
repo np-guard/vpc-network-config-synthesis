@@ -67,10 +67,12 @@ func FirstIPAddress(i *netset.IPBlock) *netset.IPBlock {
 	return ipblock
 }
 
+// should implement
 func NextIP(ip *netset.IPBlock) *netset.IPBlock {
 	return ip
 }
 
+// should implement
 func BeforeIP(ip *netset.IPBlock) *netset.IPBlock {
 	return ip
 }

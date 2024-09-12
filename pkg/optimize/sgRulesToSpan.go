@@ -6,8 +6,6 @@ SPDX-License-Identifier: Apache-2.0
 package optimize
 
 import (
-	"log"
-
 	"github.com/np-guard/models/pkg/ds"
 	"github.com/np-guard/models/pkg/interval"
 	"github.com/np-guard/models/pkg/netp"
@@ -126,11 +124,7 @@ func updateSpan[T ds.Set[T]](span map[*netset.IPBlock]T, ruleSet T, ruleIP *nets
 		span[ruleIP] = protocolSet.Union(ruleSet)
 		return span
 	}
-	var k float32
-	k = 32.2
-	log.Print(k)
 	return utils.MergeSetMaps(span, addRuleToSpan(span, ruleIP, ruleSet))
-
 }
 
 func addRuleToSpan[T ds.Set[T]](span map[*netset.IPBlock]T, ruleIP *netset.IPBlock, ruleSet T) map[*netset.IPBlock]T {

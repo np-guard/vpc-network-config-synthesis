@@ -54,14 +54,13 @@ func allSpanIPToSGRules(span *netset.IPBlock, direction ir.Direction) []ir.SGRul
 	return result
 }
 
-func tcpudpIPSpanToSGRules(span []ds.Pair[*netset.IPBlock, *interval.CanonicalSet], allSpan *netset.IPBlock,
+func tcpudpIPSpanToSGRules(span []ds.Pair[*netset.IPBlock, *interval.CanonicalSet], _ *netset.IPBlock,
 	direction ir.Direction, isTCP bool) []ir.SGRule {
 	rules := []ds.Pair[*netset.IPBlock, *interval.Interval]{} // start ip and ports
 	result := make([]ir.SGRule, 0)
 
 	for i := range span {
-		// should be here if i > 0
-		// hole := IPBlockFromRange(NextIP(LastIPAddress(span[i-1].Left)), BeforeIP(FirstIPAddress(span[i].Left)))
+		// maybe all protocol rule covers the hole
 		if i > 0 && !touching(span[i-1].Left, span[i].Left) { // if the CIDRS are not touching and there is no all rule
 			for _, r := range rules {
 				p, _ := netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(r.Right.Start()), int(r.Right.End()))
@@ -106,7 +105,7 @@ func tcpudpIPSpanToSGRules(span []ds.Pair[*netset.IPBlock, *interval.CanonicalSe
 	return result
 }
 
-func icmpSpanToSGRules(span []ds.Pair[*netset.IPBlock, *netset.ICMPSet], allSpan *netset.IPBlock, direction ir.Direction) []ir.SGRule {
+func icmpSpanToSGRules(span []ds.Pair[*netset.IPBlock, *netset.ICMPSet], _ *netset.IPBlock, direction ir.Direction) []ir.SGRule {
 	rules := []ds.Pair[*netset.IPBlock, *netp.ICMP]{}
 	result := make([]ir.SGRule, 0)
 
