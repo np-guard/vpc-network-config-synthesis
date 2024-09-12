@@ -11,7 +11,9 @@
             },
             "allowed-protocols": [
                 {
-                    "protocol": "TCP"
+                    "protocol": "UDP",
+                    "min_destination_port": 53,
+                    "max_destination_port": 53
                 }
             ]
         }

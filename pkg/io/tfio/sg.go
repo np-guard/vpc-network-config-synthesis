@@ -10,7 +10,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/np-guard/models/pkg/interval"
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
 
@@ -41,18 +40,12 @@ func value(x interface{}) string {
 	return ""
 }
 
-func sgProtocol(t netp.Protocol, d ir.Direction) []tf.Block {
+func sgProtocol(t netp.Protocol) []tf.Block {
 	switch p := t.(type) {
 	case netp.TCPUDP:
-		var remotePort interval.Interval
-		if d == ir.Inbound {
-			remotePort = p.SrcPorts()
-		} else {
-			remotePort = p.DstPorts()
-		}
 		return []tf.Block{{
 			Name:      strings.ToLower(string(p.ProtocolString())),
-			Arguments: portRange(remotePort, "port"),
+			Arguments: portRange(p.DstPorts(), "port"),
 		}}
 	case netp.ICMP:
 		return []tf.Block{{
@@ -77,7 +70,7 @@ func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) tf.Block {
 			{Name: "direction", Value: quote(direction(rule.Direction))},
 			{Name: "remote", Value: value(rule.Remote)},
 		},
-		Blocks: sgProtocol(rule.Protocol, rule.Direction),
+		Blocks: sgProtocol(rule.Protocol),
 	}
 }
 
