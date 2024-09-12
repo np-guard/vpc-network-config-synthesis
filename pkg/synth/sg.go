@@ -64,10 +64,9 @@ func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection) {
 				continue
 			}
 
+			internalSrc, internalDst, internalConn := internalConn(conn)
 			for _, trackedProtocol := range conn.TrackedProtocols {
-				internalSrc, internalDst, internalConn := internalConn(conn)
 				ruleExplanation := explanation{internal: internalConn, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}.String()
-
 				s.allowConnectionEndpoint(srcEndpoint, dstEndpoint, trackedProtocol.Protocol, ir.Outbound, internalSrc, ruleExplanation)
 				s.allowConnectionEndpoint(dstEndpoint, srcEndpoint, trackedProtocol.Protocol, ir.Inbound, internalDst, ruleExplanation)
 			}
@@ -82,7 +81,7 @@ func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *n
 		return
 	}
 	localSGName := ir.SGName(localEndpoint.Name)
-	localSG := s.result.LookupOrCreate(ir.SGName(localEndpoint.Name))
+	localSG := s.result.LookupOrCreate(localSGName)
 	localSG.Attached = []ir.ID{ir.ID(localSGName)}
 	rule := &ir.SGRule{
 		Remote:      sgRemote(&s.spec.Defs, remoteEndpoint),
