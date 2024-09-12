@@ -50,7 +50,7 @@ func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection) {
 	if !resourceRelevantToSG(conn.Dst.Type) {
 		log.Fatalf(SGTypeNotSupported, string(conn.Dst.Type))
 	}
-	internalSrc, internalDst, _ := internalConn(conn)
+	internalSrc, internalDst, internalConn := internalConn(conn)
 	if !internalSrc && !internalDst {
 		log.Fatalf("SG: Both source and destination are external for connection %v", *conn)
 	}
@@ -64,7 +64,6 @@ func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection) {
 				continue
 			}
 
-			internalSrc, internalDst, internalConn := internalConn(conn)
 			for _, trackedProtocol := range conn.TrackedProtocols {
 				ruleExplanation := explanation{internal: internalConn, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}.String()
 				s.allowConnectionEndpoint(srcEndpoint, dstEndpoint, trackedProtocol.Protocol, ir.Outbound, internalSrc, ruleExplanation)
