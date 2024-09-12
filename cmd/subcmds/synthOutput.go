@@ -19,7 +19,6 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-const defaultFilePermission = 0o644
 const defaultDirectoryPermission = 0o755
 
 func writeOutput(args *inArgs, collection ir.SynthCollection, vpcNames []ir.ID) error {
