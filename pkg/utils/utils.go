@@ -9,6 +9,8 @@ import (
 	"cmp"
 	"maps"
 	"slices"
+
+	"github.com/np-guard/models/pkg/ds"
 )
 
 func Ptr[T any](t T) *T {
@@ -54,4 +56,12 @@ func ToPtrSlice[T any](s []T) []*T {
 		res[i] = Ptr(s[i])
 	}
 	return res
+}
+
+// m1 does not have any key of m2
+func MergeSetMaps[T comparable, K ds.Set[K]](m1, m2 map[T]K) map[T]K {
+	for key, val := range m2 {
+		m1[key] = val.Copy()
+	}
+	return m1
 }

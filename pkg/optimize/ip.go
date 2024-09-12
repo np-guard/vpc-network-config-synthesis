@@ -66,3 +66,11 @@ func FirstIPAddress(i *netset.IPBlock) *netset.IPBlock {
 	}
 	return ipblock
 }
+
+func NextIP(ip *netset.IPBlock) *netset.IPBlock {
+	return ip
+}
+
+func BeforeIP(ip *netset.IPBlock) *netset.IPBlock {
+	return ip
+}

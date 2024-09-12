@@ -46,13 +46,23 @@ func protocolAllSGSpanToSGRules(span []*ir.SGName, direction ir.Direction) []ir.
 }
 
 // IPAddrs remote
-func tcpudpIPSpanToSGRules(span []ds.Pair[*netset.IPBlock, *interval.CanonicalSet], _ []*netset.IPBlock,
+func allSpanIPToSGRules(span *netset.IPBlock, direction ir.Direction) []ir.SGRule {
+	result := make([]ir.SGRule, 0)
+	for _, cidr := range ToCidrs(span) {
+		result = append(result, ir.NewSGRule(direction, cidr, netp.AnyProtocol{}, netset.GetCidrAll(), ""))
+	}
+	return result
+}
+
+func tcpudpIPSpanToSGRules(span []ds.Pair[*netset.IPBlock, *interval.CanonicalSet], allSpan *netset.IPBlock,
 	direction ir.Direction, isTCP bool) []ir.SGRule {
 	rules := []ds.Pair[*netset.IPBlock, *interval.Interval]{} // start ip and ports
 	result := make([]ir.SGRule, 0)
 
 	for i := range span {
-		if i > 0 && !touching(span[i-1].Left, span[i].Left) { // if the CIDRS are not touching
+		// should be here if i > 0
+		// hole := IPBlockFromRange(NextIP(LastIPAddress(span[i-1].Left)), BeforeIP(FirstIPAddress(span[i].Left)))
+		if i > 0 && !touching(span[i-1].Left, span[i].Left) { // if the CIDRS are not touching and there is no all rule
 			for _, r := range rules {
 				p, _ := netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(r.Right.Start()), int(r.Right.End()))
 				for _, cidr := range ToCidrs(IPBlockFromRange(r.Left, LastIPAddress(span[i-1].Left))) {
@@ -96,7 +106,7 @@ func tcpudpIPSpanToSGRules(span []ds.Pair[*netset.IPBlock, *interval.CanonicalSe
 	return result
 }
 
-func icmpSpanToSGRules(span []ds.Pair[*netset.IPBlock, *netset.ICMPSet], _ []*netset.IPBlock, direction ir.Direction) []ir.SGRule {
+func icmpSpanToSGRules(span []ds.Pair[*netset.IPBlock, *netset.ICMPSet], allSpan *netset.IPBlock, direction ir.Direction) []ir.SGRule {
 	rules := []ds.Pair[*netset.IPBlock, *netp.ICMP]{}
 	result := make([]ir.SGRule, 0)
 
@@ -143,15 +153,5 @@ func icmpSpanToSGRules(span []ds.Pair[*netset.IPBlock, *netset.ICMPSet], _ []*ne
 		}
 	}
 
-	return result
-}
-
-func allSpanToSGRules(span []*netset.IPBlock, direction ir.Direction) []ir.SGRule {
-	result := make([]ir.SGRule, 0)
-	for _, ipAddrs := range span {
-		for _, cidr := range ToCidrs(ipAddrs) {
-			result = append(result, ir.NewSGRule(direction, cidr, netp.AnyProtocol{}, netset.GetCidrAll(), ""))
-		}
-	}
 	return result
 }

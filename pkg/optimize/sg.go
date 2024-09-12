@@ -47,7 +47,7 @@ type (
 		tcp  []ds.Pair[*netset.IPBlock, *interval.CanonicalSet]
 		udp  []ds.Pair[*netset.IPBlock, *interval.CanonicalSet]
 		icmp []ds.Pair[*netset.IPBlock, *netset.ICMPSet]
-		all  []*netset.IPBlock
+		all  *netset.IPBlock
 	}
 )
 
@@ -181,7 +181,7 @@ func reduceSGRulesToIPAddrs(spans *sgRulesToIPAddrsSpans, direction ir.Direction
 	tcpRules := tcpudpIPSpanToSGRules(spans.tcp, spans.all, direction, true)
 	udpRules := tcpudpIPSpanToSGRules(spans.udp, spans.all, direction, false)
 	icmpRules := icmpSpanToSGRules(spans.icmp, spans.all, direction)
-	allRules := allSpanToSGRules(spans.all, direction)
+	allRules := allSpanIPToSGRules(spans.all, direction)
 
 	tcpudp := append(tcpRules, udpRules...)   //nolint:gocritic // should merge all rules together
 	icmpAll := append(icmpRules, allRules...) //nolint:gocritic // should merge all rules together

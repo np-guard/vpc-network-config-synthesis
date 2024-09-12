@@ -6,6 +6,8 @@ SPDX-License-Identifier: Apache-2.0
 package optimize
 
 import (
+	"log"
+
 	"github.com/np-guard/models/pkg/ds"
 	"github.com/np-guard/models/pkg/interval"
 	"github.com/np-guard/models/pkg/netp"
@@ -68,6 +70,14 @@ func sgRulesToIPAddrsToSpans(rules *sgRulesPerProtocol) *sgRulesToIPAddrsSpans {
 	return &sgRulesToIPAddrsSpans{tcp: tcpSpan, udp: udpSpan, icmp: icmpSpan, all: allSpan}
 }
 
+func allProtocolRulesToIPAddrsToSpan(rules []ir.SGRule) *netset.IPBlock {
+	res := netset.NewIPBlock()
+	for i := range rules {
+		res.Union(rules[i].Remote.(*netset.IPBlock))
+	}
+	return res
+}
+
 // converts []ir.SGRule (where all rules or either TCP/UDP but not both) to a span of (IPBlock X ports).
 // all IPBlocks are disjoint.
 func tcpudpRulesToIPAddrsToPortsSpan(rules []ir.SGRule) []ds.Pair[*netset.IPBlock, *interval.CanonicalSet] {
@@ -90,41 +100,13 @@ func icmpRulesToIPAddrsToSpan(rules []ir.SGRule) []ds.Pair[*netset.IPBlock, *net
 	return sortPartitionsByIPAddrs(result.Partitions())
 }
 
-func allProtocolRulesToIPAddrsToSpan(rules []ir.SGRule) []*netset.IPBlock {
-	res := netset.NewIPBlock()
-	for i := range rules {
-		res.Union(rules[i].Remote.(*netset.IPBlock))
-	}
-	return sortIPBlockSlice(res.Split())
-}
-
 // Help functions
 func tcpudpMapSpan(rules []ir.SGRule) map[*netset.IPBlock]*interval.CanonicalSet {
 	span := make(map[*netset.IPBlock]*interval.CanonicalSet, 0) // all keys are disjoint
 	for i := range rules {
-		p := rules[i].Protocol.(netp.TCPUDP) // already checked
-		portsSet := p.DstPorts().ToSet()
-		ruleIP := rules[i].Remote.(*netset.IPBlock) // already checked
-
-		if ports, ok := span[ruleIP]; ok {
-			span[ruleIP] = ports.Union(portsSet)
-			continue
-		}
-
-		newMap := make(map[*netset.IPBlock]*interval.CanonicalSet, 0)
-		for ipblock := range span {
-			if ipblock.Overlap(ruleIP) {
-				overlappingIPs := ruleIP.Subtract(ipblock)
-				for _, ip := range overlappingIPs.Split() {
-					newMap[ip] = span[ipblock].Copy().Union(portsSet)
-				}
-				notOverlappingIPs := ipblock.Subtract(overlappingIPs)
-				for _, ip := range notOverlappingIPs.Split() {
-					newMap[ip] = span[ipblock].Copy()
-				}
-			}
-		}
-		span = mergeTcpudpMaps(span, newMap)
+		portsSet := rules[i].Protocol.(netp.TCPUDP).DstPorts().ToSet() // already checked
+		ruleIP := rules[i].Remote.(*netset.IPBlock)                    // already checked
+		span = updateSpan(span, portsSet, ruleIP)
 	}
 	return span
 }
@@ -134,40 +116,36 @@ func icmpMapSpan(rules []ir.SGRule) map[*netset.IPBlock]*netset.ICMPSet {
 	for i := range rules {
 		icmpSet := netset.NewICMPSet(rules[i].Protocol.(netp.ICMP)) // already checked
 		ruleIP := rules[i].Remote.(*netset.IPBlock)                 // already checked
-
-		if ports, ok := span[ruleIP]; ok {
-			span[ruleIP] = ports.Union(icmpSet)
-			continue
-		}
-
-		newMap := make(map[*netset.IPBlock]*netset.ICMPSet, 0)
-		for ipblock := range span {
-			if ipblock.Overlap(ruleIP) {
-				overlappingIPs := ruleIP.Subtract(ipblock)
-				for _, ip := range overlappingIPs.Split() {
-					newMap[ip] = span[ipblock].Copy().Union(icmpSet)
-				}
-				notOverlappingIPs := ipblock.Subtract(overlappingIPs)
-				for _, ip := range notOverlappingIPs.Split() {
-					newMap[ip] = span[ipblock].Copy()
-				}
-			}
-		}
-		span = mergeIcmpMaps(span, newMap)
+		span = updateSpan(span, icmpSet, ruleIP)
 	}
 	return span
 }
 
-func mergeTcpudpMaps(m1, m2 map[*netset.IPBlock]*interval.CanonicalSet) map[*netset.IPBlock]*interval.CanonicalSet {
-	for ipblock, portsSet := range m2 {
-		m1[ipblock] = portsSet.Copy()
+func updateSpan[T ds.Set[T]](span map[*netset.IPBlock]T, ruleSet T, ruleIP *netset.IPBlock) map[*netset.IPBlock]T {
+	if protocolSet, ok := span[ruleIP]; ok {
+		span[ruleIP] = protocolSet.Union(ruleSet)
+		return span
 	}
-	return m1
+	var k float32
+	k = 32.2
+	log.Print(k)
+	return utils.MergeSetMaps(span, addRuleToSpan(span, ruleIP, ruleSet))
+
 }
 
-func mergeIcmpMaps(m1, m2 map[*netset.IPBlock]*netset.ICMPSet) map[*netset.IPBlock]*netset.ICMPSet {
-	for ipblock, portsSet := range m2 {
-		m1[ipblock] = portsSet.Copy()
+func addRuleToSpan[T ds.Set[T]](span map[*netset.IPBlock]T, ruleIP *netset.IPBlock, ruleSet T) map[*netset.IPBlock]T {
+	result := make(map[*netset.IPBlock]T, 0)
+	for ipblock := range span {
+		if ipblock.Overlap(ruleIP) {
+			overlappingIPs := ruleIP.Subtract(ipblock)
+			for _, ip := range overlappingIPs.Split() {
+				result[ip] = span[ipblock].Copy().Union(ruleSet)
+			}
+			notOverlappingIPs := ipblock.Subtract(overlappingIPs)
+			for _, ip := range notOverlappingIPs.Split() {
+				result[ip] = span[ipblock].Copy()
+			}
+		}
 	}
-	return m1
+	return result
 }
