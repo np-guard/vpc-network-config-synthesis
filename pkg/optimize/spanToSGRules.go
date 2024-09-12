@@ -54,23 +54,27 @@ func allSpanIPToSGRules(span *netset.IPBlock, direction ir.Direction) []ir.SGRul
 	return result
 }
 
-func tcpudpIPSpanToSGRules(span []ds.Pair[*netset.IPBlock, *interval.CanonicalSet], _ *netset.IPBlock,
+func tcpudpIPSpanToSGRules(span []ds.Pair[*netset.IPBlock, *interval.CanonicalSet], allSpan *netset.IPBlock,
 	direction ir.Direction, isTCP bool) []ir.SGRule {
 	rules := []ds.Pair[*netset.IPBlock, *interval.Interval]{} // start ip and ports
 	result := make([]ir.SGRule, 0)
 
 	for i := range span {
-		// maybe all protocol rule covers the hole
-		if i > 0 && !touching(span[i-1].Left, span[i].Left) { // if the CIDRS are not touching and there is no all rule
-			for _, r := range rules {
-				p, _ := netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(r.Right.Start()), int(r.Right.End()))
-				for _, cidr := range ToCidrs(IPBlockFromRange(r.Left, LastIPAddress(span[i-1].Left))) {
-					result = append(result, ir.NewSGRule(direction, cidr, p, netset.GetCidrAll(), ""))
+		if i > 0 {
+			prevIPBlock := span[i-1].Left
+			currIPBlock := span[i].Left
+			if !touching(prevIPBlock, currIPBlock) { // the cidrs are not touching
+				hole := IPBlockFromRange(NextIP(prevIPBlock), BeforeIP(currIPBlock))
+				if !hole.IsSubset(allSpan) { // there in no all rule covering the hole
+					for _, r := range rules {
+						p, _ := netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(r.Right.Start()), int(r.Right.End()))
+						for _, cidr := range ToCidrs(IPBlockFromRange(r.Left, LastIPAddress(span[i-1].Left))) {
+							result = append(result, ir.NewSGRule(direction, cidr, p, netset.GetCidrAll(), ""))
+						}
+					}
+					rules = []ds.Pair[*netset.IPBlock, *interval.Interval]{}
 				}
 			}
-
-			rules = []ds.Pair[*netset.IPBlock, *interval.Interval]{}
-			continue
 		}
 
 		activePorts := interval.NewCanonicalSet()
@@ -105,21 +109,26 @@ func tcpudpIPSpanToSGRules(span []ds.Pair[*netset.IPBlock, *interval.CanonicalSe
 	return result
 }
 
-func icmpSpanToSGRules(span []ds.Pair[*netset.IPBlock, *netset.ICMPSet], _ *netset.IPBlock, direction ir.Direction) []ir.SGRule {
+func icmpSpanToSGRules(span []ds.Pair[*netset.IPBlock, *netset.ICMPSet], allSpan *netset.IPBlock, direction ir.Direction) []ir.SGRule {
 	rules := []ds.Pair[*netset.IPBlock, *netp.ICMP]{}
 	result := make([]ir.SGRule, 0)
 
 	for i := range span {
-		if i > 0 && !touching(span[i-1].Left, span[i].Left) { // if the CIDRS are not touching
-			for _, r := range rules {
-				p, _ := netp.NewICMP(r.Right.TypeCode)
-				for _, cidr := range ToCidrs(IPBlockFromRange(r.Left, LastIPAddress(span[i-1].Left))) {
-					result = append(result, ir.NewSGRule(direction, cidr, p, netset.GetCidrAll(), ""))
+		if i > 0 {
+			prevIPBlock := span[i-1].Left
+			currIPBlock := span[i].Left
+			if !touching(prevIPBlock, currIPBlock) { // the cidrs are not touching
+				hole := IPBlockFromRange(NextIP(prevIPBlock), BeforeIP(currIPBlock))
+				if !hole.IsSubset(allSpan) { // there in no all rule covering the hole
+					for _, r := range rules {
+						p, _ := netp.NewICMP(r.Right.TypeCode)
+						for _, cidr := range ToCidrs(IPBlockFromRange(r.Left, LastIPAddress(span[i-1].Left))) {
+							result = append(result, ir.NewSGRule(direction, cidr, p, netset.GetCidrAll(), ""))
+						}
+					}
+					rules = []ds.Pair[*netset.IPBlock, *netp.ICMP]{}
 				}
 			}
-
-			rules = []ds.Pair[*netset.IPBlock, *netp.ICMP]{}
-			continue
 		}
 
 		activeICMP := netset.EmptyICMPSet()
