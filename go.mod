@@ -3,9 +3,9 @@ module github.com/np-guard/vpc-network-config-synthesis
 go 1.23.0
 
 require (
-	github.com/IBM/vpc-go-sdk v0.56.0
-	github.com/np-guard/cloud-resource-collector v0.14.0
-	github.com/np-guard/models v0.3.4
+	github.com/IBM/vpc-go-sdk v0.57.0
+	github.com/np-guard/cloud-resource-collector v0.15.0
+	github.com/np-guard/models v0.4.1-0.20240911081500-0a30b7aefb6f
 	github.com/spf13/cobra v1.8.1
 )
 
@@ -35,11 +35,3 @@ require (
 	golang.org/x/text v0.16.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
-
-// Todo:
-// (1) delete the following line when np-guard/models#33 is merged.
-// (2) replace lines 137 and 138 in go.sum with
-// github.com/np-guard/models v0.3.4 h1:HOhVi6wyGvo+KmYBnQ5Km5HYCF+/PQlDs1v7mL1v05g=
-// github.com/np-guard/models v0.3.4/go.mod h1:mqE2Irf8r+7HWh8fII0fWbWyQRMHGEo2SgSLN/6VKs8=
-//nolint:gomoddirectives // this line is temporary
-replace github.com/np-guard/models => github.com/np-guard/models v0.3.5-0.20240818081750-bb83d7f53d64

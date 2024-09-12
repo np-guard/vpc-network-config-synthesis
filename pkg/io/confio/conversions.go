@@ -65,25 +65,11 @@ func direction(d ir.Direction) *string {
 }
 
 type tcpudpData struct {
-	Protocol           *string
-	SourcePortMin      *int64
-	SourcePortMax      *int64
-	DestinationPortMin *int64
-	DestinationPortMax *int64
-}
-
-func (p tcpudpData) remotePortMin(d ir.Direction) *int64 {
-	if d == ir.Outbound {
-		return p.DestinationPortMin
-	}
-	return p.SourcePortMin
-}
-
-func (p tcpudpData) remotePortMax(d ir.Direction) *int64 {
-	if d == ir.Outbound {
-		return p.DestinationPortMax
-	}
-	return p.SourcePortMax
+	Protocol   *string
+	srcPortMin *int64
+	srcPortMax *int64
+	dstPortMin *int64
+	dstPortMax *int64
 }
 
 type icmpData struct {
@@ -100,11 +86,11 @@ func tcpudp(p netp.TCPUDP) tcpudpData {
 	srcPorts := p.SrcPorts()
 	dstPorts := p.DstPorts()
 	res := tcpudpData{
-		Protocol:           utils.Ptr(strings.ToLower(string(p.ProtocolString()))),
-		SourcePortMin:      utils.Ptr(srcPorts.Start()),
-		SourcePortMax:      utils.Ptr(srcPorts.End()),
-		DestinationPortMin: utils.Ptr(dstPorts.Start()),
-		DestinationPortMax: utils.Ptr(dstPorts.End()),
+		Protocol:   utils.Ptr(strings.ToLower(string(p.ProtocolString()))),
+		srcPortMin: utils.Ptr(srcPorts.Start()),
+		srcPortMax: utils.Ptr(srcPorts.End()),
+		dstPortMin: utils.Ptr(dstPorts.Start()),
+		dstPortMax: utils.Ptr(dstPorts.End()),
 	}
 	return res
 }
