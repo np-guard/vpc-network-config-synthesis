@@ -67,12 +67,14 @@ func FirstIPAddress(i *netset.IPBlock) *netset.IPBlock {
 	return ipblock
 }
 
-// should implement
+// ip is not 255.255.255.255
 func NextIP(ip *netset.IPBlock) *netset.IPBlock {
-	return ip
+	other := netset.GetCidrAll().Subtract(ip)
+	return FirstIPAddress(other.Split()[1])
 }
 
-// should implement
+// ip is not 0.0.0.0
 func BeforeIP(ip *netset.IPBlock) *netset.IPBlock {
-	return ip
+	other := netset.GetCidrAll().Subtract(ip)
+	return LastIPAddress(other.Split()[0])
 }
