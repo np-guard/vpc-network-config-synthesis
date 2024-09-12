@@ -16,7 +16,9 @@ resource "ibm_is_security_group_rule" "test-vpc--be-0" {
   group     = ibm_is_security_group.test-vpc--be.id
   direction = "inbound"
   remote    = ibm_is_security_group.test-vpc--fe.id
-  tcp {
+  udp {
+    port_min = 53
+    port_max = 53
   }
 }
 
@@ -31,7 +33,9 @@ resource "ibm_is_security_group_rule" "test-vpc--fe-0" {
   group     = ibm_is_security_group.test-vpc--fe.id
   direction = "outbound"
   remote    = ibm_is_security_group.test-vpc--be.id
-  tcp {
+  udp {
+    port_min = 53
+    port_max = 53
   }
 }
 
