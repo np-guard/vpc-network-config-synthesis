@@ -75,7 +75,7 @@ func tcpudpIPSpanToSGRules(span []ds.Pair[*netset.IPBlock, *interval.CanonicalSe
 
 		activePorts := interval.NewCanonicalSet()
 		for _, r := range rules {
-			if !r.Right.ToSet().IsSubset(span[i].Right) { // close old rules
+			if !r.Right.ToSet().IsSubset(span[i].Right) { // create rules
 				p, _ := netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(r.Right.Start()), int(r.Right.End()))
 				for _, cidr := range ToCidrs(IPBlockFromRange(r.Left, LastIPAddress(span[i-1].Left))) {
 					result = append(result, ir.NewSGRule(direction, cidr, p, netset.GetCidrAll(), ""))
@@ -94,7 +94,7 @@ func tcpudpIPSpanToSGRules(span []ds.Pair[*netset.IPBlock, *interval.CanonicalSe
 		}
 	}
 
-	// close all old rules
+	// create the rest of the rules
 	for _, r := range rules {
 		p, _ := netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(r.Right.Start()), int(r.Right.Start()))
 		for _, cidr := range ToCidrs(IPBlockFromRange(r.Left, LastIPAddress(span[len(span)-1].Left))) {
@@ -125,7 +125,7 @@ func icmpSpanToSGRules(span []ds.Pair[*netset.IPBlock, *netset.ICMPSet], _ *nets
 		activeICMP := netset.EmptyICMPSet()
 		for _, r := range rules {
 			ruleIcmpSet := netset.NewICMPSet(*r.Right)
-			if !ruleIcmpSet.IsSubset(span[i].Right) { // close old rules
+			if !ruleIcmpSet.IsSubset(span[i].Right) { // create rules
 				p, _ := netp.NewICMP(r.Right.TypeCode)
 				for _, cidr := range ToCidrs(IPBlockFromRange(r.Left, LastIPAddress(span[i-1].Left))) {
 					result = append(result, ir.NewSGRule(direction, cidr, p, netset.GetCidrAll(), ""))
@@ -144,7 +144,7 @@ func icmpSpanToSGRules(span []ds.Pair[*netset.IPBlock, *netset.ICMPSet], _ *nets
 		}
 	}
 
-	// close all rules
+	// create the rest of the rules
 	for _, r := range rules {
 		p, _ := netp.NewICMP(r.Right.TypeCode)
 		for _, cidr := range ToCidrs(IPBlockFromRange(r.Left, LastIPAddress(span[len(span)-1].Left))) {
