@@ -42,8 +42,8 @@ type SGRule struct {
 }
 
 type SG struct {
-	InboundRules  []SGRule
-	OutboundRules []SGRule
+	InboundRules  []*SGRule
+	OutboundRules []*SGRule
 	Attached      []ID
 }
 
@@ -55,9 +55,9 @@ type SGWriter interface {
 	WriteSG(sgColl *SGCollection, vpc string) error
 }
 
-func (r *SGRule) isRedundant(rules []SGRule) bool {
-	for i := range rules {
-		if rules[i].mustSupersede(r) {
+func (r *SGRule) isRedundant(rules []*SGRule) bool {
+	for _, rule := range rules {
+		if rule.mustSupersede(r) {
 			return true
 		}
 	}
@@ -73,7 +73,7 @@ func (r *SGRule) mustSupersede(other *SGRule) bool {
 }
 
 func NewSG() *SG {
-	return &SG{InboundRules: []SGRule{}, OutboundRules: []SGRule{}, Attached: []ID{}}
+	return &SG{InboundRules: []*SGRule{}, OutboundRules: []*SGRule{}, Attached: []ID{}}
 }
 
 func NewSGCollection() *SGCollection {
@@ -95,14 +95,14 @@ func (c *SGCollection) LookupOrCreate(name SGName) *SG {
 
 func (a *SG) Add(rule *SGRule) {
 	if rule.Direction == Outbound && !rule.isRedundant(a.OutboundRules) {
-		a.OutboundRules = append(a.OutboundRules, *rule)
+		a.OutboundRules = append(a.OutboundRules, rule)
 	}
 	if rule.Direction == Inbound && !rule.isRedundant(a.InboundRules) {
-		a.InboundRules = append(a.InboundRules, *rule)
+		a.InboundRules = append(a.InboundRules, rule)
 	}
 }
 
-func (a *SG) AllRules() []SGRule {
+func (a *SG) AllRules() []*SGRule {
 	return append(a.InboundRules, a.OutboundRules...)
 }
 
