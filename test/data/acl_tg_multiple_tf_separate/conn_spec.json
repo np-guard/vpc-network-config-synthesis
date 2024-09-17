@@ -1,0 +1,73 @@
+{
+    "segments": {
+        "segment1": {
+            "type": "subnet",
+            "items": [
+                "subnet0",
+                "subnet2"
+            ]
+        }
+    },
+    "required-connections": [
+        {
+            "src": {
+                "name": "segment1",
+                "type": "segment"
+            },
+            "dst": {
+                "name": "segment1",
+                "type": "segment"
+            }
+        },
+        {
+            "src": {
+                "name": "segment1",
+                "type": "segment"
+            },
+            "dst": {
+                "name": "subnet3",
+                "type": "subnet"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "UDP",
+                    "min_destination_port": 53,
+                    "max_destination_port": 53
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "subnet4",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "subnet5",
+                "type": "subnet"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "ICMP",
+                    "type": 4
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "subnet10",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "subnet11",
+                "type": "subnet"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "ICMP",
+                    "type": 0,
+                    "code": 0
+                }
+            ]
+        }
+    ]
+}

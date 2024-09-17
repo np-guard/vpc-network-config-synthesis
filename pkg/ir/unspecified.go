@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 package ir
 
 import (
-	"log"
+	"fmt"
 	"sort"
 	"strings"
 )
@@ -138,6 +138,6 @@ func (s *Spec) findResourceInConnections(resources []ID, resourceType ResourceTy
 
 func printUnspecifiedWarning(warning string, blockedResources []ID) {
 	if len(blockedResources) > 0 {
-		log.Println(warning, strings.Join(blockedResources, ", "))
+		fmt.Println(warning, strings.Join(blockedResources, ", "))
 	}
 }

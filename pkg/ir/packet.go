@@ -7,7 +7,6 @@ package ir
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/np-guard/models/pkg/ipblock"
 )
@@ -38,18 +37,18 @@ func packetACLRule(packet *Packet, direction Direction, action Action) *ACLRule 
 }
 
 // makeDenyInternal prevents allowing external communications from accidentally allowing internal communications too
-func makeDenyInternal() []ACLRule {
+func makeDenyInternal() ([]ACLRule, error) {
 	cidr1, err := ipblock.FromCidr("10.0.0.0/8")
 	if err != nil {
-		log.Fatal(err)
+		return []ACLRule{}, err
 	}
 	cidr2, err := ipblock.FromCidr("172.16.0.0/12")
 	if err != nil {
-		log.Fatal(err)
+		return []ACLRule{}, err
 	}
 	cidr3, err := ipblock.FromCidr("192.168.0.0/16")
 	if err != nil {
-		log.Fatal(err)
+		return []ACLRule{}, err
 	}
 	localCidrs := []*ipblock.IPBlock{cidr1, cidr2, cidr3} // https://datatracker.ietf.org/doc/html/rfc1918#section-3
 	var denyInternal []ACLRule
@@ -62,7 +61,7 @@ func makeDenyInternal() []ACLRule {
 			)
 		}
 	}
-	return denyInternal
+	return denyInternal, nil
 }
 
 func DenyAllSend(subnetName ID, cidr *ipblock.IPBlock) *ACLRule {

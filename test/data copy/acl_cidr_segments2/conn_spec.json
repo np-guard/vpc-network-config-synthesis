@@ -1,0 +1,28 @@
+{
+    "segments": {
+        "cidrSegment1": {
+            "type": "cidr",
+            "items": [
+                "10.240.2.0/23"
+            ]
+        }, 
+        "cidrSegment2": {
+            "type": "cidr",
+            "items": [
+                "10.240.64.0/23"
+            ]
+        }
+    },
+    "required-connections": [
+        {
+            "src": {
+                "name": "cidrSegment1",
+                "type": "segment"
+            },
+            "dst": {
+                "name": "cidrSegment2",
+                "type": "segment"
+            }
+        }
+    ]
+}

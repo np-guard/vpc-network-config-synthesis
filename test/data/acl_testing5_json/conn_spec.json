@@ -1,0 +1,141 @@
+{
+    "segments": {
+        "need-dns": {
+            "type": "subnet",
+            "items": [
+                "sub1-1",
+                "sub2-1"
+            ]
+        }
+    },
+    "externals": {
+        "dns": "8.8.8.8"
+    },
+    "required-connections": [
+        {
+            "src": {
+                "name": "need-dns",
+                "type": "segment"
+            },
+            "dst": {
+                "name": "need-dns",
+                "type": "segment"
+            }
+        },
+        {
+            "src": {
+                "name": "need-dns",
+                "type": "segment"
+            },
+            "dst": {
+                "name": "dns",
+                "type": "external"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "UDP",
+                    "min_destination_port": 53,
+                    "max_destination_port": 53
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "need-dns",
+                "type": "segment"
+            },
+            "dst": {
+                "name": "sub3-1",
+                "type": "subnet"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "ICMP",
+                    "type": 0,
+                    "code": 0
+                }
+            ]
+        },
+        {
+            "bidirectional": true,
+            "src": {
+                "name": "sub1-1",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "sub1-2",
+                "type": "subnet"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ]
+        },
+        {
+            "bidirectional": true,
+            "src": {
+                "name": "sub1-1",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "sub1-3",
+                "type": "subnet"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ]
+        },
+        {
+            "bidirectional": true,
+            "src": {
+                "name": "sub1-2",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "sub1-3",
+                "type": "subnet"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ]
+        },
+        {
+            "bidirectional": true,
+            "src": {
+                "name": "sub2-1",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "sub2-2",
+                "type": "subnet"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "sub3-1",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "sub2-1",
+                "type": "subnet"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP",
+                    "min_destination_port": 443,
+                    "max_destination_port": 443
+                }
+            ]
+        }
+    ]
+}

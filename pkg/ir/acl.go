@@ -68,13 +68,17 @@ func (r *ACLRule) Target() *ipblock.IPBlock {
 	return r.Source
 }
 
-func (a *ACL) Rules() []ACLRule {
+func (a *ACL) Rules() ([]ACLRule, error) {
 	rules := a.Internal
 	if len(a.External) != 0 {
-		rules = append(rules, makeDenyInternal()...)
+		denyRules, err := makeDenyInternal()
+		if err != nil {
+			return []ACLRule{}, err
+		}
+		rules = append(rules, denyRules...)
 		rules = append(rules, a.External...)
 	}
-	return rules
+	return rules, nil
 }
 
 func (a *ACL) AppendInternal(rule *ACLRule) {

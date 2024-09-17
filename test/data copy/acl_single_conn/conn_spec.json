@@ -1,0 +1,22 @@
+{
+    "required-connections": [
+        {
+            "bidirectional": true,
+            "src": {
+                "name": "subnet1",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "test-vpc1/subnet3",
+                "type": "subnet"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP",
+                    "min_destination_port": 443,
+                    "max_destination_port": 443
+                }
+            ]
+        }
+    ]
+}

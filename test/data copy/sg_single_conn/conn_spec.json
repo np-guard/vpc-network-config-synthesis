@@ -1,0 +1,21 @@
+{
+    "required-connections": [
+        {
+            "src": {
+                "name": "fe",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "test-vpc/be",
+                "type": "instance"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "UDP",
+                    "min_destination_port": 53,
+                    "max_destination_port": 53
+                }
+            ]
+        }
+    ]
+}

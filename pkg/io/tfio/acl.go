@@ -8,6 +8,7 @@ package tfio
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/np-guard/models/pkg/ipblock"
@@ -65,7 +66,10 @@ func aclRule(rule *ir.ACLRule, name string) tf.Block {
 }
 
 func singleACL(t *ir.ACL, comment string) tf.Block {
-	rules := t.Rules()
+	rules, err := t.Rules()
+	if err != nil {
+		log.Fatal(err)
+	}
 	blocks := make([]tf.Block, len(rules))
 	for i := range rules {
 		blocks[i] = aclRule(&rules[i], fmt.Sprintf("rule%v", i))
