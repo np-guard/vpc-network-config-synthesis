@@ -9,19 +9,12 @@ import (
 	"errors"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
-	"sync"
+	"strings"
 	"testing"
-)
 
-const (
-	dataFolder     = "data"
-	expectedFolder = "expected"
-	resultsFolder  = "results"
-
-	defaultDirectoryPermission = 0o755
+	"github.com/np-guard/vpc-network-config-synthesis/cmd/vpcgen"
 )
 
 type testCase struct {
@@ -30,35 +23,22 @@ type testCase struct {
 }
 
 func TestMain(t *testing.T) {
-	var wg sync.WaitGroup
-
 	for _, testCase := range allMainTests() {
-		wg.Add(1)
-
 		t.Run(testCase.testName, func(t *testing.T) {
-			// run all tests in parallel
-			t.Parallel()
-
 			// create a sub folder
 			if err := os.MkdirAll(filepath.Join(resultsFolder, testCase.testName), defaultDirectoryPermission); err != nil {
 				handleErrors(t, testCase.testName, err)
 			}
 
 			// run the command
-			err := exec.Command("bash", "-c", testCase.command).Run()
-			if err != nil {
-				log.Fatalf("Bad test %s: %s", testCase.testName, err) // should not occur
+			if err := vpcgen.Main(strings.Split(testCase.command, " ")); err != nil {
+				t.Errorf("Bad test %s: %s", testCase.testName, err)
 			}
 
 			// compare results
 			compareSubDirs(t, testCase.testName)
-
-			wg.Done()
 		})
 	}
-	// wait for all tests to complete
-	wg.Wait()
-
 	removeGeneratedFiles()
 }
 
