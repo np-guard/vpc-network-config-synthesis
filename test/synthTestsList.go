@@ -9,6 +9,7 @@ func allMainTests() []testCase {
 	return append(synthACLTestsList(), synthSGTestsList()...)
 }
 
+//nolint:lll // commands can be long
 func synthACLTestsList() []testCase {
 	return []testCase{
 		// acl segments (bidi)
@@ -83,6 +84,7 @@ func synthACLTestsList() []testCase {
 	}
 }
 
+//nolint:lll // commands can be long
 func synthSGTestsList() []testCase {
 	return []testCase{
 		// sg protocols (all output fmts, externals, scoping, nif as a resource)

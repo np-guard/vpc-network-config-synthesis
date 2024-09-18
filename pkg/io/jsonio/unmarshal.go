@@ -9,6 +9,7 @@ package jsonio
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/np-guard/models/pkg/ipblock"
@@ -259,7 +260,7 @@ func translateProtocols(protocols spec.ProtocolList) ([]ir.TrackedProtocol, erro
 		switch p := _p.(type) {
 		case spec.AnyProtocol:
 			if len(protocols) != 1 {
-				return nil, fmt.Errorf("when allowing any protocol, no more protocols can be defined")
+				log.Println("when allowing any protocol, there is no need in more protocols")
 			}
 			result[i].Protocol = ir.AnyProtocol{}
 		case spec.Icmp:

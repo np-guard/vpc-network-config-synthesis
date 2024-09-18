@@ -1,3 +1,0 @@
-SG,Direction,Remote type,Remote,Protocol,Protocol params,Description
-test-vpc1/vsi0-subnet10,Outbound,Security group,test-vpc1/vsi0-subnet11,TCP,any port,Internal. required-connections[2]: (instance test-vpc1/vsi0-subnet10)->(instance test-vpc1/vsi0-subnet11); allowed-protocols[0]
-test-vpc1/vsi0-subnet11,Inbound,Security group,test-vpc1/vsi0-subnet10,TCP,any port,Internal. required-connections[2]: (instance test-vpc1/vsi0-subnet10)->(instance test-vpc1/vsi0-subnet11); allowed-protocols[0]

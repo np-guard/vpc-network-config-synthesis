@@ -16,10 +16,7 @@ import (
 )
 
 func makeACLTable(t *ir.ACL, subnet string) [][]string {
-	rules, err := t.Rules()
-	if err != nil {
-		log.Fatal(err)
-	}
+	rules := t.Rules()
 	rows := make([][]string, len(rules))
 	for i := range rules {
 		rows[i] = makeACLRow(i+1, &rules[i], t.Name(), subnet)

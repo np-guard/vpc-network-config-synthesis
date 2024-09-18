@@ -91,10 +91,7 @@ func makeACLRuleItem(rule *ir.ACLRule, current,
 }
 
 func aclRules(acl *ir.ACL) []vpcv1.NetworkACLRuleItemIntf {
-	rules, err := acl.Rules()
-	if err != nil {
-		log.Fatal(err)
-	}
+	rules := acl.Rules()
 	ruleItems := make([]vpcv1.NetworkACLRuleItemIntf, len(rules))
 
 	var next *vpcv1.NetworkACLRuleReference
