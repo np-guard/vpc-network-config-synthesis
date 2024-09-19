@@ -10,7 +10,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/tfio/tf"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
@@ -27,22 +28,22 @@ func (w *Writer) WriteACL(c *ir.ACLCollection, vpc string) error {
 	return err
 }
 
-func aclProtocol(t ir.Protocol) []tf.Block {
+func aclProtocol(t netp.Protocol) []tf.Block {
 	switch p := t.(type) {
-	case ir.TCPUDP:
+	case netp.TCPUDP:
 		return []tf.Block{{
-			Name: strings.ToLower(string(p.Protocol)),
+			Name: strings.ToLower(string(p.ProtocolString())),
 			Arguments: append(
-				portRange(p.PortRangePair.DstPort, "port"),
-				portRange(p.PortRangePair.SrcPort, "source_port")...,
+				portRange(p.DstPorts(), "port"),
+				portRange(p.SrcPorts(), "source_port")...,
 			),
 		}}
-	case ir.ICMP:
+	case netp.ICMP:
 		return []tf.Block{{
 			Name:      "icmp",
-			Arguments: codeTypeArguments(p.ICMPCodeType),
+			Arguments: codeTypeArguments(p.ICMPTypeCode()),
 		}}
-	case ir.AnyProtocol:
+	case netp.AnyProtocol:
 		return []tf.Block{}
 	}
 	return nil
@@ -102,7 +103,7 @@ func aclCollection(t *ir.ACLCollection, vpc string) *tf.ConfigFile {
 	}
 }
 
-func subnetCidr(acl *ir.ACL) *ipblock.IPBlock {
+func subnetCidr(acl *ir.ACL) *netset.IPBlock {
 	if len(acl.Internal) > 0 {
 		return acl.Internal[0].Target()
 	}

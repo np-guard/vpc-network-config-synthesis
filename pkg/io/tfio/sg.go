@@ -10,7 +10,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/tfio/tf"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
@@ -29,7 +30,7 @@ func (w *Writer) WriteSG(c *ir.SGCollection, vpc string) error {
 
 func value(x interface{}) string {
 	switch v := x.(type) {
-	case *ipblock.IPBlock:
+	case *netset.IPBlock:
 		return quote(v.String())
 	case ir.SGName:
 		return ir.ChangeScoping(fmt.Sprintf("ibm_is_security_group.%v.id", v))
@@ -39,19 +40,19 @@ func value(x interface{}) string {
 	return ""
 }
 
-func sgProtocol(t ir.Protocol) []tf.Block {
+func sgProtocol(t netp.Protocol) []tf.Block {
 	switch p := t.(type) {
-	case ir.TCPUDP:
+	case netp.TCPUDP:
 		return []tf.Block{{
-			Name:      strings.ToLower(string(p.Protocol)),
-			Arguments: portRange(p.PortRangePair.DstPort, "port"),
+			Name:      strings.ToLower(string(p.ProtocolString())),
+			Arguments: portRange(p.DstPorts(), "port"),
 		}}
-	case ir.ICMP:
+	case netp.ICMP:
 		return []tf.Block{{
 			Name:      "icmp",
-			Arguments: codeTypeArguments(p.ICMPCodeType),
+			Arguments: codeTypeArguments(p.ICMPTypeCode()),
 		}}
-	case ir.AnyProtocol:
+	case netp.AnyProtocol:
 		return []tf.Block{}
 	}
 	return nil

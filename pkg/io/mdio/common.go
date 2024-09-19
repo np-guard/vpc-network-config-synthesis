@@ -13,6 +13,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/np-guard/models/pkg/netp"
+
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
@@ -51,29 +53,29 @@ func direction(d ir.Direction) string {
 	return "Outbound"
 }
 
-func printICMPTypeCode(protocol ir.Protocol) string {
-	p, ok := protocol.(ir.ICMP)
+func printICMPTypeCode(protocol netp.Protocol) string {
+	p, ok := protocol.(netp.ICMP)
 	if !ok {
 		return nonIcmp
 	}
 	icmpType := anyIcmpValue
 	icmpCode := anyIcmpValue
-	if p.ICMPCodeType != nil {
-		icmpType = strconv.Itoa(p.Type)
-		if p.Code != nil {
-			icmpCode = strconv.Itoa(*p.Code)
+	if typeCode := p.ICMPTypeCode(); typeCode != nil {
+		icmpType = strconv.Itoa(typeCode.Type)
+		if typeCode.Code != nil {
+			icmpCode = strconv.Itoa(*typeCode.Code)
 		}
 	}
 	return fmt.Sprintf("Type: %v, Code: %v", icmpType, icmpCode)
 }
 
-func printProtocolName(protocol ir.Protocol) string {
+func printProtocolName(protocol netp.Protocol) string {
 	switch p := protocol.(type) {
-	case ir.ICMP:
+	case netp.ICMP:
 		return "ICMP"
-	case ir.TCPUDP:
-		return strings.ToUpper(string(p.Protocol))
-	case ir.AnyProtocol:
+	case netp.TCPUDP:
+		return strings.ToUpper(string(p.ProtocolString()))
+	case netp.AnyProtocol:
 		return anyProtocol
 	}
 	return ""
