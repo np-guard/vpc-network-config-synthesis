@@ -31,7 +31,7 @@ func ACLPort(p interval.Interval) string {
 	case p.Start() == netp.MinPort && p.End() == netp.MaxPort:
 		return "any port" //nolint:goconst // independent decision for SG and ACL
 	default:
-		return fmt.Sprintf("ports %v", p)
+		return fmt.Sprintf("ports %v-%v", p.Start(), p.End())
 	}
 }
 

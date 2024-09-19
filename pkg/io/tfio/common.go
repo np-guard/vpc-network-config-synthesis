@@ -33,7 +33,7 @@ func NewWriter(w io.Writer) *Writer {
 func portRange(r interval.Interval, prefix string) []tf.Argument {
 	var arguments []tf.Argument
 	if r.Start() != netp.MinPort {
-		arguments = append(arguments, tf.Argument{Name: prefix + "_min", Value: strconv.Itoa(int(r.Start()))})
+		arguments = append(arguments, tf.Argument{Name: prefix + "_min", Value: strconv.FormatInt(r.Start(), 10)})
 	}
 	if r.End() != netp.MaxPort {
 		arguments = append(arguments, tf.Argument{Name: prefix + "_max", Value: strconv.Itoa(int(r.End()))})
