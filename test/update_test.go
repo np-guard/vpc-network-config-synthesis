@@ -6,6 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 package test
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -23,7 +24,7 @@ func TestUpdate(t *testing.T) {
 				log.Printf("Bad test %s: %s", testCase.testName, err)
 			}
 
-			cmd := strings.ReplaceAll(testCase.command, resultsFolder, expectedFolder)
+			cmd := fmt.Sprintf(testCase.command, dataFolder, dataFolder, expectedFolder)
 			_ = m.Main(strings.Split(cmd, " "))
 		})
 	}

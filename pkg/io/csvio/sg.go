@@ -6,8 +6,8 @@ SPDX-License-Identifier: Apache-2.0
 package csvio
 
 import (
+	"errors"
 	"fmt"
-	"log"
 
 	"github.com/np-guard/models/pkg/ipblock"
 
@@ -20,7 +20,11 @@ func (w *Writer) WriteSG(collection *ir.SGCollection, vpc string) error {
 	}
 	for _, sgName := range collection.SortedSGNames(vpc) {
 		vpcName := ir.VpcFromScopedResource(string(sgName))
-		if err := w.w.WriteAll(makeSGTable(collection.SGs[vpcName][sgName], sgName)); err != nil {
+		sgTable, err := makeSGTable(collection.SGs[vpcName][sgName], sgName)
+		if err != nil {
+			return err
+		}
+		if err := w.w.WriteAll(sgTable); err != nil {
 			return err
 		}
 	}
@@ -39,25 +43,36 @@ func sgHeader() [][]string {
 	}}
 }
 
-func makeSGRow(rule *ir.SGRule, sgName ir.SGName) []string {
+func makeSGRow(rule *ir.SGRule, sgName ir.SGName) ([]string, error) {
+	remoteType, err1 := sgRemoteType(rule.Remote)
+	remote, err2 := sgRemote(rule.Remote)
+	protocolParams, err3 := printProtocolParams(rule.Protocol)
+	if err := errors.Join(err1, err2, err3); err != nil {
+		return nil, err
+	}
+
 	return []string{
 		string(sgName),
 		direction(rule.Direction),
-		sgRemoteType(rule.Remote),
-		sgRemote(rule.Remote),
+		remoteType,
+		remote,
 		printProtocolName(rule.Protocol),
-		printProtocolParams(rule.Protocol),
+		protocolParams,
 		rule.Explanation,
-	}
+	}, nil
 }
 
-func makeSGTable(t *ir.SG, sgName ir.SGName) [][]string {
+func makeSGTable(t *ir.SG, sgName ir.SGName) ([][]string, error) {
 	rules := t.AllRules()
 	rows := make([][]string, len(rules))
 	for i, rule := range rules {
-		rows[i] = makeSGRow(rule, sgName)
+		sgRow, err := makeSGRow(rule, sgName)
+		if err != nil {
+			return nil, err
+		}
+		rows[i] = sgRow
 	}
-	return rows
+	return rows, nil
 }
 
 func sgPort(p ir.PortRange) string {
@@ -69,46 +84,41 @@ func sgPort(p ir.PortRange) string {
 	}
 }
 
-func sgRemoteType(t ir.RemoteType) string {
+func sgRemoteType(t ir.RemoteType) (string, error) {
 	switch tr := t.(type) {
 	case *ipblock.IPBlock:
 		if ir.IsIPAddress(tr) {
-			return "IP address"
+			return "IP address", nil
 		}
-		return "CIDR block"
+		return "CIDR block", nil
 	case ir.SGName:
-		return "Security group"
+		return "Security group", nil
 	}
-	log.Fatalf("impossible remote type %T", t)
-	return ""
+	return "", fmt.Errorf("impossible remote type %T", t)
 }
 
-func sgRemote(r ir.RemoteType) string {
+func sgRemote(r ir.RemoteType) (string, error) {
 	switch tr := r.(type) {
 	case *ipblock.IPBlock:
 		s := tr.String()
 		if s == ipblock.CidrAll {
-			return "Any IP"
+			return "Any IP", nil
 		}
-		return s
+		return s, nil
 	case ir.SGName:
-		return tr.String()
-	default:
-		log.Panicf("Impossible remote %v (%T)", r, r)
+		return tr.String(), nil
 	}
-	return ""
+	return "", fmt.Errorf("impossible remote %v (%T)", r, r)
 }
 
-func printProtocolParams(protocol ir.Protocol) string {
+func printProtocolParams(protocol ir.Protocol) (string, error) {
 	switch p := protocol.(type) {
 	case ir.ICMP:
-		return printICMPTypeCode(protocol)
+		return printICMPTypeCode(protocol), nil
 	case ir.TCPUDP:
-		return sgPort(p.PortRangePair.DstPort)
+		return sgPort(p.PortRangePair.DstPort), nil
 	case ir.AnyProtocol:
-		return ""
-	default:
-		log.Panicf("Impossible protocol %v", p)
+		return "", nil
 	}
-	return ""
+	return "", fmt.Errorf("impossible protocol %T", protocol)
 }

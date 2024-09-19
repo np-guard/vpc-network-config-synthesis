@@ -18,8 +18,12 @@ import (
 
 // WriteACL prints an entire collection of acls as a sequence of terraform resources.
 func (w *Writer) WriteACL(c *ir.ACLCollection, vpc string) error {
-	output := aclCollection(c, vpc).Print()
-	_, err := w.w.WriteString(output)
+	collection, err := aclCollection(c, vpc)
+	if err != nil {
+		return err
+	}
+	output := collection.Print()
+	_, err = w.w.WriteString(output)
 	if err != nil {
 		return err
 	}
@@ -48,8 +52,10 @@ func aclProtocol(t ir.Protocol) []tf.Block {
 	return nil
 }
 
-func aclRule(rule *ir.ACLRule, name string) tf.Block {
-	verifyName(name)
+func aclRule(rule *ir.ACLRule, name string) (tf.Block, error) {
+	if err := verifyName(name); err != nil {
+		return tf.Block{}, err
+	}
 	arguments := []tf.Argument{
 		{Name: "name", Value: quote(name)},
 		{Name: "action", Value: quote(action(rule.Action))},
@@ -61,14 +67,18 @@ func aclRule(rule *ir.ACLRule, name string) tf.Block {
 		Comment:   fmt.Sprintf("# %v", rule.Explanation),
 		Arguments: arguments,
 		Blocks:    aclProtocol(rule.Protocol),
-	}
+	}, nil
 }
 
-func singleACL(t *ir.ACL, comment string) tf.Block {
+func singleACL(t *ir.ACL, comment string) (tf.Block, error) {
 	rules := t.Rules()
 	blocks := make([]tf.Block, len(rules))
 	for i := range rules {
-		blocks[i] = aclRule(&rules[i], fmt.Sprintf("rule%v", i))
+		rule, err := aclRule(&rules[i], fmt.Sprintf("rule%v", i))
+		if err != nil {
+			return tf.Block{}, err
+		}
+		blocks[i] = rule
 	}
 	return tf.Block{
 		Comment: comment,
@@ -80,10 +90,10 @@ func singleACL(t *ir.ACL, comment string) tf.Block {
 			{Name: "vpc", Value: fmt.Sprintf("local.acl_synth_%s_id", ir.VpcFromScopedResource(t.Subnet))},
 		},
 		Blocks: blocks,
-	}
+	}, nil
 }
 
-func aclCollection(t *ir.ACLCollection, vpc string) *tf.ConfigFile {
+func aclCollection(t *ir.ACLCollection, vpc string) (*tf.ConfigFile, error) {
 	sortedACLs := t.SortedACLSubnets(vpc)
 	var acls = make([]tf.Block, len(sortedACLs))
 	i := 0
@@ -94,12 +104,16 @@ func aclCollection(t *ir.ACLCollection, vpc string) *tf.ConfigFile {
 		if len(sortedACLs) > 1 { // not a single nacl
 			comment = fmt.Sprintf("\n# %v [%v]", subnet, subnetCidr(acl))
 		}
-		acls[i] = singleACL(acl, comment)
+		singleACL, err := singleACL(acl, comment)
+		if err != nil {
+			return nil, err
+		}
+		acls[i] = singleACL
 		i += 1
 	}
 	return &tf.ConfigFile{
 		Resources: acls,
-	}
+	}, nil
 }
 
 func subnetCidr(acl *ir.ACL) *ipblock.IPBlock {
