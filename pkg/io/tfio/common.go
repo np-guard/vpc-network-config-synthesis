@@ -36,7 +36,7 @@ func portRange(r interval.Interval, prefix string) []tf.Argument {
 		arguments = append(arguments, tf.Argument{Name: prefix + "_min", Value: strconv.FormatInt(r.Start(), 10)})
 	}
 	if r.End() != netp.MaxPort {
-		arguments = append(arguments, tf.Argument{Name: prefix + "_max", Value: strconv.Itoa(int(r.End()))})
+		arguments = append(arguments, tf.Argument{Name: prefix + "_max", Value: strconv.FormatInt(r.End(), 10)})
 	}
 	return arguments
 }
