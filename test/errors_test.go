@@ -23,7 +23,7 @@ func TestErrors(t *testing.T) {
 				if err != nil {
 					res = err.Error()
 				}
-				t.Errorf("Bad test %s: expected: %s, got %s", tt.testName, tt.err, res)
+				t.Errorf("Bad test %s: expected err: %s, got err: %s", tt.testName, tt.err, res)
 			}
 		})
 	}
