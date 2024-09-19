@@ -17,14 +17,14 @@ import (
 )
 
 func TestUpdate(t *testing.T) {
-	for _, testCase := range allMainTests() {
-		t.Run(testCase.testName, func(t *testing.T) {
+	for _, tt := range allMainTests() {
+		t.Run(tt.testName, func(t *testing.T) {
 			// create a sub folder
-			if err := os.MkdirAll(filepath.Join(expectedFolder, testCase.testName), defaultDirectoryPermission); err != nil {
-				log.Printf("Bad test %s: %s", testCase.testName, err)
+			if err := os.MkdirAll(filepath.Join(expectedFolder, tt.testName), defaultDirectoryPermission); err != nil {
+				log.Printf("Bad test %s: %s", tt.testName, err)
 			}
 
-			cmd := fmt.Sprintf(testCase.command, dataFolder, dataFolder, expectedFolder)
+			cmd := fmt.Sprintf(tt.command, dataFolder, dataFolder, expectedFolder)
 			_ = m.Main(strings.Split(cmd, " "))
 		})
 	}

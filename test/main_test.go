@@ -17,35 +17,22 @@ import (
 	m "github.com/np-guard/vpc-network-config-synthesis/cmd/_vpcgen"
 )
 
-type testCase struct {
-	testName string
-	command  string
-}
-
-const (
-	dataFolder     = "data"
-	resultsFolder  = "results"
-	expectedFolder = "expected"
-
-	defaultDirectoryPermission = 0o755
-)
-
 func TestMain(t *testing.T) {
-	for _, testCase := range allMainTests() {
-		t.Run(testCase.testName, func(t *testing.T) {
+	for _, tt := range allMainTests() {
+		t.Run(tt.testName, func(t *testing.T) {
 			// create a sub folder
-			if err := os.MkdirAll(filepath.Join(resultsFolder, testCase.testName), defaultDirectoryPermission); err != nil {
-				handleErrors(t, testCase.testName, err)
+			if err := os.MkdirAll(filepath.Join(resultsFolder, tt.testName), defaultDirectoryPermission); err != nil {
+				handleErrors(t, tt.testName, err)
 			}
 
 			// run command
-			cmd := fmt.Sprintf(testCase.command, dataFolder, dataFolder, resultsFolder)
+			cmd := fmt.Sprintf(tt.command, dataFolder, dataFolder, resultsFolder)
 			if err := m.Main(strings.Split(cmd, " ")); err != nil {
-				t.Errorf("Bad test %s: %s", testCase.testName, err)
+				t.Errorf("Bad test %s: %s", tt.testName, err)
 			}
 
 			// compare results
-			compareTestResults(t, testCase.testName)
+			compareTestResults(t, tt.testName)
 		})
 	}
 	removeGeneratedFiles()

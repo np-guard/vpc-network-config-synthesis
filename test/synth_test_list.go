@@ -5,13 +5,13 @@ SPDX-License-Identifier: Apache-2.0
 
 package test
 
-func allMainTests() []testCase {
+func allMainTests() []mainTestCase {
 	return append(synthACLTestsList(), synthSGTestsList()...)
 }
 
 //nolint:lll // commands can be long
-func synthACLTestsList() []testCase {
-	return []testCase{
+func synthACLTestsList() []mainTestCase {
+	return []mainTestCase{
 		// acl segments (bidi)
 		{
 			testName: "acl_segments_tf",
@@ -85,8 +85,8 @@ func synthACLTestsList() []testCase {
 }
 
 //nolint:lll // commands can be long
-func synthSGTestsList() []testCase {
-	return []testCase{
+func synthSGTestsList() []mainTestCase {
+	return []mainTestCase{
 		// sg protocols (all output fmts, externals, scoping, nif as a resource)
 		{
 			testName: "sg_protocols_tf",
