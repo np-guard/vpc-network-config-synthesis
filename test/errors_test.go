@@ -6,7 +6,6 @@ SPDX-License-Identifier: Apache-2.0
 package test
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -17,8 +16,7 @@ func TestErrors(t *testing.T) {
 	for _, tt := range errorTestsList() {
 		t.Run(tt.testName, func(t *testing.T) {
 			// run command
-			cmd := fmt.Sprintf(tt.command, dataErrorsFolder, dataErrorsFolder, resultsFolder)
-			err := m.Main(strings.Split(cmd, " "))
+			err := m.Main(strings.Split(tt.command, " "))
 			strings.Contains("something", "some") // true
 			if err == nil || !strings.Contains(err.Error(), tt.err) {
 				res := "nil"
@@ -29,5 +27,4 @@ func TestErrors(t *testing.T) {
 			}
 		})
 	}
-
 }
