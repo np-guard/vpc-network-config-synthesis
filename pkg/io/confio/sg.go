@@ -126,8 +126,8 @@ func makeSGRules(nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecu
 	sg *ir.SG) []vpcv1.SecurityGroupRuleIntf {
 	rules := sg.AllRules()
 	ruleItems := make([]vpcv1.SecurityGroupRuleIntf, len(rules))
-	for i := range rules {
-		ruleItems[i] = makeSGRuleItem(nameToSGRemoteRef, &rules[i], i)
+	for i, rule := range rules {
+		ruleItems[i] = makeSGRuleItem(nameToSGRemoteRef, rule, i)
 	}
 	return ruleItems
 }
