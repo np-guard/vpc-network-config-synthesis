@@ -135,18 +135,7 @@ resource "ibm_is_network_acl" "acl-test-vpc0--subnet4" {
     source      = "10.240.8.0/24"
     destination = "10.240.9.0/24"
     icmp {
-      type = 0
-    }
-  }
-  # Internal. response to required-connections[2]: (subnet test-vpc0/subnet4)->(subnet test-vpc0/subnet5); allowed-protocols[0]
-  rules {
-    name        = "rule1"
-    action      = "allow"
-    direction   = "inbound"
-    source      = "10.240.9.0/24"
-    destination = "10.240.8.0/24"
-    icmp {
-      type = 8
+      type = 4
     }
   }
 }
@@ -164,18 +153,7 @@ resource "ibm_is_network_acl" "acl-test-vpc0--subnet5" {
     source      = "10.240.8.0/24"
     destination = "10.240.9.0/24"
     icmp {
-      type = 0
-    }
-  }
-  # Internal. response to required-connections[2]: (subnet test-vpc0/subnet4)->(subnet test-vpc0/subnet5); allowed-protocols[0]
-  rules {
-    name        = "rule1"
-    action      = "allow"
-    direction   = "outbound"
-    source      = "10.240.9.0/24"
-    destination = "10.240.8.0/24"
-    icmp {
-      type = 8
+      type = 4
     }
   }
 }

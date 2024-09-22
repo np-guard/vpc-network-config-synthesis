@@ -61,7 +61,7 @@ func sgProtocol(t netp.Protocol) []tf.Block {
 }
 
 func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) (tf.Block, error) {
-	ruleName := fmt.Sprintf("%v-%v", sgName, i)
+	ruleName := fmt.Sprintf("%s-%v", ir.ChangeScoping(sgName.String()), i)
 	if err := verifyName(ruleName); err != nil {
 		return tf.Block{}, err
 	}
@@ -108,7 +108,7 @@ func sgCollection(t *ir.SGCollection, vpc string) (*tf.ConfigFile, error) {
 		vpcName := ir.VpcFromScopedResource(string(sgName))
 		rules := t.SGs[vpcName][sgName].AllRules()
 		comment = fmt.Sprintf("\n### SG attached to %v", sgName)
-		sg, err := sg(sgName.String(), comment)
+		sg, err := sg(ir.ChangeScoping(sgName.String()), comment)
 		if err != nil {
 			return nil, err
 		}

@@ -73,7 +73,7 @@ func verifyName(name string) error {
 		return err
 	}
 	if !ok {
-		return fmt.Errorf("\"name\" should match regexp %q", pattern)
+		return fmt.Errorf("%q should match regexp %q", name, pattern)
 	}
 	return nil
 }

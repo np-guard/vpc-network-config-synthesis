@@ -146,6 +146,7 @@ func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCol
 
 func updateSingleACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCollection) error {
 	aclItem := &configModel.NetworkACL{}
+	var err error
 
 	for i, subnet := range model.SubnetList {
 		vpcName := *subnet.VPC.Name
@@ -154,7 +155,7 @@ func updateSingleACL(model *configModel.ResourcesContainerModel, collection *ir.
 		// if this is the first subnet being added to the ACL, add it to the list of network ACLs
 		// otherwise, add the subnet reference to the existing ACL item
 		if i == 0 {
-			aclItem, err := newACLItem(subnet, acl)
+			aclItem, err = newACLItem(subnet, acl)
 			if err != nil {
 				return err
 			}

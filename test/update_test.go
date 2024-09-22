@@ -21,11 +21,14 @@ func TestUpdate(t *testing.T) {
 		t.Run(tt.testName, func(t *testing.T) {
 			// create a sub folder
 			if err := os.MkdirAll(filepath.Join(expectedFolder, tt.testName), defaultDirectoryPermission); err != nil {
-				log.Printf("Bad test %s: %s", tt.testName, err)
+				t.Errorf("Bad test %s: %s", tt.testName, err)
 			}
 
 			cmd := fmt.Sprintf(tt.command, dataFolder, dataFolder, expectedFolder)
-			_ = m.Main(strings.Split(cmd, " "))
+			err := m.Main(strings.Split(cmd, " "))
+			if err != nil {
+				t.Errorf("Bad test %s: %s", tt.testName, err)
+			}
 		})
 	}
 	log.Printf("done")

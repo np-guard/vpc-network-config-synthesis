@@ -1,0 +1,82 @@
+{
+    "externals": {
+        "public internet": "0.0.0.0/0"
+    },
+    "required-connections": [
+        {
+            "src": {
+                "name": "public internet",
+                "type": "external"
+            },
+            "dst": {
+                "name": "proxy",
+                "type": "instance"
+            }
+        },
+        {
+            "src": {
+                "name": "proxy",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "fe",
+                "type": "instance"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP",
+                    "min_destination_port": 9000,
+                    "max_destination_port": 9000
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "fe",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "be",
+                "type": "instance"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "be",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "opa",
+                "type": "instance"
+            }
+            
+        }, 
+        {
+            "src": {
+                "name": "be",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "policydb-endpoint-gateway",
+                "type": "vpe"
+            }
+            
+        }, 
+        {
+            "src": {
+                "name": "opa",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "policydb-endpoint-gateway",
+                "type": "vpe"
+            }
+            
+        }
+    ]
+}
