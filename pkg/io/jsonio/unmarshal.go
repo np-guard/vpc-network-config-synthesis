@@ -261,7 +261,7 @@ func translateProtocols(protocols spec.ProtocolList) ([]ir.TrackedProtocol, erro
 		switch p := _p.(type) {
 		case spec.AnyProtocol:
 			if len(protocols) != 1 {
-				log.Println("when allowing any protocol, there is no need in more protocols")
+				log.Println("when allowing any protocol, there is no need in other protocols")
 			}
 			result[i].Protocol = netp.AnyProtocol{}
 		case spec.Icmp:

@@ -63,9 +63,9 @@ func direction(d ir.Direction) string {
 	return string(d)
 }
 
-// Note: Resource names must start with a letter or underscore, and may
+// Resource names must start with a letter or underscore, and may
 // contain only letters, digits, underscores, and dashes.
-// https://developer.hashicorp.com/terraform/language/resources/syntax
+// (https://developer.hashicorp.com/terraform/language/resources/syntax)
 func verifyName(name string) error {
 	pattern := "^[A-Za-z_][A-Za-z0-9_-]*$"
 	ok, err := regexp.MatchString(pattern, name)
