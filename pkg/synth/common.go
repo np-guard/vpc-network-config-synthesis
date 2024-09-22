@@ -8,7 +8,7 @@ package synth
 import (
 	"fmt"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
@@ -20,7 +20,7 @@ type (
 
 	namedAddrs struct {
 		Name  ir.ID
-		Addrs *ipblock.IPBlock
+		Addrs *netset.IPBlock
 	}
 
 	explanation struct {

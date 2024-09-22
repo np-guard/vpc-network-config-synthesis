@@ -11,13 +11,14 @@ import (
 	"github.com/IBM/vpc-go-sdk/vpcv1"
 
 	configModel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
-func cidr(address *ipblock.IPBlock) *string {
+func cidr(address *netset.IPBlock) *string {
 	return utils.Ptr(address.ToCidrListString())
 }
 
@@ -29,7 +30,7 @@ func makeACLRuleItem(rule *ir.ACLRule, current,
 	source := cidr(rule.Source)
 	destination := cidr(rule.Destination)
 	switch p := rule.Protocol.(type) {
-	case ir.TCPUDP:
+	case netp.TCPUDP:
 		data := tcpudp(p)
 		result := &vpcv1.NetworkACLRuleItemNetworkACLRuleProtocolTcpudp{
 			Href:        current.Href,
@@ -49,7 +50,7 @@ func makeACLRuleItem(rule *ir.ACLRule, current,
 			DestinationPortMax: data.dstPortMax,
 		}
 		return result, nil
-	case ir.ICMP:
+	case netp.ICMP:
 		data := icmp(p)
 		result := &vpcv1.NetworkACLRuleItemNetworkACLRuleProtocolIcmp{
 			Href:        current.Href,
@@ -67,7 +68,7 @@ func makeACLRuleItem(rule *ir.ACLRule, current,
 			Code:     data.Code,
 		}
 		return result, nil
-	case ir.AnyProtocol:
+	case netp.AnyProtocol:
 		data := all()
 		result := &vpcv1.NetworkACLRuleItemNetworkACLRuleProtocolAll{
 			Href:        current.Href,

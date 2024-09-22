@@ -9,7 +9,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/interval"
+	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
@@ -89,19 +91,19 @@ func makeSGTable(t *ir.SG, sgName ir.SGName) ([][]string, error) {
 	return rows, nil
 }
 
-func sgPort(p ir.PortRange) string {
+func sgPort(p interval.Interval) string {
 	switch {
-	case p.Min == ir.DefaultMinPort && p.Max == ir.DefaultMaxPort:
+	case p.Start() == netp.MinPort && p.End() == netp.MaxPort:
 		return "any port"
 	default:
-		return fmt.Sprintf("Ports %v-%v", p.Min, p.Max)
+		return fmt.Sprintf("ports %v-%v", p.Start(), p.End())
 	}
 }
 
 func sgRemoteType(t ir.RemoteType) (string, error) {
-	switch tr := t.(type) {
-	case *ipblock.IPBlock:
-		if ir.IsIPAddress(tr) {
+	switch r := t.(type) {
+	case *netset.IPBlock:
+		if ipString := r.ToIPAddressString(); ipString != "" { // single IP address
 			return "IP address", nil
 		}
 		return "CIDR block", nil
@@ -113,9 +115,9 @@ func sgRemoteType(t ir.RemoteType) (string, error) {
 
 func sgRemote(r ir.RemoteType) (string, error) {
 	switch tr := r.(type) {
-	case *ipblock.IPBlock:
+	case *netset.IPBlock:
 		s := tr.String()
-		if s == ipblock.CidrAll {
+		if s == netset.CidrAll {
 			return "Any IP", nil
 		}
 		return s, nil
@@ -125,13 +127,13 @@ func sgRemote(r ir.RemoteType) (string, error) {
 	return "", fmt.Errorf("impossible remote %v (%T)", r, r)
 }
 
-func printProtocolParams(protocol ir.Protocol) (string, error) {
+func printProtocolParams(protocol netp.Protocol) (string, error) {
 	switch p := protocol.(type) {
-	case ir.ICMP:
+	case netp.ICMP:
 		return printICMPTypeCode(protocol), nil
-	case ir.TCPUDP:
-		return sgPort(p.PortRangePair.DstPort), nil
-	case ir.AnyProtocol:
+	case netp.TCPUDP:
+		return sgPort(p.DstPorts()), nil
+	case netp.AnyProtocol:
 		return "", nil
 	}
 	return "", fmt.Errorf("impossible protocol %v (type %T)", protocol, protocol)

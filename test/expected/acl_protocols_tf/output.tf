@@ -7,10 +7,18 @@ resource "ibm_is_network_acl" "acl-test-vpc0--subnet0" {
   rules {
     name        = "rule0"
     action      = "allow"
+<<<<<<< HEAD:test/expected/acl_protocols_tf/output.tf
     direction   = "outbound"
     source      = "10.240.0.0/24"
     destination = "10.240.1.0/24"
     tcp {
+=======
+    direction   = "inbound"
+    source      = "10.240.8.0/24"
+    destination = "10.240.0.0/24"
+    icmp {
+      type = 0
+>>>>>>> main:test/data/acl_nif/nacl_expected.tf
     }
   }
   # Internal. response to required-connections[0]: (subnet test-vpc0/subnet0)->(subnet test-vpc0/subnet1); allowed-protocols[0]
@@ -29,7 +37,14 @@ resource "ibm_is_network_acl" "acl-test-vpc0--subnet0" {
     action      = "allow"
     direction   = "outbound"
     source      = "10.240.0.0/24"
+<<<<<<< HEAD:test/expected/acl_protocols_tf/output.tf
     destination = "10.240.1.0/24"
+=======
+    destination = "10.240.8.0/24"
+    icmp {
+      type = 8
+    }
+>>>>>>> main:test/data/acl_nif/nacl_expected.tf
   }
 }
 
@@ -167,8 +182,12 @@ resource "ibm_is_network_acl" "acl-test-vpc0--subnet4" {
     source      = "10.240.8.0/24"
     destination = "10.240.9.0/24"
     icmp {
+<<<<<<< HEAD:test/expected/acl_protocols_tf/output.tf
       type = 15
       code = 0
+=======
+      type = 0
+>>>>>>> main:test/data/acl_nif/nacl_expected.tf
     }
   }
   # Internal. response to required-connections[2]: (subnet test-vpc0/subnet4)->(subnet test-vpc0/subnet5); allowed-protocols[0]
@@ -179,8 +198,12 @@ resource "ibm_is_network_acl" "acl-test-vpc0--subnet4" {
     source      = "10.240.9.0/24"
     destination = "10.240.8.0/24"
     icmp {
+<<<<<<< HEAD:test/expected/acl_protocols_tf/output.tf
       type = 16
       code = 0
+=======
+      type = 8
+>>>>>>> main:test/data/acl_nif/nacl_expected.tf
     }
   }
   # Internal. required-connections[2]: (subnet test-vpc0/subnet4)->(subnet test-vpc0/subnet5); allowed-protocols[1]

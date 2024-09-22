@@ -8,12 +8,13 @@ package ir
 import (
 	"fmt"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 type Packet struct {
-	Src, Dst    *ipblock.IPBlock
-	Protocol    Protocol
+	Src, Dst    *netset.IPBlock
+	Protocol    netp.Protocol
 	Explanation string
 }
 
@@ -39,31 +40,31 @@ func packetACLRule(packet *Packet, direction Direction, action Action) *ACLRule 
 // makeDenyInternal prevents allowing external communications from accidentally allowing internal communications too
 func makeDenyInternal() []ACLRule {
 	localCidrs := []string{"10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"} // https://datatracker.ietf.org/doc/html/rfc1918#section-3
-	localCidrsIPBlocks, _ := ipblock.FromCidrList(localCidrs)
+	localCidrsIPBlocks, _ := netset.IPBlockFromCidrList(localCidrs)
 	localCidrsList := localCidrsIPBlocks.Split()
 	var denyInternal []ACLRule
-	for i, anyLocalCidrSrc := range localCidrsList {
-		for j, anyLocalCidrDst := range localCidrsList {
+	for i, localCidrSrc := range localCidrsList {
+		for j, localCidrDst := range localCidrsList {
 			explanation := fmt.Sprintf("Deny other internal communication; see rfc1918#3; item %v,%v", i, j)
 			denyInternal = append(denyInternal,
-				*packetACLRule(&Packet{Src: anyLocalCidrSrc, Dst: anyLocalCidrDst, Protocol: AnyProtocol{}, Explanation: explanation}, Outbound, Deny),
-				*packetACLRule(&Packet{Src: anyLocalCidrDst, Dst: anyLocalCidrSrc, Protocol: AnyProtocol{}, Explanation: explanation}, Inbound, Deny),
+				*packetACLRule(&Packet{Src: localCidrSrc, Dst: localCidrDst, Protocol: netp.AnyProtocol{}, Explanation: explanation}, Outbound, Deny),
+				*packetACLRule(&Packet{Src: localCidrDst, Dst: localCidrSrc, Protocol: netp.AnyProtocol{}, Explanation: explanation}, Inbound, Deny),
 			)
 		}
 	}
 	return denyInternal
 }
 
-func DenyAllSend(subnetName ID, cidr *ipblock.IPBlock) *ACLRule {
+func DenyAllSend(subnetName ID, cidr *netset.IPBlock) *ACLRule {
 	explanation := DenyAllExplanation(subnetName, cidr)
-	return packetACLRule(&Packet{Src: cidr, Dst: ipblock.GetCidrAll(), Protocol: AnyProtocol{}, Explanation: explanation}, Outbound, Deny)
+	return packetACLRule(&Packet{Src: cidr, Dst: netset.GetCidrAll(), Protocol: netp.AnyProtocol{}, Explanation: explanation}, Outbound, Deny)
 }
 
-func DenyAllReceive(subnetName ID, cidr *ipblock.IPBlock) *ACLRule {
+func DenyAllReceive(subnetName ID, cidr *netset.IPBlock) *ACLRule {
 	explanation := DenyAllExplanation(subnetName, cidr)
-	return packetACLRule(&Packet{Src: ipblock.GetCidrAll(), Dst: cidr, Protocol: AnyProtocol{}, Explanation: explanation}, Inbound, Deny)
+	return packetACLRule(&Packet{Src: netset.GetCidrAll(), Dst: cidr, Protocol: netp.AnyProtocol{}, Explanation: explanation}, Inbound, Deny)
 }
 
-func DenyAllExplanation(subnetName ID, cidr *ipblock.IPBlock) string {
+func DenyAllExplanation(subnetName ID, cidr *netset.IPBlock) string {
 	return fmt.Sprintf("Deny all communication; subnet %s[%s] does not have required connections", subnetName, cidr.String())
 }

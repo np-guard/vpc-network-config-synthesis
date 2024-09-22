@@ -13,6 +13,9 @@ import (
 	"regexp"
 	"strconv"
 
+	"github.com/np-guard/models/pkg/interval"
+	"github.com/np-guard/models/pkg/netp"
+
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/tfio/tf"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
@@ -26,18 +29,18 @@ func NewWriter(w io.Writer) *Writer {
 	return &Writer{w: bufio.NewWriter(w)}
 }
 
-func portRange(r ir.PortRange, prefix string) []tf.Argument {
+func portRange(r interval.Interval, prefix string) []tf.Argument {
 	var arguments []tf.Argument
-	if r.Min != ir.DefaultMinPort {
-		arguments = append(arguments, tf.Argument{Name: prefix + "_min", Value: strconv.Itoa(r.Min)})
+	if r.Start() != netp.MinPort {
+		arguments = append(arguments, tf.Argument{Name: prefix + "_min", Value: strconv.FormatInt(r.Start(), 10)})
 	}
-	if r.Max != ir.DefaultMaxPort {
-		arguments = append(arguments, tf.Argument{Name: prefix + "_max", Value: strconv.Itoa(r.Max)})
+	if r.End() != netp.MaxPort {
+		arguments = append(arguments, tf.Argument{Name: prefix + "_max", Value: strconv.FormatInt(r.End(), 10)})
 	}
 	return arguments
 }
 
-func codeTypeArguments(ct *ir.ICMPCodeType) []tf.Argument {
+func codeTypeArguments(ct *netp.ICMPTypeCode) []tf.Argument {
 	var arguments []tf.Argument
 	if ct != nil {
 		arguments = append(arguments, tf.Argument{Name: "type", Value: strconv.Itoa(ct.Type)})

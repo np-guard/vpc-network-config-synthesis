@@ -9,7 +9,7 @@ package synth
 import (
 	"fmt"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
@@ -81,7 +81,7 @@ func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection) err
 // if the src in internal, rule(s) will be created to allow traffic.
 // if the protocol allows response, more rules will be created.
 func (a *ACLSynthesizer) allowConnectionFromSrc(conn *ir.Connection, trackedProtocol ir.TrackedProtocol,
-	srcSubnets []*namedAddrs, dstCidr *ipblock.IPBlock) {
+	srcSubnets []*namedAddrs, dstCidr *netset.IPBlock) {
 	internalSrc, _, internal := internalConn(conn)
 
 	if !internalSrc {
@@ -104,7 +104,7 @@ func (a *ACLSynthesizer) allowConnectionFromSrc(conn *ir.Connection, trackedProt
 // if the dst in internal, rule(s) will be created to allow traffic.
 // if the protocol allows response, more rules will be created.
 func (a *ACLSynthesizer) allowConnectionToDst(conn *ir.Connection, trackedProtocol ir.TrackedProtocol,
-	dstSubnets []*namedAddrs, srcCidr *ipblock.IPBlock) {
+	dstSubnets []*namedAddrs, srcCidr *netset.IPBlock) {
 	_, internalDst, internal := internalConn(conn)
 
 	if !internalDst {
@@ -137,7 +137,7 @@ func (a *ACLSynthesizer) generateACLRulesForBlockedSubnets() {
 
 // convert src and dst resources to namedAddrs slices to make it more convenient to go through the addrs and add
 // the rule to the relevant acl. Note: in case where the resource in a nif, src/dst will be updated to be its subnet.
-func adjustResource(s *ir.Definitions, addrs *ipblock.IPBlock, resource ir.Resource) ([]*namedAddrs, *ipblock.IPBlock) {
+func adjustResource(s *ir.Definitions, addrs *netset.IPBlock, resource ir.Resource) ([]*namedAddrs, *netset.IPBlock) {
 	switch resource.Type {
 	case ir.ResourceTypeSubnet:
 		return adjustSubnet(s, addrs, resource.Name), addrs
@@ -152,7 +152,7 @@ func adjustResource(s *ir.Definitions, addrs *ipblock.IPBlock, resource ir.Resou
 	return []*namedAddrs{}, nil // shouldn't happen
 }
 
-func adjustSubnet(s *ir.Definitions, addrs *ipblock.IPBlock, resourceName string) []*namedAddrs {
+func adjustSubnet(s *ir.Definitions, addrs *netset.IPBlock, resourceName string) []*namedAddrs {
 	// Todo: Handle the case where there is a subnet and a subnetSegment with the same name
 	if subnetDetails, ok := s.Subnets[resourceName]; ok { // resource is a subnet
 		return []*namedAddrs{{Name: resourceName, Addrs: subnetDetails.Address()}}
@@ -166,7 +166,7 @@ func adjustSubnet(s *ir.Definitions, addrs *ipblock.IPBlock, resourceName string
 	return []*namedAddrs{} // shouldn't happen
 }
 
-func adjustCidrSegment(s *ir.Definitions, cidr *ipblock.IPBlock, resourceName string) []*namedAddrs {
+func adjustCidrSegment(s *ir.Definitions, cidr *netset.IPBlock, resourceName string) []*namedAddrs {
 	cidrSegmentDetails := s.CidrSegments[resourceName]
 	cidrDetails := cidrSegmentDetails.Cidrs[cidr]
 	result := make([]*namedAddrs, len(cidrDetails.ContainedSubnets))
@@ -176,7 +176,7 @@ func adjustCidrSegment(s *ir.Definitions, cidr *ipblock.IPBlock, resourceName st
 	return result
 }
 
-func expandNifToSubnet(s *ir.Definitions, addr *ipblock.IPBlock) []*namedAddrs {
+func expandNifToSubnet(s *ir.Definitions, addr *netset.IPBlock) []*namedAddrs {
 	nifName, _ := s.NIFFromIP(addr) // already checked before (Lookup function) that the NIF exists
 	subnetName := s.NIFs[nifName].Subnet
 	subnetCidr := s.Subnets[subnetName].Address()

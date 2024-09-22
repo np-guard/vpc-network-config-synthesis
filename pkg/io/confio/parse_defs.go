@@ -12,7 +12,7 @@ import (
 
 	configModel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
@@ -59,9 +59,9 @@ func ReadDefs(filename string) (*ir.ConfigDefs, error) {
 func parseVPCs(config *configModel.ResourcesContainerModel) (map[ir.ID]*ir.VPCDetails, error) {
 	VPCs := make(map[ir.ID]*ir.VPCDetails, len(config.VpcList))
 	for _, vpc := range config.VpcList {
-		addressPrefixes := ipblock.New()
+		addressPrefixes := netset.NewIPBlock()
 		for _, addressPrefix := range vpc.AddressPrefixes {
-			address, err := ipblock.FromCidr(*addressPrefix.CIDR)
+			address, err := netset.IPBlockFromCidr(*addressPrefix.CIDR)
 			if err != nil {
 				return nil, err
 			}
@@ -76,7 +76,7 @@ func parseSubnets(config *configModel.ResourcesContainerModel) (map[ir.ID]*ir.Su
 	subnets := make(map[ir.ID]*ir.SubnetDetails, len(config.SubnetList))
 	for _, subnet := range config.SubnetList {
 		uniqueName := ScopingString(*subnet.VPC.Name, *subnet.Name)
-		cidr, err := ipblock.FromCidr(*subnet.Ipv4CIDRBlock)
+		cidr, err := netset.IPBlockFromCidr(*subnet.Ipv4CIDRBlock)
 		if err != nil {
 			return nil, err
 		}
@@ -99,7 +99,7 @@ func parseInstancesNifs(config *configModel.ResourcesContainerModel) (instances 
 		instanceNifs := make([]ir.ID, len(instance.NetworkInterfaces))
 		for i := range instance.NetworkInterfaces {
 			nifUniqueName := ScopingString(instanceUniqueName, *instance.NetworkInterfaces[i].Name)
-			nifIP, err := ipblock.FromIPAddress(*instance.NetworkInterfaces[i].PrimaryIP.Address)
+			nifIP, err := netset.IPBlockFromIPAddress(*instance.NetworkInterfaces[i].PrimaryIP.Address)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -149,7 +149,7 @@ func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]*ir.
 			VPEName := ScopingString(*subnet.VPC.Name, *t.Name)
 			subnetName := ScopingString(*subnet.VPC.Name, *subnet.Name)
 			uniqueVpeReservedIPName := ScopingString(VPEName, *r.Name)
-			vpeIP, err := ipblock.FromIPAddress(*r.Address)
+			vpeIP, err := netset.IPBlockFromIPAddress(*r.Address)
 			if err != nil {
 				return nil, nil, err
 			}

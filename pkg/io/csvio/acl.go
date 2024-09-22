@@ -10,7 +10,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/interval"
+	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
@@ -46,13 +48,11 @@ func makeACLTable(t *ir.ACL, subnet string) ([][]string, error) {
 	return rows, nil
 }
 
-func aclPort(p ir.PortRange) string {
-	switch {
-	case p.Min == ir.DefaultMinPort && p.Max == ir.DefaultMaxPort:
+func aclPort(p interval.Interval) string {
+	if p.Equal(netp.AllPorts()) {
 		return "any port" //nolint:goconst // independent decision for SG and ACL
-	default:
-		return fmt.Sprintf("ports %v-%v", p.Min, p.Max)
 	}
+	return fmt.Sprintf("ports %v-%v", p.Start(), p.End())
 }
 
 func action(a ir.Action) string {
@@ -98,23 +98,23 @@ func makeACLRow(priority int, rule *ir.ACLRule, aclName, subnet string) ([]strin
 	}, nil
 }
 
-func printIP(ip *ipblock.IPBlock, protocol ir.Protocol, isSource bool) (string, error) {
+func printIP(ip *netset.IPBlock, protocol netp.Protocol, isSource bool) (string, error) {
 	ipString := ip.String()
-	if ip.Equal(ipblock.GetCidrAll()) {
+	if ip.Equal(netset.GetCidrAll()) {
 		ipString = "Any IP" //nolint:goconst // independent decision for SG and ACL
 	}
 	switch p := protocol.(type) {
-	case ir.ICMP:
+	case netp.ICMP:
 		return ipString, nil
-	case ir.TCPUDP:
-		var r ir.PortRange
+	case netp.TCPUDP:
+		var r interval.Interval
 		if isSource {
-			r = p.PortRangePair.SrcPort
+			r = p.SrcPorts()
 		} else {
-			r = p.PortRangePair.DstPort
+			r = p.DstPorts()
 		}
 		return fmt.Sprintf("%v, %v", ipString, aclPort(r)), nil
-	case ir.AnyProtocol:
+	case netp.AnyProtocol:
 		return ipString, nil
 	}
 	return "", fmt.Errorf("impossible protocol %T", protocol)

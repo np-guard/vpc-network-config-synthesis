@@ -8,6 +8,7 @@ package synth
 import (
 	"fmt"
 
+	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
@@ -78,7 +79,7 @@ func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection) error
 }
 
 // if the endpoint in internal, a rule will be created to allow traffic.
-func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *namedAddrs, protocol ir.Protocol,
+func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *namedAddrs, protocol netp.Protocol,
 	direction ir.Direction, internalEndpoint bool, ruleExplanation string) {
 	if !internalEndpoint {
 		return

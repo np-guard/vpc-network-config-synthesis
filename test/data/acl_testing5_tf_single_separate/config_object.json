@@ -1586,6 +1586,1034 @@
                 "resource_type": "vpc"
             },
             "tags": []
+<<<<<<< HEAD:test/data/acl_testing5_tf_single_separate/config_object.json
+=======
+        },
+        {
+            "created_at": null,
+            "crn": "fake:crn:1",
+            "href": "fake:href:1",
+            "id": "fake:id:1",
+            "name": "acl-testacl5-vpc--singleACL",
+            "resource_group": {
+                "href": "href:16",
+                "id": "id:17",
+                "name": "name:4"
+            },
+            "rules": [
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:52",
+                        "id": "fake:id:52",
+                        "name": "rule1"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.64.0/24",
+                    "direction": "outbound",
+                    "href": "fake:href:53",
+                    "id": "fake:id:53",
+                    "ip_version": "ipv4",
+                    "name": "rule0",
+                    "source": "10.240.1.0/24",
+                    "protocol": "all"
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:51",
+                        "id": "fake:id:51",
+                        "name": "rule2"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.1.0/24",
+                    "direction": "inbound",
+                    "href": "fake:href:52",
+                    "id": "fake:id:52",
+                    "ip_version": "ipv4",
+                    "name": "rule1",
+                    "source": "10.240.64.0/24",
+                    "protocol": "all"
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:50",
+                        "id": "fake:id:50",
+                        "name": "rule3"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.64.0/24",
+                    "direction": "inbound",
+                    "href": "fake:href:51",
+                    "id": "fake:id:51",
+                    "ip_version": "ipv4",
+                    "name": "rule2",
+                    "source": "10.240.1.0/24",
+                    "protocol": "all"
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:49",
+                        "id": "fake:id:49",
+                        "name": "rule4"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.1.0/24",
+                    "direction": "outbound",
+                    "href": "fake:href:50",
+                    "id": "fake:id:50",
+                    "ip_version": "ipv4",
+                    "name": "rule3",
+                    "source": "10.240.64.0/24",
+                    "protocol": "all"
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:48",
+                        "id": "fake:id:48",
+                        "name": "rule5"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.128.0/24",
+                    "direction": "outbound",
+                    "href": "fake:href:49",
+                    "id": "fake:id:49",
+                    "ip_version": "ipv4",
+                    "name": "rule4",
+                    "source": "10.240.1.0/24",
+                    "protocol": "icmp",
+                    "type": 0
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:47",
+                        "id": "fake:id:47",
+                        "name": "rule6"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.1.0/24",
+                    "direction": "inbound",
+                    "href": "fake:href:48",
+                    "id": "fake:id:48",
+                    "ip_version": "ipv4",
+                    "name": "rule5",
+                    "source": "10.240.128.0/24",
+                    "protocol": "icmp",
+                    "type": 8
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:46",
+                        "id": "fake:id:46",
+                        "name": "rule7"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.128.0/24",
+                    "direction": "inbound",
+                    "href": "fake:href:47",
+                    "id": "fake:id:47",
+                    "ip_version": "ipv4",
+                    "name": "rule6",
+                    "source": "10.240.1.0/24",
+                    "protocol": "icmp",
+                    "type": 0
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:45",
+                        "id": "fake:id:45",
+                        "name": "rule8"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.1.0/24",
+                    "direction": "outbound",
+                    "href": "fake:href:46",
+                    "id": "fake:id:46",
+                    "ip_version": "ipv4",
+                    "name": "rule7",
+                    "source": "10.240.128.0/24",
+                    "protocol": "icmp",
+                    "type": 8
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:44",
+                        "id": "fake:id:44",
+                        "name": "rule9"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.128.0/24",
+                    "direction": "outbound",
+                    "href": "fake:href:45",
+                    "id": "fake:id:45",
+                    "ip_version": "ipv4",
+                    "name": "rule8",
+                    "source": "10.240.64.0/24",
+                    "protocol": "icmp",
+                    "type": 0
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:43",
+                        "id": "fake:id:43",
+                        "name": "rule10"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.64.0/24",
+                    "direction": "inbound",
+                    "href": "fake:href:44",
+                    "id": "fake:id:44",
+                    "ip_version": "ipv4",
+                    "name": "rule9",
+                    "source": "10.240.128.0/24",
+                    "protocol": "icmp",
+                    "type": 8
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:42",
+                        "id": "fake:id:42",
+                        "name": "rule11"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.128.0/24",
+                    "direction": "inbound",
+                    "href": "fake:href:43",
+                    "id": "fake:id:43",
+                    "ip_version": "ipv4",
+                    "name": "rule10",
+                    "source": "10.240.64.0/24",
+                    "protocol": "icmp",
+                    "type": 0
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:41",
+                        "id": "fake:id:41",
+                        "name": "rule12"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.64.0/24",
+                    "direction": "outbound",
+                    "href": "fake:href:42",
+                    "id": "fake:id:42",
+                    "ip_version": "ipv4",
+                    "name": "rule11",
+                    "source": "10.240.128.0/24",
+                    "protocol": "icmp",
+                    "type": 8
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:40",
+                        "id": "fake:id:40",
+                        "name": "rule13"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.2.0/24",
+                    "direction": "outbound",
+                    "href": "fake:href:41",
+                    "id": "fake:id:41",
+                    "ip_version": "ipv4",
+                    "name": "rule12",
+                    "source": "10.240.1.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:39",
+                        "id": "fake:id:39",
+                        "name": "rule14"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.1.0/24",
+                    "direction": "inbound",
+                    "href": "fake:href:40",
+                    "id": "fake:id:40",
+                    "ip_version": "ipv4",
+                    "name": "rule13",
+                    "source": "10.240.2.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:38",
+                        "id": "fake:id:38",
+                        "name": "rule15"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.2.0/24",
+                    "direction": "inbound",
+                    "href": "fake:href:39",
+                    "id": "fake:id:39",
+                    "ip_version": "ipv4",
+                    "name": "rule14",
+                    "source": "10.240.1.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:37",
+                        "id": "fake:id:37",
+                        "name": "rule16"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.1.0/24",
+                    "direction": "outbound",
+                    "href": "fake:href:38",
+                    "id": "fake:id:38",
+                    "ip_version": "ipv4",
+                    "name": "rule15",
+                    "source": "10.240.2.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:36",
+                        "id": "fake:id:36",
+                        "name": "rule17"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.3.0/24",
+                    "direction": "outbound",
+                    "href": "fake:href:37",
+                    "id": "fake:id:37",
+                    "ip_version": "ipv4",
+                    "name": "rule16",
+                    "source": "10.240.1.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:35",
+                        "id": "fake:id:35",
+                        "name": "rule18"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.1.0/24",
+                    "direction": "inbound",
+                    "href": "fake:href:36",
+                    "id": "fake:id:36",
+                    "ip_version": "ipv4",
+                    "name": "rule17",
+                    "source": "10.240.3.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:34",
+                        "id": "fake:id:34",
+                        "name": "rule19"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.3.0/24",
+                    "direction": "inbound",
+                    "href": "fake:href:35",
+                    "id": "fake:id:35",
+                    "ip_version": "ipv4",
+                    "name": "rule18",
+                    "source": "10.240.1.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:33",
+                        "id": "fake:id:33",
+                        "name": "rule20"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.1.0/24",
+                    "direction": "outbound",
+                    "href": "fake:href:34",
+                    "id": "fake:id:34",
+                    "ip_version": "ipv4",
+                    "name": "rule19",
+                    "source": "10.240.3.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:32",
+                        "id": "fake:id:32",
+                        "name": "rule21"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.3.0/24",
+                    "direction": "outbound",
+                    "href": "fake:href:33",
+                    "id": "fake:id:33",
+                    "ip_version": "ipv4",
+                    "name": "rule20",
+                    "source": "10.240.2.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:31",
+                        "id": "fake:id:31",
+                        "name": "rule22"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.2.0/24",
+                    "direction": "inbound",
+                    "href": "fake:href:32",
+                    "id": "fake:id:32",
+                    "ip_version": "ipv4",
+                    "name": "rule21",
+                    "source": "10.240.3.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:30",
+                        "id": "fake:id:30",
+                        "name": "rule23"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.3.0/24",
+                    "direction": "inbound",
+                    "href": "fake:href:31",
+                    "id": "fake:id:31",
+                    "ip_version": "ipv4",
+                    "name": "rule22",
+                    "source": "10.240.2.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:29",
+                        "id": "fake:id:29",
+                        "name": "rule24"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.2.0/24",
+                    "direction": "outbound",
+                    "href": "fake:href:30",
+                    "id": "fake:id:30",
+                    "ip_version": "ipv4",
+                    "name": "rule23",
+                    "source": "10.240.3.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:28",
+                        "id": "fake:id:28",
+                        "name": "rule25"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.65.0/24",
+                    "direction": "outbound",
+                    "href": "fake:href:29",
+                    "id": "fake:id:29",
+                    "ip_version": "ipv4",
+                    "name": "rule24",
+                    "source": "10.240.64.0/24",
+                    "protocol": "all"
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:27",
+                        "id": "fake:id:27",
+                        "name": "rule26"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.64.0/24",
+                    "direction": "inbound",
+                    "href": "fake:href:28",
+                    "id": "fake:id:28",
+                    "ip_version": "ipv4",
+                    "name": "rule25",
+                    "source": "10.240.65.0/24",
+                    "protocol": "all"
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:26",
+                        "id": "fake:id:26",
+                        "name": "rule27"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.65.0/24",
+                    "direction": "inbound",
+                    "href": "fake:href:27",
+                    "id": "fake:id:27",
+                    "ip_version": "ipv4",
+                    "name": "rule26",
+                    "source": "10.240.64.0/24",
+                    "protocol": "all"
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:25",
+                        "id": "fake:id:25",
+                        "name": "rule28"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.64.0/24",
+                    "direction": "outbound",
+                    "href": "fake:href:26",
+                    "id": "fake:id:26",
+                    "ip_version": "ipv4",
+                    "name": "rule27",
+                    "source": "10.240.65.0/24",
+                    "protocol": "all"
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:24",
+                        "id": "fake:id:24",
+                        "name": "rule29"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.64.0/24",
+                    "direction": "outbound",
+                    "href": "fake:href:25",
+                    "id": "fake:id:25",
+                    "ip_version": "ipv4",
+                    "name": "rule28",
+                    "source": "10.240.128.0/24",
+                    "destination_port_max": 443,
+                    "destination_port_min": 443,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:23",
+                        "id": "fake:id:23",
+                        "name": "rule30"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.128.0/24",
+                    "direction": "inbound",
+                    "href": "fake:href:24",
+                    "id": "fake:id:24",
+                    "ip_version": "ipv4",
+                    "name": "rule29",
+                    "source": "10.240.64.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 443,
+                    "source_port_min": 443
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:22",
+                        "id": "fake:id:22",
+                        "name": "rule31"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.64.0/24",
+                    "direction": "inbound",
+                    "href": "fake:href:23",
+                    "id": "fake:id:23",
+                    "ip_version": "ipv4",
+                    "name": "rule30",
+                    "source": "10.240.128.0/24",
+                    "destination_port_max": 443,
+                    "destination_port_min": 443,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:21",
+                        "id": "fake:id:21",
+                        "name": "rule32"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.128.0/24",
+                    "direction": "outbound",
+                    "href": "fake:href:22",
+                    "id": "fake:id:22",
+                    "ip_version": "ipv4",
+                    "name": "rule31",
+                    "source": "10.240.64.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 443,
+                    "source_port_min": 443
+                },
+                {
+                    "action": "deny",
+                    "before": {
+                        "href": "fake:href:20",
+                        "id": "fake:id:20",
+                        "name": "rule33"
+                    },
+                    "created_at": null,
+                    "destination": "10.0.0.0/8",
+                    "direction": "outbound",
+                    "href": "fake:href:21",
+                    "id": "fake:id:21",
+                    "ip_version": "ipv4",
+                    "name": "rule32",
+                    "source": "10.0.0.0/8",
+                    "protocol": "all"
+                },
+                {
+                    "action": "deny",
+                    "before": {
+                        "href": "fake:href:19",
+                        "id": "fake:id:19",
+                        "name": "rule34"
+                    },
+                    "created_at": null,
+                    "destination": "10.0.0.0/8",
+                    "direction": "inbound",
+                    "href": "fake:href:20",
+                    "id": "fake:id:20",
+                    "ip_version": "ipv4",
+                    "name": "rule33",
+                    "source": "10.0.0.0/8",
+                    "protocol": "all"
+                },
+                {
+                    "action": "deny",
+                    "before": {
+                        "href": "fake:href:18",
+                        "id": "fake:id:18",
+                        "name": "rule35"
+                    },
+                    "created_at": null,
+                    "destination": "172.16.0.0/12",
+                    "direction": "outbound",
+                    "href": "fake:href:19",
+                    "id": "fake:id:19",
+                    "ip_version": "ipv4",
+                    "name": "rule34",
+                    "source": "10.0.0.0/8",
+                    "protocol": "all"
+                },
+                {
+                    "action": "deny",
+                    "before": {
+                        "href": "fake:href:17",
+                        "id": "fake:id:17",
+                        "name": "rule36"
+                    },
+                    "created_at": null,
+                    "destination": "10.0.0.0/8",
+                    "direction": "inbound",
+                    "href": "fake:href:18",
+                    "id": "fake:id:18",
+                    "ip_version": "ipv4",
+                    "name": "rule35",
+                    "source": "172.16.0.0/12",
+                    "protocol": "all"
+                },
+                {
+                    "action": "deny",
+                    "before": {
+                        "href": "fake:href:16",
+                        "id": "fake:id:16",
+                        "name": "rule37"
+                    },
+                    "created_at": null,
+                    "destination": "192.168.0.0/16",
+                    "direction": "outbound",
+                    "href": "fake:href:17",
+                    "id": "fake:id:17",
+                    "ip_version": "ipv4",
+                    "name": "rule36",
+                    "source": "10.0.0.0/8",
+                    "protocol": "all"
+                },
+                {
+                    "action": "deny",
+                    "before": {
+                        "href": "fake:href:15",
+                        "id": "fake:id:15",
+                        "name": "rule38"
+                    },
+                    "created_at": null,
+                    "destination": "10.0.0.0/8",
+                    "direction": "inbound",
+                    "href": "fake:href:16",
+                    "id": "fake:id:16",
+                    "ip_version": "ipv4",
+                    "name": "rule37",
+                    "source": "192.168.0.0/16",
+                    "protocol": "all"
+                },
+                {
+                    "action": "deny",
+                    "before": {
+                        "href": "fake:href:14",
+                        "id": "fake:id:14",
+                        "name": "rule39"
+                    },
+                    "created_at": null,
+                    "destination": "10.0.0.0/8",
+                    "direction": "outbound",
+                    "href": "fake:href:15",
+                    "id": "fake:id:15",
+                    "ip_version": "ipv4",
+                    "name": "rule38",
+                    "source": "172.16.0.0/12",
+                    "protocol": "all"
+                },
+                {
+                    "action": "deny",
+                    "before": {
+                        "href": "fake:href:13",
+                        "id": "fake:id:13",
+                        "name": "rule40"
+                    },
+                    "created_at": null,
+                    "destination": "172.16.0.0/12",
+                    "direction": "inbound",
+                    "href": "fake:href:14",
+                    "id": "fake:id:14",
+                    "ip_version": "ipv4",
+                    "name": "rule39",
+                    "source": "10.0.0.0/8",
+                    "protocol": "all"
+                },
+                {
+                    "action": "deny",
+                    "before": {
+                        "href": "fake:href:12",
+                        "id": "fake:id:12",
+                        "name": "rule41"
+                    },
+                    "created_at": null,
+                    "destination": "172.16.0.0/12",
+                    "direction": "outbound",
+                    "href": "fake:href:13",
+                    "id": "fake:id:13",
+                    "ip_version": "ipv4",
+                    "name": "rule40",
+                    "source": "172.16.0.0/12",
+                    "protocol": "all"
+                },
+                {
+                    "action": "deny",
+                    "before": {
+                        "href": "fake:href:11",
+                        "id": "fake:id:11",
+                        "name": "rule42"
+                    },
+                    "created_at": null,
+                    "destination": "172.16.0.0/12",
+                    "direction": "inbound",
+                    "href": "fake:href:12",
+                    "id": "fake:id:12",
+                    "ip_version": "ipv4",
+                    "name": "rule41",
+                    "source": "172.16.0.0/12",
+                    "protocol": "all"
+                },
+                {
+                    "action": "deny",
+                    "before": {
+                        "href": "fake:href:10",
+                        "id": "fake:id:10",
+                        "name": "rule43"
+                    },
+                    "created_at": null,
+                    "destination": "192.168.0.0/16",
+                    "direction": "outbound",
+                    "href": "fake:href:11",
+                    "id": "fake:id:11",
+                    "ip_version": "ipv4",
+                    "name": "rule42",
+                    "source": "172.16.0.0/12",
+                    "protocol": "all"
+                },
+                {
+                    "action": "deny",
+                    "before": {
+                        "href": "fake:href:9",
+                        "id": "fake:id:9",
+                        "name": "rule44"
+                    },
+                    "created_at": null,
+                    "destination": "172.16.0.0/12",
+                    "direction": "inbound",
+                    "href": "fake:href:10",
+                    "id": "fake:id:10",
+                    "ip_version": "ipv4",
+                    "name": "rule43",
+                    "source": "192.168.0.0/16",
+                    "protocol": "all"
+                },
+                {
+                    "action": "deny",
+                    "before": {
+                        "href": "fake:href:8",
+                        "id": "fake:id:8",
+                        "name": "rule45"
+                    },
+                    "created_at": null,
+                    "destination": "10.0.0.0/8",
+                    "direction": "outbound",
+                    "href": "fake:href:9",
+                    "id": "fake:id:9",
+                    "ip_version": "ipv4",
+                    "name": "rule44",
+                    "source": "192.168.0.0/16",
+                    "protocol": "all"
+                },
+                {
+                    "action": "deny",
+                    "before": {
+                        "href": "fake:href:7",
+                        "id": "fake:id:7",
+                        "name": "rule46"
+                    },
+                    "created_at": null,
+                    "destination": "192.168.0.0/16",
+                    "direction": "inbound",
+                    "href": "fake:href:8",
+                    "id": "fake:id:8",
+                    "ip_version": "ipv4",
+                    "name": "rule45",
+                    "source": "10.0.0.0/8",
+                    "protocol": "all"
+                },
+                {
+                    "action": "deny",
+                    "before": {
+                        "href": "fake:href:6",
+                        "id": "fake:id:6",
+                        "name": "rule47"
+                    },
+                    "created_at": null,
+                    "destination": "172.16.0.0/12",
+                    "direction": "outbound",
+                    "href": "fake:href:7",
+                    "id": "fake:id:7",
+                    "ip_version": "ipv4",
+                    "name": "rule46",
+                    "source": "192.168.0.0/16",
+                    "protocol": "all"
+                },
+                {
+                    "action": "deny",
+                    "before": {
+                        "href": "fake:href:5",
+                        "id": "fake:id:5",
+                        "name": "rule48"
+                    },
+                    "created_at": null,
+                    "destination": "192.168.0.0/16",
+                    "direction": "inbound",
+                    "href": "fake:href:6",
+                    "id": "fake:id:6",
+                    "ip_version": "ipv4",
+                    "name": "rule47",
+                    "source": "172.16.0.0/12",
+                    "protocol": "all"
+                },
+                {
+                    "action": "deny",
+                    "before": {
+                        "href": "fake:href:4",
+                        "id": "fake:id:4",
+                        "name": "rule49"
+                    },
+                    "created_at": null,
+                    "destination": "192.168.0.0/16",
+                    "direction": "outbound",
+                    "href": "fake:href:5",
+                    "id": "fake:id:5",
+                    "ip_version": "ipv4",
+                    "name": "rule48",
+                    "source": "192.168.0.0/16",
+                    "protocol": "all"
+                },
+                {
+                    "action": "deny",
+                    "before": {
+                        "href": "fake:href:3",
+                        "id": "fake:id:3",
+                        "name": "rule50"
+                    },
+                    "created_at": null,
+                    "destination": "192.168.0.0/16",
+                    "direction": "inbound",
+                    "href": "fake:href:4",
+                    "id": "fake:id:4",
+                    "ip_version": "ipv4",
+                    "name": "rule49",
+                    "source": "192.168.0.0/16",
+                    "protocol": "all"
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:2",
+                        "id": "fake:id:2",
+                        "name": "rule51"
+                    },
+                    "created_at": null,
+                    "destination": "8.8.8.8/32",
+                    "direction": "outbound",
+                    "href": "fake:href:3",
+                    "id": "fake:id:3",
+                    "ip_version": "ipv4",
+                    "name": "rule50",
+                    "source": "10.240.1.0/24",
+                    "destination_port_max": 53,
+                    "destination_port_min": 53,
+                    "protocol": "udp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "created_at": null,
+                    "destination": "8.8.8.8/32",
+                    "direction": "outbound",
+                    "href": "fake:href:2",
+                    "id": "fake:id:2",
+                    "ip_version": "ipv4",
+                    "name": "rule51",
+                    "source": "10.240.64.0/24",
+                    "destination_port_max": 53,
+                    "destination_port_min": 53,
+                    "protocol": "udp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                }
+            ],
+            "subnets": [
+                {
+                    "crn": "crn:24",
+                    "href": "href:25",
+                    "id": "id:26",
+                    "name": "sub1-2",
+                    "resource_type": "subnet"
+                },
+                {
+                    "crn": "crn:40",
+                    "href": "href:41",
+                    "id": "id:42",
+                    "name": "sub1-1",
+                    "resource_type": "subnet"
+                },
+                {
+                    "crn": "crn:59",
+                    "href": "href:60",
+                    "id": "id:61",
+                    "name": "sub2-1",
+                    "resource_type": "subnet"
+                },
+                {
+                    "crn": "crn:78",
+                    "href": "href:79",
+                    "id": "id:80",
+                    "name": "sub1-3",
+                    "resource_type": "subnet"
+                },
+                {
+                    "crn": "crn:91",
+                    "href": "href:92",
+                    "id": "id:93",
+                    "name": "sub2-2",
+                    "resource_type": "subnet"
+                },
+                {
+                    "crn": "crn:107",
+                    "href": "href:108",
+                    "id": "id:109",
+                    "name": "sub3-1",
+                    "resource_type": "subnet"
+                }
+            ],
+            "vpc": {
+                "crn": "crn:1",
+                "href": "href:2",
+                "id": "id:3",
+                "name": "testacl5-vpc",
+                "resource_type": "vpc"
+            },
+            "tags": []
+>>>>>>> main:test/data/acl_testing5/nacl_single_expected.json
         }
     ],
     "security_groups": [
