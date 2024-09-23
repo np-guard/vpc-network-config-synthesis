@@ -12,13 +12,23 @@ func allMainTests() []mainTestCase {
 //nolint:lll // commands can be long
 func synthACLTestsList() []mainTestCase {
 	return []mainTestCase{
+		// acl externals    ## acl_testing4 config
+		{
+			testName: "acl_externals_json",
+			command:  "../bin/vpcgen synth acl -c %s/acl_externals_json/config_object.json -s %s/acl_externals_json/conn_spec.json -o %s/acl_externals_json/nacl_expected.json",
+		},
+		{
+			testName: "acl_externals_tf",
+			command:  "../bin/vpcgen synth acl -c %s/acl_externals_tf/config_object.json -s %s/acl_externals_tf/conn_spec.json -o %s/acl_externals_tf/nacl_expected.tf",
+		},
+
 		// acl nif (scoping)    ## tg-multiple config
 		{
 			testName: "acl_nif_tf",
 			command:  "../bin/vpcgen synth acl -c %s/acl_nif_tf/config_object.json -s %s/acl_nif_tf/conn_spec.json -o %s/acl_nif_tf/nacl_expected.tf",
 		},
 
-		// acl protocols (all output fmts, externals are included)    ## tg-multiple config
+		// acl protocols (all output fmts)    ## tg-multiple config
 		{
 			testName: "acl_protocols_csv",
 			command:  "../bin/vpcgen synth acl -c %s/acl_protocols_csv/config_object.json -s %s/acl_protocols_csv/conn_spec.json -o %s/acl_protocols_csv/nacl_expected.csv",

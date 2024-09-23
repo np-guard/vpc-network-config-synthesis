@@ -1,8 +1,4 @@
 {
-    "externals": {
-        "dns": "8.8.8.8",
-        "public internet": "0.0.0.0/0"
-    },
     "required-connections": [
         {
             "src": {
@@ -89,26 +85,6 @@
             "dst": {
                 "name": "subnet5",
                 "type": "subnet"
-            }
-        },
-        {
-            "src": {
-                "name": "dns",
-                "type": "external"
-            },
-            "dst": {
-                "name": "subnet5",
-                "type": "subnet"
-            }
-        },
-        {
-            "src": {
-                "name": "subnet4",
-                "type": "subnet"
-            },
-            "dst": {
-                "name": "public internet",
-                "type": "external"
             }
         }
     ]

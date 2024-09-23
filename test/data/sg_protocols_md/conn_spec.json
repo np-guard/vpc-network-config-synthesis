@@ -85,16 +85,6 @@
         },
         {
             "src": {
-                "name": "vsi0-subnet20",
-                "type": "instance"
-            },
-            "dst": {
-                "name": "vsi2-subnet20",
-                "type": "instance"
-            }
-        },
-        {
-            "src": {
                 "name": "vsi1-subnet20",
                 "type": "instance"
             },
