@@ -82,7 +82,7 @@ func errorTestsList() []errorTestCase {
 		{
 			testName: "vpe acl",
 			command:  "../bin/vpcgen synth acl -c data_errors/vpe_acl/config_object.json -s data_errors/vpe_acl/conn_spec.json -o data_errors/vpe_acl/nacl_expected.tf",
-			err:      "ACL: src/dst of type vpe is not supported",
+			err:      "both source and destination are external for connection",
 		},
 
 		// impossible resource type
