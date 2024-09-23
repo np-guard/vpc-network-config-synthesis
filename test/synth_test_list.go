@@ -12,13 +12,13 @@ func allMainTests() []mainTestCase {
 //nolint:lll // commands can be long
 func synthACLTestsList() []mainTestCase {
 	return []mainTestCase{
-		// acl nif (scoping)
+		// acl nif (scoping)    ## tg-multiple config
 		{
 			testName: "acl_nif_tf",
 			command:  "../bin/vpcgen synth acl -c %s/acl_nif_tf/config_object.json -s %s/acl_nif_tf/conn_spec.json -o %s/acl_nif_tf/nacl_expected.tf",
 		},
 
-		// acl protocols (all output fmts, externals are included)
+		// acl protocols (all output fmts, externals are included)    ## tg-multiple config
 		{
 			testName: "acl_protocols_csv",
 			command:  "../bin/vpcgen synth acl -c %s/acl_protocols_csv/config_object.json -s %s/acl_protocols_csv/conn_spec.json -o %s/acl_protocols_csv/nacl_expected.csv",
@@ -36,13 +36,13 @@ func synthACLTestsList() []mainTestCase {
 			command:  "../bin/vpcgen synth acl -c %s/acl_protocols_tf/config_object.json -s %s/acl_protocols_tf/conn_spec.json -o %s/acl_protocols_tf/nacl_expected.tf",
 		},
 
-		// acl segments (bidi)
+		// acl segments (bidi)    ## acl_testing5 config
 		{
 			testName: "acl_segments_tf",
 			command:  "../bin/vpcgen synth acl -c %s/acl_segments_tf/config_object.json -s %s/acl_segments_tf/conn_spec.json -o %s/acl_segments_tf/nacl_expected.tf",
 		},
 
-		// acl testing 5 (json, json single, tf, tf separate, tf single, tf single separate)
+		// acl testing 5 (json, json single, tf, tf single)
 		{
 			testName: "acl_testing5_json",
 			command:  "../bin/vpcgen synth acl -c %s/acl_testing5_json/config_object.json -s %s/acl_testing5_json/conn_spec.json -o %s/acl_testing5_json/nacl_expected.json",
@@ -56,17 +56,8 @@ func synthACLTestsList() []mainTestCase {
 			command:  "../bin/vpcgen synth acl -c %s/acl_testing5_tf/config_object.json -s %s/acl_testing5_tf/conn_spec.json -o %s/acl_testing5_tf/nacl_expected.tf",
 		},
 		{
-			testName: "acl_testing5_tf_separate",
-			command:  "../bin/vpcgen synth acl -c %s/acl_testing5_tf_separate/config_object.json -s %s/acl_testing5_tf_separate/conn_spec.json -d %s/acl_testing5_tf_separate -f tf",
-		},
-		{
 			testName: "acl_testing5_tf_single",
 			command:  "../bin/vpcgen synth acl --single -c %s/acl_testing5_tf_single/config_object.json -s %s/acl_testing5_tf_single/conn_spec.json -o %s/acl_testing5_tf_single/nacl_single_expected.tf",
-		},
-
-		{
-			testName: "acl_testing5_tf_single_separate",
-			command:  "../bin/vpcgen synth acl --single -c %s/acl_testing5_tf_single_separate/config_object.json -s %s/acl_testing5_tf_single_separate/conn_spec.json -d %s/acl_testing5_tf_single_separate -f tf -p single",
 		},
 
 		// acl tg multiple (json, tf, tf separate)
@@ -88,7 +79,7 @@ func synthACLTestsList() []mainTestCase {
 //nolint:lll // commands can be long
 func synthSGTestsList() []mainTestCase {
 	return []mainTestCase{
-		// sg protocols (all output fmts, externals, scoping, nif as a resource)
+		// sg protocols (all output fmts, externals, scoping, nif as a resource)    ## tg-multiple config
 		{
 			testName: "sg_protocols_csv",
 			command:  "../bin/vpcgen synth sg -c %s/sg_protocols_csv/config_object.json -s %s/sg_protocols_csv/conn_spec.json -o %s/sg_protocols_csv/sg_expected.csv",

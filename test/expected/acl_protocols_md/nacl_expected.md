@@ -4,6 +4,8 @@
  | acl-test-vpc0/subnet0 | test-vpc0/subnet0 | Inbound | 2 | Allow | TCP | 10.240.1.0/24, any port | 10.240.0.0/24, any port | - | Internal. response to required-connections[0]: (subnet test-vpc0/subnet0)->(subnet test-vpc0/subnet1); allowed-protocols[0] | 
  | acl-test-vpc0/subnet0 | test-vpc0/subnet0 | Outbound | 3 | Allow | ICMP | 10.240.0.0/24 | 10.240.1.0/24 | Type: Any, Code: Any | Internal. required-connections[0]: (subnet test-vpc0/subnet0)->(subnet test-vpc0/subnet1); allowed-protocols[1] | 
  | acl-test-vpc0/subnet0 | test-vpc0/subnet0 | Inbound | 4 | Allow | ICMP | 10.240.1.0/24 | 10.240.0.0/24 | Type: Any, Code: Any | Internal. response to required-connections[0]: (subnet test-vpc0/subnet0)->(subnet test-vpc0/subnet1); allowed-protocols[1] | 
+ | acl-test-vpc0/subnet0 | test-vpc0/subnet0 | Outbound | 5 | Allow | ALL | 10.240.0.0/24 | 10.240.9.0/24 | - | Internal. required-connections[4]: (subnet test-vpc0/subnet0)->(subnet test-vpc0/subnet5); allowed-protocols[0] | 
+ | acl-test-vpc0/subnet0 | test-vpc0/subnet0 | Inbound | 6 | Allow | ALL | 10.240.9.0/24 | 10.240.0.0/24 | - | Internal. response to required-connections[4]: (subnet test-vpc0/subnet0)->(subnet test-vpc0/subnet5); allowed-protocols[0] | 
  | acl-test-vpc0/subnet1 | test-vpc0/subnet1 | Inbound | 1 | Allow | TCP | 10.240.0.0/24, any port | 10.240.1.0/24, any port | - | Internal. required-connections[0]: (subnet test-vpc0/subnet0)->(subnet test-vpc0/subnet1); allowed-protocols[0] | 
  | acl-test-vpc0/subnet1 | test-vpc0/subnet1 | Outbound | 2 | Allow | TCP | 10.240.1.0/24, any port | 10.240.0.0/24, any port | - | Internal. response to required-connections[0]: (subnet test-vpc0/subnet0)->(subnet test-vpc0/subnet1); allowed-protocols[0] | 
  | acl-test-vpc0/subnet1 | test-vpc0/subnet1 | Inbound | 3 | Allow | ICMP | 10.240.0.0/24 | 10.240.1.0/24 | Type: Any, Code: Any | Internal. required-connections[0]: (subnet test-vpc0/subnet0)->(subnet test-vpc0/subnet1); allowed-protocols[1] | 
@@ -17,9 +19,51 @@
  | acl-test-vpc0/subnet4 | test-vpc0/subnet4 | Outbound | 1 | Allow | ICMP | 10.240.8.0/24 | 10.240.9.0/24 | Type: 15, Code: Any | Internal. required-connections[2]: (subnet test-vpc0/subnet4)->(subnet test-vpc0/subnet5); allowed-protocols[0] | 
  | acl-test-vpc0/subnet4 | test-vpc0/subnet4 | Inbound | 2 | Allow | ICMP | 10.240.9.0/24 | 10.240.8.0/24 | Type: 16, Code: Any | Internal. response to required-connections[2]: (subnet test-vpc0/subnet4)->(subnet test-vpc0/subnet5); allowed-protocols[0] | 
  | acl-test-vpc0/subnet4 | test-vpc0/subnet4 | Outbound | 3 | Allow | UDP | 10.240.8.0/24, any port | 10.240.9.0/24, any port | - | Internal. required-connections[2]: (subnet test-vpc0/subnet4)->(subnet test-vpc0/subnet5); allowed-protocols[1] | 
+ | acl-test-vpc0/subnet4 | test-vpc0/subnet4 | Outbound | 4 | Deny | ALL | 10.0.0.0/8 | 10.0.0.0/8 | - | Deny other internal communication; see rfc1918#3; item 0,0 | 
+ | acl-test-vpc0/subnet4 | test-vpc0/subnet4 | Inbound | 5 | Deny | ALL | 10.0.0.0/8 | 10.0.0.0/8 | - | Deny other internal communication; see rfc1918#3; item 0,0 | 
+ | acl-test-vpc0/subnet4 | test-vpc0/subnet4 | Outbound | 6 | Deny | ALL | 10.0.0.0/8 | 172.16.0.0/12 | - | Deny other internal communication; see rfc1918#3; item 0,1 | 
+ | acl-test-vpc0/subnet4 | test-vpc0/subnet4 | Inbound | 7 | Deny | ALL | 172.16.0.0/12 | 10.0.0.0/8 | - | Deny other internal communication; see rfc1918#3; item 0,1 | 
+ | acl-test-vpc0/subnet4 | test-vpc0/subnet4 | Outbound | 8 | Deny | ALL | 10.0.0.0/8 | 192.168.0.0/16 | - | Deny other internal communication; see rfc1918#3; item 0,2 | 
+ | acl-test-vpc0/subnet4 | test-vpc0/subnet4 | Inbound | 9 | Deny | ALL | 192.168.0.0/16 | 10.0.0.0/8 | - | Deny other internal communication; see rfc1918#3; item 0,2 | 
+ | acl-test-vpc0/subnet4 | test-vpc0/subnet4 | Outbound | 10 | Deny | ALL | 172.16.0.0/12 | 10.0.0.0/8 | - | Deny other internal communication; see rfc1918#3; item 1,0 | 
+ | acl-test-vpc0/subnet4 | test-vpc0/subnet4 | Inbound | 11 | Deny | ALL | 10.0.0.0/8 | 172.16.0.0/12 | - | Deny other internal communication; see rfc1918#3; item 1,0 | 
+ | acl-test-vpc0/subnet4 | test-vpc0/subnet4 | Outbound | 12 | Deny | ALL | 172.16.0.0/12 | 172.16.0.0/12 | - | Deny other internal communication; see rfc1918#3; item 1,1 | 
+ | acl-test-vpc0/subnet4 | test-vpc0/subnet4 | Inbound | 13 | Deny | ALL | 172.16.0.0/12 | 172.16.0.0/12 | - | Deny other internal communication; see rfc1918#3; item 1,1 | 
+ | acl-test-vpc0/subnet4 | test-vpc0/subnet4 | Outbound | 14 | Deny | ALL | 172.16.0.0/12 | 192.168.0.0/16 | - | Deny other internal communication; see rfc1918#3; item 1,2 | 
+ | acl-test-vpc0/subnet4 | test-vpc0/subnet4 | Inbound | 15 | Deny | ALL | 192.168.0.0/16 | 172.16.0.0/12 | - | Deny other internal communication; see rfc1918#3; item 1,2 | 
+ | acl-test-vpc0/subnet4 | test-vpc0/subnet4 | Outbound | 16 | Deny | ALL | 192.168.0.0/16 | 10.0.0.0/8 | - | Deny other internal communication; see rfc1918#3; item 2,0 | 
+ | acl-test-vpc0/subnet4 | test-vpc0/subnet4 | Inbound | 17 | Deny | ALL | 10.0.0.0/8 | 192.168.0.0/16 | - | Deny other internal communication; see rfc1918#3; item 2,0 | 
+ | acl-test-vpc0/subnet4 | test-vpc0/subnet4 | Outbound | 18 | Deny | ALL | 192.168.0.0/16 | 172.16.0.0/12 | - | Deny other internal communication; see rfc1918#3; item 2,1 | 
+ | acl-test-vpc0/subnet4 | test-vpc0/subnet4 | Inbound | 19 | Deny | ALL | 172.16.0.0/12 | 192.168.0.0/16 | - | Deny other internal communication; see rfc1918#3; item 2,1 | 
+ | acl-test-vpc0/subnet4 | test-vpc0/subnet4 | Outbound | 20 | Deny | ALL | 192.168.0.0/16 | 192.168.0.0/16 | - | Deny other internal communication; see rfc1918#3; item 2,2 | 
+ | acl-test-vpc0/subnet4 | test-vpc0/subnet4 | Inbound | 21 | Deny | ALL | 192.168.0.0/16 | 192.168.0.0/16 | - | Deny other internal communication; see rfc1918#3; item 2,2 | 
+ | acl-test-vpc0/subnet4 | test-vpc0/subnet4 | Outbound | 22 | Allow | ALL | 10.240.8.0/24 | Any IP | - | External. required-connections[6]: (subnet test-vpc0/subnet4)->(external public internet); allowed-protocols[0] | 
+ | acl-test-vpc0/subnet4 | test-vpc0/subnet4 | Inbound | 23 | Allow | ALL | Any IP | 10.240.8.0/24 | - | External. response to required-connections[6]: (subnet test-vpc0/subnet4)->(external public internet); allowed-protocols[0] | 
  | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Inbound | 1 | Allow | ICMP | 10.240.8.0/24 | 10.240.9.0/24 | Type: 15, Code: Any | Internal. required-connections[2]: (subnet test-vpc0/subnet4)->(subnet test-vpc0/subnet5); allowed-protocols[0] | 
  | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Outbound | 2 | Allow | ICMP | 10.240.9.0/24 | 10.240.8.0/24 | Type: 16, Code: Any | Internal. response to required-connections[2]: (subnet test-vpc0/subnet4)->(subnet test-vpc0/subnet5); allowed-protocols[0] | 
  | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Inbound | 3 | Allow | UDP | 10.240.8.0/24, any port | 10.240.9.0/24, any port | - | Internal. required-connections[2]: (subnet test-vpc0/subnet4)->(subnet test-vpc0/subnet5); allowed-protocols[1] | 
+ | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Inbound | 4 | Allow | ALL | 10.240.0.0/24 | 10.240.9.0/24 | - | Internal. required-connections[4]: (subnet test-vpc0/subnet0)->(subnet test-vpc0/subnet5); allowed-protocols[0] | 
+ | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Outbound | 5 | Allow | ALL | 10.240.9.0/24 | 10.240.0.0/24 | - | Internal. response to required-connections[4]: (subnet test-vpc0/subnet0)->(subnet test-vpc0/subnet5); allowed-protocols[0] | 
+ | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Outbound | 6 | Deny | ALL | 10.0.0.0/8 | 10.0.0.0/8 | - | Deny other internal communication; see rfc1918#3; item 0,0 | 
+ | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Inbound | 7 | Deny | ALL | 10.0.0.0/8 | 10.0.0.0/8 | - | Deny other internal communication; see rfc1918#3; item 0,0 | 
+ | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Outbound | 8 | Deny | ALL | 10.0.0.0/8 | 172.16.0.0/12 | - | Deny other internal communication; see rfc1918#3; item 0,1 | 
+ | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Inbound | 9 | Deny | ALL | 172.16.0.0/12 | 10.0.0.0/8 | - | Deny other internal communication; see rfc1918#3; item 0,1 | 
+ | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Outbound | 10 | Deny | ALL | 10.0.0.0/8 | 192.168.0.0/16 | - | Deny other internal communication; see rfc1918#3; item 0,2 | 
+ | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Inbound | 11 | Deny | ALL | 192.168.0.0/16 | 10.0.0.0/8 | - | Deny other internal communication; see rfc1918#3; item 0,2 | 
+ | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Outbound | 12 | Deny | ALL | 172.16.0.0/12 | 10.0.0.0/8 | - | Deny other internal communication; see rfc1918#3; item 1,0 | 
+ | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Inbound | 13 | Deny | ALL | 10.0.0.0/8 | 172.16.0.0/12 | - | Deny other internal communication; see rfc1918#3; item 1,0 | 
+ | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Outbound | 14 | Deny | ALL | 172.16.0.0/12 | 172.16.0.0/12 | - | Deny other internal communication; see rfc1918#3; item 1,1 | 
+ | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Inbound | 15 | Deny | ALL | 172.16.0.0/12 | 172.16.0.0/12 | - | Deny other internal communication; see rfc1918#3; item 1,1 | 
+ | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Outbound | 16 | Deny | ALL | 172.16.0.0/12 | 192.168.0.0/16 | - | Deny other internal communication; see rfc1918#3; item 1,2 | 
+ | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Inbound | 17 | Deny | ALL | 192.168.0.0/16 | 172.16.0.0/12 | - | Deny other internal communication; see rfc1918#3; item 1,2 | 
+ | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Outbound | 18 | Deny | ALL | 192.168.0.0/16 | 10.0.0.0/8 | - | Deny other internal communication; see rfc1918#3; item 2,0 | 
+ | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Inbound | 19 | Deny | ALL | 10.0.0.0/8 | 192.168.0.0/16 | - | Deny other internal communication; see rfc1918#3; item 2,0 | 
+ | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Outbound | 20 | Deny | ALL | 192.168.0.0/16 | 172.16.0.0/12 | - | Deny other internal communication; see rfc1918#3; item 2,1 | 
+ | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Inbound | 21 | Deny | ALL | 172.16.0.0/12 | 192.168.0.0/16 | - | Deny other internal communication; see rfc1918#3; item 2,1 | 
+ | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Outbound | 22 | Deny | ALL | 192.168.0.0/16 | 192.168.0.0/16 | - | Deny other internal communication; see rfc1918#3; item 2,2 | 
+ | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Inbound | 23 | Deny | ALL | 192.168.0.0/16 | 192.168.0.0/16 | - | Deny other internal communication; see rfc1918#3; item 2,2 | 
+ | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Inbound | 24 | Allow | ALL | 8.8.8.8 | 10.240.9.0/24 | - | External. required-connections[5]: (external dns)->(subnet test-vpc0/subnet5); allowed-protocols[0] | 
+ | acl-test-vpc0/subnet5 | test-vpc0/subnet5 | Outbound | 25 | Allow | ALL | 10.240.9.0/24 | 8.8.8.8 | - | External. response to required-connections[5]: (external dns)->(subnet test-vpc0/subnet5); allowed-protocols[0] | 
  | acl-test-vpc1/subnet10 | test-vpc1/subnet10 | Outbound | 1 | Allow | UDP | 10.240.64.0/24, any port | 10.240.80.0/24, ports 53-53 | - | Internal. required-connections[3]: (subnet test-vpc1/subnet10)->(subnet test-vpc1/subnet11); allowed-protocols[0] | 
  | acl-test-vpc1/subnet11 | test-vpc1/subnet11 | Inbound | 1 | Allow | UDP | 10.240.64.0/24, any port | 10.240.80.0/24, ports 53-53 | - | Internal. required-connections[3]: (subnet test-vpc1/subnet10)->(subnet test-vpc1/subnet11); allowed-protocols[0] | 
  | acl-test-vpc2/subnet20 | test-vpc2/subnet20 | Inbound | 1 | Deny | ALL | Any IP | 10.240.128.0/24 | - | Deny all communication; subnet test-vpc2/subnet20[10.240.128.0/24] does not have required connections | 

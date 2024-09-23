@@ -1,7 +1,7 @@
 {
     "externals": {
         "dns": "8.8.8.8",
-        "public internet": "0.0.0.0/32"
+        "public internet": "0.0.0.0/0"
     },
     "required-connections": [
         {
@@ -83,20 +83,33 @@
         },
         {
             "src": {
-                "name": "subnet10",
+                "name": "subnet0",
                 "type": "subnet"
             },
             "dst": {
-                "name": "subnet11",
+                "name": "subnet5",
+                "type": "subnet"
+            }
+        },
+        {
+            "src": {
+                "name": "dns",
+                "type": "external"
+            },
+            "dst": {
+                "name": "subnet5",
+                "type": "subnet"
+            }
+        },
+        {
+            "src": {
+                "name": "subnet4",
                 "type": "subnet"
             },
-            "allowed-protocols": [
-                {
-                    "protocol": "UDP",
-                    "min_destination_port": 53,
-                    "max_destination_port": 53
-                }
-            ]
+            "dst": {
+                "name": "public internet",
+                "type": "external"
+            }
         }
     ]
 }

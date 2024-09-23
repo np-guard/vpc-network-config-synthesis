@@ -1,7 +1,7 @@
 {
     "externals": {
         "dns": "8.8.8.8",
-        "public internet": "0.0.0.0/32"
+        "public internet": "0.0.0.0/0"
     },
     "required-connections": [
         {
@@ -85,18 +85,23 @@
         },
         {
             "src": {
+                "name": "vsi0-subnet20",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "vsi2-subnet20",
+                "type": "instance"
+            }
+        },
+        {
+            "src": {
                 "name": "vsi1-subnet20",
                 "type": "instance"
             },
             "dst": {
                 "name": "public internet",
                 "type": "external"
-            },
-            "allowed-protocols": [
-                {
-                    "protocol": "UDP"
-                }
-            ]
+            }
         }
     ]
 }

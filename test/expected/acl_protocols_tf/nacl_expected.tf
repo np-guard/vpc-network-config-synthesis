@@ -43,6 +43,22 @@ resource "ibm_is_network_acl" "acl-test-vpc0--subnet0" {
     icmp {
     }
   }
+  # Internal. required-connections[4]: (subnet test-vpc0/subnet0)->(subnet test-vpc0/subnet5); allowed-protocols[0]
+  rules {
+    name        = "rule4"
+    action      = "allow"
+    direction   = "outbound"
+    source      = "10.240.0.0/24"
+    destination = "10.240.9.0/24"
+  }
+  # Internal. response to required-connections[4]: (subnet test-vpc0/subnet0)->(subnet test-vpc0/subnet5); allowed-protocols[0]
+  rules {
+    name        = "rule5"
+    action      = "allow"
+    direction   = "inbound"
+    source      = "10.240.9.0/24"
+    destination = "10.240.0.0/24"
+  }
 }
 
 # test-vpc0/subnet1 [10.240.1.0/24]
@@ -215,6 +231,166 @@ resource "ibm_is_network_acl" "acl-test-vpc0--subnet4" {
     udp {
     }
   }
+  # Deny other internal communication; see rfc1918#3; item 0,0
+  rules {
+    name        = "rule3"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "10.0.0.0/8"
+    destination = "10.0.0.0/8"
+  }
+  # Deny other internal communication; see rfc1918#3; item 0,0
+  rules {
+    name        = "rule4"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "10.0.0.0/8"
+    destination = "10.0.0.0/8"
+  }
+  # Deny other internal communication; see rfc1918#3; item 0,1
+  rules {
+    name        = "rule5"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "10.0.0.0/8"
+    destination = "172.16.0.0/12"
+  }
+  # Deny other internal communication; see rfc1918#3; item 0,1
+  rules {
+    name        = "rule6"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "172.16.0.0/12"
+    destination = "10.0.0.0/8"
+  }
+  # Deny other internal communication; see rfc1918#3; item 0,2
+  rules {
+    name        = "rule7"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "10.0.0.0/8"
+    destination = "192.168.0.0/16"
+  }
+  # Deny other internal communication; see rfc1918#3; item 0,2
+  rules {
+    name        = "rule8"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "192.168.0.0/16"
+    destination = "10.0.0.0/8"
+  }
+  # Deny other internal communication; see rfc1918#3; item 1,0
+  rules {
+    name        = "rule9"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "172.16.0.0/12"
+    destination = "10.0.0.0/8"
+  }
+  # Deny other internal communication; see rfc1918#3; item 1,0
+  rules {
+    name        = "rule10"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "10.0.0.0/8"
+    destination = "172.16.0.0/12"
+  }
+  # Deny other internal communication; see rfc1918#3; item 1,1
+  rules {
+    name        = "rule11"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "172.16.0.0/12"
+    destination = "172.16.0.0/12"
+  }
+  # Deny other internal communication; see rfc1918#3; item 1,1
+  rules {
+    name        = "rule12"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "172.16.0.0/12"
+    destination = "172.16.0.0/12"
+  }
+  # Deny other internal communication; see rfc1918#3; item 1,2
+  rules {
+    name        = "rule13"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "172.16.0.0/12"
+    destination = "192.168.0.0/16"
+  }
+  # Deny other internal communication; see rfc1918#3; item 1,2
+  rules {
+    name        = "rule14"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "192.168.0.0/16"
+    destination = "172.16.0.0/12"
+  }
+  # Deny other internal communication; see rfc1918#3; item 2,0
+  rules {
+    name        = "rule15"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "192.168.0.0/16"
+    destination = "10.0.0.0/8"
+  }
+  # Deny other internal communication; see rfc1918#3; item 2,0
+  rules {
+    name        = "rule16"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "10.0.0.0/8"
+    destination = "192.168.0.0/16"
+  }
+  # Deny other internal communication; see rfc1918#3; item 2,1
+  rules {
+    name        = "rule17"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "192.168.0.0/16"
+    destination = "172.16.0.0/12"
+  }
+  # Deny other internal communication; see rfc1918#3; item 2,1
+  rules {
+    name        = "rule18"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "172.16.0.0/12"
+    destination = "192.168.0.0/16"
+  }
+  # Deny other internal communication; see rfc1918#3; item 2,2
+  rules {
+    name        = "rule19"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "192.168.0.0/16"
+    destination = "192.168.0.0/16"
+  }
+  # Deny other internal communication; see rfc1918#3; item 2,2
+  rules {
+    name        = "rule20"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "192.168.0.0/16"
+    destination = "192.168.0.0/16"
+  }
+  # External. required-connections[6]: (subnet test-vpc0/subnet4)->(external public internet); allowed-protocols[0]
+  rules {
+    name        = "rule21"
+    action      = "allow"
+    direction   = "outbound"
+    source      = "10.240.8.0/24"
+    destination = "0.0.0.0/0"
+  }
+  # External. response to required-connections[6]: (subnet test-vpc0/subnet4)->(external public internet); allowed-protocols[0]
+  rules {
+    name        = "rule22"
+    action      = "allow"
+    direction   = "inbound"
+    source      = "0.0.0.0/0"
+    destination = "10.240.8.0/24"
+  }
 }
 
 # test-vpc0/subnet5 [10.240.9.0/24]
@@ -253,6 +429,182 @@ resource "ibm_is_network_acl" "acl-test-vpc0--subnet5" {
     destination = "10.240.9.0/24"
     udp {
     }
+  }
+  # Internal. required-connections[4]: (subnet test-vpc0/subnet0)->(subnet test-vpc0/subnet5); allowed-protocols[0]
+  rules {
+    name        = "rule3"
+    action      = "allow"
+    direction   = "inbound"
+    source      = "10.240.0.0/24"
+    destination = "10.240.9.0/24"
+  }
+  # Internal. response to required-connections[4]: (subnet test-vpc0/subnet0)->(subnet test-vpc0/subnet5); allowed-protocols[0]
+  rules {
+    name        = "rule4"
+    action      = "allow"
+    direction   = "outbound"
+    source      = "10.240.9.0/24"
+    destination = "10.240.0.0/24"
+  }
+  # Deny other internal communication; see rfc1918#3; item 0,0
+  rules {
+    name        = "rule5"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "10.0.0.0/8"
+    destination = "10.0.0.0/8"
+  }
+  # Deny other internal communication; see rfc1918#3; item 0,0
+  rules {
+    name        = "rule6"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "10.0.0.0/8"
+    destination = "10.0.0.0/8"
+  }
+  # Deny other internal communication; see rfc1918#3; item 0,1
+  rules {
+    name        = "rule7"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "10.0.0.0/8"
+    destination = "172.16.0.0/12"
+  }
+  # Deny other internal communication; see rfc1918#3; item 0,1
+  rules {
+    name        = "rule8"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "172.16.0.0/12"
+    destination = "10.0.0.0/8"
+  }
+  # Deny other internal communication; see rfc1918#3; item 0,2
+  rules {
+    name        = "rule9"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "10.0.0.0/8"
+    destination = "192.168.0.0/16"
+  }
+  # Deny other internal communication; see rfc1918#3; item 0,2
+  rules {
+    name        = "rule10"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "192.168.0.0/16"
+    destination = "10.0.0.0/8"
+  }
+  # Deny other internal communication; see rfc1918#3; item 1,0
+  rules {
+    name        = "rule11"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "172.16.0.0/12"
+    destination = "10.0.0.0/8"
+  }
+  # Deny other internal communication; see rfc1918#3; item 1,0
+  rules {
+    name        = "rule12"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "10.0.0.0/8"
+    destination = "172.16.0.0/12"
+  }
+  # Deny other internal communication; see rfc1918#3; item 1,1
+  rules {
+    name        = "rule13"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "172.16.0.0/12"
+    destination = "172.16.0.0/12"
+  }
+  # Deny other internal communication; see rfc1918#3; item 1,1
+  rules {
+    name        = "rule14"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "172.16.0.0/12"
+    destination = "172.16.0.0/12"
+  }
+  # Deny other internal communication; see rfc1918#3; item 1,2
+  rules {
+    name        = "rule15"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "172.16.0.0/12"
+    destination = "192.168.0.0/16"
+  }
+  # Deny other internal communication; see rfc1918#3; item 1,2
+  rules {
+    name        = "rule16"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "192.168.0.0/16"
+    destination = "172.16.0.0/12"
+  }
+  # Deny other internal communication; see rfc1918#3; item 2,0
+  rules {
+    name        = "rule17"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "192.168.0.0/16"
+    destination = "10.0.0.0/8"
+  }
+  # Deny other internal communication; see rfc1918#3; item 2,0
+  rules {
+    name        = "rule18"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "10.0.0.0/8"
+    destination = "192.168.0.0/16"
+  }
+  # Deny other internal communication; see rfc1918#3; item 2,1
+  rules {
+    name        = "rule19"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "192.168.0.0/16"
+    destination = "172.16.0.0/12"
+  }
+  # Deny other internal communication; see rfc1918#3; item 2,1
+  rules {
+    name        = "rule20"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "172.16.0.0/12"
+    destination = "192.168.0.0/16"
+  }
+  # Deny other internal communication; see rfc1918#3; item 2,2
+  rules {
+    name        = "rule21"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "192.168.0.0/16"
+    destination = "192.168.0.0/16"
+  }
+  # Deny other internal communication; see rfc1918#3; item 2,2
+  rules {
+    name        = "rule22"
+    action      = "deny"
+    direction   = "inbound"
+    source      = "192.168.0.0/16"
+    destination = "192.168.0.0/16"
+  }
+  # External. required-connections[5]: (external dns)->(subnet test-vpc0/subnet5); allowed-protocols[0]
+  rules {
+    name        = "rule23"
+    action      = "allow"
+    direction   = "inbound"
+    source      = "8.8.8.8"
+    destination = "10.240.9.0/24"
+  }
+  # External. response to required-connections[5]: (external dns)->(subnet test-vpc0/subnet5); allowed-protocols[0]
+  rules {
+    name        = "rule24"
+    action      = "allow"
+    direction   = "outbound"
+    source      = "10.240.9.0/24"
+    destination = "8.8.8.8"
   }
 }
 

@@ -15,4 +15,6 @@
  | test-vpc0/vsi1-subnet1 | Inbound | Security group | test-vpc0/vsi1-subnet0 | UDP | ports 53-53 | Internal. required-connections[1]: (instance test-vpc0/vsi1-subnet0)->(instance test-vpc0/vsi1-subnet1); allowed-protocols[1] | 
  | test-vpc0/vsi1-subnet1 | Inbound | Security group | test-vpc0/vsi1-subnet0 | ICMP | Type: 8, Code: Any | Internal. required-connections[1]: (instance test-vpc0/vsi1-subnet0)->(instance test-vpc0/vsi1-subnet1); allowed-protocols[2] | 
  | test-vpc1/vsi0-subnet10 | Outbound | IP address | 8.8.8.8 | TCP | any port | External. required-connections[3]: (instance test-vpc1/vsi0-subnet10)->(external dns); allowed-protocols[0] | 
- | test-vpc2/vsi1-subnet20 | Outbound | IP address | 0.0.0.0 | UDP | any port | External. required-connections[4]: (instance test-vpc2/vsi1-subnet20)->(external public internet); allowed-protocols[0] | 
+ | test-vpc2/vsi0-subnet20 | Outbound | Security group | test-vpc2/vsi2-subnet20 | ALL |  | Internal. required-connections[4]: (instance test-vpc2/vsi0-subnet20)->(instance test-vpc2/vsi2-subnet20); allowed-protocols[0] | 
+ | test-vpc2/vsi1-subnet20 | Outbound | CIDR block | Any IP | ALL |  | External. required-connections[5]: (instance test-vpc2/vsi1-subnet20)->(external public internet); allowed-protocols[0] | 
+ | test-vpc2/vsi2-subnet20 | Inbound | Security group | test-vpc2/vsi0-subnet20 | ALL |  | Internal. required-connections[4]: (instance test-vpc2/vsi0-subnet20)->(instance test-vpc2/vsi2-subnet20); allowed-protocols[0] | 

@@ -6,7 +6,6 @@ SPDX-License-Identifier: Apache-2.0
 package test
 
 // import (
-// 	"errors"
 // 	"fmt"
 // 	"os"
 // 	"path/filepath"
@@ -22,7 +21,7 @@ package test
 // 		t.Run(tt.testName, func(t *testing.T) {
 // 			// create a sub folder
 // 			if err := os.MkdirAll(filepath.Join(resultsFolder, tt.testName), defaultDirectoryPermission); err != nil {
-// 				handleErrors(t, tt.testName, err)
+// 				t.Errorf("Bad test %s: %s", tt.testName, err)
 // 			}
 
 // 			// run command
@@ -49,10 +48,10 @@ package test
 // 	}
 // }
 
-// func readDir(t *testing.T, dir string) []string {
-// 	entries, err := os.ReadDir(dir)
+// func readDir(t *testing.T, dirName string) []string {
+// 	entries, err := os.ReadDir(dirName)
 // 	if err != nil {
-// 		handleErrors(t, dir, errors.New("error reading "+dir+": "+err.Error()))
+// 		t.Errorf("Bad test %s: %s", dirName, err)
 // 	}
 
 // 	result := make([]string, len(entries))
@@ -68,11 +67,6 @@ package test
 // 		t.Errorf("Bad test: %v", err)
 // 	}
 // 	return shrinkWhitespace(string(buf))
-// }
-
-// func handleErrors(t *testing.T, testName string, err error) {
-// 	removeGeneratedFiles()
-// 	t.Fatalf("Bad test: %s. error: %s", testName, err)
 // }
 
 // func shrinkWhitespace(s string) string {
