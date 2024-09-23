@@ -224,7 +224,6 @@ func translateConnection(defs *ir.Definitions, v *spec.SpecRequiredConnectionsEl
 	if err != nil {
 		return nil, err
 	}
-	srcVPCs := defs.GetResourceOverlappingVPCs(srcResourceType, v.Src.Name)
 	dstResourceType, err := translateResourceType(v.Dst.Type)
 	if err != nil {
 		return nil, err
@@ -233,10 +232,8 @@ func translateConnection(defs *ir.Definitions, v *spec.SpecRequiredConnectionsEl
 	if err != nil {
 		return nil, err
 	}
-	dstVPCs := defs.GetResourceOverlappingVPCs(dstResourceType, v.Dst.Name)
-	err = defs.ValidateConnection(srcVPCs, dstVPCs)
-	if err != nil {
-		return nil, err
+	if srcResourceType == ir.ResourceTypeExternal && dstResourceType == ir.ResourceTypeExternal {
+		return nil, fmt.Errorf("both source and destination are external for connection")
 	}
 
 	origin := connectionOrigin{
