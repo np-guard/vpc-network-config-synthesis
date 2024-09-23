@@ -9,7 +9,7 @@ package test
 func errorTestsList() []errorTestCase {
 	return []errorTestCase{
 		/*  ############################  */
-		/*	####### CLI ERRORS #######  */
+		/*	####### CLI ERRORS #########  */
 		/*  ############################  */
 		// -o and -d
 		{
@@ -20,7 +20,7 @@ func errorTestsList() []errorTestCase {
 
 		// -f = json and -l
 		{
-			testName: "locals jon fmt",
+			testName: "locals json fmt",
 			command:  "../bin/vpcgen synth acl -c data_errors/cli/config_object.json -s data_errors/cli/conn_spec.json -o data_errors/cli/nacl_expected.json -l",
 			err:      "--locals flag requires setting the output format to tf",
 		},
@@ -50,7 +50,7 @@ func errorTestsList() []errorTestCase {
 		{
 			testName: "unknown subcmd",
 			command:  "../bin/vpcgen pop acl -c data_errors/cli/config_object.json -s conn_spec.json -o data_errors/cli/nacl_expected.tf",
-			err:      "-unknown command \"pop\" for \"vpcgen\"",
+			err:      "unknown command \"pop\" for \"vpcgen\"",
 		},
 
 		/*  ############################  */
@@ -61,7 +61,7 @@ func errorTestsList() []errorTestCase {
 		{
 			testName: "ambiguous resource name",
 			command:  "../bin/vpcgen synth acl -c data_errors/ambiguous/config_object.json -s data_errors/ambiguous/conn_spec.json -o data_errors/ambiguous/nacl_expected.tf",
-			err:      "!!!", // should fix
+			err:      "ambiguous resource name: subnet0",
 		},
 
 		// bad protocol
@@ -80,9 +80,16 @@ func errorTestsList() []errorTestCase {
 
 		// vpe resource in ACL generation
 		{
-			testName: "vpe_acl",
+			testName: "vpe acl",
 			command:  "../bin/vpcgen synth acl -c data_errors/vpe_acl/config_object.json -s data_errors/vpe_acl/conn_spec.json -o data_errors/vpe_acl/nacl_expected.tf",
-			err:      "Error: could not parse connectivity file data_errors/vpe_acl/conn_spec.json: invalid value (expected one of []interface {}{\"external\", \"segment\", \"subnet\", \"instance\", \"nif\", \"cidr\", \"vpe\"}): \"policydb-endpoint-gateway\"", // should fix error
+			err:      "ACL: src/dst of type vpe is not supported",
+		},
+
+		// impossible resource type
+		{
+			testName: "impossible resource type",
+			command:  "../bin/vpcgen synth acl -c data_errors/impossible_resource_type/config_object.json -s data_errors/impossible_resource_type/conn_spec.json -o data_errors/impossible_resource_type/nacl_expected.tf",
+			err:      "could not parse connectivity file data_errors/impossible_resource_type/conn_spec.json: invalid value (expected one of []interface {}{\"external\", \"segment\", \"subnet\", \"instance\", \"nif\", \"cidr\", \"vpe\"}): \"policydb-endpoint-gateway\"",
 		},
 	}
 }

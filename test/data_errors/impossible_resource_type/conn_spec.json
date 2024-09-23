@@ -6,8 +6,8 @@
                 "type": "subnet"
             },
             "dst": {
-                "name": "policydb-endpoint-gateway",
-                "type": "vpe"
+                "name": "proxy",
+                "type": "policydb-endpoint-gateway"
             }
         }
     ]

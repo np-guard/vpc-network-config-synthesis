@@ -1486,7 +1486,7 @@
             "id": "id:246",
             "ip_version": "ipv4",
             "ipv4_cidr_block": "10.240.192.0/24",
-            "name": "subnet30",
+            "name": "subnet0",
             "network_acl": {
                 "crn": "crn:247",
                 "href": "href:248",
@@ -1602,7 +1602,7 @@
             "id": "id:266",
             "ip_version": "ipv4",
             "ipv4_cidr_block": "10.240.8.0/24",
-            "name": "subnet0",
+            "name": "subnet4",
             "network_acl": {
                 "crn": "crn:68",
                 "href": "href:69",
@@ -1991,7 +1991,7 @@
                     "crn": "crn:244",
                     "href": "href:245",
                     "id": "id:246",
-                    "name": "subnet30",
+                    "name": "subnet0",
                     "resource_type": "subnet"
                 }
             ],
@@ -2185,7 +2185,7 @@
                     "crn": "crn:264",
                     "href": "href:265",
                     "id": "id:266",
-                    "name": "subnet0",
+                    "name": "subnet4",
                     "resource_type": "subnet"
                 }
             ],
@@ -4005,7 +4005,7 @@
                     "crn": "crn:264",
                     "href": "href:265",
                     "id": "id:266",
-                    "name": "subnet0",
+                    "name": "subnet4",
                     "resource_type": "subnet"
                 }
             },
@@ -4092,7 +4092,7 @@
                         "crn": "crn:264",
                         "href": "href:265",
                         "id": "id:266",
-                        "name": "subnet0",
+                        "name": "subnet4",
                         "resource_type": "subnet"
                     },
                     "type": "primary"
@@ -4645,7 +4645,7 @@
                     "crn": "crn:264",
                     "href": "href:265",
                     "id": "id:266",
-                    "name": "subnet0",
+                    "name": "subnet4",
                     "resource_type": "subnet"
                 }
             },
@@ -4732,7 +4732,7 @@
                         "crn": "crn:264",
                         "href": "href:265",
                         "id": "id:266",
-                        "name": "subnet0",
+                        "name": "subnet4",
                         "resource_type": "subnet"
                     },
                     "type": "primary"
@@ -5767,7 +5767,7 @@
                     "crn": "crn:244",
                     "href": "href:245",
                     "id": "id:246",
-                    "name": "subnet30",
+                    "name": "subnet0",
                     "resource_type": "subnet"
                 }
             },
@@ -5862,7 +5862,7 @@
                         "crn": "crn:244",
                         "href": "href:245",
                         "id": "id:246",
-                        "name": "subnet30",
+                        "name": "subnet0",
                         "resource_type": "subnet"
                     },
                     "type": "primary"
@@ -5979,7 +5979,7 @@
                     "crn": "crn:264",
                     "href": "href:265",
                     "id": "id:266",
-                    "name": "subnet0",
+                    "name": "subnet4",
                     "resource_type": "subnet"
                 }
             ],
@@ -6057,7 +6057,7 @@
                     "crn": "crn:244",
                     "href": "href:245",
                     "id": "id:246",
-                    "name": "subnet30",
+                    "name": "subnet0",
                     "resource_type": "subnet"
                 }
             ],

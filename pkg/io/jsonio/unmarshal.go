@@ -378,15 +378,16 @@ func inverseMapToFullyQualifiedName[T ir.Named](m map[ir.ID]T) (cache map[string
 	ambiguous = make(map[string]struct{})
 	cache = make(map[string]ir.ID)
 
-	for nifName, nif := range m {
-		if _, ok := ambiguous[nif.Name()]; ok {
+	for fullNifName, nif := range m {
+		nifName := nif.Name()
+		if _, ok := ambiguous[nifName]; ok {
 			continue
 		}
-		if _, ok := cache[nif.Name()]; !ok {
-			cache[nif.Name()] = nifName
+		if _, ok := cache[nifName]; !ok {
+			cache[nifName] = fullNifName
 		} else {
-			delete(cache, nif.Name())
-			ambiguous[nif.Name()] = struct{}{}
+			delete(cache, nifName)
+			ambiguous[nifName] = struct{}{}
 		}
 	}
 	return cache, ambiguous
