@@ -3598,33 +3598,16 @@
         },
         {
             "created_at": null,
-            "crn": "fake:crn:34",
-            "href": "fake:href:34",
-            "id": "fake:id:34",
+            "crn": "fake:crn:32",
+            "href": "fake:href:32",
+            "id": "fake:id:32",
             "name": "test-vpc2--vsi0-subnet20",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
                 "name": "name:4"
             },
-            "rules": [
-                {
-                    "direction": "outbound",
-                    "href": "fake:href:32",
-                    "id": "fake:id:32",
-                    "ip_version": "ipv4",
-                    "local": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "remote": {
-                        "crn": "fake:crn:33",
-                        "href": "fake:href:33",
-                        "id": "fake:id:33",
-                        "name": "test-vpc2--vsi2-subnet20"
-                    },
-                    "protocol": "all"
-                }
-            ],
+            "rules": [],
             "targets": [
                 {
                     "href": "href:215",
@@ -3653,24 +3636,7 @@
                 "id": "id:17",
                 "name": "name:4"
             },
-            "rules": [
-                {
-                    "direction": "inbound",
-                    "href": "fake:href:35",
-                    "id": "fake:id:35",
-                    "ip_version": "ipv4",
-                    "local": {
-                        "cidr_block": "0.0.0.0/0"
-                    },
-                    "remote": {
-                        "crn": "fake:crn:34",
-                        "href": "fake:href:34",
-                        "id": "fake:id:34",
-                        "name": "test-vpc2--vsi0-subnet20"
-                    },
-                    "protocol": "all"
-                }
-            ],
+            "rules": [],
             "targets": [
                 {
                     "href": "href:211",
@@ -3690,9 +3656,9 @@
         },
         {
             "created_at": null,
-            "crn": "fake:crn:36",
-            "href": "fake:href:36",
-            "id": "fake:id:36",
+            "crn": "fake:crn:34",
+            "href": "fake:href:34",
+            "id": "fake:id:34",
             "name": "test-vpc3--vsi0-subnet30",
             "resource_group": {
                 "href": "href:16",
@@ -6253,9 +6219,9 @@
                     "resource_type": "network_interface",
                     "security_groups": [
                         {
-                            "crn": "fake:crn:34",
-                            "href": "fake:href:34",
-                            "id": "fake:id:34",
+                            "crn": "fake:crn:32",
+                            "href": "fake:href:32",
+                            "id": "fake:id:32",
                             "name": "test-vpc2--vsi0-subnet20"
                         }
                     ],
@@ -6577,9 +6543,9 @@
                     "resource_type": "network_interface",
                     "security_groups": [
                         {
-                            "crn": "fake:crn:36",
-                            "href": "fake:href:36",
-                            "id": "fake:id:36",
+                            "crn": "fake:crn:34",
+                            "href": "fake:href:34",
+                            "id": "fake:id:34",
                             "name": "test-vpc3--vsi0-subnet30"
                         }
                     ],

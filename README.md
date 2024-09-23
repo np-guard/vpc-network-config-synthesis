@@ -55,9 +55,9 @@ make build
 ## Run an example
 
 ```commandline
-bin/vpcgen synth acl -c test/data/acl_testing5_tf/config_object.json -s test/data/acl_testing5_tf/conn_spec.json
+bin/vpcgen synth acl -c test/data/acl_testing5/config_object.json -s test/data/acl_testing5/conn_spec.json
 
-bin/vpcgen synth sg -c test/data/sg_testing3_tf/config_object.json -s test/data/sg_testing3_tf/conn_spec.json
+bin/vpcgen synth sg -c test/data/sg_testing3/config_object.json -s test/data/sg_testing3/conn_spec.json
 ```
 
 **Note**: Windows environment users should replace all `/` with `\`.
