@@ -12,7 +12,7 @@ package test
 // 	"strings"
 // 	"testing"
 
-// 	m "github.com/np-guard/vpc-network-config-synthesis/cmd/_vpcgen"
+// 	"github.com/np-guard/vpc-network-config-synthesis/cmd/subcmds"
 // )
 
 // func TestUpdate(t *testing.T) {
@@ -24,7 +24,7 @@ package test
 // 			}
 
 // 			cmd := fmt.Sprintf(tt.command, dataFolder, dataFolder, expectedFolder)
-// 			err := m.Main(strings.Split(cmd, " "))
+// 			err := subcmds.Main(strings.Split(cmd, " "))
 // 			if err != nil {
 // 				t.Errorf("Bad test %s: %s", tt.testName, err)
 // 			}

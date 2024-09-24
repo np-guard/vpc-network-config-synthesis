@@ -113,6 +113,7 @@ func aclRules(acl *ir.ACL) ([]vpcv1.NetworkACLRuleItemIntf, error) {
 	return ruleItems, nil
 }
 
+// decide if we are in a single-ACL mode
 func updateACLList(model *configModel.ResourcesContainerModel, collection *ir.ACLCollection) error {
 	if len(model.SubnetList) == 0 {
 		return nil

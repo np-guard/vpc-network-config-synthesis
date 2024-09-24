@@ -86,6 +86,8 @@ func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) (tf.Block, error) {
 }
 
 func sg(sgName, comment string) (tf.Block, error) {
+	vpcName := ir.VpcFromScopedResource(sgName)
+	sgName = ir.ChangeScoping(sgName)
 	if err := verifyName(sgName); err != nil {
 		return tf.Block{}, err
 	}
@@ -94,9 +96,9 @@ func sg(sgName, comment string) (tf.Block, error) {
 		Labels:  []string{quote("ibm_is_security_group"), ir.ChangeScoping(quote(sgName))},
 		Comment: comment,
 		Arguments: []tf.Argument{
-			{Name: "name", Value: ir.ChangeScoping(quote("sg-" + sgName))},
+			{Name: "name", Value: quote("sg-" + sgName)},
 			{Name: "resource_group", Value: "local.sg_synth_resource_group_id"},
-			{Name: "vpc", Value: fmt.Sprintf("local.sg_synth_%s_id", ir.VpcFromScopedResource(sgName))},
+			{Name: "vpc", Value: fmt.Sprintf("local.sg_synth_%s_id", vpcName)},
 		},
 	}, nil
 }
@@ -108,7 +110,7 @@ func sgCollection(t *ir.SGCollection, vpc string) (*tf.ConfigFile, error) {
 		vpcName := ir.VpcFromScopedResource(string(sgName))
 		rules := t.SGs[vpcName][sgName].AllRules()
 		comment = fmt.Sprintf("\n### SG attached to %v", sgName)
-		sg, err := sg(ir.ChangeScoping(sgName.String()), comment)
+		sg, err := sg(sgName.String(), comment)
 		if err != nil {
 			return nil, err
 		}

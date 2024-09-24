@@ -5,13 +5,13 @@ SPDX-License-Identifier: Apache-2.0
 
 package test
 
-func allMainTests() []mainTestCase {
+func allMainTests() []testCase {
 	return append(synthACLTestsList(), synthSGTestsList()...)
 }
 
 //nolint:lll // commands can be long
-func synthACLTestsList() []mainTestCase {
-	return []mainTestCase{
+func synthACLTestsList() []testCase {
+	return []testCase{
 		// acl externals    ## acl_testing4 config
 		{
 			testName: "acl_externals_json",
@@ -87,8 +87,8 @@ func synthACLTestsList() []mainTestCase {
 }
 
 //nolint:lll // commands can be long
-func synthSGTestsList() []mainTestCase {
-	return []mainTestCase{
+func synthSGTestsList() []testCase {
+	return []testCase{
 		// sg protocols (all output fmts, externals, scoping, nif as a resource)    ## tg-multiple config
 		{
 			testName: "sg_protocols_csv",

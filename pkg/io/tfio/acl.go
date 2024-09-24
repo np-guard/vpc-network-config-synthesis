@@ -81,12 +81,16 @@ func singleACL(t *ir.ACL, comment string) (tf.Block, error) {
 		}
 		blocks[i] = rule
 	}
+	aclName := ir.ChangeScoping(t.Name())
+	if err := verifyName(aclName); err != nil {
+		return tf.Block{}, err
+	}
 	return tf.Block{
 		Comment: comment,
 		Name:    "resource",
-		Labels:  []string{quote("ibm_is_network_acl"), ir.ChangeScoping(quote(t.Name()))},
+		Labels:  []string{quote("ibm_is_network_acl"), quote(aclName)},
 		Arguments: []tf.Argument{
-			{Name: "name", Value: ir.ChangeScoping(quote(t.Name()))}, //nolint:revive  // obvious false positive
+			{Name: "name", Value: quote(aclName)}, //nolint:revive  // obvious false positive
 			{Name: "resource_group", Value: "local.acl_synth_resource_group_id"},
 			{Name: "vpc", Value: fmt.Sprintf("local.acl_synth_%s_id", ir.VpcFromScopedResource(t.Subnet))},
 		},

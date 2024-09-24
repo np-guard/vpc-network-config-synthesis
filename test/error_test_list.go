@@ -6,8 +6,8 @@ SPDX-License-Identifier: Apache-2.0
 package test
 
 //nolint:lll // commands can be long
-func errorTestsList() []errorTestCase {
-	return []errorTestCase{
+func errorTestsList() []testCase {
+	return []testCase{
 		/*  ############################  */
 		/*	####### CLI ERRORS #########  */
 		/*  ############################  */

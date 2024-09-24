@@ -13,7 +13,7 @@ import (
 	"strings"
 	"testing"
 
-	m "github.com/np-guard/vpc-network-config-synthesis/cmd/_vpcgen"
+	"github.com/np-guard/vpc-network-config-synthesis/cmd/subcmds"
 )
 
 func TestMain(t *testing.T) {
@@ -26,7 +26,7 @@ func TestMain(t *testing.T) {
 
 			// run command
 			cmd := fmt.Sprintf(tt.command, dataFolder, dataFolder, resultsFolder)
-			if err := m.Main(strings.Split(cmd, " ")); err != nil {
+			if err := subcmds.Main(strings.Split(cmd, " ")); err != nil {
 				t.Errorf("Bad test %s: %s", tt.testName, err)
 			}
 
@@ -41,7 +41,14 @@ func compareTestResults(t *testing.T, testName string) {
 	expectedSubDirPath := filepath.Join(expectedFolder, testName)
 	resultsSubDirPath := filepath.Join(resultsFolder, testName)
 
-	for _, file := range readDir(t, expectedSubDirPath) {
+	expectedDirFiles := readDir(t, expectedSubDirPath)
+	resultsDirFiles := readDir(t, resultsSubDirPath)
+
+	if len(expectedDirFiles) != len(resultsDirFiles) {
+		t.Fatalf("Bad test: %s", testName)
+	}
+
+	for _, file := range expectedDirFiles {
 		if readFile(t, filepath.Join(expectedSubDirPath, file)) != readFile(t, filepath.Join(resultsSubDirPath, file)) {
 			t.Fatalf("Bad test: %s", testName)
 		}
