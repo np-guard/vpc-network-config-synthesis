@@ -23,6 +23,7 @@ func touching(a, b *netset.IPBlock) bool {
 	return len(ranges) == 1
 }
 
+// last IP address of a cidr
 func LastIPAddress(i *netset.IPBlock) *netset.IPBlock {
 	IPRanges := i.ToIPRanges()
 	ranges := strings.Split(IPRanges, commaSeparator)

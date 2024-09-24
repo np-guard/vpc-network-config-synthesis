@@ -36,14 +36,14 @@ type (
 		all  []ir.SGRule
 	}
 
-	sgRulesToSGSpans struct {
+	sgSpansToSGPerProtocol struct {
 		tcp  map[ir.SGName]*interval.CanonicalSet
 		udp  map[ir.SGName]*interval.CanonicalSet
 		icmp map[ir.SGName]*netset.ICMPSet
 		all  []*ir.SGName
 	}
 
-	sgRulesToIPAddrsSpans struct {
+	sgSpansToIPPerProtocol struct {
 		tcp  []ds.Pair[*netset.IPBlock, *interval.CanonicalSet]
 		udp  []ds.Pair[*netset.IPBlock, *interval.CanonicalSet]
 		icmp []ds.Pair[*netset.IPBlock, *netset.ICMPSet]
@@ -111,6 +111,7 @@ func (s *SGOptimizer) Optimize() ir.OptimizeCollection {
 
 // reduceSGRules attempts to reduce the number of rules with different remote types separately
 func (s *SGOptimizer) reduceSGRules(rules []ir.SGRule, direction ir.Direction) []ir.SGRule {
+	// separate all rules to groups of (protocol X remote)
 	ruleGroups := divideSGRules(rules)
 
 	// rules with SG as a remote
@@ -129,27 +130,8 @@ func (s *SGOptimizer) reduceSGRules(rules []ir.SGRule, direction ir.Direction) [
 	return append(optimizedRulesToSG, optimizedRulesToIPAddrs...)
 }
 
-func reduceSGRulesToSG(spans *sgRulesToSGSpans, direction ir.Direction) []ir.SGRule {
-	// delete other protocols rules if all protocol rule exists
-	for _, sgName := range spans.all {
-		delete(spans.tcp, *sgName)
-		delete(spans.udp, *sgName)
-		delete(spans.icmp, *sgName)
-	}
-
-	// merge tcp, udp and icmp rules into all protocol rule
-	for sgName, tcpPorts := range spans.tcp {
-		if udpPorts, ok := spans.udp[sgName]; ok {
-			if ic, ok := spans.icmp[sgName]; ok {
-				if ic.Equal(netset.AllICMPSet()) && allPorts(tcpPorts) && allPorts(udpPorts) { // all tcp&udp ports and all icmp types&codes
-					delete(spans.tcp, sgName)
-					delete(spans.udp, sgName)
-					delete(spans.icmp, sgName)
-					spans.all = append(spans.all, utils.Ptr(sgName))
-				}
-			}
-		}
-	}
+func reduceSGRulesToSG(spans *sgSpansToSGPerProtocol, direction ir.Direction) []ir.SGRule {
+	spans = compressSpansToSG(spans)
 
 	// convert spans to SG rules
 	tcpRules := tcpudpSGSpanToSGRules(spans.tcp, direction, true)
@@ -161,7 +143,7 @@ func reduceSGRulesToSG(spans *sgRulesToSGSpans, direction ir.Direction) []ir.SGR
 	return append(tcpRules, append(udpRules, append(icmpRules, allRules...)...)...)
 }
 
-func reduceSGRulesToIPAddrs(spans *sgRulesToIPAddrsSpans, direction ir.Direction) []ir.SGRule {
+func reduceSGRulesToIPAddrs(spans *sgSpansToIPPerProtocol, direction ir.Direction) []ir.SGRule {
 	spans = compressToAllProtocolRule(spans)
 
 	// spans to SG rules
@@ -219,38 +201,6 @@ func divideSGRules(rules []ir.SGRule) *sgRuleGroups {
 		}
 	}
 	return &sgRuleGroups{rulesToSG: rulesToSG, rulesToIPAddrs: rulesToIPAddrs}
-}
-
-// observation: It pays to switch to all protocol rule when we have rules that cover all other protocols
-// on exactly the same cidr (only one protocol can exceed).
-func compressToAllProtocolRule(span *sgRulesToIPAddrsSpans) *sgRulesToIPAddrsSpans {
-	t := 0
-	u := 0
-	i := 0
-
-	for t != len(span.tcp) && u != len(span.udp) && i != len(span.icmp) {
-		if !allPorts(span.tcp[t].Right) {
-			t++
-			continue
-		}
-		if !allPorts(span.udp[u].Right) {
-			u++
-			continue
-		}
-		if !span.icmp[i].Right.Equal(netset.AllICMPSet()) {
-			i++
-			continue
-		}
-
-		if span.tcp[t].Left.Equal(span.udp[u].Left) && span.tcp[t].Left.Equal(span.icmp[i].Left) {
-			span.all = span.all.Union(span.tcp[t].Left.Copy())
-			span.tcp = append(span.tcp[:t], span.tcp[t+1:]...)
-			span.udp = append(span.udp[:u], span.udp[u+1:]...)
-			span.icmp = append(span.icmp[:i], span.icmp[i+1:]...)
-		}
-	}
-
-	return span
 }
 
 func (s *sgRulesPerProtocol) allRules() []ir.SGRule {
