@@ -18,7 +18,7 @@ type errorTestCase struct {
 
 const (
 	dataFolder       = "data"
-	dataErrorsFolder = "data_errors"
+	dataErrorsFolder = "data_for_testing_errors"
 	resultsFolder    = "results"
 	expectedFolder   = "expected"
 
