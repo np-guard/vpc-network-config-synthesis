@@ -102,7 +102,7 @@ func aclRules(acl *ir.ACL) ([]vpcv1.NetworkACLRuleItemIntf, error) {
 			Href: ref.Href,
 			ID:   ref.ID,
 		}
-		rule, err := makeACLRuleItem(&rules[i], current, next)
+		rule, err := makeACLRuleItem(rules[i], current, next)
 		if err != nil {
 			return nil, err
 		}

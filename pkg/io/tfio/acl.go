@@ -74,8 +74,8 @@ func aclRule(rule *ir.ACLRule, name string) (tf.Block, error) {
 func singleACL(t *ir.ACL, comment string) (tf.Block, error) {
 	rules := t.Rules()
 	blocks := make([]tf.Block, len(rules))
-	for i := range rules {
-		rule, err := aclRule(&rules[i], fmt.Sprintf("rule%v", i))
+	for i, rule := range rules {
+		rule, err := aclRule(rule, fmt.Sprintf("rule%v", i))
 		if err != nil {
 			return tf.Block{}, err
 		}
