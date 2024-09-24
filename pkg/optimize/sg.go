@@ -155,16 +155,15 @@ func reduceSGRulesToSG(spans *sgRulesToSGSpans, direction ir.Direction) []ir.SGR
 	tcpRules := tcpudpSGSpanToSGRules(spans.tcp, direction, true)
 	udpRules := tcpudpSGSpanToSGRules(spans.udp, direction, false)
 	icmpRules := icmpSGSpanToSGRules(spans.icmp, direction)
-	protocolAll := protocolAllSGSpanToSGRules(spans.all, direction)
+	allRules := protocolAllSGSpanToSGRules(spans.all, direction)
 
-	// merge all rules together
-	tcpudp := append(tcpRules, udpRules...)      //nolint:gocritic // should merge all rules together
-	icmpAll := append(icmpRules, protocolAll...) //nolint:gocritic // should merge all rules together
-	return append(tcpudp, icmpAll...)
+	// return all rules
+	return append(tcpRules, append(udpRules, append(icmpRules, allRules...)...)...)
 }
 
 func reduceSGRulesToIPAddrs(spans *sgRulesToIPAddrsSpans, direction ir.Direction) []ir.SGRule {
-	// Todo: check if we can replace tcp, udp, icmp with protocol all. Should we?
+	// observation: It pays to switch to all protocol rule when we have rules that cover all other protocols
+	//              on exactly the same cidr (only one protocol can exceed).
 
 	// spans to SG rules
 	tcpRules := tcpudpIPSpanToSGRules(spans.tcp, spans.all, direction, true)
@@ -172,10 +171,8 @@ func reduceSGRulesToIPAddrs(spans *sgRulesToIPAddrsSpans, direction ir.Direction
 	icmpRules := icmpSpanToSGRules(spans.icmp, spans.all, direction)
 	allRules := allSpanIPToSGRules(spans.all, direction)
 
-	tcpudp := append(tcpRules, udpRules...)   //nolint:gocritic // should merge all rules together
-	icmpAll := append(icmpRules, allRules...) //nolint:gocritic // should merge all rules together
-
-	return append(tcpudp, icmpAll...)
+	// return all rules
+	return append(tcpRules, append(udpRules, append(icmpRules, allRules...)...)...)
 }
 
 // divide SGCollection to TCP/UDP/ICMP/ProtocolALL X SGRemote/IPAddrs rules
@@ -226,7 +223,5 @@ func divideSGRules(rules []ir.SGRule) *sgRuleGroups {
 }
 
 func (s *sgRulesPerProtocol) allRules() []ir.SGRule {
-	tcpudp := append(s.tcp, s.udp...)   //nolint:gocritic // should merge all rules together
-	icmpAll := append(s.icmp, s.all...) //nolint:gocritic // should merge all rules together
-	return append(tcpudp, icmpAll...)
+	return append(s.tcp, append(s.udp, append(s.icmp, s.all...)...)...)
 }

@@ -124,22 +124,25 @@ func updateSpan[T ds.Set[T]](span map[*netset.IPBlock]T, ruleSet T, ruleIP *nets
 		span[ruleIP] = protocolSet.Union(ruleSet)
 		return span
 	}
-	return utils.MergeSetMaps(span, addRuleToSpan(span, ruleIP, ruleSet))
+	span, newMap := addRuleToSpan(span, ruleIP, ruleSet)
+	return utils.MergeSetMaps(span, newMap)
 }
 
-func addRuleToSpan[T ds.Set[T]](span map[*netset.IPBlock]T, ruleIP *netset.IPBlock, ruleSet T) map[*netset.IPBlock]T {
-	result := make(map[*netset.IPBlock]T, 0)
+func addRuleToSpan[T ds.Set[T]](span map[*netset.IPBlock]T, ruleIP *netset.IPBlock, ruleSet T) (s, res map[*netset.IPBlock]T) {
+	res = make(map[*netset.IPBlock]T, 0)
 	for ipblock := range span {
-		if ipblock.Overlap(ruleIP) {
-			overlappingIPs := ruleIP.Subtract(ipblock)
-			for _, ip := range overlappingIPs.Split() {
-				result[ip] = span[ipblock].Copy().Union(ruleSet)
-			}
-			notOverlappingIPs := ipblock.Subtract(overlappingIPs)
-			for _, ip := range notOverlappingIPs.Split() {
-				result[ip] = span[ipblock].Copy()
-			}
+		if !ipblock.Overlap(ruleIP) {
+			continue
 		}
+		overlappingIPs := ruleIP.Subtract(ipblock)
+		for _, ip := range overlappingIPs.Split() {
+			res[ip] = span[ipblock].Copy().Union(ruleSet)
+		}
+		notOverlappingIPs := ipblock.Subtract(overlappingIPs)
+		for _, ip := range notOverlappingIPs.Split() {
+			res[ip] = span[ipblock].Copy()
+		}
+		delete(span, ipblock)
 	}
-	return result
+	return span, res
 }

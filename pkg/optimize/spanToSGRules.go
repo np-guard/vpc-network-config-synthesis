@@ -109,6 +109,19 @@ func tcpudpIPSpanToSGRules(span []ds.Pair[*netset.IPBlock, *interval.CanonicalSe
 	return result
 }
 
+// problem: where should I end the rule?
+// func createTcpudpRules(rules []ds.Pair[*netset.IPBlock, *interval.Interval], span []ds.Pair[*netset.IPBlock, *interval.CanonicalSet],
+// 	direction ir.Direction, isTCP bool) (res []ir.SGRule) {
+// 	res = make([]ir.SGRule, 0)
+// 	for _, r := range rules {
+// 		p, _ := netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(r.Right.Start()), int(r.Right.Start()))
+// 		for _, cidr := range ToCidrs(IPBlockFromRange(r.Left, LastIPAddress(span[len(span)-1].Left))) {
+// 			res = append(res, ir.NewSGRule(direction, cidr, p, netset.GetCidrAll(), ""))
+// 		}
+// 	}
+// 	return res
+// }
+
 func icmpSpanToSGRules(span []ds.Pair[*netset.IPBlock, *netset.ICMPSet], allSpan *netset.IPBlock, direction ir.Direction) []ir.SGRule {
 	rules := []ds.Pair[*netset.IPBlock, *netp.ICMP]{}
 	result := make([]ir.SGRule, 0)
