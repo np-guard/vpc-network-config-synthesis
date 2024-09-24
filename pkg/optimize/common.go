@@ -34,6 +34,10 @@ func sortPartitionsByIPAddrs[T any](p []ds.Pair[*netset.IPBlock, T]) []ds.Pair[*
 	return p
 }
 
+// func less(i, j *netset.IPBlock) bool {
+// 	return i.FirstIPAddress() < j.FirstIPAddress()
+// }
+
 func allPorts(ports *interval.CanonicalSet) bool {
 	return ports.Equal(netp.AllPorts().ToSet())
 }
