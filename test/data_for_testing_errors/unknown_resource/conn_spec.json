@@ -1,0 +1,14 @@
+{
+    "required-connections": [
+        {
+            "src": {
+                "name": "subnet0",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "subnet35",
+                "type": "subnet"
+            }
+        }
+    ]
+}

@@ -8,9 +8,16 @@ VpcGen reads specification files adhering to spec_schema.json and generates netw
 */
 package main
 
-import "github.com/np-guard/vpc-network-config-synthesis/cmd/subcmds"
+import (
+	"log"
+	"os"
+
+	"github.com/np-guard/vpc-network-config-synthesis/cmd/subcmds"
+)
 
 func main() {
-	rootCmd := subcmds.NewRootCommand()
-	_ = rootCmd.Execute()
+	err := subcmds.Main(os.Args)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

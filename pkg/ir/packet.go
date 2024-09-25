@@ -7,7 +7,6 @@ package ir
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
@@ -40,26 +39,16 @@ func packetACLRule(packet *Packet, direction Direction, action Action) *ACLRule 
 
 // makeDenyInternal prevents allowing external communications from accidentally allowing internal communications too
 func makeDenyInternal() []ACLRule {
-	cidr1, err := netset.IPBlockFromCidr("10.0.0.0/8")
-	if err != nil {
-		log.Fatal(err)
-	}
-	cidr2, err := netset.IPBlockFromCidr("172.16.0.0/12")
-	if err != nil {
-		log.Fatal(err)
-	}
-	cidr3, err := netset.IPBlockFromCidr("192.168.0.0/16")
-	if err != nil {
-		log.Fatal(err)
-	}
-	localCidrs := []*netset.IPBlock{cidr1, cidr2, cidr3} // https://datatracker.ietf.org/doc/html/rfc1918#section-3
+	localCidrs := []string{"10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"} // https://datatracker.ietf.org/doc/html/rfc1918#section-3
+	localCidrsIPBlocks, _ := netset.IPBlockFromCidrList(localCidrs)
+	localCidrsList := localCidrsIPBlocks.Split() // should be splitted to CIDRs
 	var denyInternal []ACLRule
-	for i, localSrc := range localCidrs {
-		for j, localDst := range localCidrs {
+	for i, localCidrSrc := range localCidrsList {
+		for j, localCidrDst := range localCidrsList {
 			explanation := fmt.Sprintf("Deny other internal communication; see rfc1918#3; item %v,%v", i, j)
 			denyInternal = append(denyInternal,
-				*packetACLRule(&Packet{Src: localSrc, Dst: localDst, Protocol: netp.AnyProtocol{}, Explanation: explanation}, Outbound, Deny),
-				*packetACLRule(&Packet{Src: localDst, Dst: localSrc, Protocol: netp.AnyProtocol{}, Explanation: explanation}, Inbound, Deny),
+				*packetACLRule(&Packet{Src: localCidrSrc, Dst: localCidrDst, Protocol: netp.AnyProtocol{}, Explanation: explanation}, Outbound, Deny),
+				*packetACLRule(&Packet{Src: localCidrDst, Dst: localCidrSrc, Protocol: netp.AnyProtocol{}, Explanation: explanation}, Inbound, Deny),
 			)
 		}
 	}

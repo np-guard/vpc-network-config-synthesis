@@ -48,8 +48,7 @@
             "allowed-protocols": [
                 {
                     "protocol": "ICMP",
-                    "type": 0,
-                    "code": 0
+                    "type": 4
                 }
             ]
         },
