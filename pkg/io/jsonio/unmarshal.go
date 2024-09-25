@@ -9,6 +9,7 @@ package jsonio
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/np-guard/models/pkg/netp"
@@ -260,7 +261,7 @@ func translateProtocols(protocols spec.ProtocolList) ([]ir.TrackedProtocol, erro
 		switch p := _p.(type) {
 		case spec.AnyProtocol:
 			if len(protocols) != 1 {
-				return nil, fmt.Errorf("when allowing any protocol, no more protocols can be defined")
+				log.Println("when allowing any protocol, there is no need in other protocols")
 			}
 			result[i].Protocol = netp.AnyProtocol{}
 		case spec.Icmp:
@@ -377,15 +378,16 @@ func inverseMapToFullyQualifiedName[T ir.Named](m map[ir.ID]T) (cache map[string
 	ambiguous = make(map[string]struct{})
 	cache = make(map[string]ir.ID)
 
-	for nifName, nif := range m {
-		if _, ok := ambiguous[nif.Name()]; ok {
+	for fullNifName, nif := range m {
+		nifName := nif.Name()
+		if _, ok := ambiguous[nifName]; ok {
 			continue
 		}
-		if _, ok := cache[nif.Name()]; !ok {
-			cache[nif.Name()] = nifName
+		if _, ok := cache[nifName]; !ok {
+			cache[nifName] = fullNifName
 		} else {
-			delete(cache, nif.Name())
-			ambiguous[nif.Name()] = struct{}{}
+			delete(cache, nifName)
+			ambiguous[nifName] = struct{}{}
 		}
 	}
 	return cache, ambiguous
