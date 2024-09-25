@@ -1,0 +1,50 @@
+{
+    "segments": {
+        "cidrSegment": { 
+            "type": "cidr",
+            "items": [
+                "10.240.2.0/23"
+            ]
+        },
+        "subnetSegment": {
+            "type": "subnet",
+            "items": [
+                "sub2-1",
+                "sub2-2"
+            ]
+        }
+    },
+    "required-connections": [
+        {
+            "src": {
+                "name": "cidrSegment",
+                "type": "segment"
+            },
+            "dst": {
+                "name": "cidrSegment",
+                "type": "segment"
+            }
+        },
+        {
+            "bidirectional": true,
+            "src": {
+                "name": "cidrSegment",
+                "type": "segment"
+            },
+            "dst": {
+                "name": "subnetSegment",
+                "type": "segment"
+            }
+        },
+        {
+            "src": {
+                "name": "subnetSegment",
+                "type": "segment"
+            },
+            "dst": {
+                "name": "subnetSegment",
+                "type": "segment"
+            }
+        }
+    ]
+}

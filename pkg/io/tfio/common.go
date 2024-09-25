@@ -10,7 +10,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"log"
 	"regexp"
 	"strconv"
 
@@ -64,10 +63,17 @@ func direction(d ir.Direction) string {
 	return string(d)
 }
 
-func verifyName(name string) {
-	pattern := "^([a-z]|[a-z][-a-z0-9]*[a-z0-9])$"
-	_, err := regexp.MatchString(pattern, name)
+// Resource names must start with a letter or underscore, and may
+// contain only letters, digits, underscores, and dashes.
+// (https://developer.hashicorp.com/terraform/language/resources/syntax)
+func verifyName(name string) error {
+	pattern := "^[A-Za-z_][A-Za-z0-9_-]*$"
+	ok, err := regexp.MatchString(pattern, name)
 	if err != nil {
-		log.Fatalf("\"name\" should match regexp %q", pattern)
+		return err
 	}
+	if !ok {
+		return fmt.Errorf("%q should match regexp %q", name, pattern)
+	}
+	return nil
 }
