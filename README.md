@@ -2,11 +2,6 @@
 
 ## About vpc-network-config-synthesis
 Tool for automatic synthesis of VPC network configurations, namely Network ACLs and Security Groups.
-<<<<<<< HEAD
-Multi-vpc input is supported.
-=======
-
->>>>>>> main
 
 ## Usage
 Use the `vpcgen` CLI tool with one of the following commands to specify the type of network resources to generate.
