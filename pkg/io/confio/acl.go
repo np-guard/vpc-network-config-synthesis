@@ -113,7 +113,6 @@ func aclRules(acl *ir.ACL) ([]vpcv1.NetworkACLRuleItemIntf, error) {
 	return ruleItems, nil
 }
 
-// decide if we are in a single-ACL mode
 func updateACLList(model *configModel.ResourcesContainerModel, collection *ir.ACLCollection) error {
 	if len(model.SubnetList) == 0 {
 		return nil
@@ -122,6 +121,7 @@ func updateACLList(model *configModel.ResourcesContainerModel, collection *ir.AC
 	vpcName := *subnet.VPC.Name
 	aclName := ScopingString(vpcName, *subnet.Name)
 
+	// decide if we are in a single-ACL mode
 	if _, ok := collection.ACLs[vpcName][aclName]; ok {
 		return updateACL(model, collection)
 	}

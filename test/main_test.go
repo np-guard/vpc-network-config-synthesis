@@ -21,13 +21,13 @@ func TestMain(t *testing.T) {
 		t.Run(tt.testName, func(t *testing.T) {
 			// create a sub folder
 			if err := os.MkdirAll(filepath.Join(resultsFolder, tt.testName), defaultDirectoryPermission); err != nil {
-				t.Errorf("Bad test %s: %s", tt.testName, err)
+				t.Fatalf("Bad test %s; error creating folder for results: %v", tt.testName, err)
 			}
 
 			// run command
 			cmd := fmt.Sprintf(tt.command, dataFolder, dataFolder, resultsFolder)
 			if err := subcmds.Main(strings.Split(cmd, " ")); err != nil {
-				t.Errorf("Bad test %s: %s", tt.testName, err)
+				t.Fatalf("Bad test %s; unexpected err: %v", tt.testName, err)
 			}
 
 			// compare results
@@ -39,18 +39,20 @@ func TestMain(t *testing.T) {
 
 func compareTestResults(t *testing.T, testName string) {
 	expectedSubDirPath := filepath.Join(expectedFolder, testName)
-	resultsSubDirPath := filepath.Join(resultsFolder, testName)
-
 	expectedDirFiles := readDir(t, expectedSubDirPath)
+	expectedFileNames := strings.Join(expectedDirFiles, ", ")
+
+	resultsSubDirPath := filepath.Join(resultsFolder, testName)
 	resultsDirFiles := readDir(t, resultsSubDirPath)
+	resultsFileNames := strings.Join(resultsDirFiles, ", ")
 
 	if len(expectedDirFiles) != len(resultsDirFiles) {
-		t.Fatalf("Bad test: %s", testName)
+		t.Fatalf("Bad test: %s; incorrect number of files created.\nexpected: %s\ngot: %s", testName, expectedFileNames, resultsFileNames)
 	}
 
 	for _, file := range expectedDirFiles {
-		if readFile(t, filepath.Join(expectedSubDirPath, file)) != readFile(t, filepath.Join(resultsSubDirPath, file)) {
-			t.Fatalf("Bad test: %s", testName)
+		if readFile(t, filepath.Join(expectedSubDirPath, file), testName) != readFile(t, filepath.Join(resultsSubDirPath, file), testName) {
+			t.Fatalf("Bad test %s; The %s file is different than expected", testName, file)
 		}
 	}
 }
@@ -58,7 +60,7 @@ func compareTestResults(t *testing.T, testName string) {
 func readDir(t *testing.T, dirName string) []string {
 	entries, err := os.ReadDir(dirName)
 	if err != nil {
-		t.Errorf("Bad test %s: %s", dirName, err)
+		t.Fatalf("Bad test %s; error reading folder: %s", dirName, err)
 	}
 
 	result := make([]string, len(entries))
@@ -68,10 +70,10 @@ func readDir(t *testing.T, dirName string) []string {
 	return result
 }
 
-func readFile(t *testing.T, file string) string {
+func readFile(t *testing.T, file, testName string) string {
 	buf, err := os.ReadFile(file)
 	if err != nil {
-		t.Errorf("Bad test: %v", err)
+		t.Fatalf("Bad test: %s; error reading file %s: %v", testName, file, err)
 	}
 	return shrinkWhitespace(string(buf))
 }

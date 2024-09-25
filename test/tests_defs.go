@@ -6,9 +6,9 @@ SPDX-License-Identifier: Apache-2.0
 package test
 
 type testCase struct {
-	testName string
-	command  string
-	err      string
+	testName    string
+	command     string
+	expectedErr string
 }
 
 const (
