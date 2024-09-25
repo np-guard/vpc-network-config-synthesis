@@ -58,10 +58,6 @@ func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection) err
 	if !resourceRelevantToACL(conn.Dst.Type) {
 		return fmt.Errorf(ACLTypeNotSupported, string(conn.Dst.Type))
 	}
-	internalSrc, internalDst, _ := internalConn(conn)
-	if !internalSrc && !internalDst {
-		return fmt.Errorf("ACL: Both source and destination are external for connection %v", *conn)
-	}
 	for _, src := range conn.Src.IPAddrs {
 		srcSubnets, srcCidr := adjustResource(&a.spec.Defs, src, conn.Src)
 		for _, dst := range conn.Dst.IPAddrs {

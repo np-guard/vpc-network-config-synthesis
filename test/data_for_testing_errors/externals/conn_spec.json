@@ -1,0 +1,18 @@
+{
+    "externals": {
+        "dns": "8.8.8.8",
+        "public internet": "0.0.0.0/0"
+    },
+    "required-connections": [
+        {
+            "src": {
+                "name": "dns",
+                "type": "external"
+            },
+            "dst": {
+                "name": "public internet",
+                "type": "external"
+            }
+        }
+    ]
+}
