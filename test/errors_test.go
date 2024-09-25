@@ -9,20 +9,19 @@ import (
 	"strings"
 	"testing"
 
-	m "github.com/np-guard/vpc-network-config-synthesis/cmd/_vpcgen"
+	"github.com/np-guard/vpc-network-config-synthesis/cmd/subcmds"
 )
 
 func TestErrors(t *testing.T) {
 	for _, tt := range errorTestsList() {
 		t.Run(tt.testName, func(t *testing.T) {
-			// run command
-			err := m.Main(strings.Split(tt.command, " "))
-			if err == nil || !strings.Contains(err.Error(), tt.err) {
+			err := subcmds.Main(tt.args.Args(dataForTestingErrorsFolder, dataForTestingErrorsFolder))
+			if err == nil || !strings.Contains(err.Error(), tt.expectedErr) {
 				res := "nil"
 				if err != nil {
 					res = err.Error()
 				}
-				t.Errorf("Bad test %s:\nexpected err: %s\ngot err: %s", tt.testName, tt.err, res)
+				t.Errorf("Bad test %s:\nexpected err: %s\ngot err: %s", tt.testName, tt.expectedErr, res)
 			}
 		})
 	}
