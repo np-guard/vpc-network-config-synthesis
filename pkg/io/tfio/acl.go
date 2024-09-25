@@ -32,10 +32,6 @@ func (w *Writer) WriteACL(c *ir.ACLCollection, vpc string) error {
 	return err
 }
 
-func (w *Writer) WriteOptimizeACL(c *ir.ACLCollection) error {
-	return fmt.Errorf("OptimizeACL is not supported yet")
-}
-
 func aclProtocol(t netp.Protocol) []tf.Block {
 	switch p := t.(type) {
 	case netp.TCPUDP:
