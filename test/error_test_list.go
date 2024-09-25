@@ -113,6 +113,19 @@ func errorTestsList() []testCase {
 			},
 		},
 
+		// external src and dst
+		{
+			testName:    "externals src and dst",
+			expectedErr: "both source and destination are external for connection",
+			args: &command{
+				cmd:        synth,
+				subcmd:     acl,
+				config:     "%s/externals/config_object.json",
+				spec:       "%s/externals/conn_spec.json",
+				outputFile: outputPath,
+			},
+		},
+
 		// unknown resource in spec
 		{
 			testName:    "unknown resource",
