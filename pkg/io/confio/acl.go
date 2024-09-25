@@ -7,7 +7,6 @@ package confio
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/IBM/vpc-go-sdk/vpcv1"
 
@@ -24,7 +23,7 @@ func cidr(address *netset.IPBlock) *string {
 }
 
 func makeACLRuleItem(rule *ir.ACLRule, current,
-	next *vpcv1.NetworkACLRuleReference) vpcv1.NetworkACLRuleItemIntf {
+	next *vpcv1.NetworkACLRuleReference) (vpcv1.NetworkACLRuleItemIntf, error) {
 	iPVersion := utils.Ptr(ipv4Const)
 	direction := direction(rule.Direction)
 	action := action(rule.Action)
@@ -50,7 +49,7 @@ func makeACLRuleItem(rule *ir.ACLRule, current,
 			DestinationPortMin: data.dstPortMin,
 			DestinationPortMax: data.dstPortMax,
 		}
-		return result
+		return result, nil
 	case netp.ICMP:
 		data := icmp(p)
 		result := &vpcv1.NetworkACLRuleItemNetworkACLRuleProtocolIcmp{
@@ -68,7 +67,7 @@ func makeACLRuleItem(rule *ir.ACLRule, current,
 			Type:     data.Type,
 			Code:     data.Code,
 		}
-		return result
+		return result, nil
 	case netp.AnyProtocol:
 		data := all()
 		result := &vpcv1.NetworkACLRuleItemNetworkACLRuleProtocolAll{
@@ -84,16 +83,15 @@ func makeACLRuleItem(rule *ir.ACLRule, current,
 
 			Protocol: data.Protocol,
 		}
-		return result
+		return result, nil
 	default:
-		log.Fatalf("Impossible protocol type for acl rule %v: %T", current.Name, p)
-		return nil
+		return nil, fmt.Errorf("impossible protocol type for acl rule %v: %T", current.Name, p)
 	}
 }
 
-func aclRules(acl *ir.ACL) []vpcv1.NetworkACLRuleItemIntf {
-	ruleItems := make([]vpcv1.NetworkACLRuleItemIntf, len(acl.Rules()))
+func aclRules(acl *ir.ACL) ([]vpcv1.NetworkACLRuleItemIntf, error) {
 	rules := acl.Rules()
+	ruleItems := make([]vpcv1.NetworkACLRuleItemIntf, len(rules))
 
 	var next *vpcv1.NetworkACLRuleReference
 	for i := len(ruleItems) - 1; i >= 0; i-- {
@@ -104,59 +102,101 @@ func aclRules(acl *ir.ACL) []vpcv1.NetworkACLRuleItemIntf {
 			Href: ref.Href,
 			ID:   ref.ID,
 		}
-		ruleItems[i] = makeACLRuleItem(&rules[i], current, next)
+		rule, err := makeACLRuleItem(&rules[i], current, next)
+		if err != nil {
+			return nil, err
+		}
+		ruleItems[i] = rule
 		next = current
 	}
 
-	return ruleItems
+	return ruleItems, nil
 }
 
-func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCollection) {
-	var aclItem *configModel.NetworkACL
+func updateACLList(model *configModel.ResourcesContainerModel, collection *ir.ACLCollection) error {
+	if len(model.SubnetList) == 0 {
+		return nil
+	}
+	subnet := model.SubnetList[0]
+	vpcName := *subnet.VPC.Name
+	aclName := ScopingString(vpcName, *subnet.Name)
 
-	for i, subnet := range model.SubnetList {
+	// decide if we are in a single-ACL mode
+	if _, ok := collection.ACLs[vpcName][aclName]; ok {
+		return updateACL(model, collection)
+	}
+	return updateSingleACL(model, collection)
+}
+
+func updateACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCollection) error {
+	for _, subnet := range model.SubnetList {
 		vpcName := *subnet.VPC.Name
 		aclName := ScopingString(vpcName, *subnet.Name)
 
-		acl, ok := collection.ACLs[vpcName][aclName]
-
-		if !ok { // single acl
-			acl = collection.ACLs[vpcName][ScopingString(vpcName, "singleACL")]
-			if i == 0 {
-				aclItem = newACLItem(subnet, acl)
-				model.NetworkACLList = append(model.NetworkACLList, aclItem)
-			} else {
-				aclItem.Subnets = append(aclItem.Subnets, *subnetRef(subnet))
-			}
-		} else {
-			aclItem = newACLItem(subnet, acl)
-			model.NetworkACLList = append(model.NetworkACLList, aclItem)
+		acl := collection.ACLs[vpcName][aclName]
+		aclItem, err := newACLItem(subnet, acl) // create a new ACL item for the subnet
+		if err != nil {
+			return err
 		}
-
-		subnet.NetworkACL = &vpcv1.NetworkACLReference{
-			ID:   aclItem.ID,
-			CRN:  aclItem.CRN,
-			Href: aclItem.Href,
-			Name: utils.Ptr(*aclItem.Name),
-		}
+		model.NetworkACLList = append(model.NetworkACLList, aclItem)
+		subnet.NetworkACL = newNACLRef(aclItem)
 	}
 	globalIndex = 0 // making test results more predictable
+	return nil
 }
 
-func newACLItem(subnet *configModel.Subnet, acl *ir.ACL) *configModel.NetworkACL {
+func updateSingleACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCollection) error {
+	aclItem := &configModel.NetworkACL{}
+	var err error
+
+	for i, subnet := range model.SubnetList {
+		vpcName := *subnet.VPC.Name
+		acl := collection.ACLs[vpcName][ScopingString(vpcName, "singleACL")]
+
+		// if this is the first subnet being added to the ACL, add it to the list of network ACLs
+		// otherwise, add the subnet reference to the existing ACL item
+		if i == 0 {
+			aclItem, err = newACLItem(subnet, acl)
+			if err != nil {
+				return err
+			}
+			model.NetworkACLList = append(model.NetworkACLList, aclItem)
+		} else {
+			aclItem.Subnets = append(aclItem.Subnets, *subnetRef(subnet))
+		}
+		subnet.NetworkACL = newNACLRef(aclItem)
+	}
+	globalIndex = 0 // making test results more predictable
+	return nil
+}
+
+func newNACLRef(aclItem *configModel.NetworkACL) *vpcv1.NetworkACLReference {
+	return &vpcv1.NetworkACLReference{
+		ID:   aclItem.ID,
+		CRN:  aclItem.CRN,
+		Href: aclItem.Href,
+		Name: utils.Ptr(*aclItem.Name),
+	}
+}
+
+func newACLItem(subnet *configModel.Subnet, acl *ir.ACL) (*configModel.NetworkACL, error) {
 	ref := allocateRef()
+	rules, err := aclRules(acl)
+	if err != nil {
+		return nil, err
+	}
 	aclItem := configModel.NewNetworkACL(&vpcv1.NetworkACL{
 		CRN:           ref.CRN,
 		Href:          ref.Href,
 		ID:            ref.ID,
 		Name:          utils.Ptr(ir.ChangeScoping(acl.Name())),
 		ResourceGroup: subnet.ResourceGroup,
-		Rules:         aclRules(acl),
+		Rules:         rules,
 		Subnets:       []vpcv1.SubnetReference{*subnetRef(subnet)},
 		VPC:           subnet.VPC,
 	})
 	aclItem.Tags = []string{}
-	return aclItem
+	return aclItem, nil
 }
 
 func subnetRef(subnet *configModel.Subnet) *vpcv1.SubnetReference {
@@ -170,6 +210,8 @@ func subnetRef(subnet *configModel.Subnet) *vpcv1.SubnetReference {
 }
 
 func (w *Writer) WriteACL(collection *ir.ACLCollection, _ string) error {
-	updateACL(w.model, collection)
+	if err := updateACLList(w.model, collection); err != nil {
+		return err
+	}
 	return w.writeModel()
 }
