@@ -150,10 +150,6 @@ type (
 	NWResource interface {
 		Address() *netset.IPBlock
 	}
-
-	ResourceVpc interface {
-		getOverlappingVPCs() []ID
-	}
 )
 
 func (n *NamedEntity) Name() string {
@@ -176,34 +172,6 @@ func (e *ExternalDetails) Address() *netset.IPBlock {
 	return e.ExternalAddrs
 }
 
-func (s *SubnetDetails) getOverlappingVPCs() []ID {
-	return []ID{s.VPC}
-}
-
-func (n *NifDetails) getOverlappingVPCs() []ID {
-	return []ID{n.VPC}
-}
-
-func (i *InstanceDetails) getOverlappingVPCs() []ID {
-	return []ID{i.VPC}
-}
-
-func (v *VPEDetails) getOverlappingVPCs() []ID {
-	return []ID{v.VPC}
-}
-
-func (s *SubnetSegmentDetails) getOverlappingVPCs() []ID {
-	return s.OverlappingVPCs
-}
-
-func (c *CidrSegmentDetails) getOverlappingVPCs() []ID {
-	result := make([]ID, 0)
-	for _, cidrDetails := range c.Cidrs {
-		result = append(result, cidrDetails.OverlappingVPCs...)
-	}
-	return UniqueIDValues(result)
-}
-
 type ResourceType string
 
 const (
@@ -216,10 +184,6 @@ const (
 	ResourceTypeInstance ResourceType = "instance"
 	ResourceTypeAny      ResourceType = "any"
 )
-
-func getResourceVPCs[T ResourceVpc](m map[ID]T, name string) []ID {
-	return m[name].getOverlappingVPCs()
-}
 
 func lookupSingle[T NWResource](m map[ID]T, name string, t ResourceType) (Resource, error) {
 	if details, ok := m[name]; ok {
@@ -312,38 +276,6 @@ func (s *Definitions) Lookup(t ResourceType, name string) (Resource, error) {
 	default:
 		return Resource{}, err
 	}
-}
-
-func (s *Definitions) GetResourceOverlappingVPCs(t ResourceType, name string) []ID {
-	switch t {
-	case ResourceTypeExternal:
-		return []ID{}
-	case ResourceTypeSubnet:
-		return getResourceVPCs(s.Subnets, name)
-	case ResourceTypeNIF:
-		return getResourceVPCs(s.NIFs, name)
-	case ResourceTypeVPE:
-		return getResourceVPCs(s.VPEs, name)
-	case ResourceTypeInstance:
-		return getResourceVPCs(s.Instances, name)
-	case ResourceTypeSegment:
-		if _, ok := s.SubnetSegments[name]; ok { // subnet segment
-			return getResourceVPCs(s.SubnetSegments, name)
-		}
-		return getResourceVPCs(s.CidrSegments, name)
-	default:
-		return []ID{}
-	}
-}
-
-func (s *Definitions) ValidateConnection(srcVPCs, dstVPCs []ID) error {
-	if len(srcVPCs) == 0 || len(dstVPCs) == 0 { // src or dst is an external resource
-		return nil
-	}
-	if len(srcVPCs) != 1 || len(dstVPCs) != 1 || srcVPCs[0] != dstVPCs[0] {
-		return fmt.Errorf("only connections within same vpc are supported")
-	}
-	return nil
 }
 
 func inverseLookup[T NWResource](m map[ID]T, address *netset.IPBlock) (result string, ok bool) {
