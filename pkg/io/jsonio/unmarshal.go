@@ -233,7 +233,7 @@ func translateConnection(defs *ir.Definitions, v *spec.SpecRequiredConnectionsEl
 		return nil, err
 	}
 	if srcResourceType == ir.ResourceTypeExternal && dstResourceType == ir.ResourceTypeExternal {
-		return nil, fmt.Errorf("both source and destination are external for connection")
+		return nil, fmt.Errorf("both source (%s) and destination (%s) are external in required connection", v.Src.Name, v.Dst.Name)
 	}
 
 	origin := connectionOrigin{

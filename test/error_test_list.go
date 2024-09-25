@@ -116,7 +116,7 @@ func errorTestsList() []testCase {
 		// external src and dst
 		{
 			testName:    "externals src and dst",
-			expectedErr: "both source and destination are external for connection",
+			expectedErr: "both source (dns) and destination (public internet) are external in required connection",
 			args: &command{
 				cmd:        synth,
 				subcmd:     acl,
