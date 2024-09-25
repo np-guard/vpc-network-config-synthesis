@@ -6,13 +6,11 @@ SPDX-License-Identifier: Apache-2.0
 package test
 
 // import (
-// 	"fmt"
 // 	"os"
 // 	"path/filepath"
-// 	"strings"
 // 	"testing"
 
-// 	m "github.com/np-guard/vpc-network-config-synthesis/cmd/_vpcgen"
+// 	"github.com/np-guard/vpc-network-config-synthesis/cmd/subcmds"
 // )
 
 // func TestUpdate(t *testing.T) {
@@ -23,8 +21,7 @@ package test
 // 				t.Errorf("Bad test %s: %s", tt.testName, err)
 // 			}
 
-// 			cmd := fmt.Sprintf(tt.command, dataFolder, dataFolder, expectedFolder)
-// 			err := m.Main(strings.Split(cmd, " "))
+// 			err := subcmds.Main(tt.args.Args(dataFolder, expectedFolder))
 // 			if err != nil {
 // 				t.Errorf("Bad test %s: %s", tt.testName, err)
 // 			}

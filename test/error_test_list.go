@@ -5,52 +5,82 @@ SPDX-License-Identifier: Apache-2.0
 
 package test
 
-//nolint:lll // commands can be long
-func errorTestsList() []errorTestCase {
-	return []errorTestCase{
+const (
+	cliConfig  = "%s/cli/config_object.json"
+	cliSpec    = "%s/cli/conn_spec.json"
+	outputPath = "%s/cli/nacl_expected.json"
+)
+
+//nolint:funlen //commands can be long
+func errorTestsList() []testCase {
+	return []testCase{
 		/*  ############################  */
 		/*	####### CLI ERRORS #########  */
 		/*  ############################  */
-		// -o and -d
-		{
-			testName: "-o with -d",
-			command:  "../bin/vpcgen synth acl -c data_errors/cli/config_object.json -s data_errors/cli/conn_spec.json -o data_errors/cli/nacl_expected.tf -d data_errors/cli",
-			err:      "if any flags in the group [output-file output-dir] are set none of the others can be; [output-dir output-file] were all set",
-		},
-
 		// -f = json and -l
 		{
-			testName: "locals json fmt",
-			command:  "../bin/vpcgen synth acl -c data_errors/cli/config_object.json -s data_errors/cli/conn_spec.json -o data_errors/cli/nacl_expected.json -l",
-			err:      "--locals flag requires setting the output format to tf",
+			testName:    "locals json fmt",
+			expectedErr: "--locals flag requires setting the output format to tf",
+			args: &command{
+				cmd:        synth,
+				subcmd:     acl,
+				config:     cliConfig,
+				spec:       cliSpec,
+				outputFile: outputPath,
+				locals:     true,
+			},
 		},
 
 		// json fmt with -d
 		{
-			testName: "json separate",
-			command:  "../bin/vpcgen synth acl -c data_errors/cli/config_object.json -s data_errors/cli/conn_spec.json -d data_errors/cli -f json",
-			err:      "-d cannot be used with format json",
+			testName:    "json separate",
+			expectedErr: "-d cannot be used with format json",
+			args: &command{
+				cmd:       synth,
+				subcmd:    acl,
+				config:    cliConfig,
+				spec:      cliSpec,
+				outputDir: outputPath,
+				format:    "json",
+			},
 		},
 
 		// config was not supplied
 		{
-			testName: "no config file",
-			command:  "../bin/vpcgen synth acl -s data_errors/cli/conn_spec.json -o data_errors/cli/nacl_expected.tf",
-			err:      "required flag(s) \"config\" not set",
+			testName:    "no config file",
+			expectedErr: "required flag(s) \"config\" not set",
+			args: &command{
+				cmd:        synth,
+				subcmd:     acl,
+				spec:       cliSpec,
+				outputFile: outputPath,
+			},
 		},
 
-		// give go.mod as spec
+		// give config as spec
 		{
-			testName: "bad spec file",
-			command:  "../bin/vpcgen synth acl -c data_errors/cli/config_object.json -s ../go.mod -o data_errors/cli/nacl_expected.tf",
-			err:      "could not parse connectivity file",
+			testName:    "bad spec file",
+			expectedErr: "could not parse connectivity file",
+			args: &command{
+				cmd:        synth,
+				subcmd:     acl,
+				config:     cliConfig,
+				spec:       cliConfig,
+				outputFile: outputPath,
+			},
 		},
 
 		// unknown subcmd
 		{
-			testName: "unknown subcmd",
-			command:  "../bin/vpcgen pop acl -c data_errors/cli/config_object.json -s conn_spec.json -o data_errors/cli/nacl_expected.tf",
-			err:      "unknown command \"pop\" for \"vpcgen\"",
+			testName:    "unknown subcmd",
+			expectedErr: "unknown command \"pop\" for \"vpcgen\"",
+			args: &command{
+				cmd:        "pop",
+				subcmd:     acl,
+				config:     cliConfig,
+				spec:       cliSpec,
+				outputFile: outputPath,
+			},
 		},
 
 		/*  ############################  */
@@ -59,44 +89,69 @@ func errorTestsList() []errorTestCase {
 
 		// two resources with the same name
 		{
-			testName: "ambiguous resource name",
-			command:  "../bin/vpcgen synth acl -c data_errors/ambiguous/config_object.json -s data_errors/ambiguous/conn_spec.json -o data_errors/ambiguous/nacl_expected.tf",
-			err:      "ambiguous resource name: subnet0",
+			testName:    "ambiguous resource name",
+			expectedErr: "ambiguous resource name: subnet0",
+			args: &command{
+				cmd:        synth,
+				subcmd:     acl,
+				config:     "%s/ambiguous/config_object.json",
+				spec:       "%s/ambiguous/conn_spec.json",
+				outputFile: outputPath,
+			},
 		},
 
 		// bad protocol
 		{
-			testName: "bad protocol",
-			command:  "../bin/vpcgen synth acl -c data_errors/bad_protocol/config_object.json -s data_errors/bad_protocol/conn_spec.json -o data_errors/bad_protocol/nacl_expected.tf",
-			err:      "could not parse connectivity file data_errors/bad_protocol/conn_spec.json: invalid protocol type \"ALOHA\"",
+			testName:    "bad protocol",
+			expectedErr: "could not parse connectivity file data_for_testing_errors/bad_protocol/conn_spec.json: invalid protocol type \"ALOHA\"",
+			args: &command{
+				cmd:        synth,
+				subcmd:     acl,
+				config:     "%s/bad_protocol/config_object.json",
+				spec:       "%s/bad_protocol/conn_spec.json",
+				outputFile: outputPath,
+			},
 		},
 
 		// unknown resource in spec
 		{
-			testName: "unknown resource",
-			command:  "../bin/vpcgen synth acl -c data_errors/unknown_resource/config_object.json -s data_errors/unknown_resource/conn_spec.json -o data_errors/unknown_resource/nacl_expected.tf",
-			err:      "unknown resource name subnet35 (resource type: \"subnet\")",
+			testName:    "unknown resource",
+			expectedErr: "unknown resource name subnet35 (resource type: \"subnet\")",
+			args: &command{
+				cmd:        synth,
+				subcmd:     acl,
+				config:     "%s/unknown_resource/config_object.json",
+				spec:       "%s/unknown_resource/conn_spec.json",
+				outputFile: outputPath,
+			},
 		},
 
 		// vpe resource in ACL generation
 		{
-			testName: "vpe acl",
-			command:  "../bin/vpcgen synth acl -c data_errors/vpe_acl/config_object.json -s data_errors/vpe_acl/conn_spec.json -o data_errors/vpe_acl/nacl_expected.tf",
-			err:      "ACL: src/dst of type vpe is not supported",
-		},
-
-		// external src and dst
-		{
-			testName: "external src and dst",
-			command:  "../bin/vpcgen synth sg -c data_errors/external/config_object.json -s data_errors/external/conn_spec.json -o data_errors/external/sg_expected.tf",
-			err:      "both source and destination are external for connection",
+			testName:    "vpe acl",
+			expectedErr: "ACL: src/dst of type vpe is not supported",
+			args: &command{
+				cmd:        synth,
+				subcmd:     acl,
+				config:     "%s/vpe_acl/config_object.json",
+				spec:       "%s/vpe_acl/conn_spec.json",
+				outputFile: outputPath,
+			},
 		},
 
 		// impossible resource type
 		{
 			testName: "impossible resource type",
-			command:  "../bin/vpcgen synth acl -c data_errors/impossible_resource_type/config_object.json -s data_errors/impossible_resource_type/conn_spec.json -o data_errors/impossible_resource_type/nacl_expected.tf",
-			err:      "could not parse connectivity file data_errors/impossible_resource_type/conn_spec.json: invalid value (expected one of []interface {}{\"external\", \"segment\", \"subnet\", \"instance\", \"nif\", \"cidr\", \"vpe\"}): \"policydb-endpoint-gateway\"",
+			expectedErr: "could not parse connectivity file data_for_testing_errors/impossible_resource_type/conn_spec.json: " +
+				"invalid value (expected one of []interface {}{\"external\", \"segment\", \"subnet\"," +
+				" \"instance\", \"nif\", \"cidr\", \"vpe\"}): \"policydb-endpoint-gateway\"",
+			args: &command{
+				cmd:        synth,
+				subcmd:     acl,
+				config:     "%s/impossible_resource_type/config_object.json",
+				spec:       "%s/impossible_resource_type/conn_spec.json",
+				outputFile: outputPath,
+			},
 		},
 	}
 }

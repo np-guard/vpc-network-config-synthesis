@@ -12,11 +12,11 @@ import (
 	"log"
 	"os"
 
-	m "github.com/np-guard/vpc-network-config-synthesis/cmd/_vpcgen"
+	"github.com/np-guard/vpc-network-config-synthesis/cmd/subcmds"
 )
 
 func main() {
-	err := m.Main(os.Args)
+	err := subcmds.Main(os.Args)
 	if err != nil {
 		log.Fatal(err)
 	}

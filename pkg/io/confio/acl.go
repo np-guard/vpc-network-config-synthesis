@@ -121,6 +121,7 @@ func updateACLList(model *configModel.ResourcesContainerModel, collection *ir.AC
 	vpcName := *subnet.VPC.Name
 	aclName := ScopingString(vpcName, *subnet.Name)
 
+	// decide if we are in a single-ACL mode
 	if _, ok := collection.ACLs[vpcName][aclName]; ok {
 		return updateACL(model, collection)
 	}
