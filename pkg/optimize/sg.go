@@ -30,10 +30,10 @@ type (
 	}
 
 	sgRulesPerProtocol struct {
-		tcp  []ir.SGRule
-		udp  []ir.SGRule
-		icmp []ir.SGRule
-		all  []ir.SGRule
+		tcp  []*ir.SGRule
+		udp  []*ir.SGRule
+		icmp []*ir.SGRule
+		all  []*ir.SGRule
 	}
 
 	sgSpansToSGPerProtocol struct {
@@ -73,7 +73,7 @@ func (s *SGOptimizer) VpcNames() []string {
 // Optimize attempts to reduce the number of SG rules
 // the algorithm attempts to reduce both inbound and outbound rules separately
 // A message is printed to the log at the end of the algorithm
-func (s *SGOptimizer) Optimize() ir.OptimizeCollection {
+func (s *SGOptimizer) Optimize() (ir.Collection, error) {
 	for vpcName := range s.sgCollection.SGs {
 		var sg *ir.SG
 		var ok bool
@@ -106,11 +106,11 @@ func (s *SGOptimizer) Optimize() ir.OptimizeCollection {
 			log.Printf("%d rules were reduced in sg %s", reducedRules, string(s.sgName))
 		}
 	}
-	return s.sgCollection
+	return s.sgCollection, nil
 }
 
 // reduceSGRules attempts to reduce the number of rules with different remote types separately
-func (s *SGOptimizer) reduceSGRules(rules []ir.SGRule, direction ir.Direction) []ir.SGRule {
+func (s *SGOptimizer) reduceSGRules(rules []*ir.SGRule, direction ir.Direction) []*ir.SGRule {
 	// separate all rules to groups of (protocol X remote)
 	ruleGroups := divideSGRules(rules)
 
@@ -130,7 +130,7 @@ func (s *SGOptimizer) reduceSGRules(rules []ir.SGRule, direction ir.Direction) [
 	return append(optimizedRulesToSG, optimizedRulesToIPAddrs...)
 }
 
-func reduceSGRulesToSG(spans *sgSpansToSGPerProtocol, direction ir.Direction) []ir.SGRule {
+func reduceSGRulesToSG(spans *sgSpansToSGPerProtocol, direction ir.Direction) []*ir.SGRule {
 	spans = compressSpansToSG(spans)
 
 	// convert spans to SG rules
@@ -143,7 +143,7 @@ func reduceSGRulesToSG(spans *sgSpansToSGPerProtocol, direction ir.Direction) []
 	return append(tcpRules, append(udpRules, append(icmpRules, allRules...)...)...)
 }
 
-func reduceSGRulesToIPAddrs(spans *sgSpansToIPPerProtocol, direction ir.Direction) []ir.SGRule {
+func reduceSGRulesToIPAddrs(spans *sgSpansToIPPerProtocol, direction ir.Direction) []*ir.SGRule {
 	spans = compressToAllProtocolRule(spans)
 
 	// spans to SG rules
@@ -157,11 +157,11 @@ func reduceSGRulesToIPAddrs(spans *sgSpansToIPPerProtocol, direction ir.Directio
 }
 
 // divide SGCollection to TCP/UDP/ICMP/ProtocolALL X SGRemote/IPAddrs rules
-func divideSGRules(rules []ir.SGRule) *sgRuleGroups {
-	rulesToSG := &sgRulesPerProtocol{tcp: make([]ir.SGRule, 0), udp: make([]ir.SGRule, 0),
-		icmp: make([]ir.SGRule, 0), all: make([]ir.SGRule, 0)}
-	rulesToIPAddrs := &sgRulesPerProtocol{tcp: make([]ir.SGRule, 0), udp: make([]ir.SGRule, 0),
-		icmp: make([]ir.SGRule, 0), all: make([]ir.SGRule, 0)}
+func divideSGRules(rules []*ir.SGRule) *sgRuleGroups {
+	rulesToSG := &sgRulesPerProtocol{tcp: make([]*ir.SGRule, 0), udp: make([]*ir.SGRule, 0),
+		icmp: make([]*ir.SGRule, 0), all: make([]*ir.SGRule, 0)}
+	rulesToIPAddrs := &sgRulesPerProtocol{tcp: make([]*ir.SGRule, 0), udp: make([]*ir.SGRule, 0),
+		icmp: make([]*ir.SGRule, 0), all: make([]*ir.SGRule, 0)}
 
 	for _, rule := range rules {
 		// TCP rule
@@ -203,6 +203,6 @@ func divideSGRules(rules []ir.SGRule) *sgRuleGroups {
 	return &sgRuleGroups{rulesToSG: rulesToSG, rulesToIPAddrs: rulesToIPAddrs}
 }
 
-func (s *sgRulesPerProtocol) allRules() []ir.SGRule {
+func (s *sgRulesPerProtocol) allRules() []*ir.SGRule {
 	return append(s.tcp, append(s.udp, append(s.icmp, s.all...)...)...)
 }

@@ -21,7 +21,7 @@ import (
 
 const defaultDirectoryPermission = 0o755
 
-func writeOutput(args *inArgs, collection ir.SynthCollection, vpcNames []ir.ID) error {
+func writeOutput(args *inArgs, collection ir.Collection, vpcNames []ir.ID) error {
 	if err := checkOutputFlags(args); err != nil {
 		return err
 	}
@@ -61,19 +61,19 @@ func writeOutput(args *inArgs, collection ir.SynthCollection, vpcNames []ir.ID) 
 	return nil
 }
 
-func writeSynthCollection(args *inArgs, collection ir.SynthCollection, vpc string) (*bytes.Buffer, error) {
+func writeSynthCollection(args *inArgs, collection ir.Collection, vpc string) (*bytes.Buffer, error) {
 	var data bytes.Buffer
 	writer, err := pickSynthWriter(args, &data)
 	if err != nil {
 		return nil, err
 	}
-	if err := collection.WriteSynth(writer, vpc); err != nil {
+	if err := collection.Write(writer, vpc); err != nil {
 		return nil, err
 	}
 	return &data, nil
 }
 
-func pickSynthWriter(args *inArgs, data *bytes.Buffer) (ir.SynthWriter, error) {
+func pickSynthWriter(args *inArgs, data *bytes.Buffer) (ir.Writer, error) {
 	w := bufio.NewWriter(data)
 	switch args.outputFmt {
 	case tfOutputFormat:

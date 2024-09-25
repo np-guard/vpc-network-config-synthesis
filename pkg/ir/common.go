@@ -8,22 +8,13 @@ package ir
 type (
 	Direction string
 
-	SynthCollection interface {
-		WriteSynth(writer SynthWriter, vpc string) error
+	Collection interface {
+		Write(writer Writer, vpc string) error
 	}
 
-	OptimizeCollection interface {
-		WriteOptimize(writer OptimizeWriter) error
-	}
-
-	SynthWriter interface {
-		SynthACLWriter
-		SynthSGWriter
-	}
-
-	OptimizeWriter interface {
-		OptimizeACLWriter
-		OptimizeSGWriter
+	Writer interface {
+		ACLWriter
+		SGWriter
 	}
 )
 

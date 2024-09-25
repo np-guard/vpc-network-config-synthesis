@@ -23,7 +23,7 @@
                 "type": "nif"
             },
             "dst": {
-                "name": "subnet4",
+                "name": "test-vpc0/subnet4",
                 "type": "subnet"
             },
             "allowed-protocols": [

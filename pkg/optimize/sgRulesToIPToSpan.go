@@ -25,7 +25,7 @@ func sgRulesToIPAddrsToSpans(rules *sgRulesPerProtocol) *sgSpansToIPPerProtocol 
 }
 
 // all protocol rules to a span. The span will be splitted to disjoint CIDRs
-func allProtocolRulesToIPAddrsToSpan(rules []ir.SGRule) *netset.IPBlock {
+func allProtocolRulesToIPAddrsToSpan(rules []*ir.SGRule) *netset.IPBlock {
 	res := netset.NewIPBlock()
 	for i := range rules {
 		res.Union(rules[i].Remote.(*netset.IPBlock))
@@ -35,7 +35,7 @@ func allProtocolRulesToIPAddrsToSpan(rules []ir.SGRule) *netset.IPBlock {
 
 // tcp/udp rules (separately) to a span of (IPBlock X protocol ports).
 // all IPBlocks are disjoint
-func tcpudpRulesToIPAddrsToPortsSpan(rules []ir.SGRule) []ds.Pair[*netset.IPBlock, *interval.CanonicalSet] {
+func tcpudpRulesToIPAddrsToPortsSpan(rules []*ir.SGRule) []ds.Pair[*netset.IPBlock, *interval.CanonicalSet] {
 	span := tcpudpMapSpan(rules)
 	result := ds.NewProductLeft[*netset.IPBlock, *interval.CanonicalSet]()
 	for ipblock, portsSet := range span {
@@ -47,7 +47,7 @@ func tcpudpRulesToIPAddrsToPortsSpan(rules []ir.SGRule) []ds.Pair[*netset.IPBloc
 
 // icmp rules to a span of (IPBlock X icmp set).
 // all IPBlocks are disjoint
-func icmpRulesToIPAddrsToSpan(rules []ir.SGRule) []ds.Pair[*netset.IPBlock, *netset.ICMPSet] {
+func icmpRulesToIPAddrsToSpan(rules []*ir.SGRule) []ds.Pair[*netset.IPBlock, *netset.ICMPSet] {
 	span := icmpMapSpan((rules))
 	result := ds.NewProductLeft[*netset.IPBlock, *netset.ICMPSet]()
 	for ipblock, icmpSet := range span {
@@ -63,7 +63,7 @@ func icmpRulesToIPAddrsToSpan(rules []ir.SGRule) []ds.Pair[*netset.IPBlock, *net
 
 // tcp/udp rules to a span in a map format, where the key is the IPBlock and the value contains the protocol ports
 // all ipblocks are disjoint
-func tcpudpMapSpan(rules []ir.SGRule) map[*netset.IPBlock]*interval.CanonicalSet {
+func tcpudpMapSpan(rules []*ir.SGRule) map[*netset.IPBlock]*interval.CanonicalSet {
 	span := make(map[*netset.IPBlock]*interval.CanonicalSet, 0) // all keys are disjoint
 	for i := range rules {
 		portsSet := rules[i].Protocol.(netp.TCPUDP).DstPorts().ToSet() // already checked
@@ -75,7 +75,7 @@ func tcpudpMapSpan(rules []ir.SGRule) map[*netset.IPBlock]*interval.CanonicalSet
 
 // icmp rules to a span in a map format, where the key is the IPBlock and the value contains the icmp set
 // all ipblocks are disjoint
-func icmpMapSpan(rules []ir.SGRule) map[*netset.IPBlock]*netset.ICMPSet {
+func icmpMapSpan(rules []*ir.SGRule) map[*netset.IPBlock]*netset.ICMPSet {
 	span := make(map[*netset.IPBlock]*netset.ICMPSet, 0) // all keys are disjoint
 	for i := range rules {
 		icmpSet := netset.NewICMPSet(rules[i].Protocol.(netp.ICMP)) // already checked

@@ -10,7 +10,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"log"
 	"regexp"
 	"strconv"
 
@@ -21,7 +20,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-// Writer implements ir.SynthWriter and ir.OptimizeWriter
+// Writer implements ir.Writer
 type Writer struct {
 	w *bufio.Writer
 }
@@ -33,10 +32,10 @@ func NewWriter(w io.Writer) *Writer {
 func portRange(r interval.Interval, prefix string) []tf.Argument {
 	var arguments []tf.Argument
 	if r.Start() != netp.MinPort {
-		arguments = append(arguments, tf.Argument{Name: prefix + "_min", Value: strconv.Itoa(int(r.Start()))})
+		arguments = append(arguments, tf.Argument{Name: prefix + "_min", Value: strconv.FormatInt(r.Start(), 10)})
 	}
 	if r.End() != netp.MaxPort {
-		arguments = append(arguments, tf.Argument{Name: prefix + "_max", Value: strconv.Itoa(int(r.End()))})
+		arguments = append(arguments, tf.Argument{Name: prefix + "_max", Value: strconv.FormatInt(r.End(), 10)})
 	}
 	return arguments
 }
@@ -64,10 +63,17 @@ func direction(d ir.Direction) string {
 	return string(d)
 }
 
-func verifyName(name string) {
-	pattern := "^([a-z]|[a-z][-a-z0-9]*[a-z0-9])$"
-	_, err := regexp.MatchString(pattern, name)
+// Resource names must start with a letter or underscore, and may
+// contain only letters, digits, underscores, and dashes.
+// (https://developer.hashicorp.com/terraform/language/resources/syntax)
+func verifyName(name string) error {
+	pattern := "^[A-Za-z_][A-Za-z0-9_-]*$"
+	ok, err := regexp.MatchString(pattern, name)
 	if err != nil {
-		log.Fatalf("\"name\" should match regexp %q", pattern)
+		return err
 	}
+	if !ok {
+		return fmt.Errorf("%q should match regexp %q", name, pattern)
+	}
+	return nil
 }

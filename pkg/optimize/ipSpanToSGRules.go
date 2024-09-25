@@ -15,8 +15,8 @@ import (
 )
 
 // IPAddrs remote
-func allSpanIPToSGRules(span *netset.IPBlock, direction ir.Direction) []ir.SGRule {
-	result := make([]ir.SGRule, 0)
+func allSpanIPToSGRules(span *netset.IPBlock, direction ir.Direction) []*ir.SGRule {
+	result := make([]*ir.SGRule, 0)
 	for _, cidr := range ToCidrs(span) {
 		result = append(result, ir.NewSGRule(direction, cidr, netp.AnyProtocol{}, netset.GetCidrAll(), ""))
 	}
@@ -24,9 +24,9 @@ func allSpanIPToSGRules(span *netset.IPBlock, direction ir.Direction) []ir.SGRul
 }
 
 func tcpudpIPSpanToSGRules(span []ds.Pair[*netset.IPBlock, *interval.CanonicalSet], allSpan *netset.IPBlock,
-	direction ir.Direction, isTCP bool) []ir.SGRule {
+	direction ir.Direction, isTCP bool) []*ir.SGRule {
 	rules := []ds.Pair[*netset.IPBlock, *interval.Interval]{} // start ip and ports
-	result := make([]ir.SGRule, 0)
+	result := make([]*ir.SGRule, 0)
 
 	for i := range span {
 		if i > 0 {
@@ -91,9 +91,9 @@ func tcpudpIPSpanToSGRules(span []ds.Pair[*netset.IPBlock, *interval.CanonicalSe
 // 	return res
 // }
 
-func icmpSpanToSGRules(span []ds.Pair[*netset.IPBlock, *netset.ICMPSet], allSpan *netset.IPBlock, direction ir.Direction) []ir.SGRule {
+func icmpSpanToSGRules(span []ds.Pair[*netset.IPBlock, *netset.ICMPSet], allSpan *netset.IPBlock, direction ir.Direction) []*ir.SGRule {
 	rules := []ds.Pair[*netset.IPBlock, *netp.ICMP]{}
-	result := make([]ir.SGRule, 0)
+	result := make([]*ir.SGRule, 0)
 
 	for i := range span {
 		if i > 0 {

@@ -15,7 +15,7 @@ import (
 
 type (
 	Synthesizer interface {
-		Synth() ir.SynthCollection
+		Synth() (ir.Collection, error)
 	}
 
 	namedAddrs struct {

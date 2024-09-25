@@ -6,14 +6,14 @@ SPDX-License-Identifier: Apache-2.0
 package synth
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/np-guard/models/pkg/netp"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-const SGTypeNotSupported = "SG: src/dst of type %s is not supported."
+const SGTypeNotSupported = "SG: src/dst of type %s is not supported"
 
 type SGSynthesizer struct {
 	spec   *ir.Spec
@@ -25,19 +25,22 @@ func NewSGSynthesizer(s *ir.Spec, _ bool) Synthesizer {
 	return &SGSynthesizer{spec: s, result: ir.NewSGCollection()}
 }
 
-func (s *SGSynthesizer) Synth() ir.SynthCollection {
+func (s *SGSynthesizer) Synth() (ir.Collection, error) {
 	return s.makeSG()
 }
 
 // this method translates spec to a collection of Security Groups
 // 1. generate SGs for relevant endpoints for each connection
 // 2. generate SGs for blocked endpoints (endpoints that do not appear in Spec)
-func (s *SGSynthesizer) makeSG() *ir.SGCollection {
+func (s *SGSynthesizer) makeSG() (*ir.SGCollection, error) {
 	for c := range s.spec.Connections {
-		s.generateSGRulesFromConnection(&s.spec.Connections[c])
+		err := s.generateSGRulesFromConnection(&s.spec.Connections[c])
+		if err != nil {
+			return nil, err
+		}
 	}
 	s.generateSGsForBlockedResources()
-	return s.result
+	return s.result, nil
 }
 
 //  1. check that both resources are supported in SG generation.
@@ -45,17 +48,14 @@ func (s *SGSynthesizer) makeSG() *ir.SGCollection {
 //  3. convert src and dst resources to namedAddrs slices to make it more convenient to go through the addrs
 //     and add the rule to the relevant SG.
 //  4. generate rules and add them to relevant SG to allow traffic for all pairs of IPAddrs of both resources.
-func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection) {
+func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection) error {
 	if !resourceRelevantToSG(conn.Src.Type) {
-		log.Fatalf(SGTypeNotSupported, string(conn.Src.Type))
+		return fmt.Errorf(SGTypeNotSupported, string(conn.Src.Type))
 	}
 	if !resourceRelevantToSG(conn.Dst.Type) {
-		log.Fatalf(SGTypeNotSupported, string(conn.Dst.Type))
+		return fmt.Errorf(SGTypeNotSupported, string(conn.Dst.Type))
 	}
 	internalSrc, internalDst, internalConn := internalConn(conn)
-	if !internalSrc && !internalDst {
-		log.Fatalf("SG: Both source and destination are external for connection %v", *conn)
-	}
 
 	srcEndpoints := updateEndpoints(&s.spec.Defs, conn.Src)
 	dstEndpoints := updateEndpoints(&s.spec.Defs, conn.Dst)
@@ -73,6 +73,7 @@ func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection) {
 			}
 		}
 	}
+	return nil
 }
 
 // if the endpoint in internal, a rule will be created to allow traffic.

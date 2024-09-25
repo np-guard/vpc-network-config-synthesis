@@ -24,7 +24,7 @@ func sgRulesToSGToSpans(rules *sgRulesPerProtocol) *sgSpansToSGPerProtocol {
 }
 
 // tcp/udp rules to a span -- map where the key is the SG name and the value is the protocol ports
-func tcpudpRulesToSGToPortsSpan(rules []ir.SGRule) map[ir.SGName]*interval.CanonicalSet {
+func tcpudpRulesToSGToPortsSpan(rules []*ir.SGRule) map[ir.SGName]*interval.CanonicalSet {
 	result := make(map[ir.SGName]*interval.CanonicalSet)
 	for i := range rules {
 		p := rules[i].Protocol.(netp.TCPUDP)  // already checked
@@ -38,7 +38,7 @@ func tcpudpRulesToSGToPortsSpan(rules []ir.SGRule) map[ir.SGName]*interval.Canon
 }
 
 // icmp rules to a span -- map where the key is the SG name and the value is icmp set
-func icmpRulesToSGToSpan(rules []ir.SGRule) map[ir.SGName]*netset.ICMPSet {
+func icmpRulesToSGToSpan(rules []*ir.SGRule) map[ir.SGName]*netset.ICMPSet {
 	result := make(map[ir.SGName]*netset.ICMPSet)
 	for i := range rules {
 		p := rules[i].Protocol.(netp.ICMP)    // already checked
@@ -52,7 +52,7 @@ func icmpRulesToSGToSpan(rules []ir.SGRule) map[ir.SGName]*netset.ICMPSet {
 }
 
 // all protocol rules to a span of SG names slice
-func allProtocolRulesToSGToSpan(rules []ir.SGRule) []*ir.SGName {
+func allProtocolRulesToSGToSpan(rules []*ir.SGRule) []*ir.SGName {
 	result := make(map[ir.SGName]struct{})
 	for i := range rules {
 		remote := rules[i].Remote.(ir.SGName)

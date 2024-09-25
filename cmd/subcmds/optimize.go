@@ -37,5 +37,9 @@ func optimization(cmd *cobra.Command, args *inArgs, newOptimizer optimize.Optimi
 	if err := newOptimizer.ParseCollection(args.configFile); err != nil {
 		return fmt.Errorf("could not parse config file %v: %w", args.configFile, err)
 	}
-	return writeOptimizeOutput(args, newOptimizer.Optimize(), newOptimizer.VpcNames())
+	collection, err := newOptimizer.Optimize()
+	if err != nil {
+		return err
+	}
+	return writeOptimizeOutput(args, collection, newOptimizer.VpcNames())
 }

@@ -45,8 +45,8 @@ type (
 	SG struct {
 		SGName        SGName
 		VpcName       string
-		InboundRules  []SGRule
-		OutboundRules []SGRule
+		InboundRules  []*SGRule
+		OutboundRules []*SGRule
 		Attached      []ID
 	}
 
@@ -54,12 +54,8 @@ type (
 		SGs map[ID]map[SGName]*SG
 	}
 
-	SynthSGWriter interface {
-		WriteSynthSG(sgColl *SGCollection, vpc string) error
-	}
-
-	OptimizeSGWriter interface {
-		WriteOptimizeSG(sgColl *SGCollection) error
+	SGWriter interface {
+		WriteSG(sgColl *SGCollection, vpc string) error
 	}
 )
 
@@ -67,9 +63,9 @@ func (s SGName) String() string {
 	return string(s)
 }
 
-func (r *SGRule) isRedundant(rules []SGRule) bool {
-	for i := range rules {
-		if rules[i].mustSupersede(r) {
+func (r *SGRule) isRedundant(rules []*SGRule) bool {
+	for _, rule := range rules {
+		if rule.mustSupersede(r) {
 			return true
 		}
 	}
@@ -84,13 +80,13 @@ func (r *SGRule) mustSupersede(other *SGRule) bool {
 	return res
 }
 
-func NewSGRule(direction Direction, remote RemoteType, p netp.Protocol, local *netset.IPBlock, e string) SGRule {
-	return SGRule{Direction: direction, Remote: remote, Protocol: p,
+func NewSGRule(direction Direction, remote RemoteType, p netp.Protocol, local *netset.IPBlock, e string) *SGRule {
+	return &SGRule{Direction: direction, Remote: remote, Protocol: p,
 		Local: local, Explanation: e}
 }
 
-func NewSG(vpcName string, sgName SGName) *SG {
-	return &SG{SGName: sgName, VpcName: vpcName, InboundRules: []SGRule{}, OutboundRules: []SGRule{}, Attached: []ID{}}
+func NewSG(sgName SGName, vpcName string) *SG {
+	return &SG{SGName: sgName, VpcName: vpcName, InboundRules: []*SGRule{}, OutboundRules: []*SGRule{}, Attached: []ID{}}
 }
 
 func NewSGCollection() *SGCollection {
@@ -102,7 +98,7 @@ func (c *SGCollection) LookupOrCreate(name SGName) *SG {
 	if sg, ok := c.SGs[vpcName][name]; ok {
 		return sg
 	}
-	newSG := NewSG(vpcName, name)
+	newSG := NewSG(name, vpcName)
 	if c.SGs[vpcName] == nil {
 		c.SGs[vpcName] = make(map[SGName]*SG)
 	}
@@ -112,14 +108,14 @@ func (c *SGCollection) LookupOrCreate(name SGName) *SG {
 
 func (a *SG) Add(rule *SGRule) {
 	if rule.Direction == Outbound && !rule.isRedundant(a.OutboundRules) {
-		a.OutboundRules = append(a.OutboundRules, *rule)
+		a.OutboundRules = append(a.OutboundRules, rule)
 	}
 	if rule.Direction == Inbound && !rule.isRedundant(a.InboundRules) {
-		a.InboundRules = append(a.InboundRules, *rule)
+		a.InboundRules = append(a.InboundRules, rule)
 	}
 }
 
-func (a *SG) AllRules() []SGRule {
+func (a *SG) AllRules() []*SGRule {
 	return append(a.InboundRules, a.OutboundRules...)
 }
 
@@ -127,12 +123,8 @@ func (c *SGCollection) VpcNames() []string {
 	return utils.SortedMapKeys(c.SGs)
 }
 
-func (c *SGCollection) WriteSynth(w SynthWriter, vpc string) error {
-	return w.WriteSynthSG(c, vpc)
-}
-
-func (c *SGCollection) WriteOptimize(w OptimizeWriter) error {
-	return w.WriteOptimizeSG(c)
+func (c *SGCollection) Write(w Writer, vpc string) error {
+	return w.WriteSG(c, vpc)
 }
 
 func (c *SGCollection) SortedSGNames(vpc ID) []SGName {
