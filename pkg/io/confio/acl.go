@@ -209,7 +209,7 @@ func subnetRef(subnet *configModel.Subnet) *vpcv1.SubnetReference {
 	}
 }
 
-func (w *Writer) WriteSynthACL(collection *ir.ACLCollection, _ string) error {
+func (w *Writer) WriteACL(collection *ir.ACLCollection, _ string) error {
 	if err := updateACLList(w.model, collection); err != nil {
 		return err
 	}

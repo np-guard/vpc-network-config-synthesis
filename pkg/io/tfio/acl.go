@@ -18,7 +18,7 @@ import (
 )
 
 // WriteACL prints an entire collection of acls as a sequence of terraform resources.
-func (w *Writer) WriteSynthACL(c *ir.ACLCollection, vpc string) error {
+func (w *Writer) WriteACL(c *ir.ACLCollection, vpc string) error {
 	collection, err := aclCollection(c, vpc)
 	if err != nil {
 		return err

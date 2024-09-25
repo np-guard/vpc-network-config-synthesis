@@ -27,7 +27,7 @@ func NewACLSynthesizer(s *ir.Spec, single bool) Synthesizer {
 	return &ACLSynthesizer{spec: s, singleACL: single, result: ir.NewACLCollection()}
 }
 
-func (a *ACLSynthesizer) Synth() (ir.SynthCollection, error) {
+func (a *ACLSynthesizer) Synth() (ir.Collection, error) {
 	return a.makeACL()
 }
 

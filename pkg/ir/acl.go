@@ -38,12 +38,8 @@ type (
 		ACLs map[ID]map[string]*ACL
 	}
 
-	SynthACLWriter interface {
-		WriteSynthACL(aclColl *ACLCollection, vpc string) error
-	}
-
-	OptimizeACLWriter interface {
-		WriteOptimizeACL(aclColl *ACLCollection) error
+	ACLWriter interface {
+		WriteACL(aclColl *ACLCollection, vpc string) error
 	}
 )
 
@@ -133,12 +129,8 @@ func (c *ACLCollection) VpcNames() []string {
 	return utils.SortedMapKeys(c.ACLs)
 }
 
-func (c *ACLCollection) WriteSynth(w SynthWriter, vpc string) error {
-	return w.WriteSynthACL(c, vpc)
-}
-
-func (c *ACLCollection) WriteOptimize(w OptimizeWriter) error {
-	return w.WriteOptimizeACL(c)
+func (c *ACLCollection) Write(w Writer, vpc string) error {
+	return w.WriteACL(c, vpc)
 }
 
 func (c *ACLCollection) SortedACLSubnets(vpc string) []string {

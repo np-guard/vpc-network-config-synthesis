@@ -14,7 +14,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-func writeOptimizeOutput(args *inArgs, collection ir.OptimizeCollection, vpcNames []string) error {
+func writeOptimizeOutput(args *inArgs, collection ir.Collection, vpcNames []string) error {
 	if err := checkOutputFlags(args); err != nil {
 		return err
 	}
@@ -29,19 +29,19 @@ func writeOptimizeOutput(args *inArgs, collection ir.OptimizeCollection, vpcName
 	return writeToFile(args.outputFile, data)
 }
 
-func writeOptimizeCollection(args *inArgs, collection ir.OptimizeCollection) (*bytes.Buffer, error) {
+func writeOptimizeCollection(args *inArgs, collection ir.Collection) (*bytes.Buffer, error) {
 	var data bytes.Buffer
 	writer, err := pickOptimizeWriter(args, &data)
 	if err != nil {
 		return nil, err
 	}
-	if err := collection.WriteOptimize(writer); err != nil {
+	if err := collection.Write(writer, ""); err != nil {
 		return nil, err
 	}
 	return &data, nil
 }
 
-func pickOptimizeWriter(args *inArgs, data *bytes.Buffer) (ir.OptimizeWriter, error) {
+func pickOptimizeWriter(args *inArgs, data *bytes.Buffer) (ir.Writer, error) {
 	w := bufio.NewWriter(data)
 	switch args.outputFmt {
 	case tfOutputFormat:

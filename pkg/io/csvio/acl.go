@@ -18,7 +18,7 @@ import (
 )
 
 // Write prints an entire collection of acls as a single CSV table.
-func (w *Writer) WriteSynthACL(collection *ir.ACLCollection, vpc string) error {
+func (w *Writer) WriteACL(collection *ir.ACLCollection, vpc string) error {
 	if err := w.w.WriteAll(aclHeader()); err != nil {
 		return err
 	}

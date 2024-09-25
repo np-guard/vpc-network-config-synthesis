@@ -18,7 +18,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-// Writer implements ir.SynthWriter
+// Writer implements ir.Writer
 type Writer struct {
 	w *csv.Writer
 }

@@ -12,7 +12,7 @@ type Optimizer interface {
 	ParseCollection(filename string) error
 
 	// optimize number of SG/nACL rules
-	Optimize() (ir.OptimizeCollection, error)
+	Optimize() (ir.Collection, error)
 
 	// returns a slice of all vpc names. used to generate locals file
 	VpcNames() []string

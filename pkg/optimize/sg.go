@@ -29,7 +29,7 @@ func (s *SGOptimizer) ParseCollection(filename string) error {
 	return nil
 }
 
-func (s *SGOptimizer) Optimize() (ir.OptimizeCollection, error) {
+func (s *SGOptimizer) Optimize() (ir.Collection, error) {
 	return s.sgCollection, nil
 }
 

@@ -258,7 +258,7 @@ func updateSG(model *configModel.ResourcesContainerModel, collection *ir.SGColle
 	return errors.Join(err1, err2)
 }
 
-func (w *Writer) WriteSynthSG(collection *ir.SGCollection, _ string) error {
+func (w *Writer) WriteSG(collection *ir.SGCollection, _ string) error {
 	if err := updateSG(w.model, collection); err != nil {
 		return err
 	}

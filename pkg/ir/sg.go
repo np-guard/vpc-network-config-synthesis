@@ -54,12 +54,8 @@ type (
 		SGs map[ID]map[SGName]*SG
 	}
 
-	SynthSGWriter interface {
-		WriteSynthSG(sgColl *SGCollection, vpc string) error
-	}
-
-	OptimizeSGWriter interface {
-		WriteOptimizeSG(sgColl *SGCollection) error
+	SGWriter interface {
+		WriteSG(sgColl *SGCollection, vpc string) error
 	}
 )
 
@@ -122,12 +118,8 @@ func (c *SGCollection) VpcNames() []string {
 	return utils.SortedMapKeys(c.SGs)
 }
 
-func (c *SGCollection) WriteSynth(w SynthWriter, vpc string) error {
-	return w.WriteSynthSG(c, vpc)
-}
-
-func (c *SGCollection) WriteOptimize(w OptimizeWriter) error {
-	return w.WriteOptimizeSG(c)
+func (c *SGCollection) Write(w Writer, vpc string) error {
+	return w.WriteSG(c, vpc)
 }
 
 func (c *SGCollection) SortedSGNames(vpc ID) []SGName {

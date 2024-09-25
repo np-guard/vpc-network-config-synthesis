@@ -25,7 +25,7 @@ func NewSGSynthesizer(s *ir.Spec, _ bool) Synthesizer {
 	return &SGSynthesizer{spec: s, result: ir.NewSGCollection()}
 }
 
-func (s *SGSynthesizer) Synth() (ir.SynthCollection, error) {
+func (s *SGSynthesizer) Synth() (ir.Collection, error) {
 	return s.makeSG()
 }
 
