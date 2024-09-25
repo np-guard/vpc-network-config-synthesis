@@ -2,7 +2,11 @@
 
 ## About vpc-network-config-synthesis
 Tool for automatic synthesis of VPC network configurations, namely Network ACLs and Security Groups.
+<<<<<<< HEAD
 Multi-vpc input is supported.
+=======
+
+>>>>>>> main
 
 ## Usage
 Use the `vpcgen` CLI tool with one of the following commands to specify the type of network resources to generate.
@@ -37,7 +41,8 @@ Flags:
   -p, --prefix string        The prefix of the files that will be created.
   -s, --spec string          JSON file containing spec file
 ```
-**Note**: The infrastructure configuration must always be provided using the `--config` flag.
+**Note 1**: The infrastructure configuration must always be provided using the `--config` flag.
+**Note 2**: Multi-vpc input is supported.
 
 ## Build the project
 Make sure you have golang 1.23+ on your platform.
