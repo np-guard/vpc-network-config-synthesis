@@ -6,7 +6,6 @@ SPDX-License-Identifier: Apache-2.0
 package test
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -25,8 +24,7 @@ func TestMain(t *testing.T) {
 			}
 
 			// run command
-			cmd := fmt.Sprintf(tt.command, dataFolder, dataFolder, resultsFolder)
-			if err := subcmds.Main(strings.Split(cmd, " ")); err != nil {
+			if err := subcmds.Main(tt.args.Args(dataFolder, resultsFolder)); err != nil {
 				t.Fatalf("Bad test %s; unexpected err: %v", tt.testName, err)
 			}
 
