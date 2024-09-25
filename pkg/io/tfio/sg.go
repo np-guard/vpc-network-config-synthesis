@@ -90,18 +90,21 @@ func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) (tf.Block, error) {
 	}, nil
 }
 
-func sg(sgName, comment string) (tf.Block, error) {
-	vpcName := ir.VpcFromScopedResource(sgName)
-	sgName = ir.ChangeScoping(sgName)
-	if err := verifyName(sgName); err != nil {
+func sg(sgName, vpcName string) (tf.Block, error) {
+	tfSGName := ir.ChangeScoping(sgName)
+	comment := fmt.Sprintf("\n### SG attached to %s", sgName)
+	if sgName == tfSGName { // its optimization
+		comment = ""
+	}
+	if err := verifyName(tfSGName); err != nil {
 		return tf.Block{}, err
 	}
 	return tf.Block{
 		Name:    "resource", //nolint:revive  // obvious false positive
-		Labels:  []string{quote("ibm_is_security_group"), ir.ChangeScoping(quote(sgName))},
+		Labels:  []string{quote("ibm_is_security_group"), quote(tfSGName)},
 		Comment: comment,
 		Arguments: []tf.Argument{
-			{Name: "name", Value: quote("sg-" + sgName)},
+			{Name: "name", Value: quote("sg-" + tfSGName)},
 			{Name: "resource_group", Value: "local.sg_synth_resource_group_id"},
 			{Name: "vpc", Value: fmt.Sprintf("local.sg_synth_%s_id", vpcName)},
 		},
@@ -109,7 +112,7 @@ func sg(sgName, comment string) (tf.Block, error) {
 }
 
 func sgCollection(t *ir.SGCollection, vpc string) (*tf.ConfigFile, error) {
-	var resources []tf.Block //nolint:prealloc  // nontrivial to calculate, and an unlikely performance bottleneck
+	var resources []tf.Block
 
 	for _, vpcName := range t.VpcNames() {
 		if vpc != vpcName && vpc != "" {
@@ -117,29 +120,18 @@ func sgCollection(t *ir.SGCollection, vpc string) (*tf.ConfigFile, error) {
 		}
 		for _, sgName := range t.SortedSGNames(vpcName) {
 			rules := t.SGs[vpcName][sgName].AllRules()
-			comment := fmt.Sprintf("\n### SG attached to %s", sgName)
-		}
-		if vpc == "" {
-			break
-		}
-	}
-
-	for _, sgName := range t.SortedSGNames(vpc) {
-		comment := ""
-		vpcName := ir.VpcFromScopedResource(string(sgName))
-		rules := t.SGs[vpcName][sgName].AllRules()
-		comment = fmt.Sprintf("\n### SG attached to %v", sgName)
-		sg, err := sg(sgName.String(), comment)
-		if err != nil {
-			return nil, err
-		}
-		resources = append(resources, sg)
-		for i, rule := range rules {
-			rule, err := sgRule(rule, sgName, i)
+			sg, err := sg(sgName.String(), vpcName)
 			if err != nil {
 				return nil, err
 			}
-			resources = append(resources, rule)
+			resources = append(resources, sg)
+			for i, rule := range rules {
+				rule, err := sgRule(rule, sgName, i)
+				if err != nil {
+					return nil, err
+				}
+				resources = append(resources, rule)
+			}
 		}
 	}
 	return &tf.ConfigFile{
