@@ -56,9 +56,6 @@ func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection) error
 		return fmt.Errorf(SGTypeNotSupported, string(conn.Dst.Type))
 	}
 	internalSrc, internalDst, internalConn := internalConn(conn)
-	if !internalSrc && !internalDst {
-		return fmt.Errorf("SG: Both source and destination are external for connection %v", *conn)
-	}
 
 	srcEndpoints := updateEndpoints(&s.spec.Defs, conn.Src)
 	dstEndpoints := updateEndpoints(&s.spec.Defs, conn.Dst)
