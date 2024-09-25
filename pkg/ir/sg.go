@@ -44,6 +44,7 @@ type (
 
 	SG struct {
 		SGName        SGName
+		VpcName       string
 		InboundRules  []*SGRule
 		OutboundRules []*SGRule
 		Attached      []ID
@@ -79,8 +80,8 @@ func (r *SGRule) mustSupersede(other *SGRule) bool {
 	return res
 }
 
-func NewSG(sgName SGName) *SG {
-	return &SG{SGName: sgName, InboundRules: []*SGRule{}, OutboundRules: []*SGRule{}, Attached: []ID{}}
+func NewSG(sgName SGName, vpcName string) *SG {
+	return &SG{SGName: sgName, VpcName: vpcName, InboundRules: []*SGRule{}, OutboundRules: []*SGRule{}, Attached: []ID{}}
 }
 
 func NewSGCollection() *SGCollection {
@@ -92,7 +93,7 @@ func (c *SGCollection) LookupOrCreate(name SGName) *SG {
 	if sg, ok := c.SGs[vpcName][name]; ok {
 		return sg
 	}
-	newSG := NewSG(name)
+	newSG := NewSG(name, vpcName)
 	if c.SGs[vpcName] == nil {
 		c.SGs[vpcName] = make(map[SGName]*SG)
 	}

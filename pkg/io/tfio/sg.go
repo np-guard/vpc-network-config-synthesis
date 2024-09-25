@@ -72,10 +72,15 @@ func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) (tf.Block, error) {
 		return tf.Block{}, err
 	}
 
+	comment := ""
+	if rule.Explanation != "" {
+		comment = fmt.Sprintf("# %v", rule.Explanation)
+	}
+
 	return tf.Block{
 		Name:    "resource",
 		Labels:  []string{quote("ibm_is_security_group_rule"), ir.ChangeScoping(quote(ruleName))},
-		Comment: fmt.Sprintf("# %v", rule.Explanation),
+		Comment: comment,
 		Arguments: []tf.Argument{
 			{Name: "group", Value: group},
 			{Name: "direction", Value: quote(direction(rule.Direction))},
@@ -105,6 +110,20 @@ func sg(sgName, comment string) (tf.Block, error) {
 
 func sgCollection(t *ir.SGCollection, vpc string) (*tf.ConfigFile, error) {
 	var resources []tf.Block //nolint:prealloc  // nontrivial to calculate, and an unlikely performance bottleneck
+
+	for _, vpcName := range t.VpcNames() {
+		if vpc != vpcName && vpc != "" {
+			continue
+		}
+		for _, sgName := range t.SortedSGNames(vpcName) {
+			rules := t.SGs[vpcName][sgName].AllRules()
+			comment := fmt.Sprintf("\n### SG attached to %s", sgName)
+		}
+		if vpc == "" {
+			break
+		}
+	}
+
 	for _, sgName := range t.SortedSGNames(vpc) {
 		comment := ""
 		vpcName := ir.VpcFromScopedResource(string(sgName))

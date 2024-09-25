@@ -29,6 +29,7 @@ type (
 
 	ACL struct {
 		Subnet   string
+		VpcName  string
 		Internal []ACLRule
 		External []ACLRule
 	}
@@ -107,8 +108,8 @@ func NewACLCollection() *ACLCollection {
 	return &ACLCollection{ACLs: map[ID]map[string]*ACL{}}
 }
 
-func NewACL(subnet string) *ACL {
-	return &ACL{Subnet: subnet, Internal: []ACLRule{}, External: []ACLRule{}}
+func NewACL(subnet, vpcName string) *ACL {
+	return &ACL{Subnet: subnet, VpcName: vpcName, Internal: []ACLRule{}, External: []ACLRule{}}
 }
 
 func (c *ACLCollection) LookupOrCreate(subnet string) *ACL {
@@ -116,7 +117,7 @@ func (c *ACLCollection) LookupOrCreate(subnet string) *ACL {
 	if acl, ok := c.ACLs[vpcName][subnet]; ok {
 		return acl
 	}
-	newACL := NewACL(subnet)
+	newACL := NewACL(subnet, vpcName)
 	if c.ACLs[vpcName] == nil {
 		c.ACLs[vpcName] = make(map[string]*ACL)
 	}
