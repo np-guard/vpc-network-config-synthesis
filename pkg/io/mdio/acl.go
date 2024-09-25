@@ -6,8 +6,8 @@ SPDX-License-Identifier: Apache-2.0
 package mdio
 
 import (
+	"errors"
 	"fmt"
-	"log"
 	"strconv"
 
 	"github.com/np-guard/models/pkg/interval"
@@ -17,24 +17,6 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-func makeACLTable(t *ir.ACL, subnet string) [][]string {
-	rules := t.Rules()
-	rows := make([][]string, len(rules))
-	for i := range rules {
-		rows[i] = makeACLRow(i+1, &rules[i], t.Name(), subnet)
-	}
-	return rows
-}
-
-func ACLPort(p interval.Interval) string {
-	switch {
-	case p.Start() == netp.MinPort && p.End() == netp.MaxPort:
-		return "any port" //nolint:goconst // independent decision for SG and ACL
-	default:
-		return fmt.Sprintf("ports %v", p)
-	}
-}
-
 // Write prints an entire collection of acls as a single MD table.
 func (w *Writer) WriteSynthACL(collection *ir.ACLCollection, vpc string) error {
 	if err := w.writeAll(aclHeader()); err != nil {
@@ -42,11 +24,35 @@ func (w *Writer) WriteSynthACL(collection *ir.ACLCollection, vpc string) error {
 	}
 	for _, subnet := range collection.SortedACLSubnets(vpc) {
 		vpcName := ir.VpcFromScopedResource(subnet)
-		if err := w.writeAll(makeACLTable(collection.ACLs[vpcName][subnet], subnet)); err != nil {
+		aclTable, err := makeACLTable(collection.ACLs[vpcName][subnet], subnet)
+		if err != nil {
+			return err
+		}
+		if err := w.writeAll(aclTable); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func makeACLTable(t *ir.ACL, subnet string) ([][]string, error) {
+	rules := t.Rules()
+	rows := make([][]string, len(rules))
+	for i := range rules {
+		aclRow, err := makeACLRow(i+1, &rules[i], t.Name(), subnet)
+		if err != nil {
+			return nil, err
+		}
+		rows[i] = aclRow
+	}
+	return rows, nil
+}
+
+func aclPort(p interval.Interval) string {
+	if p.Equal(netp.AllPorts()) {
+		return "any port" //nolint:goconst // independent decision for SG and ACL
+	}
+	return fmt.Sprintf("ports %v-%v", p.Start(), p.End())
 }
 
 func action(a ir.Action) string {
@@ -86,7 +92,13 @@ func aclHeader() [][]string {
 	}}
 }
 
-func makeACLRow(priority int, rule *ir.ACLRule, aclName, subnet string) []string {
+func makeACLRow(priority int, rule *ir.ACLRule, aclName, subnet string) ([]string, error) {
+	srcProtocol, err1 := printIP(rule.Source, rule.Protocol, true)
+	dstProtocol, err2 := printIP(rule.Destination, rule.Protocol, false)
+	if err := errors.Join(err1, err2); err != nil {
+		return nil, err
+	}
+
 	return []string{
 		"",
 		aclName,
@@ -95,22 +107,22 @@ func makeACLRow(priority int, rule *ir.ACLRule, aclName, subnet string) []string
 		strconv.Itoa(priority),
 		action(rule.Action),
 		printProtocolName(rule.Protocol),
-		printIP(rule.Source, rule.Protocol, true),
-		printIP(rule.Destination, rule.Protocol, false),
+		srcProtocol,
+		dstProtocol,
 		printICMPTypeCode(rule.Protocol),
 		rule.Explanation,
 		"",
-	}
+	}, nil
 }
 
-func printIP(ip *netset.IPBlock, protocol netp.Protocol, isSource bool) string {
+func printIP(ip *netset.IPBlock, protocol netp.Protocol, isSource bool) (string, error) {
 	ipString := ip.String()
 	if ip.Equal(netset.GetCidrAll()) {
 		ipString = "Any IP" //nolint:goconst // independent decision for SG and ACL
 	}
 	switch p := protocol.(type) {
 	case netp.ICMP:
-		return ipString
+		return ipString, nil
 	case netp.TCPUDP:
 		var r interval.Interval
 		if isSource {
@@ -118,11 +130,9 @@ func printIP(ip *netset.IPBlock, protocol netp.Protocol, isSource bool) string {
 		} else {
 			r = p.DstPorts()
 		}
-		return fmt.Sprintf("%v, %v", ipString, ACLPort(r))
+		return fmt.Sprintf("%v, %v", ipString, aclPort(r)), nil
 	case netp.AnyProtocol:
-		return ipString
-	default:
-		log.Panicf("Impossible protocol %v", p)
+		return ipString, nil
 	}
-	return ""
+	return "", fmt.Errorf("impossible protocol %T", protocol)
 }

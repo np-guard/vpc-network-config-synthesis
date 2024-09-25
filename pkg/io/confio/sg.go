@@ -6,7 +6,8 @@ SPDX-License-Identifier: Apache-2.0
 package confio
 
 import (
-	"log"
+	"errors"
+	"fmt"
 	"slices"
 
 	"github.com/IBM/vpc-go-sdk/vpcv1"
@@ -68,7 +69,7 @@ func sgRemote(nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurit
 }
 
 func makeSGRuleItem(nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference,
-	rule *ir.SGRule, i int) vpcv1.SecurityGroupRuleIntf {
+	rule *ir.SGRule, i int) (vpcv1.SecurityGroupRuleIntf, error) {
 	iPVersion := utils.Ptr(ipv4Const)
 	direction := direction(rule.Direction)
 	cidrAll := netset.CidrAll
@@ -91,7 +92,7 @@ func makeSGRuleItem(nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteS
 			Protocol:  data.Protocol,
 			PortMin:   data.dstPortMin,
 			PortMax:   data.dstPortMax,
-		}
+		}, nil
 	case netp.ICMP:
 		data := icmp(p)
 		return &vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp{
@@ -104,7 +105,7 @@ func makeSGRuleItem(nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteS
 			Protocol:  data.Protocol,
 			Type:      data.Type,
 			Code:      data.Code,
-		}
+		}, nil
 	case netp.AnyProtocol:
 		data := all()
 		return &vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolAll{
@@ -115,21 +116,23 @@ func makeSGRuleItem(nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteS
 			Local:     local,
 			Remote:    remote,
 			Protocol:  data.Protocol,
-		}
-	default:
-		log.Fatalf("Impossible protocol type for sg rule %v: %T", i, p)
-		return nil
+		}, nil
 	}
+	return nil, fmt.Errorf("impossible protocol type for sg rule %v: %T", i, rule.Protocol)
 }
 
 func makeSGRules(nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference,
-	sg *ir.SG) []vpcv1.SecurityGroupRuleIntf {
+	sg *ir.SG) ([]vpcv1.SecurityGroupRuleIntf, error) {
 	rules := sg.AllRules()
 	ruleItems := make([]vpcv1.SecurityGroupRuleIntf, len(rules))
-	for i := range rules {
-		ruleItems[i] = makeSGRuleItem(nameToSGRemoteRef, &rules[i], i)
+	for i, rule := range rules {
+		rule, err := makeSGRuleItem(nameToSGRemoteRef, rule, i)
+		if err != nil {
+			return nil, err
+		}
+		ruleItems[i] = rule
 	}
-	return ruleItems
+	return ruleItems, nil
 }
 
 func parseTargetsSGInstance(instance *configModel.Instance) []vpcv1.SecurityGroupTargetReferenceIntf {
@@ -148,12 +151,16 @@ func parseTargetsSGInstance(instance *configModel.Instance) []vpcv1.SecurityGrou
 }
 
 func updateSGInstances(model *configModel.ResourcesContainerModel, collection *ir.SGCollection,
-	nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference, idToSGIndex map[string]int) {
+	nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference, idToSGIndex map[string]int) error {
 	for _, instance := range model.InstanceList {
 		vpc := instance.VPC
 		sgName := ScopingString(*vpc.Name, *instance.Name)
 		sgItemName := utils.Ptr(ir.ChangeScoping(sgName))
 		sg := collection.SGs[*vpc.Name][ir.SGName(sgName)]
+		sgRules, err := makeSGRules(nameToSGRemoteRef, sg)
+		if err != nil {
+			return err
+		}
 		ref := lookupOrCreate(nameToSGRemoteRef, *sgItemName)
 
 		sgItem := configModel.NewSecurityGroup(&vpcv1.SecurityGroup{
@@ -162,7 +169,7 @@ func updateSGInstances(model *configModel.ResourcesContainerModel, collection *i
 			ID:            ref.ID,
 			Name:          sgItemName,
 			ResourceGroup: instance.ResourceGroup,
-			Rules:         makeSGRules(nameToSGRemoteRef, sg),
+			Rules:         sgRules,
 			Targets:       parseTargetsSGInstance(instance),
 			VPC:           vpc,
 		})
@@ -185,10 +192,11 @@ func updateSGInstances(model *configModel.ResourcesContainerModel, collection *i
 			instance.NetworkInterfaces[j].SecurityGroups = []vpcv1.SecurityGroupReference{sgRef}
 		}
 	}
+	return nil
 }
 
 func updateSGEndpointGW(model *configModel.ResourcesContainerModel, collection *ir.SGCollection,
-	nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference, idToSGIndex map[string]int) {
+	nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference, idToSGIndex map[string]int) error {
 	for _, endpointGW := range model.EndpointGWList {
 		vpc := endpointGW.VPC
 		sgName := ScopingString(*vpc.Name, *endpointGW.Name)
@@ -203,13 +211,17 @@ func updateSGEndpointGW(model *configModel.ResourcesContainerModel, collection *
 			ResourceType: utils.Ptr(ResourceTypeEndpointGateway),
 		}
 
+		sgRules, err := makeSGRules(nameToSGRemoteRef, sg)
+		if err != nil {
+			return err
+		}
 		sgItem := configModel.NewSecurityGroup(&vpcv1.SecurityGroup{
 			CRN:           ref.CRN,
 			Href:          ref.Href,
 			ID:            ref.ID,
 			Name:          sgItemName,
 			ResourceGroup: endpointGW.ResourceGroup,
-			Rules:         makeSGRules(nameToSGRemoteRef, sg),
+			Rules:         sgRules,
 			Targets:       []vpcv1.SecurityGroupTargetReferenceIntf{target},
 			VPC:           vpc,
 		})
@@ -230,22 +242,25 @@ func updateSGEndpointGW(model *configModel.ResourcesContainerModel, collection *
 		}
 		endpointGW.SecurityGroups = []vpcv1.SecurityGroupReference{sgRef}
 	}
+	return nil
 }
 
-func updateSG(model *configModel.ResourcesContainerModel, collection *ir.SGCollection) {
+func updateSG(model *configModel.ResourcesContainerModel, collection *ir.SGCollection) error {
 	nameToSGRemoteRef := make(map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference)
 	idToSGIndex := make(map[string]int, len(model.SecurityGroupList))
 	for i := range model.SecurityGroupList {
 		idToSGIndex[*model.SecurityGroupList[i].ID] = i
 	}
 
-	updateSGInstances(model, collection, nameToSGRemoteRef, idToSGIndex)
-	updateSGEndpointGW(model, collection, nameToSGRemoteRef, idToSGIndex)
-
+	err1 := updateSGInstances(model, collection, nameToSGRemoteRef, idToSGIndex)
+	err2 := updateSGEndpointGW(model, collection, nameToSGRemoteRef, idToSGIndex)
 	globalIndex = 0 // making test results more predictable
+	return errors.Join(err1, err2)
 }
 
 func (w *Writer) WriteSynthSG(collection *ir.SGCollection, _ string) error {
-	updateSG(w.model, collection)
+	if err := updateSG(w.model, collection); err != nil {
+		return err
+	}
 	return w.writeModel()
 }

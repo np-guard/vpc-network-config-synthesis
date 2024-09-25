@@ -19,8 +19,12 @@ import (
 
 // WriteACL prints an entire collection of acls as a sequence of terraform resources.
 func (w *Writer) WriteSynthACL(c *ir.ACLCollection, vpc string) error {
-	output := aclCollection(c, vpc).Print()
-	_, err := w.w.WriteString(output)
+	collection, err := aclCollection(c, vpc)
+	if err != nil {
+		return err
+	}
+	output := collection.Print()
+	_, err = w.w.WriteString(output)
 	if err != nil {
 		return err
 	}
@@ -53,8 +57,10 @@ func aclProtocol(t netp.Protocol) []tf.Block {
 	return nil
 }
 
-func aclRule(rule *ir.ACLRule, name string) tf.Block {
-	verifyName(name)
+func aclRule(rule *ir.ACLRule, name string) (tf.Block, error) {
+	if err := verifyName(name); err != nil {
+		return tf.Block{}, err
+	}
 	arguments := []tf.Argument{
 		{Name: "name", Value: quote(name)},
 		{Name: "action", Value: quote(action(rule.Action))},
@@ -66,29 +72,37 @@ func aclRule(rule *ir.ACLRule, name string) tf.Block {
 		Comment:   fmt.Sprintf("# %v", rule.Explanation),
 		Arguments: arguments,
 		Blocks:    aclProtocol(rule.Protocol),
-	}
+	}, nil
 }
 
-func singleACL(t *ir.ACL, comment string) tf.Block {
+func singleACL(t *ir.ACL, comment string) (tf.Block, error) {
 	rules := t.Rules()
 	blocks := make([]tf.Block, len(rules))
 	for i := range rules {
-		blocks[i] = aclRule(&rules[i], fmt.Sprintf("rule%v", i))
+		rule, err := aclRule(&rules[i], fmt.Sprintf("rule%v", i))
+		if err != nil {
+			return tf.Block{}, err
+		}
+		blocks[i] = rule
+	}
+	aclName := ir.ChangeScoping(t.Name())
+	if err := verifyName(aclName); err != nil {
+		return tf.Block{}, err
 	}
 	return tf.Block{
 		Comment: comment,
 		Name:    "resource",
-		Labels:  []string{quote("ibm_is_network_acl"), ir.ChangeScoping(quote(t.Name()))},
+		Labels:  []string{quote("ibm_is_network_acl"), quote(aclName)},
 		Arguments: []tf.Argument{
-			{Name: "name", Value: ir.ChangeScoping(quote(t.Name()))}, //nolint:revive  // obvious false positive
+			{Name: "name", Value: quote(aclName)}, //nolint:revive  // obvious false positive
 			{Name: "resource_group", Value: "local.acl_synth_resource_group_id"},
 			{Name: "vpc", Value: fmt.Sprintf("local.acl_synth_%s_id", ir.VpcFromScopedResource(t.Subnet))},
 		},
 		Blocks: blocks,
-	}
+	}, nil
 }
 
-func aclCollection(t *ir.ACLCollection, vpc string) *tf.ConfigFile {
+func aclCollection(t *ir.ACLCollection, vpc string) (*tf.ConfigFile, error) {
 	sortedACLs := t.SortedACLSubnets(vpc)
 	var acls = make([]tf.Block, len(sortedACLs))
 	i := 0
@@ -99,12 +113,16 @@ func aclCollection(t *ir.ACLCollection, vpc string) *tf.ConfigFile {
 		if len(sortedACLs) > 1 { // not a single nacl
 			comment = fmt.Sprintf("\n# %v [%v]", subnet, subnetCidr(acl))
 		}
-		acls[i] = singleACL(acl, comment)
+		singleACL, err := singleACL(acl, comment)
+		if err != nil {
+			return nil, err
+		}
+		acls[i] = singleACL
 		i += 1
 	}
 	return &tf.ConfigFile{
 		Resources: acls,
-	}
+	}, nil
 }
 
 func subnetCidr(acl *ir.ACL) *netset.IPBlock {

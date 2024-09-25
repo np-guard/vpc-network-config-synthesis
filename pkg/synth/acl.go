@@ -8,14 +8,13 @@ package synth
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-const ACLTypeNotSupported = "ACL: src/dst of type %s is not supported."
+const ACLTypeNotSupported = "ACL: src/dst of type %s is not supported"
 
 type ACLSynthesizer struct {
 	spec      *ir.Spec
@@ -28,19 +27,22 @@ func NewACLSynthesizer(s *ir.Spec, single bool) Synthesizer {
 	return &ACLSynthesizer{spec: s, singleACL: single, result: ir.NewACLCollection()}
 }
 
-func (a *ACLSynthesizer) Synth() ir.SynthCollection {
+func (a *ACLSynthesizer) Synth() (ir.SynthCollection, error) {
 	return a.makeACL()
 }
 
 // makeACL translates Spec to a collection of nACLs
 // 1. generate nACL rules for relevant subnets for each connection
 // 2. generate nACL rules for blocked subnets (subnets that do not appear in Spec)
-func (a *ACLSynthesizer) makeACL() *ir.ACLCollection {
+func (a *ACLSynthesizer) makeACL() (*ir.ACLCollection, error) {
 	for c := range a.spec.Connections {
-		a.generateACLRulesFromConnection(&a.spec.Connections[c])
+		err := a.generateACLRulesFromConnection(&a.spec.Connections[c])
+		if err != nil {
+			return nil, err
+		}
 	}
 	a.generateACLRulesForBlockedSubnets()
-	return a.result
+	return a.result, nil
 }
 
 //  1. check that both resources are supported in nACL generation.
@@ -49,16 +51,16 @@ func (a *ACLSynthesizer) makeACL() *ir.ACLCollection {
 //     and add the rule to the relevant acl. Note: in case where the resource in a nif, src/dst will be
 //     updated to be its subnet.
 //  4. generate rules and add them to relevant ACL to allow traffic for all pairs of IPAddrs of both resources.
-func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection) {
+func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection) error {
 	if !resourceRelevantToACL(conn.Src.Type) {
-		log.Fatalf(ACLTypeNotSupported, string(conn.Src.Type))
+		return fmt.Errorf(ACLTypeNotSupported, string(conn.Src.Type))
 	}
 	if !resourceRelevantToACL(conn.Dst.Type) {
-		log.Fatalf(ACLTypeNotSupported, string(conn.Dst.Type))
+		return fmt.Errorf(ACLTypeNotSupported, string(conn.Dst.Type))
 	}
 	internalSrc, internalDst, _ := internalConn(conn)
 	if !internalSrc && !internalDst {
-		log.Fatalf("ACL: Both source and destination are external for connection %v", *conn)
+		return fmt.Errorf("ACL: Both source and destination are external for connection %v", *conn)
 	}
 	for _, src := range conn.Src.IPAddrs {
 		srcSubnets, srcCidr := adjustResource(&a.spec.Defs, src, conn.Src)
@@ -73,6 +75,7 @@ func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection) {
 			}
 		}
 	}
+	return nil
 }
 
 // if the src in internal, rule(s) will be created to allow traffic.

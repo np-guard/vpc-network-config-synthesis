@@ -6,8 +6,8 @@ SPDX-License-Identifier: Apache-2.0
 package tfio
 
 import (
+	"errors"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/np-guard/models/pkg/netp"
@@ -27,25 +27,26 @@ func (w *Writer) WriteOptimizeSG(c *ir.SGCollection) error {
 
 // writeSGCollection prints an entire collection of Security Groups as a sequence of terraform resources.
 func (w *Writer) writeSGCollection(c *ir.SGCollection, vpc string, writeComments bool) error {
-	output := sgCollection(c, vpc, writeComments).Print()
-	_, err := w.w.WriteString(output)
+	collection, err := sgCollection(c, vpc, writeComments)
 	if err != nil {
 		return err
 	}
-	err = w.w.Flush()
-	return err
+	output := collection.Print()
+	_, err = w.w.WriteString(output)
+	if err != nil {
+		return err
+	}
+	return w.w.Flush()
 }
 
-func value(x interface{}) string {
+func value(x interface{}) (string, error) {
 	switch v := x.(type) {
 	case *netset.IPBlock:
-		return quote(v.String())
+		return quote(v.String()), nil
 	case ir.SGName:
-		return ir.ChangeScoping(fmt.Sprintf("ibm_is_security_group.%v.id", v))
-	default:
-		log.Fatalf("invalid terraform value %v", v)
+		return ir.ChangeScoping(fmt.Sprintf("ibm_is_security_group.%v.id", v)), nil
 	}
-	return ""
+	return "", fmt.Errorf("invalid terraform value %v (type %T)", x, x)
 }
 
 func sgProtocol(t netp.Protocol) []tf.Block {
@@ -66,61 +67,73 @@ func sgProtocol(t netp.Protocol) []tf.Block {
 	return nil
 }
 
-func sgRule(rule *ir.SGRule, sgName ir.SGName, i int, writeComment bool) tf.Block {
-	ruleName := fmt.Sprintf("%v-%v", sgName, i)
-	verifyName(ruleName)
+func sgRule(rule *ir.SGRule, sgName ir.SGName, i int, writeComment bool) (tf.Block, error) {
+	ruleName := fmt.Sprintf("%s-%v", ir.ChangeScoping(sgName.String()), i)
+	if err := verifyName(ruleName); err != nil {
+		return tf.Block{}, err
+	}
 	comment := ""
 	if writeComment {
 		comment = fmt.Sprintf("# %v", rule.Explanation)
 	}
+	group, err1 := value(sgName)
+	remote, err2 := value(rule.Remote)
+	if err := errors.Join(err1, err2); err != nil {
+		return tf.Block{}, err
+	}
 	return tf.Block{
 		Name:    "resource",
-		Labels:  []string{quote("ibm_is_security_group_rule"), ir.ChangeScoping(quote(ruleName))},
+		Labels:  []string{quote("ibm_is_security_group_rule"), quote(ruleName)},
 		Comment: comment,
 		Arguments: []tf.Argument{
-			{Name: "group", Value: value(sgName)},
+			{Name: "group", Value: group},
 			{Name: "direction", Value: quote(direction(rule.Direction))},
-			{Name: "remote", Value: value(rule.Remote)},
+			{Name: "remote", Value: remote},
 		},
 		Blocks: sgProtocol(rule.Protocol),
-	}
+	}, nil
 }
 
-func sgBlock(sg *ir.SG, comment string) tf.Block {
-	sgName := sg.SGName.String()
-	verifyName(sgName)
+func sg(sgName, comment string) (tf.Block, error) {
+	vpcName := ir.VpcFromScopedResource(sgName)
+	sgName = ir.ChangeScoping(sgName)
+	if err := verifyName(sgName); err != nil {
+		return tf.Block{}, err
+	}
 	return tf.Block{
 		Name:    "resource", //nolint:revive  // obvious false positive
 		Labels:  []string{quote("ibm_is_security_group"), ir.ChangeScoping(quote(sgName))},
 		Comment: comment,
 		Arguments: []tf.Argument{
-			{Name: "name", Value: ir.ChangeScoping(quote("sg-" + sgName))},
+			{Name: "name", Value: quote("sg-" + sgName)},
 			{Name: "resource_group", Value: "local.sg_synth_resource_group_id"},
-			{Name: "vpc", Value: fmt.Sprintf("local.sg_synth_%s_id", sg.VpcName)},
+			{Name: "vpc", Value: fmt.Sprintf("local.sg_synth_%s_id", vpcName)},
 		},
-	}
+	}, nil
 }
 
-func sgCollection(t *ir.SGCollection, vpc string, writeComments bool) *tf.ConfigFile {
-	var resources []tf.Block
-	for _, vpcName := range t.VpcNames() {
-		if vpc != vpcName && vpc != "" {
-			continue
-		}
-		for _, sgName := range t.SortedSGNames(vpcName) {
-			sg := t.SGs[vpcName][sgName]
-			comment := "\n"
-			if writeComments {
-				comment = fmt.Sprintf("\n### SG attached to %v", sgName)
-			}
-			resources = append(resources, sgBlock(sg, comment))
-			rules := sg.AllRules()
-			for i := range rules {
-				resources = append(resources, sgRule(&rules[i], sgName, i, writeComments))
-			}
-		}
-	}
+func sgCollection(t *ir.SGCollection, vpc string, writeComments bool) (*tf.ConfigFile, error) {
+	resources := make([]tf.Block, 0)
+	// for _, sgName := range t.SortedSGNames(vpc) {
+	// 	comment := "\n"
+	// 	if writeComments {
+	// 		comment = fmt.Sprintf("\n### SG attached to %v", sgName)
+	// 	}
+	// 	sg, err := sg(sgName.String(), comment)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	resources = append(resources, sg)
+	// 	rules := sg.AllRules()
+	// 	for i, rule := range rules {
+	// 		rule, err := sgRule(rule, sgName, i)
+	// 		if err != nil {
+	// 			return nil, err
+	// 		}
+	// 		resources = append(resources, rule)
+	// 	}
+	// }
 	return &tf.ConfigFile{
 		Resources: resources,
-	}
+	}, nil
 }

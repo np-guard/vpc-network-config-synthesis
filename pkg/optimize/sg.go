@@ -29,8 +29,8 @@ func (s *SGOptimizer) ParseCollection(filename string) error {
 	return nil
 }
 
-func (s *SGOptimizer) Optimize() ir.OptimizeCollection {
-	return s.sgCollection
+func (s *SGOptimizer) Optimize() (ir.OptimizeCollection, error) {
+	return s.sgCollection, nil
 }
 
 func (s *SGOptimizer) VpcNames() []string {
