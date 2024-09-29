@@ -38,8 +38,8 @@ func (w *Writer) WriteACL(collection *ir.ACLCollection, vpc string) error {
 func makeACLTable(t *ir.ACL, subnet string) ([][]string, error) {
 	rules := t.Rules()
 	rows := make([][]string, len(rules))
-	for i := range rules {
-		aclRow, err := makeACLRow(i+1, &rules[i], t.Name(), subnet)
+	for i, rule := range rules {
+		aclRow, err := makeACLRow(i+1, rule, t.Name(), subnet)
 		if err != nil {
 			return nil, err
 		}
