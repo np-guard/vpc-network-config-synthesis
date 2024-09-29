@@ -38,17 +38,17 @@ func packetACLRule(packet *Packet, direction Direction, action Action) *ACLRule 
 }
 
 // makeDenyInternal prevents allowing external communications from accidentally allowing internal communications too
-func makeDenyInternal() []ACLRule {
+func makeDenyInternal() []*ACLRule {
 	localCidrs := []string{"10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"} // https://datatracker.ietf.org/doc/html/rfc1918#section-3
 	localCidrsIPBlocks, _ := netset.IPBlockFromCidrList(localCidrs)
 	localCidrsList := localCidrsIPBlocks.Split() // should be splitted to CIDRs
-	var denyInternal []ACLRule
+	var denyInternal []*ACLRule
 	for i, localCidrSrc := range localCidrsList {
 		for j, localCidrDst := range localCidrsList {
 			explanation := fmt.Sprintf("Deny other internal communication; see rfc1918#3; item %v,%v", i, j)
 			denyInternal = append(denyInternal,
-				*packetACLRule(&Packet{Src: localCidrSrc, Dst: localCidrDst, Protocol: netp.AnyProtocol{}, Explanation: explanation}, Outbound, Deny),
-				*packetACLRule(&Packet{Src: localCidrDst, Dst: localCidrSrc, Protocol: netp.AnyProtocol{}, Explanation: explanation}, Inbound, Deny),
+				packetACLRule(&Packet{Src: localCidrSrc, Dst: localCidrDst, Protocol: netp.AnyProtocol{}, Explanation: explanation}, Outbound, Deny),
+				packetACLRule(&Packet{Src: localCidrDst, Dst: localCidrSrc, Protocol: netp.AnyProtocol{}, Explanation: explanation}, Inbound, Deny),
 			)
 		}
 	}

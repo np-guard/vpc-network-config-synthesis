@@ -30,8 +30,8 @@ type (
 	ACL struct {
 		Subnet   string
 		VpcName  string
-		Internal []ACLRule
-		External []ACLRule
+		Internal []*ACLRule
+		External []*ACLRule
 	}
 
 	ACLCollection struct {
@@ -48,7 +48,7 @@ const (
 	Deny  Action = "deny"
 )
 
-func (r *ACLRule) isRedundant(rules []ACLRule) bool {
+func (r *ACLRule) isRedundant(rules []*ACLRule) bool {
 	for i := range rules {
 		if rules[i].mustSupersede(r) {
 			return true
@@ -72,7 +72,7 @@ func (r *ACLRule) Target() *netset.IPBlock {
 	return r.Source
 }
 
-func (a *ACL) Rules() []ACLRule {
+func (a *ACL) Rules() []*ACLRule {
 	rules := a.Internal
 	if len(a.External) != 0 {
 		rules = append(rules, makeDenyInternal()...)
@@ -86,7 +86,7 @@ func (a *ACL) AppendInternal(rule *ACLRule) {
 		panic("ACLs should be created with non-null Internal")
 	}
 	if !rule.isRedundant(a.Internal) {
-		a.Internal = append(a.Internal, *rule)
+		a.Internal = append(a.Internal, rule)
 	}
 }
 
@@ -101,7 +101,7 @@ func (a *ACL) AppendExternal(rule *ACLRule) {
 	if rule.isRedundant(a.External) {
 		return
 	}
-	a.External = append(a.External, *rule)
+	a.External = append(a.External, rule)
 }
 
 func NewACLCollection() *ACLCollection {
@@ -109,7 +109,7 @@ func NewACLCollection() *ACLCollection {
 }
 
 func NewACL(subnet, vpcName string) *ACL {
-	return &ACL{Subnet: subnet, VpcName: vpcName, Internal: []ACLRule{}, External: []ACLRule{}}
+	return &ACL{Subnet: subnet, VpcName: vpcName, Internal: []*ACLRule{}, External: []*ACLRule{}}
 }
 
 func (c *ACLCollection) LookupOrCreate(subnet string) *ACL {
