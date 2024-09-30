@@ -7,6 +7,7 @@ package confio
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/IBM/vpc-go-sdk/vpcv1"
 
@@ -31,6 +32,7 @@ func ReadSGs(filename string) (*ir.SGCollection, error) {
 			return nil, err
 		}
 		if sg.Name == nil || sg.VPC == nil || sg.VPC.Name == nil {
+			log.Print("missing SG/VPC name")
 			continue
 		}
 		vpcName := *sg.VPC.Name
