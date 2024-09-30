@@ -37,7 +37,7 @@ const (
 )
 
 func allMainTests() []testCase {
-	return append(synthACLTestsList(), synthSGTestsList()...)
+	return append(synthACLTestsList(), append(synthSGTestsList(), optimizeSGTestsLists()...)...)
 }
 
 //nolint:funlen //all acl synthesis tests
@@ -309,4 +309,9 @@ func synthSGTestsList() []testCase {
 			},
 		},
 	}
+}
+
+// Note: spec files in data folder are used to create the config object files (acl_testing4 config)
+func optimizeSGTestsLists() []testCase {
+	return []testCase{}
 }
