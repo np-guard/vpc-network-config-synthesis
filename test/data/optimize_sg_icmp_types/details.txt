@@ -1,0 +1,28 @@
+vsi1 --> 0.0.0.0/31 (icmp type:0)
+vsi1 --> 0.0.0.0/31 (icmp type:3)
+vsi1 --> 0.0.0.0/31 (icmp type:4)
+vsi1 --> 0.0.0.0/31 (icmp type:5)
+vsi1 --> 0.0.0.0/31 (icmp type:8)
+vsi1 --> 0.0.0.0/31 (icmp type:11)
+vsi1 --> 0.0.0.0/31 (icmp type:12)
+vsi1 --> 0.0.0.0/31 (icmp type:13)
+vsi1 --> 0.0.0.0/31 (icmp type:14)
+vsi1 --> 0.0.0.0/31 (icmp type:15)
+vsi1 --> 0.0.0.0/31 (icmp type:16)
+
+vsi1 --> vsi2 (icmp type:0)
+vsi1 --> vsi2 (icmp type:3)
+vsi1 --> vsi2 (icmp type:4)
+vsi1 --> vsi2 (icmp type:5)
+vsi1 --> vsi2 (icmp type:8)
+vsi1 --> vsi2 (icmp type:11)
+vsi1 --> vsi2 (icmp type:12)
+vsi1 --> vsi2 (icmp type:13)
+vsi1 --> vsi2 (icmp type:14)
+vsi1 --> vsi2 (icmp type:15)
+vsi1 --> vsi2 (icmp type:16)
+
+====================================
+
+vsi1 --> 0.0.0.0/31 (icmp)
+vsi1 --> vsi2 (icmp)

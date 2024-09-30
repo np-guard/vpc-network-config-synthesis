@@ -1,0 +1,14 @@
+vsi1 --> 0.0.0.0/31 (icmp type:5 code:0)
+vsi1 --> 0.0.0.0/31 (icmp type:5 code:1)
+vsi1 --> 0.0.0.0/31 (icmp type:5 code:2)
+vsi1 --> 0.0.0.0/31 (icmp type:5 code:3)
+
+vsi1 --> vsi2 (icmp type:5 code:0)
+vsi1 --> vsi2 (icmp type:5 code:1)
+vsi1 --> vsi2 (icmp type:5 code:2)
+vsi1 --> vsi2 (icmp type:5 code:3)
+
+====================================
+
+vsi1 --> 0.0.0.0/31 (icmp type:5)
+vsi1 --> vsi2 (icmp type:5)
