@@ -44,8 +44,6 @@ func ReadSGs(filename string) (*ir.SGCollection, error) {
 
 // parse security rules, splitted into ingress and egress rules
 func translateSGRules(sg *vpcv1.SecurityGroup) (ingressRules, egressRules []*ir.SGRule, err error) {
-	ingressRules = []*ir.SGRule{}
-	egressRules = []*ir.SGRule{}
 	for index := range sg.Rules {
 		rule, err := translateSGRule(sg, index)
 		if err != nil {
@@ -70,7 +68,7 @@ func translateSGRule(sg *vpcv1.SecurityGroup, index int) (sgRule *ir.SGRule, err
 	case *vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp:
 		return translateSGRuleProtocolIcmp(r)
 	}
-	return nil, fmt.Errorf("error parsing rule number %d in %s sg", index, *sg.Name)
+	return nil, fmt.Errorf("error parsing rule number %d in sg %s in VPC %s", index, *sg.Name, *sg.VPC.Name)
 }
 
 func translateSGRuleProtocolAll(rule *vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolAll) (sgRule *ir.SGRule, err error) {
@@ -135,7 +133,7 @@ func translateDirection(direction string) (ir.Direction, error) {
 	} else if direction == "outbound" {
 		return ir.Outbound, nil
 	}
-	return ir.Inbound, fmt.Errorf("a SG rule direction must be either inbound or outbound")
+	return ir.Inbound, fmt.Errorf("SG rule direction must be either inbound or outbound")
 }
 
 func translateRemote(remote vpcv1.SecurityGroupRuleRemoteIntf) (ir.RemoteType, error) {
@@ -179,7 +177,7 @@ func verifyLocalValue(ipAddrs *netset.IPBlock) (*netset.IPBlock, error) {
 }
 
 func translateProtocolTCPUDP(rule *vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp) (netp.Protocol, error) {
-	isTCP := *rule.Protocol == "tcp"
+	isTCP := *rule.Protocol == vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudpProtocolTCPConst
 	minDstPort := utils.GetProperty(rule.PortMin, netp.MinPort)
 	maxDstPort := utils.GetProperty(rule.PortMax, netp.MaxPort)
 	return netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(minDstPort), int(maxDstPort))
