@@ -41,5 +41,5 @@ func optimization(cmd *cobra.Command, args *inArgs, newOptimizer optimize.Optimi
 	if err != nil {
 		return err
 	}
-	return writeOptimizeOutput(args, collection, newOptimizer.VpcNames())
+	return writeOutput(args, collection, newOptimizer.VpcNames(), false)
 }
