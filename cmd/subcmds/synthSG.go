@@ -19,6 +19,9 @@ func NewSynthSGCommand(args *inArgs) *cobra.Command {
 		Endpoints in the required-connectivity specification may be Instances (VSIs), Network Interfaces, VPEs and externals.`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
+			if err := validateFlags(args); err != nil {
+				return err
+			}
 			return synthesis(cmd, args, synth.NewSGSynthesizer, false)
 		},
 	}

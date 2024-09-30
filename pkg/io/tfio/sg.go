@@ -111,15 +111,15 @@ func sg(sgName, vpcName string) (tf.Block, error) {
 	}, nil
 }
 
-func sgCollection(t *ir.SGCollection, vpc string) (*tf.ConfigFile, error) {
+func sgCollection(collection *ir.SGCollection, vpc string) (*tf.ConfigFile, error) {
 	var resources []tf.Block
 
-	for _, vpcName := range t.VpcNames() {
+	for _, vpcName := range collection.VpcNames() {
 		if vpc != vpcName && vpc != "" {
 			continue
 		}
-		for _, sgName := range t.SortedSGNames(vpcName) {
-			rules := t.SGs[vpcName][sgName].AllRules()
+		for _, sgName := range collection.SortedSGNames(vpcName) {
+			rules := collection.SGs[vpcName][sgName].AllRules()
 			sg, err := sg(sgName.String(), vpcName)
 			if err != nil {
 				return nil, err

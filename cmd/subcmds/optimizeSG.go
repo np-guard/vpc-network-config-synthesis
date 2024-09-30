@@ -18,6 +18,9 @@ func NewOptimizeSGCommand(args *inArgs) *cobra.Command {
 		Long:  `OptimizeSG attempts to reduce the number of security group rules in a SG without changing the semantic.`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
+			if err := validateFlags(args); err != nil {
+				return err
+			}
 			return optimization(cmd, args, optimize.NewSGOptimizer(args.firewallName))
 		},
 	}
