@@ -104,10 +104,13 @@ func updateSpan[T ds.Set[T]](span map[*netset.IPBlock]T, ruleSet T, ruleIP *nets
 //     b. the non overlapping part will enter the new map with the same value he had.
 func addRuleToSpan[T ds.Set[T]](span map[*netset.IPBlock]T, ruleIP *netset.IPBlock, ruleSet T) (s, res map[*netset.IPBlock]T) {
 	res = make(map[*netset.IPBlock]T, 0)
+	uncovered := ruleIP.Copy()
 	for ipblock := range span {
 		if !ipblock.Overlap(ruleIP) {
 			continue
 		}
+		uncovered = uncovered.Subtract(ipblock)
+
 		overlappingIPs := ruleIP.Subtract(ipblock)
 		for _, ip := range overlappingIPs.Split() {
 			res[ip] = span[ipblock].Copy().Union(ruleSet)
@@ -118,5 +121,6 @@ func addRuleToSpan[T ds.Set[T]](span map[*netset.IPBlock]T, ruleIP *netset.IPBlo
 		}
 		delete(span, ipblock)
 	}
+	res[uncovered] = ruleSet.Copy()
 	return span, res
 }

@@ -36,7 +36,7 @@ const (
 	sgTgMultipleSpec   = "%s/sg_tg_multiple/conn_spec.json"
 
 	tfOutputFmt = "tf"
-	vsi1        = "vsi1"
+	vsi1        = "test-vpc1--vsi1"
 )
 
 func allMainTests() []testCase {
@@ -321,61 +321,55 @@ func optimizeSGTestsLists() []testCase {
 		{
 			testName: "optimize_sg_icmp_codes",
 			args: &command{
-				cmd:          optimize,
-				subcmd:       sg,
-				config:       "%s/optimize_sg_icmp_codes/config_object.json",
-				outputFile:   "%s/optimize_sg_icmp_codes/sg_expected.tf",
-				firewallName: vsi1,
+				cmd:        optimize,
+				subcmd:     sg,
+				config:     "%s/optimize_sg_icmp_codes/config_object.json",
+				outputFile: "%s/optimize_sg_icmp_codes/sg_expected.tf",
 			},
 		},
 		{
 			testName: "optimize_sg_icmp_types",
 			args: &command{
-				cmd:          optimize,
-				subcmd:       sg,
-				config:       "%s/optimize_sg_icmp_types/config_object.json",
-				outputFile:   "%s/optimize_sg_icmp_types/sg_expected.tf",
-				firewallName: vsi1,
+				cmd:        optimize,
+				subcmd:     sg,
+				config:     "%s/optimize_sg_icmp_types/config_object.json",
+				outputFile: "%s/optimize_sg_icmp_types/sg_expected.tf",
 			},
 		},
 		{
 			testName: "optimize_sg_protocols_to_all_tf",
 			args: &command{
-				cmd:          optimize,
-				subcmd:       sg,
-				config:       optimizeSGProtocolsToAllConfig,
-				outputFile:   "%s/optimize_sg_protocols_to_all_tf/sg_expected.tf",
-				firewallName: vsi1,
+				cmd:        optimize,
+				subcmd:     sg,
+				config:     optimizeSGProtocolsToAllConfig,
+				outputFile: "%s/optimize_sg_protocols_to_all_tf/sg_expected.tf",
 			},
 		},
 		{
 			testName: "optimize_sg_protocols_to_all_csv",
 			args: &command{
-				cmd:          optimize,
-				subcmd:       sg,
-				config:       optimizeSGProtocolsToAllConfig,
-				outputFile:   "%s/optimize_sg_protocols_to_all_csv/sg_expected.csv",
-				firewallName: vsi1,
+				cmd:        optimize,
+				subcmd:     sg,
+				config:     optimizeSGProtocolsToAllConfig,
+				outputFile: "%s/optimize_sg_protocols_to_all_csv/sg_expected.csv",
 			},
 		},
 		{
 			testName: "optimize_sg_protocols_to_all_md",
 			args: &command{
-				cmd:          optimize,
-				subcmd:       sg,
-				config:       optimizeSGProtocolsToAllConfig,
-				outputFile:   "%s/optimize_sg_protocols_to_all_md/sg_expected.md",
-				firewallName: vsi1,
+				cmd:        optimize,
+				subcmd:     sg,
+				config:     optimizeSGProtocolsToAllConfig,
+				outputFile: "%s/optimize_sg_protocols_to_all_md/sg_expected.md",
 			},
 		},
 		{
 			testName: "optimize_sg_redundant",
 			args: &command{
-				cmd:          optimize,
-				subcmd:       sg,
-				config:       "%s/optimize_sg_redundant/config_object.json",
-				outputFile:   "%s/optimize_sg_redundant/sg_expected.tf",
-				firewallName: vsi1,
+				cmd:        optimize,
+				subcmd:     sg,
+				config:     "%s/optimize_sg_redundant/config_object.json",
+				outputFile: "%s/optimize_sg_redundant/sg_expected.tf",
 			},
 		},
 		{

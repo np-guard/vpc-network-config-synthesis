@@ -7,7 +7,6 @@ package optimize
 
 import (
 	"github.com/np-guard/models/pkg/netset"
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
 func compressSpansToSG(spans *sgSpansToSGPerProtocol) *sgSpansToSGPerProtocol {
@@ -18,9 +17,9 @@ func compressSpansToSG(spans *sgSpansToSGPerProtocol) *sgSpansToSGPerProtocol {
 // delete other protocols rules if all protocol rule exists
 func deleteOtherProtocolIfAllProtocolExists(spans *sgSpansToSGPerProtocol) *sgSpansToSGPerProtocol {
 	for _, sgName := range spans.all {
-		delete(spans.tcp, *sgName)
-		delete(spans.udp, *sgName)
-		delete(spans.icmp, *sgName)
+		delete(spans.tcp, sgName)
+		delete(spans.udp, sgName)
+		delete(spans.icmp, sgName)
 	}
 	return spans
 }
@@ -34,7 +33,7 @@ func compressThreeProtocolsToAllProtocol(spans *sgSpansToSGPerProtocol) *sgSpans
 					delete(spans.tcp, sgName)
 					delete(spans.udp, sgName)
 					delete(spans.icmp, sgName)
-					spans.all = append(spans.all, utils.Ptr(sgName))
+					spans.all = append(spans.all, sgName)
 				}
 			}
 		}

@@ -50,14 +50,6 @@ func Int64PointerToIntPointer(v *int64) *int {
 	return Ptr(int(*v))
 }
 
-func ToPtrSlice[T any](s []T) []*T {
-	res := make([]*T, len(s))
-	for i := range s {
-		res[i] = Ptr(s[i])
-	}
-	return res
-}
-
 // m1 does not have any key of m2
 func MergeSetMaps[T comparable, K ds.Set[K]](m1, m2 map[T]K) map[T]K {
 	for key, val := range m2 {

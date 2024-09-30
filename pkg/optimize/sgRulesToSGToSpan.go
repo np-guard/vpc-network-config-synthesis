@@ -6,6 +6,8 @@ SPDX-License-Identifier: Apache-2.0
 package optimize
 
 import (
+	"fmt"
+
 	"github.com/np-guard/models/pkg/interval"
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
@@ -46,17 +48,19 @@ func icmpRulesToSGToSpan(rules []*ir.SGRule) map[ir.SGName]*netset.ICMPSet {
 		if result[remote] == nil {
 			result[remote] = netset.EmptyICMPSet()
 		}
-		result[remote].Union(netset.NewICMPSet(p))
+		result[remote] = result[remote].Union(netset.NewICMPSet(p))
+
+		fmt.Println("i=", i, ": num partitions=", len(result[remote].Partitions()))
 	}
 	return result
 }
 
 // all protocol rules to a span of SG names slice
-func allProtocolRulesToSGToSpan(rules []*ir.SGRule) []*ir.SGName {
+func allProtocolRulesToSGToSpan(rules []*ir.SGRule) []ir.SGName {
 	result := make(map[ir.SGName]struct{})
 	for i := range rules {
 		remote := rules[i].Remote.(ir.SGName)
 		result[remote] = struct{}{}
 	}
-	return utils.ToPtrSlice(utils.SortedMapKeys(result))
+	return utils.SortedMapKeys(result)
 }

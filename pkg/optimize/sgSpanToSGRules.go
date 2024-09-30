@@ -38,7 +38,7 @@ func icmpSGSpanToSGRules(span map[ir.SGName]*netset.ICMPSet, direction ir.Direct
 }
 
 // span (slice of SGs) to SG rules
-func protocolAllSGSpanToSGRules(span []*ir.SGName, direction ir.Direction) []*ir.SGRule {
+func protocolAllSGSpanToSGRules(span []ir.SGName, direction ir.Direction) []*ir.SGRule {
 	result := make([]*ir.SGRule, len(span))
 	for i, sgName := range span {
 		result[i] = ir.NewSGRule(direction, sgName, netp.AnyProtocol{}, netset.GetCidrAll(), "")

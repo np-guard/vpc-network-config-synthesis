@@ -6,6 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 package optimize
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/np-guard/models/pkg/ds"
@@ -40,7 +41,7 @@ type (
 		tcp  map[ir.SGName]*interval.CanonicalSet
 		udp  map[ir.SGName]*interval.CanonicalSet
 		icmp map[ir.SGName]*netset.ICMPSet
-		all  []*ir.SGName
+		all  []ir.SGName
 	}
 
 	sgSpansToIPPerProtocol struct {
@@ -71,42 +72,57 @@ func (s *SGOptimizer) VpcNames() []string {
 }
 
 // Optimize attempts to reduce the number of SG rules
-// the algorithm attempts to reduce both inbound and outbound rules separately
-// A message is printed to the log at the end of the algorithm
+// if -n was supplied, it will attempt to reduce the number of rules only in it
+// otherwise, it will attempt to reduce the number of rules in all SGs
 func (s *SGOptimizer) Optimize() (ir.Collection, error) {
-	for vpcName := range s.sgCollection.SGs {
-		var sg *ir.SG
-		var ok bool
-		if sg, ok = s.sgCollection.SGs[vpcName][s.sgName]; !ok {
-			continue
+	if s.sgName != "" {
+		for _, vpcName := range utils.SortedMapKeys(s.sgCollection.SGs) {
+			if _, ok := s.sgCollection.SGs[vpcName][s.sgName]; ok {
+				s.OptimizeSG(vpcName, s.sgName)
+				return s.sgCollection, nil
+			}
 		}
-		reducedRules := 0
+		return nil, fmt.Errorf("could no find %s sg", s.sgName)
+	}
 
-		// reduce inbound rules first
-		newInboundRules := s.reduceSGRules(sg.InboundRules, ir.Inbound)
-		if len(sg.InboundRules) > len(newInboundRules) {
-			reducedRules += len(sg.InboundRules) - len(newInboundRules)
-			s.sgCollection.SGs[vpcName][s.sgName].InboundRules = newInboundRules
-		}
-
-		// reduce outbound rules second
-		newOutboundRules := s.reduceSGRules(sg.OutboundRules, ir.Outbound)
-		if len(sg.OutboundRules) > len(newOutboundRules) {
-			reducedRules += len(sg.OutboundRules) - len(newOutboundRules)
-			s.sgCollection.SGs[vpcName][s.sgName].OutboundRules = newOutboundRules
-		}
-
-		// print a message to the log
-		switch {
-		case reducedRules == 0:
-			log.Printf("no rules were reduced in sg %s", string(s.sgName))
-		case reducedRules == 1:
-			log.Printf("1 rule was reduced in sg %s", string(s.sgName))
-		default:
-			log.Printf("%d rules were reduced in sg %s", reducedRules, string(s.sgName))
+	for _, vpcName := range utils.SortedMapKeys(s.sgCollection.SGs) {
+		for _, sgName := range utils.SortedMapKeys(s.sgCollection.SGs[vpcName]) {
+			s.OptimizeSG(vpcName, sgName)
 		}
 	}
 	return s.sgCollection, nil
+}
+
+// Optimize attempts to reduce the number of SG rules
+// the algorithm attempts to reduce both inbound and outbound rules separately
+// A message is printed to the log at the end of the algorithm
+func (s *SGOptimizer) OptimizeSG(vpcName string, sgName ir.SGName) {
+	sg := s.sgCollection.SGs[vpcName][sgName]
+	reducedRules := 0
+
+	// reduce inbound rules first
+	newInboundRules := s.reduceSGRules(sg.InboundRules, ir.Inbound)
+	if len(sg.InboundRules) > len(newInboundRules) {
+		reducedRules += len(sg.InboundRules) - len(newInboundRules)
+		s.sgCollection.SGs[vpcName][sgName].InboundRules = newInboundRules
+	}
+
+	// reduce outbound rules second
+	newOutboundRules := s.reduceSGRules(sg.OutboundRules, ir.Outbound)
+	if len(sg.OutboundRules) > len(newOutboundRules) {
+		reducedRules += len(sg.OutboundRules) - len(newOutboundRules)
+		s.sgCollection.SGs[vpcName][sgName].OutboundRules = newOutboundRules
+	}
+
+	// print a message to the log
+	switch {
+	case reducedRules == 0:
+		log.Printf("no rules were reduced in sg %s\n", string(sgName))
+	case reducedRules == 1:
+		log.Printf("1 rule was reduced in sg %s\n", string(sgName))
+	default:
+		log.Printf("%d rules were reduced in sg %s\n", reducedRules, string(sgName))
+	}
 }
 
 // reduceSGRules attempts to reduce the number of rules with different remote types separately
