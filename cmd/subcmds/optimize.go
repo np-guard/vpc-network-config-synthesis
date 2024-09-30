@@ -23,9 +23,6 @@ func NewOptimizeCommand(args *inArgs) *cobra.Command {
 	// flags
 	cmd.PersistentFlags().StringVarP(&args.firewallName, firewallNameFlag, "n", "", "which vpcFirewall to optimize")
 
-	// flags settings
-	_ = cmd.MarkPersistentFlagRequired(firewallNameFlag) // temporary
-
 	// sub cmds
 	cmd.AddCommand(NewOptimizeSGCommand(args))
 
