@@ -26,13 +26,13 @@ func ReadSGs(filename string) (*ir.SGCollection, error) {
 	}
 
 	result := ir.NewSGCollection()
-	for _, sg := range config.SecurityGroupList {
+	for i, sg := range config.SecurityGroupList {
 		inbound, outbound, err := translateSGRules(&sg.SecurityGroup)
 		if err != nil {
 			return nil, err
 		}
 		if sg.Name == nil || sg.VPC == nil || sg.VPC.Name == nil {
-			log.Print("missing SG/VPC name")
+			log.Printf("Warning: missing SG/VPC name in sg at index %d\n", i)
 			continue
 		}
 		vpcName := *sg.VPC.Name
