@@ -43,7 +43,7 @@ func compressThreeProtocolsToAllProtocol(spans *sgSpansToSGPerProtocol) *sgSpans
 
 // observation: It pays to switch to all protocol rule when we have rules that cover all other protocols
 // on exactly the same cidr (only one protocol can exceed).
-func compressToAllProtocolRule(span *sgSpansToIPPerProtocol) *sgSpansToIPPerProtocol {
+func compressSpansToIP(span *sgSpansToIPPerProtocol) *sgSpansToIPPerProtocol {
 	t := 0
 	u := 0
 	i := 0

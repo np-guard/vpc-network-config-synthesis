@@ -160,7 +160,7 @@ func reduceSGRulesToSG(spans *sgSpansToSGPerProtocol, direction ir.Direction) []
 }
 
 func reduceSGRulesToIPAddrs(spans *sgSpansToIPPerProtocol, direction ir.Direction) []*ir.SGRule {
-	spans = compressToAllProtocolRule(spans)
+	spans = compressSpansToIP(spans)
 
 	// spans to SG rules
 	tcpRules := tcpudpIPSpanToSGRules(spans.tcp, spans.all, direction, true)
