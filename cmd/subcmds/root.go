@@ -39,10 +39,16 @@ type inArgs struct {
 func NewRootCommand() *cobra.Command {
 	args := &inArgs{}
 
+	// allow PersistentPreRunE
+	cobra.EnableTraverseRunHooks = true
+
 	rootCmd := &cobra.Command{
 		Use:   "vpcgen",
 		Short: "Tool for automatic synthesis of VPC network configurations",
 		Long:  `Tool for automatic synthesis of VPC network configurations, namely Network ACLs and Security Groups.`,
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			return validateFlags(args)
+		},
 	}
 
 	// flags

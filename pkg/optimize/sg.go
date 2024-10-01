@@ -8,7 +8,6 @@ package optimize
 import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/confio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
 type SGOptimizer struct {
@@ -34,5 +33,5 @@ func (s *SGOptimizer) Optimize() (ir.Collection, error) {
 }
 
 func (s *SGOptimizer) VpcNames() []string {
-	return utils.MapKeys(s.sgCollection.SGs)
+	return s.sgCollection.VpcNames()
 }

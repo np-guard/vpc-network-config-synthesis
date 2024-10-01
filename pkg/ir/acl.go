@@ -49,8 +49,8 @@ const (
 )
 
 func (r *ACLRule) isRedundant(rules []*ACLRule) bool {
-	for i := range rules {
-		if rules[i].mustSupersede(r) {
+	for _, rule := range rules {
+		if rule.mustSupersede(r) {
 			return true
 		}
 	}

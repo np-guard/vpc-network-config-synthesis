@@ -9,7 +9,7 @@ import "fmt"
 
 func validateFlags(args *inArgs) error {
 	if args.outputDir != "" && args.outputFile != "" {
-		return fmt.Errorf("only one of -d and -o can be supplied")
+		return fmt.Errorf("specifying both -d and -o is not allowed")
 	}
 	if err := updateOutputFormat(args); err != nil {
 		return err
