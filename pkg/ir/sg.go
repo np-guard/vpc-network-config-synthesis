@@ -10,6 +10,7 @@ import (
 	"reflect"
 
 	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
@@ -40,6 +41,7 @@ type SGRule struct {
 	Direction   Direction
 	Remote      RemoteType
 	Protocol    netp.Protocol
+	Local       *netset.IPBlock
 	Explanation string
 }
 
