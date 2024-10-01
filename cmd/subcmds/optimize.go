@@ -10,6 +10,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/optimize"
 )
 
@@ -20,23 +21,22 @@ func NewOptimizeCommand(args *inArgs) *cobra.Command {
 		Long:  `optimization of existing SG (nACLS are not supported yet)`,
 	}
 
-	// flags
-	cmd.PersistentFlags().StringVarP(&args.firewallName, firewallNameFlag, "n", "", "which vpcFirewall to optimize")
-
 	// sub cmds
 	cmd.AddCommand(NewOptimizeSGCommand(args))
 
 	return cmd
 }
 
-func optimization(cmd *cobra.Command, args *inArgs, newOptimizer optimize.Optimizer) error {
+func optimization(cmd *cobra.Command, args *inArgs, newOptimizer func(ir.Collection, string) optimize.Optimizer, isSG bool) error {
 	cmd.SilenceUsage = true // if we got this far, flags are syntactically correct, so no need to print usage
-	if err := newOptimizer.ParseCollection(args.configFile); err != nil {
+	collection, err := parseCollection(args, isSG)
+	if err != nil {
 		return fmt.Errorf("could not parse config file %v: %w", args.configFile, err)
 	}
-	collection, err := newOptimizer.Optimize()
+	optimizer := newOptimizer(collection, args.firewallName)
+	optimizedCollection, err := optimizer.Optimize()
 	if err != nil {
 		return err
 	}
-	return writeOutput(args, collection, newOptimizer.VpcNames(), false)
+	return writeOutput(args, optimizedCollection, collection.VpcNames(), false)
 }

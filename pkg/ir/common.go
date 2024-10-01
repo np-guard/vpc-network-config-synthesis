@@ -10,6 +10,7 @@ type (
 
 	Collection interface {
 		Write(writer Writer, vpc string) error
+		VpcNames() []string
 	}
 
 	Writer interface {

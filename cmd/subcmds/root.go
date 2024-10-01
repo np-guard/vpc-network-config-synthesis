@@ -13,15 +13,13 @@ import (
 )
 
 const (
-	configFlag       = "config"
-	specFlag         = "spec"
-	outputFmtFlag    = "format"
-	outputFileFlag   = "output-file"
-	outputDirFlag    = "output-dir"
-	prefixFlag       = "prefix"
-	firewallNameFlag = "firewall-name"
-	singleACLFlag    = "single"
-	localsFlag       = "locals"
+	configFlag     = "config"
+	outputFmtFlag  = "format"
+	outputFileFlag = "output-file"
+	outputDirFlag  = "output-dir"
+	prefixFlag     = "prefix"
+	singleACLFlag  = "single"
+	localsFlag     = "locals"
 )
 
 type inArgs struct {

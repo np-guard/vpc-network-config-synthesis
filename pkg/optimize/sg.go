@@ -6,32 +6,18 @@ SPDX-License-Identifier: Apache-2.0
 package optimize
 
 import (
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/confio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
 type SGOptimizer struct {
 	sgCollection *ir.SGCollection
-	sgName       string
+	sgName       ir.SGName
 }
 
-func NewSGOptimizer(sgName string) Optimizer {
-	return &SGOptimizer{sgCollection: nil, sgName: sgName}
-}
-
-func (s *SGOptimizer) ParseCollection(filename string) error {
-	c, err := confio.ReadSGs(filename)
-	if err != nil {
-		return err
-	}
-	s.sgCollection = c
-	return nil
+func NewSGOptimizer(collection ir.Collection, sgName string) Optimizer {
+	return &SGOptimizer{sgCollection: collection.(*ir.SGCollection), sgName: ir.SGName(sgName)}
 }
 
 func (s *SGOptimizer) Optimize() (ir.Collection, error) {
 	return s.sgCollection, nil
-}
-
-func (s *SGOptimizer) VpcNames() []string {
-	return s.sgCollection.VpcNames()
 }
