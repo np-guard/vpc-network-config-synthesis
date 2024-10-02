@@ -15,35 +15,37 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
-type Action string
+type (
+	Action string
+
+	ACLRule struct {
+		Action      Action
+		Direction   Direction
+		Source      *netset.IPBlock
+		Destination *netset.IPBlock
+		Protocol    netp.Protocol
+		Explanation string
+	}
+
+	ACL struct {
+		Subnet   string
+		Internal []*ACLRule
+		External []*ACLRule
+	}
+
+	ACLCollection struct {
+		ACLs map[ID]map[string]*ACL
+	}
+
+	ACLWriter interface {
+		WriteACL(aclColl *ACLCollection, vpc string) error
+	}
+)
 
 const (
 	Allow Action = "allow"
 	Deny  Action = "deny"
 )
-
-type ACLRule struct {
-	Action      Action
-	Direction   Direction
-	Source      *netset.IPBlock
-	Destination *netset.IPBlock
-	Protocol    netp.Protocol
-	Explanation string
-}
-
-type ACL struct {
-	Subnet   string
-	Internal []*ACLRule
-	External []*ACLRule
-}
-
-type ACLCollection struct {
-	ACLs map[ID]map[string]*ACL
-}
-
-type ACLWriter interface {
-	WriteACL(aclColl *ACLCollection, vpc string) error
-}
 
 func (r *ACLRule) isRedundant(rules []*ACLRule) bool {
 	for _, rule := range rules {
@@ -105,22 +107,25 @@ func NewACLCollection() *ACLCollection {
 	return &ACLCollection{ACLs: map[ID]map[string]*ACL{}}
 }
 
-func NewACL() *ACL {
-	return &ACL{Internal: []*ACLRule{}, External: []*ACLRule{}}
+func NewACL(subnet string) *ACL {
+	return &ACL{Subnet: subnet, Internal: []*ACLRule{}, External: []*ACLRule{}}
 }
 
-func (c *ACLCollection) LookupOrCreate(name string) *ACL {
-	vpcName := VpcFromScopedResource(name)
-	if acl, ok := c.ACLs[vpcName][name]; ok {
+func (c *ACLCollection) LookupOrCreate(subnet string) *ACL {
+	vpcName := VpcFromScopedResource(subnet)
+	if acl, ok := c.ACLs[vpcName][subnet]; ok {
 		return acl
 	}
-	newACL := NewACL()
-	newACL.Subnet = name
+	newACL := NewACL(subnet)
 	if c.ACLs[vpcName] == nil {
 		c.ACLs[vpcName] = make(map[string]*ACL)
 	}
-	c.ACLs[vpcName][name] = newACL
+	c.ACLs[vpcName][subnet] = newACL
 	return newACL
+}
+
+func (c *ACLCollection) VpcNames() []string {
+	return utils.SortedMapKeys(c.ACLs)
 }
 
 func (c *ACLCollection) Write(w Writer, vpc string) error {

@@ -14,11 +14,11 @@ const (
 	tfOutputFormat      = "tf"
 	csvOutputFormat     = "csv"
 	mdOutputFormat      = "md"
-	apiOutputFormat     = "json"
+	jsonOutputFormat    = "json"
 	defaultOutputFormat = csvOutputFormat
 )
 
-var outputFormats = []string{tfOutputFormat, csvOutputFormat, mdOutputFormat, apiOutputFormat}
+var outputFormats = []string{tfOutputFormat, csvOutputFormat, mdOutputFormat, jsonOutputFormat}
 
 func updateOutputFormat(args *inArgs) error {
 	var err error
@@ -40,7 +40,7 @@ func inferFormatUsingFilename(filename string) (string, error) {
 	case strings.HasSuffix(filename, ".md"):
 		return mdOutputFormat, nil
 	case strings.HasSuffix(filename, ".json"):
-		return apiOutputFormat, nil
+		return jsonOutputFormat, nil
 	default:
 		return "", fmt.Errorf("bad output format")
 	}

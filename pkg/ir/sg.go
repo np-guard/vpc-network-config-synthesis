@@ -26,37 +26,40 @@ const (
 	SGResourceFileShareMountTarget SGResource = "fsmt"
 )
 
-type SGName string
+type (
+	SGName string
+
+	RemoteType interface {
+		fmt.Stringer
+		// *netset.IPBlock | SGName
+	}
+
+	SGRule struct {
+		Direction   Direction
+		Remote      RemoteType
+		Protocol    netp.Protocol
+		Local       *netset.IPBlock
+		Explanation string
+	}
+
+	SG struct {
+		SGName        SGName
+		InboundRules  []*SGRule
+		OutboundRules []*SGRule
+		Attached      []ID
+	}
+
+	SGCollection struct {
+		SGs map[ID]map[SGName]*SG
+	}
+
+	SGWriter interface {
+		WriteSG(sgColl *SGCollection, vpc string) error
+	}
+)
 
 func (s SGName) String() string {
 	return string(s)
-}
-
-type RemoteType interface {
-	fmt.Stringer
-	// *netset.IPBlock | SGName
-}
-
-type SGRule struct {
-	Direction   Direction
-	Remote      RemoteType
-	Protocol    netp.Protocol
-	Local       *netset.IPBlock
-	Explanation string
-}
-
-type SG struct {
-	InboundRules  []*SGRule
-	OutboundRules []*SGRule
-	Attached      []ID
-}
-
-type SGCollection struct {
-	SGs map[ID]map[SGName]*SG
-}
-
-type SGWriter interface {
-	WriteSG(sgColl *SGCollection, vpc string) error
 }
 
 func (r *SGRule) isRedundant(rules []*SGRule) bool {
@@ -76,8 +79,8 @@ func (r *SGRule) mustSupersede(other *SGRule) bool {
 	return res
 }
 
-func NewSG() *SG {
-	return &SG{InboundRules: []*SGRule{}, OutboundRules: []*SGRule{}, Attached: []ID{}}
+func NewSG(sgName SGName) *SG {
+	return &SG{SGName: sgName, InboundRules: []*SGRule{}, OutboundRules: []*SGRule{}, Attached: []ID{}}
 }
 
 func NewSGCollection() *SGCollection {
@@ -89,7 +92,7 @@ func (c *SGCollection) LookupOrCreate(name SGName) *SG {
 	if sg, ok := c.SGs[vpcName][name]; ok {
 		return sg
 	}
-	newSG := NewSG()
+	newSG := NewSG(name)
 	if c.SGs[vpcName] == nil {
 		c.SGs[vpcName] = make(map[SGName]*SG)
 	}
@@ -108,6 +111,10 @@ func (a *SG) Add(rule *SGRule) {
 
 func (a *SG) AllRules() []*SGRule {
 	return append(a.InboundRules, a.OutboundRules...)
+}
+
+func (c *SGCollection) VpcNames() []string {
+	return utils.SortedMapKeys(c.SGs)
 }
 
 func (c *SGCollection) Write(w Writer, vpc string) error {
