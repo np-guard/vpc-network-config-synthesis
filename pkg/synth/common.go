@@ -15,6 +15,7 @@ import (
 
 type (
 	Synthesizer interface {
+		// generates SGs/nACLs
 		Synth() (ir.Collection, error)
 	}
 

@@ -14,7 +14,6 @@ import (
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
 
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/confio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
@@ -23,6 +22,7 @@ type (
 	SGOptimizer struct {
 		sgCollection *ir.SGCollection
 		sgName       ir.SGName
+		sgVPC        *string
 	}
 
 	sgRuleGroups struct {
@@ -52,18 +52,12 @@ type (
 	}
 )
 
-func NewSGOptimizer(sgName string) Optimizer {
-	return &SGOptimizer{sgCollection: nil, sgName: ir.SGName(sgName)}
-}
-
-// read SGs from config file
-func (s *SGOptimizer) ParseCollection(filename string) error {
-	c, err := confio.ReadSGs(filename)
-	if err != nil {
-		return err
+func NewSGOptimizer(collection ir.Collection, sgName string) Optimizer {
+	components := ir.ScopingComponents(sgName)
+	if len(components) == 1 {
+		return &SGOptimizer{sgCollection: collection.(*ir.SGCollection), sgName: ir.SGName(sgName), sgVPC: nil}
 	}
-	s.sgCollection = c
-	return nil
+	return &SGOptimizer{sgCollection: collection.(*ir.SGCollection), sgName: ir.SGName(components[1]), sgVPC: &components[0]}
 }
 
 // returns a sorted slice of the vpc names

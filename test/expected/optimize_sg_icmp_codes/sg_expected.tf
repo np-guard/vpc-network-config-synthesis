@@ -23,6 +23,8 @@ resource "ibm_is_security_group_rule" "test-vpc1--vsi1-1" {
   direction = "outbound"
   remote    = "0.0.0.0/31"
   icmp {
+    type = 5
+    code = 0
   }
 }
 

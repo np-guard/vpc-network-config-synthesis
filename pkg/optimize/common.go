@@ -17,14 +17,8 @@ import (
 )
 
 type Optimizer interface {
-	// read the collection from the config object file
-	ParseCollection(filename string) error
-
-	// optimize number of SG/nACL rules
+	// attempts to reduce number of SG/nACL rules
 	Optimize() (ir.Collection, error)
-
-	// returns a slice of all vpc names. used to generate locals file
-	VpcNames() []string
 }
 
 // each IPBlock is a single CIDR. The CIDRs are disjoint.
@@ -33,10 +27,6 @@ func sortPartitionsByIPAddrs[T any](p []ds.Pair[*netset.IPBlock, T]) []ds.Pair[*
 	sort.Slice(p, cmp)
 	return p
 }
-
-// func less(i, j *netset.IPBlock) bool {
-// 	return i.FirstIPAddress() < j.FirstIPAddress()
-// }
 
 func allPorts(ports *interval.CanonicalSet) bool {
 	return ports.Equal(netp.AllPorts().ToSet())

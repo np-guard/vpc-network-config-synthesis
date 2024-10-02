@@ -28,8 +28,8 @@ func writeOutput(args *inArgs, collection ir.Collection, vpcNames []string, isSy
 			return err
 		}
 	}
-	_, isACLCollection := collection.(*ir.ACLCollection)
-	if err := writeLocals(args, vpcNames, isACLCollection); err != nil {
+
+	if err := writeLocals(args, vpcNames, collection); err != nil {
 		return err
 	}
 
@@ -96,14 +96,16 @@ func writeToFile(outputFile string, data *bytes.Buffer) error {
 	return os.WriteFile(outputFile, data.Bytes(), defaultFilePermission)
 }
 
-func writeLocals(args *inArgs, vpcNames []ir.ID, isACL bool) error {
+func writeLocals(args *inArgs, vpcNames []ir.ID, collection ir.Collection) error {
 	if !args.locals {
 		return nil
 	}
-
 	var data *bytes.Buffer
 	var err error
-	if data, err = tfio.WriteLocals(vpcNames, isACL); err != nil {
+
+	_, isACLCollection := collection.(*ir.ACLCollection)
+
+	if data, err = tfio.WriteLocals(vpcNames, isACLCollection); err != nil {
 		return err
 	}
 

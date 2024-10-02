@@ -13,6 +13,8 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
+const specFlag = "spec"
+
 func NewSynthCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "synth",

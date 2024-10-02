@@ -13,15 +13,13 @@ import (
 )
 
 const (
-	configFlag       = "config"
-	specFlag         = "spec"
-	outputFmtFlag    = "format"
-	outputFileFlag   = "output-file"
-	outputDirFlag    = "output-dir"
-	prefixFlag       = "prefix"
-	firewallNameFlag = "firewall-name"
-	singleACLFlag    = "single"
-	localsFlag       = "locals"
+	configFlag     = "config"
+	outputFmtFlag  = "format"
+	outputFileFlag = "output-file"
+	outputDirFlag  = "output-dir"
+	prefixFlag     = "prefix"
+	singleACLFlag  = "single"
+	localsFlag     = "locals"
 )
 
 type inArgs struct {
@@ -39,10 +37,16 @@ type inArgs struct {
 func NewRootCommand() *cobra.Command {
 	args := &inArgs{}
 
+	// allow PersistentPreRunE
+	cobra.EnableTraverseRunHooks = true
+
 	rootCmd := &cobra.Command{
 		Use:   "vpcgen",
-		Short: "Tool for automatic synthesis of VPC network configurations",
-		Long:  `Tool for automatic synthesis of VPC network configurations, namely Network ACLs and Security Groups.`,
+		Short: "A tool for synthesizing and optimizing VPC network configurations",
+		Long:  `A tool for synthesizing and optimizing VPC network configurations, namely Network ACLs and Security Groups.`,
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			return validateFlags(args)
+		},
 	}
 
 	// flags
@@ -61,8 +65,10 @@ func NewRootCommand() *cobra.Command {
 	rootCmd.AddCommand(NewSynthCommand(args))
 	rootCmd.AddCommand(NewOptimizeCommand(args))
 
+	// prevent Cobra from creating a default 'completion' command
+	rootCmd.CompletionOptions.DisableDefaultCmd = true
+
 	// disable help command. should use --help flag instead
-	rootCmd.CompletionOptions.HiddenDefaultCmd = true
 	rootCmd.SetHelpCommand(&cobra.Command{Hidden: true})
 
 	return rootCmd
