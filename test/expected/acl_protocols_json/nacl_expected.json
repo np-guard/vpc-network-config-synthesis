@@ -42,6 +42,7 @@
                 "name": "automaker-castle-bird-worried"
             },
             "default_routing_table": {
+                "crn": null,
                 "href": "href:11",
                 "id": "id:12",
                 "name": "overtone-sputter-overspend-gorge",
@@ -152,6 +153,7 @@
                 "name": "ebullient-slacks-revert-turkey"
             },
             "default_routing_table": {
+                "crn": null,
                 "href": "href:28",
                 "id": "id:29",
                 "name": "escapade-dynamite-upstage-context",
@@ -275,6 +277,7 @@
                 "name": "afoot-grape-fineness-zestfully"
             },
             "default_routing_table": {
+                "crn": null,
                 "href": "href:45",
                 "id": "id:46",
                 "name": "quintuple-severity-caddie-manuals",
@@ -372,6 +375,7 @@
                 "name": "untracked-repayment-triumph-cat"
             },
             "default_routing_table": {
+                "crn": null,
                 "href": "href:58",
                 "id": "id:59",
                 "name": "probational-herring-undone-daintily",
@@ -453,6 +457,7 @@
             },
             "resource_type": "subnet",
             "routing_table": {
+                "crn": null,
                 "href": "href:28",
                 "id": "id:29",
                 "name": "escapade-dynamite-upstage-context",
@@ -586,6 +591,7 @@
             },
             "resource_type": "subnet",
             "routing_table": {
+                "crn": null,
                 "href": "href:28",
                 "id": "id:29",
                 "name": "escapade-dynamite-upstage-context",
@@ -719,6 +725,7 @@
             },
             "resource_type": "subnet",
             "routing_table": {
+                "crn": null,
                 "href": "href:28",
                 "id": "id:29",
                 "name": "escapade-dynamite-upstage-context",
@@ -852,6 +859,7 @@
             },
             "resource_type": "subnet",
             "routing_table": {
+                "crn": null,
                 "href": "href:11",
                 "id": "id:12",
                 "name": "overtone-sputter-overspend-gorge",
@@ -968,6 +976,7 @@
             },
             "resource_type": "subnet",
             "routing_table": {
+                "crn": null,
                 "href": "href:28",
                 "id": "id:29",
                 "name": "escapade-dynamite-upstage-context",
@@ -1101,6 +1110,7 @@
             },
             "resource_type": "subnet",
             "routing_table": {
+                "crn": null,
                 "href": "href:11",
                 "id": "id:12",
                 "name": "overtone-sputter-overspend-gorge",
@@ -1217,6 +1227,7 @@
             },
             "resource_type": "subnet",
             "routing_table": {
+                "crn": null,
                 "href": "href:45",
                 "id": "id:46",
                 "name": "quintuple-severity-caddie-manuals",
@@ -1367,6 +1378,7 @@
             },
             "resource_type": "subnet",
             "routing_table": {
+                "crn": null,
                 "href": "href:28",
                 "id": "id:29",
                 "name": "escapade-dynamite-upstage-context",
@@ -1500,6 +1512,7 @@
             },
             "resource_type": "subnet",
             "routing_table": {
+                "crn": null,
                 "href": "href:58",
                 "id": "id:59",
                 "name": "probational-herring-undone-daintily",
@@ -1616,6 +1629,7 @@
             },
             "resource_type": "subnet",
             "routing_table": {
+                "crn": null,
                 "href": "href:28",
                 "id": "id:29",
                 "name": "escapade-dynamite-upstage-context",
@@ -6710,11 +6724,13 @@
             ],
             "advertise_routes_to": [],
             "created_at": "2024-06-25T15:40:20.000Z",
+            "crn": null,
             "href": "href:11",
             "id": "id:12",
             "is_default": true,
             "lifecycle_state": "stable",
             "name": "overtone-sputter-overspend-gorge",
+            "resource_group": null,
             "resource_type": "routing_table",
             "route_direct_link_ingress": false,
             "route_internet_ingress": false,
@@ -6756,11 +6772,13 @@
             ],
             "advertise_routes_to": [],
             "created_at": "2024-06-25T15:40:19.000Z",
+            "crn": null,
             "href": "href:28",
             "id": "id:29",
             "is_default": true,
             "lifecycle_state": "stable",
             "name": "escapade-dynamite-upstage-context",
+            "resource_group": null,
             "resource_type": "routing_table",
             "route_direct_link_ingress": false,
             "route_internet_ingress": false,
@@ -6830,11 +6848,13 @@
             ],
             "advertise_routes_to": [],
             "created_at": "2024-06-25T15:40:19.000Z",
+            "crn": null,
             "href": "href:45",
             "id": "id:46",
             "is_default": true,
             "lifecycle_state": "stable",
             "name": "quintuple-severity-caddie-manuals",
+            "resource_group": null,
             "resource_type": "routing_table",
             "route_direct_link_ingress": false,
             "route_internet_ingress": false,
@@ -6869,11 +6889,13 @@
             ],
             "advertise_routes_to": [],
             "created_at": "2024-06-25T15:40:19.000Z",
+            "crn": null,
             "href": "href:58",
             "id": "id:59",
             "is_default": true,
             "lifecycle_state": "stable",
             "name": "probational-herring-undone-daintily",
+            "resource_group": null,
             "resource_type": "routing_table",
             "route_direct_link_ingress": false,
             "route_internet_ingress": false,
