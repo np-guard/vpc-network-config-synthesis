@@ -42,6 +42,7 @@
                 "name": "capitol-siren-chirpy-doornail"
             },
             "default_routing_table": {
+                "crn": null,
                 "href": "href:11",
                 "id": "id:12",
                 "name": "fiscally-fresh-uncanny-ceramics",
@@ -156,6 +157,7 @@
             },
             "resource_type": "subnet",
             "routing_table": {
+                "crn": null,
                 "href": "href:11",
                 "id": "id:12",
                 "name": "fiscally-fresh-uncanny-ceramics",
@@ -279,6 +281,7 @@
             },
             "resource_type": "subnet",
             "routing_table": {
+                "crn": null,
                 "href": "href:11",
                 "id": "id:12",
                 "name": "fiscally-fresh-uncanny-ceramics",
@@ -395,6 +398,7 @@
             },
             "resource_type": "subnet",
             "routing_table": {
+                "crn": null,
                 "href": "href:11",
                 "id": "id:12",
                 "name": "fiscally-fresh-uncanny-ceramics",
@@ -2614,11 +2618,13 @@
             ],
             "advertise_routes_to": [],
             "created_at": "2024-09-09T09:09:51.000Z",
+            "crn": null,
             "href": "href:11",
             "id": "id:12",
             "is_default": true,
             "lifecycle_state": "stable",
             "name": "fiscally-fresh-uncanny-ceramics",
+            "resource_group": null,
             "resource_type": "routing_table",
             "route_direct_link_ingress": false,
             "route_internet_ingress": false,
