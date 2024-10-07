@@ -42,6 +42,7 @@
                 "name": "premises-eleven-nursery-coveted"
             },
             "default_routing_table": {
+                "crn": null,
                 "href": "href:11",
                 "id": "id:12",
                 "name": "unguarded-corncob-unaired-corner",
@@ -149,6 +150,7 @@
             },
             "resource_type": "subnet",
             "routing_table": {
+                "crn": null,
                 "href": "href:11",
                 "id": "id:12",
                 "name": "unguarded-corncob-unaired-corner",
@@ -285,6 +287,7 @@
             },
             "resource_type": "subnet",
             "routing_table": {
+                "crn": null,
                 "href": "href:11",
                 "id": "id:12",
                 "name": "unguarded-corncob-unaired-corner",
@@ -404,6 +407,7 @@
             },
             "resource_type": "subnet",
             "routing_table": {
+                "crn": null,
                 "href": "href:11",
                 "id": "id:12",
                 "name": "unguarded-corncob-unaired-corner",
@@ -2320,11 +2324,13 @@
             ],
             "advertise_routes_to": [],
             "created_at": "2024-06-19T07:11:57.000Z",
+            "crn": null,
             "href": "href:11",
             "id": "id:12",
             "is_default": true,
             "lifecycle_state": "stable",
             "name": "unguarded-corncob-unaired-corner",
+            "resource_group": null,
             "resource_type": "routing_table",
             "route_direct_link_ingress": false,
             "route_internet_ingress": false,
