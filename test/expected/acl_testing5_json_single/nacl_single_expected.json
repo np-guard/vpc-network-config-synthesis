@@ -42,6 +42,7 @@
                 "name": "disallow-laborious-compress-abiding"
             },
             "default_routing_table": {
+                "crn": null,
                 "href": "href:11",
                 "id": "id:12",
                 "name": "traffic-overeasy-festoonery-illusive",
@@ -151,6 +152,7 @@
             },
             "resource_type": "subnet",
             "routing_table": {
+                "crn": null,
                 "href": "href:11",
                 "id": "id:12",
                 "name": "traffic-overeasy-festoonery-illusive",
@@ -259,6 +261,7 @@
             },
             "resource_type": "subnet",
             "routing_table": {
+                "crn": null,
                 "href": "href:11",
                 "id": "id:12",
                 "name": "traffic-overeasy-festoonery-illusive",
@@ -367,6 +370,7 @@
             },
             "resource_type": "subnet",
             "routing_table": {
+                "crn": null,
                 "href": "href:11",
                 "id": "id:12",
                 "name": "traffic-overeasy-festoonery-illusive",
@@ -468,6 +472,7 @@
             },
             "resource_type": "subnet",
             "routing_table": {
+                "crn": null,
                 "href": "href:11",
                 "id": "id:12",
                 "name": "traffic-overeasy-festoonery-illusive",
@@ -576,6 +581,7 @@
             },
             "resource_type": "subnet",
             "routing_table": {
+                "crn": null,
                 "href": "href:11",
                 "id": "id:12",
                 "name": "traffic-overeasy-festoonery-illusive",
@@ -677,6 +683,7 @@
             },
             "resource_type": "subnet",
             "routing_table": {
+                "crn": null,
                 "href": "href:11",
                 "id": "id:12",
                 "name": "traffic-overeasy-festoonery-illusive",
@@ -2731,11 +2738,13 @@
             ],
             "advertise_routes_to": [],
             "created_at": "2024-06-25T12:20:45.000Z",
+            "crn": null,
             "href": "href:11",
             "id": "id:12",
             "is_default": true,
             "lifecycle_state": "stable",
             "name": "traffic-overeasy-festoonery-illusive",
+            "resource_group": null,
             "resource_type": "routing_table",
             "route_direct_link_ingress": false,
             "route_internet_ingress": false,
