@@ -3,76 +3,71 @@ Copyright 2023- IBM Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package optimize
+package sgoptimizer
 
 import (
 	"fmt"
 	"log"
 
 	"github.com/np-guard/models/pkg/ds"
-	"github.com/np-guard/models/pkg/interval"
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/optimize"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
 type (
-	SGOptimizer struct {
+	sgOptimizer struct {
 		sgCollection *ir.SGCollection
 		sgName       ir.SGName
 		sgVPC        *string
 	}
 
-	sgRuleGroups struct {
-		rulesToSG      *sgRulesPerProtocol
-		rulesToIPAddrs *sgRulesPerProtocol
+	ruleGroups struct {
+		sgRemoteRules *rulesPerProtocol
+		ipRemoteRules *rulesPerProtocol
 	}
 
-	sgRulesPerProtocol struct {
+	rulesPerProtocol struct {
 		tcp  []*ir.SGRule
 		udp  []*ir.SGRule
 		icmp []*ir.SGRule
 		all  []*ir.SGRule
 	}
 
-	sgSpansToSGPerProtocol struct {
-		tcp  map[ir.SGName]*interval.CanonicalSet
-		udp  map[ir.SGName]*interval.CanonicalSet
+	sgCubesPerProtocol struct {
+		tcp  map[ir.SGName]*netset.PortSet
+		udp  map[ir.SGName]*netset.PortSet
 		icmp map[ir.SGName]*netset.ICMPSet
 		all  []ir.SGName
 	}
 
-	sgSpansToIPPerProtocol struct {
-		tcp  []ds.Pair[*netset.IPBlock, *interval.CanonicalSet]
-		udp  []ds.Pair[*netset.IPBlock, *interval.CanonicalSet]
+	ipCubesPerProtocol struct {
+		tcp  []ds.Pair[*netset.IPBlock, *netset.PortSet]
+		udp  []ds.Pair[*netset.IPBlock, *netset.PortSet]
 		icmp []ds.Pair[*netset.IPBlock, *netset.ICMPSet]
 		all  *netset.IPBlock
 	}
 )
 
-func NewSGOptimizer(collection ir.Collection, sgName string) Optimizer {
+func NewSGOptimizer(collection ir.Collection, sgName string) optimize.Optimizer {
 	components := ir.ScopingComponents(sgName)
 	if len(components) == 1 {
-		return &SGOptimizer{sgCollection: collection.(*ir.SGCollection), sgName: ir.SGName(sgName), sgVPC: nil}
+		return &sgOptimizer{sgCollection: collection.(*ir.SGCollection), sgName: ir.SGName(sgName), sgVPC: nil}
 	}
-	return &SGOptimizer{sgCollection: collection.(*ir.SGCollection), sgName: ir.SGName(components[1]), sgVPC: &components[0]}
-}
-
-// returns a sorted slice of the vpc names
-func (s *SGOptimizer) VpcNames() []string {
-	return utils.SortedMapKeys(s.sgCollection.SGs)
+	return &sgOptimizer{sgCollection: collection.(*ir.SGCollection), sgName: ir.SGName(components[1]), sgVPC: &components[0]}
 }
 
 // Optimize attempts to reduce the number of SG rules
-// if -n was supplied, it will attempt to reduce the number of rules only in it
+// if -n was supplied, it will attempt to reduce the number of rules only in the requested SG
 // otherwise, it will attempt to reduce the number of rules in all SGs
-func (s *SGOptimizer) Optimize() (ir.Collection, error) {
+func (s *sgOptimizer) Optimize() (ir.Collection, error) {
 	if s.sgName != "" {
 		for _, vpcName := range utils.SortedMapKeys(s.sgCollection.SGs) {
 			if _, ok := s.sgCollection.SGs[vpcName][s.sgName]; ok {
-				s.OptimizeSG(vpcName, s.sgName)
+				s.optimizeSG(vpcName, s.sgName)
 				return s.sgCollection, nil
 			}
 		}
@@ -81,28 +76,28 @@ func (s *SGOptimizer) Optimize() (ir.Collection, error) {
 
 	for _, vpcName := range utils.SortedMapKeys(s.sgCollection.SGs) {
 		for _, sgName := range utils.SortedMapKeys(s.sgCollection.SGs[vpcName]) {
-			s.OptimizeSG(vpcName, sgName)
+			s.optimizeSG(vpcName, sgName)
 		}
 	}
 	return s.sgCollection, nil
 }
 
-// Optimize attempts to reduce the number of SG rules
+// optimizeSG attempts to reduce the number of SG rules
 // the algorithm attempts to reduce both inbound and outbound rules separately
 // A message is printed to the log at the end of the algorithm
-func (s *SGOptimizer) OptimizeSG(vpcName string, sgName ir.SGName) {
+func (s *sgOptimizer) optimizeSG(vpcName string, sgName ir.SGName) {
 	sg := s.sgCollection.SGs[vpcName][sgName]
 	reducedRules := 0
 
 	// reduce inbound rules first
-	newInboundRules := s.reduceSGRules(sg.InboundRules, ir.Inbound)
+	newInboundRules := s.reduceRules(sg.InboundRules, ir.Inbound)
 	if len(sg.InboundRules) > len(newInboundRules) {
 		reducedRules += len(sg.InboundRules) - len(newInboundRules)
 		s.sgCollection.SGs[vpcName][sgName].InboundRules = newInboundRules
 	}
 
 	// reduce outbound rules second
-	newOutboundRules := s.reduceSGRules(sg.OutboundRules, ir.Outbound)
+	newOutboundRules := s.reduceRules(sg.OutboundRules, ir.Outbound)
 	if len(sg.OutboundRules) > len(newOutboundRules) {
 		reducedRules += len(sg.OutboundRules) - len(newOutboundRules)
 		s.sgCollection.SGs[vpcName][sgName].OutboundRules = newOutboundRules
@@ -120,57 +115,58 @@ func (s *SGOptimizer) OptimizeSG(vpcName string, sgName ir.SGName) {
 }
 
 // reduceSGRules attempts to reduce the number of rules with different remote types separately
-func (s *SGOptimizer) reduceSGRules(rules []*ir.SGRule, direction ir.Direction) []*ir.SGRule {
+func (s *sgOptimizer) reduceRules(rules []*ir.SGRule, direction ir.Direction) []*ir.SGRule {
 	// separate all rules to groups of (protocol X remote)
 	ruleGroups := divideSGRules(rules)
 
 	// rules with SG as a remote
-	optimizedRulesToSG := reduceSGRulesToSG(sgRulesToSGToSpans(ruleGroups.rulesToSG), direction)
-	if len(ruleGroups.rulesToSG.allRules()) < len(optimizedRulesToSG) {
-		optimizedRulesToSG = ruleGroups.rulesToSG.allRules()
+	optimizedRulesToSG := reduceRulesSGRemote(rulesToSGCubes(ruleGroups.sgRemoteRules), direction)
+	originlRulesToSG := ruleGroups.sgRemoteRules.allRules()
+	if len(originlRulesToSG) < len(optimizedRulesToSG) { // failed to reduce number of rules
+		optimizedRulesToSG = originlRulesToSG
 	}
 
 	// rules with IPBlock as a remote
-	optimizedRulesToIPAddrs := reduceSGRulesToIPAddrs(sgRulesToIPAddrsToSpans(ruleGroups.rulesToIPAddrs), direction)
-	if len(ruleGroups.rulesToIPAddrs.allRules()) < len(optimizedRulesToSG) {
-		optimizedRulesToIPAddrs = ruleGroups.rulesToIPAddrs.allRules()
+	optimizedRulesToIPAddrs := reduceRulesIPRemote(rulesToIPCubes(ruleGroups.ipRemoteRules), direction)
+	originalRulesToIPAddrs := ruleGroups.ipRemoteRules.allRules()
+	if len(originalRulesToIPAddrs) < len(optimizedRulesToSG) { // failed to reduce number of rules
+		optimizedRulesToIPAddrs = originalRulesToIPAddrs
 	}
 
-	// append both slices together
 	return append(optimizedRulesToSG, optimizedRulesToIPAddrs...)
 }
 
-func reduceSGRulesToSG(spans *sgSpansToSGPerProtocol, direction ir.Direction) []*ir.SGRule {
-	spans = compressSpansToSG(spans)
+func reduceRulesSGRemote(cubes *sgCubesPerProtocol, direction ir.Direction) []*ir.SGRule {
+	cubes = reduceSGCubes(cubes)
 
-	// convert spans to SG rules
-	tcpRules := tcpudpSGSpanToSGRules(spans.tcp, direction, true)
-	udpRules := tcpudpSGSpanToSGRules(spans.udp, direction, false)
-	icmpRules := icmpSGSpanToSGRules(spans.icmp, direction)
-	allRules := protocolAllSGSpanToSGRules(spans.all, direction)
+	// cubes to SG rules
+	tcpRules := tcpudpSGCubesToRules(cubes.tcp, direction, true)
+	udpRules := tcpudpSGCubesToRules(cubes.udp, direction, false)
+	icmpRules := icmpSGCubesToRules(cubes.icmp, direction)
+	allRules := protocolAllCubesToRules(cubes.all, direction)
 
 	// return all rules
 	return append(tcpRules, append(udpRules, append(icmpRules, allRules...)...)...)
 }
 
-func reduceSGRulesToIPAddrs(spans *sgSpansToIPPerProtocol, direction ir.Direction) []*ir.SGRule {
-	spans = compressSpansToIP(spans)
+func reduceRulesIPRemote(cubes *ipCubesPerProtocol, direction ir.Direction) []*ir.SGRule {
+	cubes = reduceIPCubes(cubes)
 
-	// spans to SG rules
-	tcpRules := tcpudpIPSpanToSGRules(spans.tcp, spans.all, direction, true)
-	udpRules := tcpudpIPSpanToSGRules(spans.udp, spans.all, direction, false)
-	icmpRules := icmpSpanToSGRules(spans.icmp, spans.all, direction)
-	allRules := allSpanIPToSGRules(spans.all, direction)
+	// cubes to SG rules
+	tcpRules := tcpudpIPCubesToRules(cubes.tcp, cubes.all, direction, true)
+	udpRules := tcpudpIPCubesToRules(cubes.udp, cubes.all, direction, false)
+	icmpRules := icmpIPCubesToRules(cubes.icmp, cubes.all, direction)
+	allRules := allProtocolIPCubesIPToRules(cubes.all, direction)
 
 	// return all rules
 	return append(tcpRules, append(udpRules, append(icmpRules, allRules...)...)...)
 }
 
 // divide SGCollection to TCP/UDP/ICMP/ProtocolALL X SGRemote/IPAddrs rules
-func divideSGRules(rules []*ir.SGRule) *sgRuleGroups {
-	rulesToSG := &sgRulesPerProtocol{tcp: make([]*ir.SGRule, 0), udp: make([]*ir.SGRule, 0),
+func divideSGRules(rules []*ir.SGRule) *ruleGroups {
+	rulesToSG := &rulesPerProtocol{tcp: make([]*ir.SGRule, 0), udp: make([]*ir.SGRule, 0),
 		icmp: make([]*ir.SGRule, 0), all: make([]*ir.SGRule, 0)}
-	rulesToIPAddrs := &sgRulesPerProtocol{tcp: make([]*ir.SGRule, 0), udp: make([]*ir.SGRule, 0),
+	rulesToIPAddrs := &rulesPerProtocol{tcp: make([]*ir.SGRule, 0), udp: make([]*ir.SGRule, 0),
 		icmp: make([]*ir.SGRule, 0), all: make([]*ir.SGRule, 0)}
 
 	for _, rule := range rules {
@@ -210,9 +206,9 @@ func divideSGRules(rules []*ir.SGRule) *sgRuleGroups {
 			}
 		}
 	}
-	return &sgRuleGroups{rulesToSG: rulesToSG, rulesToIPAddrs: rulesToIPAddrs}
+	return &ruleGroups{sgRemoteRules: rulesToSG, ipRemoteRules: rulesToIPAddrs}
 }
 
-func (s *sgRulesPerProtocol) allRules() []*ir.SGRule {
+func (s *rulesPerProtocol) allRules() []*ir.SGRule {
 	return append(s.tcp, append(s.udp, append(s.icmp, s.all...)...)...)
 }

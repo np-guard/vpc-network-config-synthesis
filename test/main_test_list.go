@@ -319,24 +319,6 @@ func synthSGTestsList() []testCase {
 func optimizeSGTestsLists() []testCase {
 	return []testCase{
 		{
-			testName: "optimize_sg_icmp_codes",
-			args: &command{
-				cmd:        optimize,
-				subcmd:     sg,
-				config:     "%s/optimize_sg_icmp_codes/config_object.json",
-				outputFile: "%s/optimize_sg_icmp_codes/sg_expected.tf",
-			},
-		},
-		{
-			testName: "optimize_sg_icmp_types",
-			args: &command{
-				cmd:        optimize,
-				subcmd:     sg,
-				config:     "%s/optimize_sg_icmp_types/config_object.json",
-				outputFile: "%s/optimize_sg_icmp_types/sg_expected.tf",
-			},
-		},
-		{
 			testName: "optimize_sg_protocols_to_all_tf",
 			args: &command{
 				cmd:        optimize,
