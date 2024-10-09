@@ -23,13 +23,13 @@ func allProtocolIPCubesIPToRules(cubes *netset.IPBlock, direction ir.Direction) 
 	return result
 }
 
-func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *interval.CanonicalSet], allProtocolCubes *netset.IPBlock,
+func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], allCubes *netset.IPBlock,
 	direction ir.Direction, isTCP bool) []*ir.SGRule {
 	activeRules := make(map[*netset.IPBlock]*interval.Interval) // start ip and ports
 	result := make([]*ir.SGRule, 0)
 
 	for i := range cubes {
-		if i > 0 && !continuation(cubes[i-1], cubes[i], allProtocolCubes) {
+		if i > 0 && !continuation(cubes[i-1], cubes[i], allCubes) {
 			for ipb, ports := range activeRules {
 				p, _ := netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(ports.Start()), int(ports.End()))
 				ipRange, _ := netset.IPBlockFromIPRange(ipb, cubes[i-1].Left.LastIPAddressObject())
@@ -75,7 +75,7 @@ func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *interval.CanonicalSe
 }
 
 // problem: where should I end the rule?
-// func createTcpudpRules(rules []ds.Pair[*netset.IPBlock, *interval.Interval], span []ds.Pair[*netset.IPBlock, *interval.CanonicalSet],
+// func createTcpudpRules(rules []ds.Pair[*netset.IPBlock, *interval.Interval], span []ds.Pair[*netset.IPBlock, *netset.PortSet],
 // 	direction ir.Direction, isTCP bool) (res []ir.SGRule) {
 // 	res = make([]ir.SGRule, 0)
 // 	for _, r := range rules {
@@ -87,12 +87,12 @@ func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *interval.CanonicalSe
 // 	return res
 // }
 
-func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], allProtocolCubes *netset.IPBlock, direction ir.Direction) []*ir.SGRule {
+func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], allCubes *netset.IPBlock, direction ir.Direction) []*ir.SGRule {
 	activeRules := make(map[*netset.IPBlock]*netp.ICMP)
 	result := make([]*ir.SGRule, 0)
 
 	for i := range cubes {
-		if i > 0 && !continuation(cubes[i-1], cubes[i], allProtocolCubes) {
+		if i > 0 && !continuation(cubes[i-1], cubes[i], allCubes) {
 			for ipb, icmp := range activeRules {
 				p, _ := netp.NewICMP(icmp.TypeCode)
 				ipRange, _ := netset.IPBlockFromIPRange(ipb, cubes[i-1].Left.LastIPAddressObject())

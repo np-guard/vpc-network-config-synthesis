@@ -16,21 +16,61 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
-// calculate all cubes
+// SG remote
+func rulesToSGCubes(rules *rulesPerProtocol) *sgCubesPerProtocol {
+	tcpSpan := tcpudpRulesSGCubes(rules.tcp)
+	udpSpan := tcpudpRulesSGCubes(rules.udp)
+	icmpSpan := icmpRulesSGCubes(rules.icmp)
+	allSpan := allProtocolRulesToSGCubes(rules.all)
+	return &sgCubesPerProtocol{tcp: tcpSpan, udp: udpSpan, icmp: icmpSpan, all: allSpan}
+}
+
+// all protocol rules to cubes
+func allProtocolRulesToSGCubes(rules []*ir.SGRule) []ir.SGName {
+	result := make(map[ir.SGName]struct{})
+	for i := range rules {
+		remote := rules[i].Remote.(ir.SGName) // already checked
+		result[remote] = struct{}{}
+	}
+	return utils.SortedMapKeys(result)
+}
+
+// tcp/udp rules to cubes -- map where the key is the SG name and the value is the protocol ports
+func tcpudpRulesSGCubes(rules []*ir.SGRule) map[ir.SGName]*netset.PortSet {
+	result := make(map[ir.SGName]*netset.PortSet)
+	for _, rule := range rules {
+		p := rule.Protocol.(netp.TCPUDP)  // already checked
+		remote := rule.Remote.(ir.SGName) // already checked
+		if result[remote] == nil {
+			result[remote] = interval.NewCanonicalSet()
+		}
+		result[remote].AddInterval(p.DstPorts())
+	}
+	return result
+}
+
+// icmp rules to cubes -- map where the key is the SG name and the value is icmpset
+func icmpRulesSGCubes(rules []*ir.SGRule) map[ir.SGName]*netset.ICMPSet {
+	result := make(map[ir.SGName]*netset.ICMPSet)
+	for _, rule := range rules {
+		p := rule.Protocol.(netp.ICMP)    // already checked
+		remote := rule.Remote.(ir.SGName) // already checked
+		if result[remote] == nil {
+			result[remote] = netset.EmptyICMPSet()
+		}
+		icmpSet := optimize.IcmpRuleToIcmpSet(p)
+		result[remote] = result[remote].Union(icmpSet)
+	}
+	return result
+}
+
+// IP remote
 func rulesToIPCubes(rules *rulesPerProtocol) *ipCubesPerProtocol {
 	tcpCubes := tcpudpRulesToIPCubes(rules.tcp)
 	udpCubes := tcpudpRulesToIPCubes(rules.udp)
 	icmpCubes := icmpRulesToIPCubes(rules.icmp)
 	allCubes := allProtocolRulesToIPCubes(rules.all)
 	return &ipCubesPerProtocol{tcp: tcpCubes, udp: udpCubes, icmp: icmpCubes, all: allCubes}
-}
-
-func rulesToSGCubes(rules *rulesPerProtocol) *sgCubesPerProtocol {
-	tcpSpan := tcpudpRulesToSGToPortsSpan(rules.tcp)
-	udpSpan := tcpudpRulesToSGToPortsSpan(rules.udp)
-	icmpSpan := icmpRulesToSGToSpan(rules.icmp)
-	allSpan := allProtocolRulesToSGToSpan(rules.all)
-	return &sgCubesPerProtocol{tcp: tcpSpan, udp: udpSpan, icmp: icmpSpan, all: allSpan}
 }
 
 // all protocol rules to cubes
@@ -40,15 +80,6 @@ func allProtocolRulesToIPCubes(rules []*ir.SGRule) *netset.IPBlock {
 		res.Union(rules[i].Remote.(*netset.IPBlock))
 	}
 	return res
-}
-
-func allProtocolRulesToSGToSpan(rules []*ir.SGRule) []ir.SGName {
-	result := make(map[ir.SGName]struct{})
-	for i := range rules {
-		remote := rules[i].Remote.(ir.SGName)
-		result[remote] = struct{}{}
-	}
-	return utils.SortedMapKeys(result)
 }
 
 // tcp/udp rules (separately) to cubes (IPBlock X portset).
@@ -63,20 +94,6 @@ func tcpudpRulesToIPCubes(rules []*ir.SGRule) []ds.Pair[*netset.IPBlock, *netset
 	return optimize.SortPartitionsByIPAddrs(cubes.Partitions())
 }
 
-// tcp/udp rules to cubes -- map where the key is the SG name and the value is the protocol ports
-func tcpudpRulesToSGToPortsSpan(rules []*ir.SGRule) map[ir.SGName]*netset.PortSet {
-	result := make(map[ir.SGName]*netset.PortSet)
-	for _, rule := range rules {
-		p := rule.Protocol.(netp.TCPUDP)  // already checked
-		remote := rule.Remote.(ir.SGName) // already checked
-		if result[remote] == nil {
-			result[remote] = interval.NewCanonicalSet()
-		}
-		result[remote].AddInterval(p.DstPorts())
-	}
-	return result
-}
-
 // icmp rules to cubes (IPBlock X icmp set).
 func icmpRulesToIPCubes(rules []*ir.SGRule) []ds.Pair[*netset.IPBlock, *netset.ICMPSet] {
 	cubes := ds.NewProductLeft[*netset.IPBlock, *netset.ICMPSet]()
@@ -88,19 +105,4 @@ func icmpRulesToIPCubes(rules []*ir.SGRule) []ds.Pair[*netset.IPBlock, *netset.I
 		cubes = cubes.Union(r).(*ds.ProductLeft[*netset.IPBlock, *netset.ICMPSet])
 	}
 	return optimize.SortPartitionsByIPAddrs(cubes.Partitions())
-}
-
-// icmp rules to cubes -- map where the key is the SG name and the value is icmpset
-func icmpRulesToSGToSpan(rules []*ir.SGRule) map[ir.SGName]*netset.ICMPSet {
-	result := make(map[ir.SGName]*netset.ICMPSet)
-	for _, rule := range rules {
-		p := rule.Protocol.(netp.ICMP)    // already checked
-		remote := rule.Remote.(ir.SGName) // already checked
-		if result[remote] == nil {
-			result[remote] = netset.EmptyICMPSet()
-		}
-		icmpSet := optimize.IcmpRuleToIcmpSet(p)
-		result[remote] = result[remote].Union(icmpSet)
-	}
-	return result
 }

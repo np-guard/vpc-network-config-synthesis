@@ -6,7 +6,6 @@ SPDX-License-Identifier: Apache-2.0
 package sgoptimizer
 
 import (
-	"github.com/np-guard/models/pkg/interval"
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
 
@@ -14,8 +13,8 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/optimize"
 )
 
-// cubes (SGName X ports set) to SG rules
-func tcpudpSGCubesToRules(span map[ir.SGName]*interval.CanonicalSet, direction ir.Direction, isTCP bool) []*ir.SGRule {
+// cubes (SGName X portSet) to SG rules
+func tcpudpSGCubesToRules(span map[ir.SGName]*netset.PortSet, direction ir.Direction, isTCP bool) []*ir.SGRule {
 	result := make([]*ir.SGRule, 0)
 	for sgName, portSet := range span {
 		for _, dstPorts := range portSet.Intervals() {
@@ -26,7 +25,7 @@ func tcpudpSGCubesToRules(span map[ir.SGName]*interval.CanonicalSet, direction i
 	return result
 }
 
-// cubes (SGName X icmp set) to SG rules
+// cubes (SGName X icmpset) to SG rules
 func icmpSGCubesToRules(span map[ir.SGName]*netset.ICMPSet, direction ir.Direction) []*ir.SGRule {
 	result := make([]*ir.SGRule, 0)
 	for sgName, icmpSet := range span {

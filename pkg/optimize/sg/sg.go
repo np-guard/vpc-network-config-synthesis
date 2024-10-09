@@ -116,7 +116,7 @@ func (s *sgOptimizer) optimizeSG(vpcName string, sgName ir.SGName) {
 
 // reduceSGRules attempts to reduce the number of rules with different remote types separately
 func (s *sgOptimizer) reduceRules(rules []*ir.SGRule, direction ir.Direction) []*ir.SGRule {
-	// separate all rules to groups of (protocol X remote)
+	// separate all rules to groups of protocol X remote ([tcp, udp, icmp, protocolAll] X [ip, sg])
 	ruleGroups := divideSGRules(rules)
 
 	// rules with SG as a remote
