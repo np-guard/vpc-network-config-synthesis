@@ -11,13 +11,13 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"slices"
 
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/models/pkg/spec"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
 // Reader implements ir.Reader
@@ -112,8 +112,8 @@ func parseCidrSegments(jsonSegments spec.SpecSegments, configDefs *ir.ConfigDefs
 	result := make(map[ir.ID]*ir.CidrSegmentDetails)
 	for segmentName, segment := range cidrSegments {
 		cidrs := netset.NewIPBlock()
-		containedSubnets := map[string]interface{}{}
-		overlappingVPCs := map[string]interface{}{}
+		containedSubnets := make([]ir.ID, 0)
+		overlappingVPCs := make([]ir.ID, 0)
 
 		for _, cidr := range segment {
 			c, err := netset.IPBlockFromCidr(cidr)
@@ -127,17 +127,13 @@ func parseCidrSegments(jsonSegments spec.SpecSegments, configDefs *ir.ConfigDefs
 			}
 
 			cidrs = cidrs.Union(c)
-			for _, vpc := range vpcs {
-				overlappingVPCs[vpc] = struct{}{}
-			}
-			for _, subnet := range subnets {
-				containedSubnets[subnet] = struct{}{}
-			}
+			overlappingVPCs = append(overlappingVPCs, vpcs...)
+			containedSubnets = append(containedSubnets, subnets...)
 		}
 		cidrSegmentDetails := ir.CidrSegmentDetails{
 			Cidrs:            cidrs,
-			ContainedSubnets: utils.SortedMapKeys(containedSubnets),
-			OverlappingVPCs:  utils.SortedMapKeys(overlappingVPCs),
+			ContainedSubnets: slices.Compact(slices.Sorted(slices.Values(containedSubnets))),
+			OverlappingVPCs:  slices.Compact(slices.Sorted(slices.Values(overlappingVPCs))),
 		}
 		result[segmentName] = &cidrSegmentDetails
 	}
