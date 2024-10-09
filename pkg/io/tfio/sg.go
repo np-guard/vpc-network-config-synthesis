@@ -93,8 +93,8 @@ func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) (tf.Block, error) {
 func sg(sgName, vpcName string) (tf.Block, error) {
 	tfSGName := ir.ChangeScoping(sgName)
 	comment := fmt.Sprintf("\n### SG attached to %s", sgName)
-	if sgName == tfSGName { // its optimization
-		comment = ""
+	if sgName == tfSGName { // optimization mode
+		comment = "\n"
 	}
 	if err := verifyName(tfSGName); err != nil {
 		return tf.Block{}, err

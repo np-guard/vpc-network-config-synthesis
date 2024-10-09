@@ -14,16 +14,17 @@ type testCase struct {
 }
 
 type command struct {
-	cmd        string
-	subcmd     string
-	singleacl  bool
-	config     string
-	spec       string
-	outputFile string
-	outputDir  string
-	prefix     string
-	format     string
-	locals     bool
+	cmd          string
+	subcmd       string
+	singleacl    bool
+	config       string
+	spec         string
+	outputFile   string
+	outputDir    string
+	prefix       string
+	format       string
+	locals       bool
+	firewallName string
 }
 
 const (
@@ -34,9 +35,10 @@ const (
 
 	defaultDirectoryPermission = 0o755
 
-	synth string = "synth"
-	acl   string = "acl"
-	sg    string = "sg"
+	synth    string = "synth"
+	optimize string = "optimize"
+	acl      string = "acl"
+	sg       string = "sg"
 )
 
 func (c *command) Args(dataFolder, resultsFolder string) []string {
@@ -71,6 +73,9 @@ func (c *command) Args(dataFolder, resultsFolder string) []string {
 	}
 	if c.locals {
 		res = append(res, "-l")
+	}
+	if c.firewallName != "" {
+		res = append(res, "-n", c.firewallName)
 	}
 
 	return res
