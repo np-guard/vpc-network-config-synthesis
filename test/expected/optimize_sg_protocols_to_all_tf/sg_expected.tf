@@ -3,6 +3,16 @@ resource "ibm_is_security_group" "sg1" {
   resource_group = local.sg_synth_resource_group_id
   vpc            = local.sg_synth_test-vpc1_id
 }
+resource "ibm_is_security_group_rule" "sg1-0" {
+  group     = ibm_is_security_group.sg1.id
+  direction = "inbound"
+  remote    = "0.0.0.0/0"
+}
+resource "ibm_is_security_group_rule" "sg1-1" {
+  group     = ibm_is_security_group.sg1.id
+  direction = "outbound"
+  remote    = "0.0.0.0/0"
+}
 
 
 resource "ibm_is_security_group" "test-vpc1--vsi1" {
@@ -19,24 +29,6 @@ resource "ibm_is_security_group_rule" "test-vpc1--vsi1-1" {
   group     = ibm_is_security_group.test-vpc1--vsi1.id
   direction = "outbound"
   remote    = "0.0.0.0/31"
-  tcp {
-    port_max = 1
-  }
-}
-resource "ibm_is_security_group_rule" "test-vpc1--vsi1-2" {
-  group     = ibm_is_security_group.test-vpc1--vsi1.id
-  direction = "outbound"
-  remote    = "0.0.0.0/31"
-  udp {
-    port_max = 1
-  }
-}
-resource "ibm_is_security_group_rule" "test-vpc1--vsi1-3" {
-  group     = ibm_is_security_group.test-vpc1--vsi1.id
-  direction = "outbound"
-  remote    = "0.0.0.0/31"
-  icmp {
-  }
 }
 
 
@@ -75,4 +67,9 @@ resource "ibm_is_security_group_rule" "wombat-hesitate-scorn-subprime-0" {
   group     = ibm_is_security_group.wombat-hesitate-scorn-subprime.id
   direction = "inbound"
   remote    = ibm_is_security_group.wombat-hesitate-scorn-subprime.id
+}
+resource "ibm_is_security_group_rule" "wombat-hesitate-scorn-subprime-1" {
+  group     = ibm_is_security_group.wombat-hesitate-scorn-subprime.id
+  direction = "outbound"
+  remote    = "0.0.0.0/0"
 }

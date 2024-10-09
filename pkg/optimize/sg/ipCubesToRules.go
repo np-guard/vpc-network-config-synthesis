@@ -28,6 +28,10 @@ func allProtocolIPCubesIPToRules(cubes *netset.IPBlock, direction ir.Direction) 
 // tcpudpIPCubesToRules converts cubes representing tcp or udp protocol rules to SG rules
 func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], allCubes *netset.IPBlock, direction ir.Direction,
 	isTCP bool) []*ir.SGRule {
+	if len(cubes) == 0 {
+		return []*ir.SGRule{}
+	}
+
 	activeRules := make(map[*netset.IPBlock]netp.Protocol) // the key is the first IP
 	result := make([]*ir.SGRule, 0)
 
@@ -65,6 +69,10 @@ func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], all
 
 // icmpIPCubesToRules converts cubes representing icmp protocol rules to SG rules
 func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], allCubes *netset.IPBlock, direction ir.Direction) []*ir.SGRule {
+	if len(cubes) == 0 {
+		return []*ir.SGRule{}
+	}
+
 	activeRules := make(map[*netset.IPBlock]netp.Protocol) // the key is the first IP
 	result := make([]*ir.SGRule, 0)
 

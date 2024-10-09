@@ -77,7 +77,7 @@ func rulesToIPCubes(rules *rulesPerProtocol) *ipCubesPerProtocol {
 func allProtocolRulesToIPCubes(rules []*ir.SGRule) *netset.IPBlock {
 	res := netset.NewIPBlock()
 	for i := range rules {
-		res.Union(rules[i].Remote.(*netset.IPBlock))
+		res = res.Union(rules[i].Remote.(*netset.IPBlock))
 	}
 	return res
 }

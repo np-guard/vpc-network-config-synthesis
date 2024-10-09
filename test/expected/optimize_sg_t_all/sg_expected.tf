@@ -25,8 +25,13 @@ resource "ibm_is_security_group_rule" "test-vpc1--vsi1-0" {
   direction = "outbound"
   remote    = "0.0.0.0/29"
   tcp {
-    port_max = 1
+    port_max = 10
   }
+}
+resource "ibm_is_security_group_rule" "test-vpc1--vsi1-1" {
+  group     = ibm_is_security_group.test-vpc1--vsi1.id
+  direction = "outbound"
+  remote    = "0.0.0.2/31"
 }
 
 
