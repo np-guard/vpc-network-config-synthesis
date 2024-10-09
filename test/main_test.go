@@ -8,7 +8,6 @@ package test
 import (
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"testing"
 
@@ -73,11 +72,7 @@ func readFile(t *testing.T, file, testName string) string {
 	if err != nil {
 		t.Fatalf("Bad test: %s; error reading file %s: %v", testName, file, err)
 	}
-	return shrinkWhitespace(string(buf))
-}
-
-func shrinkWhitespace(s string) string {
-	return regexp.MustCompile(`[ \t]+`).ReplaceAllString(s, " ")
+	return string(buf)
 }
 
 func removeGeneratedFiles() {
