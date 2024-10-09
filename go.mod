@@ -5,7 +5,7 @@ go 1.23.0
 require (
 	github.com/IBM/vpc-go-sdk v0.60.0
 	github.com/np-guard/cloud-resource-collector v0.15.0
-	github.com/np-guard/models v0.5.0
+	github.com/np-guard/models v0.5.1
 	github.com/spf13/cobra v1.8.1
 )
 

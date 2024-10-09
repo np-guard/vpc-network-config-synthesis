@@ -143,7 +143,7 @@ func adjustResource(s *ir.Definitions, addrs *netset.IPBlock, resource ir.Resour
 		result := expandNifToSubnet(s, addrs)
 		return result, result[0].Addrs // return nif's subnet, not its IP address
 	case ir.ResourceTypeCidr:
-		return adjustCidrSegment(s, addrs, resource.Name), addrs
+		return adjustCidrSegment(s, resource.Name), addrs
 	}
 	return []*namedAddrs{}, nil // shouldn't happen
 }
@@ -162,11 +162,10 @@ func adjustSubnet(s *ir.Definitions, addrs *netset.IPBlock, resourceName string)
 	return []*namedAddrs{} // shouldn't happen
 }
 
-func adjustCidrSegment(s *ir.Definitions, cidr *netset.IPBlock, resourceName string) []*namedAddrs {
+func adjustCidrSegment(s *ir.Definitions, resourceName string) []*namedAddrs {
 	cidrSegmentDetails := s.CidrSegments[resourceName]
-	cidrDetails := cidrSegmentDetails.Cidrs[cidr]
-	result := make([]*namedAddrs, len(cidrDetails.ContainedSubnets))
-	for i, subnet := range cidrDetails.ContainedSubnets {
+	result := make([]*namedAddrs, len(cidrSegmentDetails.ContainedSubnets))
+	for i, subnet := range cidrSegmentDetails.ContainedSubnets {
 		result[i] = &namedAddrs{Name: subnet, Addrs: s.Subnets[subnet].Address()}
 	}
 	return result

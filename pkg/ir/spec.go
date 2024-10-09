@@ -131,10 +131,7 @@ type (
 	}
 
 	CidrSegmentDetails struct {
-		Cidrs map[*netset.IPBlock]CIDRDetails
-	}
-
-	CIDRDetails struct {
+		Cidrs            *netset.IPBlock
 		ContainedSubnets []ID
 		OverlappingVPCs  []ID
 	}
@@ -241,13 +238,7 @@ func (s *Definitions) lookupCidrSegment(name string) (Resource, error) {
 	if !ok {
 		return Resource{}, containerNotFoundError(name, ResourceTypeSegment)
 	}
-	cidrs := make([]*netset.IPBlock, len(cidrSegmentDetails.Cidrs))
-	i := 0
-	for cidr := range cidrSegmentDetails.Cidrs {
-		cidrs[i] = cidr
-		i++
-	}
-	return Resource{name, cidrs, ResourceTypeCidr}, nil
+	return Resource{name, cidrSegmentDetails.Cidrs.SplitToCidrs(), ResourceTypeCidr}, nil
 }
 
 func (s *Definitions) Lookup(t ResourceType, name string) (Resource, error) {

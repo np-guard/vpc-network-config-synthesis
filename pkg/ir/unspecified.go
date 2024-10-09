@@ -42,13 +42,10 @@ func (s *Spec) ComputeBlockedSubnets() []ID {
 		// cidr segments which include the subnet
 		cidrSegments := []ID{}
 		for segmentName, cidrSegmentDetails := range s.Defs.CidrSegments {
-		segmentDetailsLoops:
-			for _, cidrDetails := range cidrSegmentDetails.Cidrs {
-				for _, s := range cidrDetails.ContainedSubnets {
-					if subnet == s {
-						cidrSegments = append(cidrSegments, segmentName)
-						break segmentDetailsLoops
-					}
+			for _, s := range cidrSegmentDetails.ContainedSubnets {
+				if subnet == s {
+					cidrSegments = append(cidrSegments, segmentName)
+					break
 				}
 			}
 		}
