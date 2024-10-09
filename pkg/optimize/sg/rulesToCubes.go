@@ -100,8 +100,7 @@ func icmpRulesToIPCubes(rules []*ir.SGRule) []ds.Pair[*netset.IPBlock, *netset.I
 	for _, rule := range rules {
 		ipb := rule.Remote.(*netset.IPBlock) // already checked
 		p := rule.Protocol.(netp.ICMP)       // already checked
-		icmpSet := optimize.IcmpRuleToIcmpSet(p)
-		r := ds.CartesianPairLeft(ipb, icmpSet)
+		r := ds.CartesianPairLeft(ipb, optimize.IcmpRuleToIcmpSet(p))
 		cubes = cubes.Union(r).(*ds.ProductLeft[*netset.IPBlock, *netset.ICMPSet])
 	}
 	return optimize.SortPartitionsByIPAddrs(cubes.Partitions())

@@ -32,6 +32,7 @@ func SortPartitionsByIPAddrs[T any](p []ds.Pair[*netset.IPBlock, T]) []ds.Pair[*
 	return p
 }
 
+// returns true if this<other
 func LessIPBlock(this, other *netset.IPBlock) bool {
 	if this.FirstIPAddress() == this.FirstIPAddress() {
 		return this.LastIPAddress() < other.LastIPAddress()

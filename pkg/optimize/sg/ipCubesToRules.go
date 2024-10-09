@@ -15,6 +15,8 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/optimize"
 )
 
+// all protocol cubes, represented by a single ipblock that will be decomposed
+// into cidrs. Each cidr will be the remote of a SG rule
 func allProtocolIPCubesIPToRules(cubes *netset.IPBlock, direction ir.Direction) []*ir.SGRule {
 	result := make([]*ir.SGRule, 0)
 	for _, cidr := range cubes.SplitToCidrs() {
@@ -23,102 +25,71 @@ func allProtocolIPCubesIPToRules(cubes *netset.IPBlock, direction ir.Direction) 
 	return result
 }
 
-func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], allCubes *netset.IPBlock,
-	direction ir.Direction, isTCP bool) []*ir.SGRule {
-	activeRules := make(map[*netset.IPBlock]*interval.Interval) // start ip and ports
+// tcpudpIPCubesToRules converts cubes representing tcp or udp protocol rules to SG rules
+func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], allCubes *netset.IPBlock, direction ir.Direction,
+	isTCP bool) []*ir.SGRule {
+	activeRules := make(map[*netset.IPBlock]netp.Protocol) // the key is the first IP
 	result := make([]*ir.SGRule, 0)
 
 	for i := range cubes {
+		// if it is not possible to continue the rule between the cubes, generate all the existing rules
 		if i > 0 && !continuation(cubes[i-1], cubes[i], allCubes) {
-			for ipb, ports := range activeRules {
-				p, _ := netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(ports.Start()), int(ports.End()))
-				ipRange, _ := netset.IPBlockFromIPRange(ipb, cubes[i-1].Left.LastIPAddressObject())
-				for _, cidr := range ipRange.SplitToCidrs() {
-					result = append(result, ir.NewSGRule(direction, cidr, p, netset.GetCidrAll(), ""))
-				}
-				delete(activeRules, ipb)
-			}
+			result = append(result, createActiveRules(activeRules, cubes[i-1].Left.LastIPAddressObject(), direction)...)
+			activeRules = make(map[*netset.IPBlock]netp.Protocol)
 		}
 
-		// rules whose ports are not in the current cube will not remain active
+		// if the proctol is not contained in the current cube, we will generate SG rules
+		// calculate active ports = active rules covers these ports
 		activePorts := interval.NewCanonicalSet()
-		for ipb, ports := range activeRules {
-			if !ports.ToSet().IsSubset(cubes[i].Right) {
-				p, _ := netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(ports.Start()), int(ports.End()))
-				ipRange, _ := netset.IPBlockFromIPRange(ipb, cubes[i-1].Left.LastIPAddressObject())
-				for _, cidr := range ipRange.SplitToCidrs() {
-					result = append(result, ir.NewSGRule(direction, cidr, p, netset.GetCidrAll(), ""))
+		for ipb, protocol := range activeRules {
+			if tcpudp, ok := protocol.(netp.TCPUDP); ok {
+				if !tcpudp.DstPorts().ToSet().IsSubset(cubes[i].Right) {
+					result = append(result, createNewRules(protocol, ipb, cubes[i-1].Left.LastIPAddressObject(), direction)...)
+				} else {
+					activePorts.AddInterval(tcpudp.DstPorts())
 				}
-			} else {
-				activePorts.AddInterval(*ports)
 			}
 		}
 
-		// if the cube contains ports that are not contained in active rules, new rules will be created
+		// if the cube contains ports that are not contained in the active rules, new rules will be created
 		for _, ports := range cubes[i].Right.Intervals() {
 			if !ports.ToSet().IsSubset(activePorts) {
-				activeRules[cubes[i].Left.FirstIPAddressObject()] = &ports
+				p, _ := netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(ports.Start()), int(ports.End()))
+				activeRules[cubes[i].Left.FirstIPAddressObject()] = p
 			}
 		}
 	}
-
-	// create the rest of the rules
-	for ipb, ports := range activeRules {
-		p, _ := netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(ports.Start()), int(ports.End()))
-		ipRange, _ := netset.IPBlockFromIPRange(ipb, cubes[len(cubes)-1].Left.LastIPAddressObject())
-		for _, cidr := range ipRange.SplitToCidrs() {
-			result = append(result, ir.NewSGRule(direction, cidr, p, netset.GetCidrAll(), ""))
-		}
-	}
-
-	return result
+	// generate all the existing rules
+	return append(result, createActiveRules(activeRules, cubes[len(cubes)-1].Left.LastIPAddressObject(), direction)...)
 }
 
-// problem: where should I end the rule?
-// func createTcpudpRules(rules []ds.Pair[*netset.IPBlock, *interval.Interval], span []ds.Pair[*netset.IPBlock, *netset.PortSet],
-// 	direction ir.Direction, isTCP bool) (res []ir.SGRule) {
-// 	res = make([]ir.SGRule, 0)
-// 	for _, r := range rules {
-// 		p, _ := netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(r.Right.Start()), int(r.Right.Start()))
-// 		for _, cidr := range ToCidrs(IPBlockFromRange(r.Left, LastIPAddress(span[len(span)-1].Left))) {
-// 			res = append(res, ir.NewSGRule(direction, cidr, p, netset.GetCidrAll(), ""))
-// 		}
-// 	}
-// 	return res
-// }
-
+// icmpIPCubesToRules converts cubes representing icmp protocol rules to SG rules
 func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], allCubes *netset.IPBlock, direction ir.Direction) []*ir.SGRule {
-	activeRules := make(map[*netset.IPBlock]*netp.ICMP)
+	activeRules := make(map[*netset.IPBlock]netp.Protocol) // the key is the first IP
 	result := make([]*ir.SGRule, 0)
 
 	for i := range cubes {
+		// if it is not possible to continue the rule between the cubes, generate all the existing rules
 		if i > 0 && !continuation(cubes[i-1], cubes[i], allCubes) {
-			for ipb, icmp := range activeRules {
-				p, _ := netp.NewICMP(icmp.TypeCode)
-				ipRange, _ := netset.IPBlockFromIPRange(ipb, cubes[i-1].Left.LastIPAddressObject())
-				for _, cidr := range ipRange.SplitToCidrs() {
-					result = append(result, ir.NewSGRule(direction, cidr, p, netset.GetCidrAll(), ""))
-				}
-				delete(activeRules, ipb)
-			}
+			result = append(result, createActiveRules(activeRules, cubes[i-1].Left.LastIPAddressObject(), direction)...)
+			activeRules = make(map[*netset.IPBlock]netp.Protocol)
 		}
 
-		// rules whose icmp value is not in the current cube will not remain active
+		// if the proctol is not contained in the current cube, we will generate SG rules
+		// calculate activeICMP = active rules covers these icmp values
 		activeICMP := netset.EmptyICMPSet()
-		for ipb, icmp := range activeRules {
-			ruleIcmpSet := optimize.IcmpRuleToIcmpSet(*icmp)
-			if !ruleIcmpSet.IsSubset(cubes[i].Right) { // create rules
-				p, _ := netp.NewICMPWithoutRFCValidation(icmp.TypeCode)
-				ipRange, _ := netset.IPBlockFromIPRange(ipb, cubes[i-1].Left.LastIPAddressObject())
-				for _, cidr := range ipRange.SplitToCidrs() {
-					result = append(result, ir.NewSGRule(direction, cidr, p, netset.GetCidrAll(), ""))
+		for ipb, protocol := range activeRules {
+			if icmp, ok := protocol.(netp.ICMP); ok {
+				ruleIcmpSet := optimize.IcmpRuleToIcmpSet(icmp)
+				if !ruleIcmpSet.IsSubset(cubes[i].Right) {
+					result = append(result, createNewRules(protocol, ipb, cubes[i-1].Left.LastIPAddressObject(), direction)...)
+				} else {
+					activeICMP.Union(ruleIcmpSet)
 				}
-			} else {
-				activeICMP.Union(ruleIcmpSet)
 			}
 		}
 
-		// new rules
+		// if the cube contains icmp values that are not contained in the active rules, new rules will be created
 		for _, p := range optimize.IcmpsetPartitions(cubes[i].Right) {
 			if !optimize.IcmpRuleToIcmpSet(p).IsSubset(activeICMP) {
 				activeRules[cubes[i].Left.FirstIPAddressObject()] = &p
@@ -126,18 +97,11 @@ func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], allCu
 		}
 	}
 
-	// create the rest of the rules
-	for ipb, icmp := range activeRules {
-		p, _ := netp.NewICMP(icmp.TypeCode)
-		ipRange, _ := netset.IPBlockFromIPRange(ipb, cubes[len(cubes)-1].Left.LastIPAddressObject())
-		for _, cidr := range ipRange.SplitToCidrs() {
-			result = append(result, ir.NewSGRule(direction, cidr, p, netset.GetCidrAll(), ""))
-		}
-	}
-
-	return result
+	// generate all the existing rules
+	return append(result, createActiveRules(activeRules, cubes[len(cubes)-1].Left.LastIPAddressObject(), direction)...)
 }
 
+// continuation returns true if the rules can be continued between the two cubes
 func continuation[T ds.Set[T]](prevPair, currPair ds.Pair[*netset.IPBlock, T], allProtocolCubes *netset.IPBlock) bool {
 	prevIPBlock := prevPair.Left
 	currIPBlock := currPair.Left
@@ -149,4 +113,23 @@ func continuation[T ds.Set[T]](prevPair, currPair ds.Pair[*netset.IPBlock, T], a
 	endH, _ := currIPBlock.PreviousIP()
 	hole, _ := netset.IPBlockFromIPRange(startH, endH)
 	return hole.IsSubset(allProtocolCubes)
+}
+
+// creates sgRules from SG active rules
+func createActiveRules(activeRules map[*netset.IPBlock]netp.Protocol, endIP *netset.IPBlock, direction ir.Direction) []*ir.SGRule {
+	res := make([]*ir.SGRule, 0)
+	for ipb, protocol := range activeRules {
+		res = append(res, createNewRules(protocol, ipb, endIP, direction)...)
+	}
+	return res
+}
+
+// createNewRules breaks the startIP-endIP ip range into cidrs and creates SG rules
+func createNewRules(protocol netp.Protocol, startIP, endIP *netset.IPBlock, direction ir.Direction) []*ir.SGRule {
+	res := make([]*ir.SGRule, 0)
+	ipRange, _ := netset.IPBlockFromIPRange(startIP, endIP)
+	for _, cidr := range ipRange.SplitToCidrs() {
+		res = append(res, ir.NewSGRule(direction, cidr, protocol, netset.GetCidrAll(), ""))
+	}
+	return res
 }

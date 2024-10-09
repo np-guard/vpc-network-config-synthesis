@@ -47,6 +47,8 @@ func compressThreeProtocolsToAllProtocol(spans *sgCubesPerProtocol) *sgCubesPerP
 
 // observation: It pays to switch to all protocol rule when we have rules that cover all other protocols
 // on exactly the same cidr (only one protocol can exceed).
+//
+//nolint:gocyclo // multiple if statments
 func reduceIPCubes(cubes *ipCubesPerProtocol) *ipCubesPerProtocol {
 	tcpPtr := 0
 	udpPtr := 0
@@ -67,7 +69,7 @@ func reduceIPCubes(cubes *ipCubesPerProtocol) *ipCubesPerProtocol {
 			continue
 		}
 
-		cubes, changed = reduce(cubes, tcpPtr, udpPtr, icmpPtr)
+		cubes, changed = compressToAllCube(cubes, tcpPtr, udpPtr, icmpPtr)
 		if changed {
 			continue
 		}
@@ -76,43 +78,58 @@ func reduceIPCubes(cubes *ipCubesPerProtocol) *ipCubesPerProtocol {
 		udpIP := cubes.udp[udpPtr].Left
 		icmpIP := cubes.icmp[icmpPtr].Left
 
-		if udpIP.IsSubset(tcpIP) && icmpIP.IsSubset(tcpIP) {
-			if optimize.LessIPBlock(udpIP, icmpIP) {
-				udpPtr++
-			} else {
-				icmpPtr++
-			}
-			continue
-		}
+		switch {
+		// one protocol ipb contains two other ipbs. advance the smaller ipb
+		case udpIP.IsSubset(tcpIP) && icmpIP.IsSubset(tcpIP) && optimize.LessIPBlock(udpIP, icmpIP):
+			udpPtr++
+		case udpIP.IsSubset(tcpIP) && icmpIP.IsSubset(tcpIP) && optimize.LessIPBlock(icmpIP, udpIP):
+			icmpPtr++
+		case tcpIP.IsSubset(udpIP) && icmpIP.IsSubset(udpIP) && optimize.LessIPBlock(tcpIP, icmpIP):
+			tcpPtr++
+		case tcpIP.IsSubset(udpIP) && icmpIP.IsSubset(udpIP) && optimize.LessIPBlock(icmpIP, tcpIP):
+			icmpPtr++
+		case tcpIP.IsSubset(icmpIP) && udpIP.IsSubset(icmpIP) && optimize.LessIPBlock(tcpIP, udpIP):
+			tcpPtr++
+		case tcpIP.IsSubset(icmpIP) && udpIP.IsSubset(icmpIP) && optimize.LessIPBlock(udpIP, tcpIP):
+			udpPtr++
 
+		// advance the smaller ipb
+		case optimize.LessIPBlock(tcpIP, udpIP) && optimize.LessIPBlock(tcpIP, icmpIP):
+			tcpPtr++
+		case optimize.LessIPBlock(udpIP, tcpIP) && optimize.LessIPBlock(udpIP, icmpIP):
+			udpPtr++
+		case optimize.LessIPBlock(icmpIP, tcpIP) && optimize.LessIPBlock(icmpIP, udpIP):
+			icmpPtr++
+		}
 	}
 	return cubes
 }
 
-func reduce(cubes *ipCubesPerProtocol, tcpPtr, udpPtr, icmpPtr int) (*ipCubesPerProtocol, bool) {
+// compress three protocol rules to all protocol rule (and maybe another protocol rule)
+func compressToAllCube(cubes *ipCubesPerProtocol, tcpPtr, udpPtr, icmpPtr int) (*ipCubesPerProtocol, bool) {
 	tcpIP := cubes.tcp[tcpPtr].Left
 	udpIP := cubes.udp[udpPtr].Left
 	icmpIP := cubes.icmp[icmpPtr].Left
 
-	if udpIP.IsSubset(tcpIP) && udpIP.Equal(icmpIP) {
+	switch {
+	case udpIP.Equal(tcpIP) && udpIP.Equal(icmpIP):
+		cubes.tcp = slices.Delete(cubes.tcp, tcpPtr, tcpPtr+1)
+		fallthrough
+	case udpIP.IsSubset(tcpIP) && udpIP.Equal(icmpIP):
+		cubes.udp = slices.Delete(cubes.udp, udpPtr, udpPtr+1)
+		cubes.icmp = slices.Delete(cubes.icmp, icmpPtr, icmpPtr+1)
 		cubes.all = cubes.all.Union(udpIP)
-		slices.Delete(cubes.udp, udpPtr, udpPtr+1)
-		slices.Delete(cubes.icmp, icmpPtr, icmpPtr+1)
-		if tcpIP.Equal(udpIP) {
-			slices.Delete(cubes.tcp, tcpPtr, tcpPtr+1)
-		}
-		// continue
+		return cubes, true
+	case tcpIP.IsSubset(udpIP) && tcpIP.Equal(icmpIP):
+		cubes.tcp = slices.Delete(cubes.tcp, tcpPtr, tcpPtr+1)
+		cubes.icmp = slices.Delete(cubes.icmp, icmpPtr, icmpPtr+1)
+		cubes.all = cubes.all.Union(tcpIP)
+		return cubes, true
+	case tcpIP.IsSubset(icmpIP) && tcpIP.Equal(udpIP):
+		cubes.tcp = slices.Delete(cubes.tcp, tcpPtr, tcpPtr+1)
+		cubes.udp = slices.Delete(cubes.udp, udpPtr, udpPtr+1)
+		cubes.all = cubes.all.Union(tcpIP)
+		return cubes, true
 	}
-
-	if tcpIP.IsSubset(udpIP) && tcpIP.Equal(icmpIP) {
-		cubes.all = cubes.all.Union(udpIP)
-		slices.Delete(cubes.udp, udpPtr, udpPtr+1)
-		slices.Delete(cubes.icmp, icmpPtr, icmpPtr+1)
-		if tcpIP.Equal(udpIP) {
-			slices.Delete(cubes.tcp, tcpPtr, tcpPtr+1)
-		}
-		// continue
-	}
-
 	return cubes, false
 }
