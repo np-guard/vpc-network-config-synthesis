@@ -100,7 +100,7 @@ func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], allCu
 		// if the cube contains icmp values that are not contained in the active rules, new rules will be created
 		for _, p := range optimize.IcmpsetPartitions(cubes[i].Right) {
 			if !optimize.IcmpRuleToIcmpSet(p).IsSubset(activeICMP) {
-				activeRules[cubes[i].Left.FirstIPAddressObject()] = &p
+				activeRules[cubes[i].Left.FirstIPAddressObject()] = p
 			}
 		}
 	}
