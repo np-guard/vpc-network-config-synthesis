@@ -13,28 +13,30 @@ import (
 
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
 type (
-	ID          = string
-	NamedEntity string
+	ID           = string
+	NamedEntity  string
+	ResourceType string
 
 	Spec struct {
 		// Required connections
-		Connections []Connection
+		Connections []*Connection
 
-		Defs Definitions
+		Defs *Definitions
 	}
 
 	Connection struct {
 		// Egress resource
-		Src Resource
+		Src *Resource
 
 		// Ingress resource
-		Dst Resource
+		Dst *Resource
 
 		// Allowed protocols
-		TrackedProtocols []TrackedProtocol
+		TrackedProtocols []*TrackedProtocol
 
 		// Provenance information
 		Origin fmt.Stringer
@@ -42,13 +44,21 @@ type (
 
 	Resource struct {
 		// Symbolic name of resource, if available
-		Name string
+		Name *string
 
 		// list of CIDR / Ip addresses.
-		IPAddrs []*netset.IPBlock
+		NamedAddrs []*NamedAddrs
+
+		// Cidr list (in case of CIDR segment)
+		Cidrs []*NamedAddrs
 
 		// Type of resource
-		Type ResourceType
+		Type *ResourceType
+	}
+
+	NamedAddrs struct {
+		IPAddrs *netset.IPBlock
+		Name    *string
 	}
 
 	TrackedProtocol struct {
@@ -74,12 +84,17 @@ type (
 	// Definitions adds to ConfigDefs the spec-specific definitions
 	Definitions struct {
 		ConfigDefs
-
 		// Segments are a way for users to create aggregations.
-		SubnetSegments map[ID]*SubnetSegmentDetails
 
-		// Cidr segment might contain some cidrs
+		SubnetSegments map[ID]*SegmentDetails
+
 		CidrSegments map[ID]*CidrSegmentDetails
+
+		NifSegments map[ID]*SegmentDetails
+
+		InstanceSegments map[ID]*SegmentDetails
+
+		VpeSegments map[ID]*SegmentDetails
 
 		// Externals are a way for users to name IP addresses or ranges external to the VPC.
 		Externals map[ID]*ExternalDetails
@@ -125,19 +140,21 @@ type (
 		VPC            ID
 	}
 
-	SubnetSegmentDetails struct {
-		Subnets         []ID
-		OverlappingVPCs []ID
+	SegmentDetails struct {
+		Elements []ID
 	}
 
 	CidrSegmentDetails struct {
 		Cidrs            *netset.IPBlock
 		ContainedSubnets []ID
-		OverlappingVPCs  []ID
 	}
 
 	ExternalDetails struct {
 		ExternalAddrs *netset.IPBlock
+	}
+
+	Reader interface {
+		ReadSpec(filename string, defs *ConfigDefs) (*Spec, error)
 	}
 
 	Named interface {
@@ -147,6 +164,23 @@ type (
 	NWResource interface {
 		Address() *netset.IPBlock
 	}
+)
+
+const (
+	ResourceTypeExternal        ResourceType = "external"
+	ResourceTypeCidr            ResourceType = "cidr"
+	ResourceTypeSubnet          ResourceType = "subnet"
+	ResourceTypeNIF             ResourceType = "nif"
+	ResourceTypeVPE             ResourceType = "vpe"
+	ResourceTypeInstance        ResourceType = "instance"
+	ResourceTypeSubnetSegment   ResourceType = "subnetSegment"
+	ResourceTypeCidrSegment     ResourceType = "cidrSegment"
+	ResourceTypeNifSegment      ResourceType = "nifSegment"
+	ResourceTypeInstanceSegment ResourceType = "instanceSegment"
+	ResourceTypeVpeSegment      ResourceType = "vpeSegment"
+
+	resourceNotFound  = "%v %v not found"
+	containerNotFound = "container %v %v not found"
 )
 
 func (n *NamedEntity) Name() string {
@@ -169,24 +203,63 @@ func (e *ExternalDetails) Address() *netset.IPBlock {
 	return e.ExternalAddrs
 }
 
-type ResourceType string
-
-const (
-	ResourceTypeExternal ResourceType = "external"
-	ResourceTypeSegment  ResourceType = "segment"
-	ResourceTypeCidr     ResourceType = "cidr"
-	ResourceTypeSubnet   ResourceType = "subnet"
-	ResourceTypeNIF      ResourceType = "nif"
-	ResourceTypeVPE      ResourceType = "vpe"
-	ResourceTypeInstance ResourceType = "instance"
-	ResourceTypeAny      ResourceType = "any"
-)
-
-func lookupSingle[T NWResource](m map[ID]T, name string, t ResourceType) (Resource, error) {
+func lookupSingle[T NWResource](m map[ID]T, name string, t ResourceType) (*Resource, error) {
 	if details, ok := m[name]; ok {
-		return Resource{name, []*netset.IPBlock{details.Address()}, t}, nil
+		return &Resource{
+			Name:       &name,
+			NamedAddrs: []*NamedAddrs{{Name: &name, IPAddrs: details.Address()}},
+			Cidrs:      []*NamedAddrs{{Name: &name, IPAddrs: details.Address()}},
+			Type:       utils.Ptr(ResourceTypeSubnet),
+		}, nil
 	}
-	return Resource{}, resourceNotFoundError(name, t)
+	return nil, fmt.Errorf(resourceNotFound, name, t)
+}
+
+func (s *Definitions) lookupNifACL(name string) (*Resource, error) {
+	if nifDetails, ok := s.NIFs[name]; ok {
+
+	}
+	return nil, fmt.Errorf(resourceNotFound, name, ResourceTypeNIF)
+}
+
+func (s *Definitions) lookupSubnetSegmentACL(name string) (*Resource, error) {
+	if segmentDetails, ok := s.SubnetSegments[name]; ok {
+		res := &Resource{Name: &name, NamedAddrs: []*NamedAddrs{}, Cidrs: []*NamedAddrs{}, Type: utils.Ptr(ResourceTypeSubnet)}
+		for _, subnetName := range segmentDetails.Elements {
+			subnet, err := lookupSingle(s.Subnets, subnetName, ResourceTypeSubnet)
+			if err != nil {
+				return nil, fmt.Errorf("%w while looking up %v %v for subnet segment %v", err, ResourceTypeSubnet, subnetName, name)
+			}
+			res.NamedAddrs = append(res.NamedAddrs, subnet.NamedAddrs...)
+			res.Cidrs = append(res.Cidrs, subnet.Cidrs...)
+		}
+		return res, nil
+	}
+	return nil, fmt.Errorf(containerNotFound, name, ResourceTypeSubnetSegment)
+}
+
+func (s *Definitions) lookupCidrSegmentACL(name string) (*Resource, error) {
+	if segmentDetails, ok := s.CidrSegments[name]; ok {
+		res := &Resource{Name: &name, NamedAddrs: []*NamedAddrs{}, Cidrs: []*NamedAddrs{}, Type: utils.Ptr(ResourceTypeSubnet)}
+		for _, subnetName := range segmentDetails.ContainedSubnets {
+			subnet, err := lookupSingle(s.Subnets, subnetName, ResourceTypeSubnet)
+			if err != nil {
+				return nil, fmt.Errorf("%w while looking up %v %v for cidr segment %v", err, ResourceTypeSubnet, subnetName, name)
+			}
+			res.NamedAddrs = append(res.NamedAddrs, subnet.NamedAddrs...)
+		}
+		for _, cidr := range segmentDetails.Cidrs.SplitToCidrs() {
+			res.Cidrs = append(res.Cidrs, &NamedAddrs{Name: &name, IPAddrs: cidr})
+		}
+		return res, nil
+	}
+	return nil, fmt.Errorf(containerNotFound, name, ResourceTypeSubnet)
+}
+
+func (s *Definitions) lookupInstanceACL(name string) (*Resource, error) {
+	if instnaceDetails, ok := s.Instances[name]; ok {
+
+	}
 }
 
 func (s *Definitions) lookupInstance(name string) (Resource, error) {
@@ -217,106 +290,67 @@ func (s *Definitions) lookupVPE(name string) (Resource, error) {
 	return Resource{name, ips, ResourceTypeVPE}, nil
 }
 
-func (s *Definitions) lookupSubnetSegment(name string) (Resource, error) {
-	if subnetSegmentDetails, ok := s.SubnetSegments[name]; ok {
-		cidrs := make([]*netset.IPBlock, len(subnetSegmentDetails.Subnets))
-		for i, subnetName := range subnetSegmentDetails.Subnets {
-			subnet, err := s.Lookup(ResourceTypeSubnet, subnetName)
-			if err != nil {
-				return Resource{}, fmt.Errorf("%w while looking up %v %v for subnet %v", err, ResourceTypeSubnet, subnetName, name)
-			}
-			// each subnet has only one CIDR block.
-			cidrs[i] = subnet.IPAddrs[0]
-		}
-		return Resource{name, cidrs, ResourceTypeSubnet}, nil
-	}
-	return Resource{}, containerNotFoundError(name, ResourceTypeSegment)
-}
-
-func (s *Definitions) lookupCidrSegment(name string) (Resource, error) {
-	cidrSegmentDetails, ok := s.CidrSegments[name]
-	if !ok {
-		return Resource{}, containerNotFoundError(name, ResourceTypeSegment)
-	}
-	return Resource{name, cidrSegmentDetails.Cidrs.SplitToCidrs(), ResourceTypeCidr}, nil
-}
-
-func (s *Definitions) Lookup(t ResourceType, name string) (Resource, error) {
-	err := fmt.Errorf("invalid type %v (resource %v)", t, name)
+func (s *Definitions) LookupACL(t ResourceType, name string) (*Resource, error) {
 	switch t {
 	case ResourceTypeExternal:
 		return lookupSingle(s.Externals, name, t)
 	case ResourceTypeSubnet:
 		return lookupSingle(s.Subnets, name, t)
-	case ResourceTypeCidr:
-		return lookupSingle(s.Subnets, name, t)
 	case ResourceTypeNIF:
-		return lookupSingle(s.NIFs, name, t)
-	case ResourceTypeVPE:
-		return s.lookupVPE(name)
+		return s.lookupNifACL(s.NIFs, name, t)
 	case ResourceTypeInstance:
-		return s.lookupInstance(name)
-	case ResourceTypeSegment:
-		if _, ok := s.SubnetSegments[name]; ok { // subnet segment
-			return s.lookupSubnetSegment(name)
-		} else if _, ok := s.CidrSegments[name]; ok { // cidr segment
-			return s.lookupCidrSegment(name)
-		} else {
-			return Resource{}, err
-		}
-	default:
-		return Resource{}, err
+		return s.lookupInstanceACL(name)
+	case ResourceTypeVPE:
+		return s.lookupVpeACL(name)
+	case ResourceTypeSubnetSegment:
+		return s.lookupSubnetSegmentACL(name)
+	case ResourceTypeCidrSegment:
+		return s.lookupCidrSegmentACL(name)
+	case ResourceTypeNifSegment:
+		return s.lookupNifSegmentACL(name)
+	case ResourceTypeInstanceSegment:
+		return s.lookupInstanceSegmentACL(name)
+	case ResourceTypeVpeSegment:
+		return s.lookupVpeSegmentACL(name)
 	}
+	return nil, nil // should not get here
 }
 
-func inverseLookup[T NWResource](m map[ID]T, address *netset.IPBlock) (result string, ok bool) {
-	for name, details := range m {
-		if details.Address().Equal(address) {
-			return name, true
-		}
+func (s *Definitions) LookupSG(t ResourceType, name string) (*Resource, error) {
+	switch t {
+	case ResourceTypeExternal:
+		return lookupSingle(s.Externals, name, t)
+	case ResourceTypeSubnet:
+		return lookupSubnetSG(s.Subnets, name, t)
+	case ResourceTypeNIF:
+		return s.lookupNifSG(s.NIFs, name, t)
+	case ResourceTypeInstance:
+		return s.lookupInstanceSG(name)
+	case ResourceTypeVPE:
+		return s.lookupVpeSG(name)
+	case ResourceTypeSubnetSegment:
+		return s.lookupSubnetSegmentSG(name)
+	case ResourceTypeCidrSegment:
+		return s.lookupCidrSegmentSG(name)
+	case ResourceTypeNifSegment:
+		return s.lookupNifSegmentSG(name)
+	case ResourceTypeInstanceSegment:
+		return s.lookupInstanceSegmentSG(name)
+	case ResourceTypeVpeSegment:
+		return s.lookupVpeSegmentSG(name)
 	}
-	return "", false
+	return nil, nil // should not get here
 }
 
-func (s *ConfigDefs) NIFFromIP(ip *netset.IPBlock) (string, bool) {
-	return inverseLookup(s.NIFs, ip)
-}
-
-type Reader interface {
-	ReadSpec(filename string, defs *ConfigDefs) (*Spec, error)
-}
-
-func (s *ConfigDefs) SubnetsContainedInCidr(cidr netset.IPBlock) ([]ID, error) {
+func (s *ConfigDefs) SubnetsContainedInCidr(cidr *netset.IPBlock) ([]ID, error) {
 	var containedSubnets []string
 	for subnet, subnetDetails := range s.Subnets {
-		if subnetDetails.CIDR.IsSubset(&cidr) {
+		if subnetDetails.CIDR.IsSubset(cidr) {
 			containedSubnets = append(containedSubnets, subnet)
 		}
 	}
 	sort.Strings(containedSubnets)
 	return containedSubnets, nil
-}
-
-func resourceNotFoundError(name string, resource ResourceType) error {
-	return fmt.Errorf("%v %v not found", resource, name)
-}
-
-func containerNotFoundError(name string, resource ResourceType) error {
-	return fmt.Errorf("container %v %v not found", resource, name)
-}
-
-func UniqueIDValues(s []ID) []ID {
-	result := make([]ID, 0)
-	seenValues := make(map[ID]struct{})
-
-	for _, item := range s {
-		if _, seen := seenValues[item]; !seen {
-			seenValues[item] = struct{}{}
-			result = append(result, item)
-		}
-	}
-
-	return result
 }
 
 func ScopingComponents(s string) []string {
