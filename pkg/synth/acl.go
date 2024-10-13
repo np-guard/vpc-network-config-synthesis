@@ -100,17 +100,6 @@ func (a *ACLSynthesizer) allowConnectionToDst(conn *ir.Connection, p *ir.Tracked
 	}
 }
 
-// generate nACL rules for blocked subnets (subnets that do not appear in Spec)
-func (a *ACLSynthesizer) generateACLRulesForBlockedSubnets() {
-	blockedSubnets := a.spec.ComputeBlockedSubnets()
-	for _, subnet := range blockedSubnets {
-		acl := a.result.LookupOrCreate(aclSelector(subnet, a.singleACL))
-		cidr := a.spec.Defs.Subnets[subnet].Address()
-		acl.AppendInternal(ir.DenyAllReceive(subnet, cidr))
-		acl.AppendInternal(ir.DenyAllSend(subnet, cidr))
-	}
-}
-
 func aclSelector(subnetName ir.ID, single bool) string {
 	if single {
 		return fmt.Sprintf("%s/singleACL", ir.VpcFromScopedResource(subnetName))
@@ -124,5 +113,16 @@ func (a *ACLSynthesizer) addRuleToACL(rule *ir.ACLRule, resourceName ir.ID, inte
 		acl.AppendInternal(rule)
 	} else {
 		acl.AppendExternal(rule)
+	}
+}
+
+// generate nACL rules for blocked subnets (subnets that do not appear in Spec)
+func (a *ACLSynthesizer) generateACLRulesForBlockedSubnets() {
+	blockedSubnets := a.spec.ComputeBlockedSubnets()
+	for _, subnet := range blockedSubnets {
+		acl := a.result.LookupOrCreate(aclSelector(subnet, a.singleACL))
+		cidr := a.spec.Defs.Subnets[subnet].Address()
+		acl.AppendInternal(ir.DenyAllReceive(subnet, cidr))
+		acl.AppendInternal(ir.DenyAllSend(subnet, cidr))
 	}
 }

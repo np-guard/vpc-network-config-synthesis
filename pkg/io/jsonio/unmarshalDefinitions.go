@@ -93,6 +93,9 @@ func parseCidrSegments(cidrSegments map[string][]string, configDefs *ir.ConfigDe
 			cidrs = cidrs.Union(c)
 			containedSubnets = append(containedSubnets, subnets...)
 		}
+		if !internalCidr(configDefs, cidrs) {
+			return nil, fmt.Errorf("only internal cidrs are supportd in cidr segment resource type (segment name: %v)", segmentName)
+		}
 		cidrSegmentDetails := ir.CidrSegmentDetails{
 			Cidrs:            cidrs,
 			ContainedSubnets: slices.Compact(slices.Sorted(slices.Values(containedSubnets))),
@@ -134,4 +137,12 @@ func divideSegmentsByType(jsonSegments *spec.SpecSegments) segmentsTypes {
 		}
 	}
 	return res
+}
+
+func internalCidr(configDefs *ir.ConfigDefs, cidr *netset.IPBlock) bool {
+	res := cidr
+	for _, vpcDetails := range configDefs.VPCs {
+		res = res.Subtract(vpcDetails.AddressPrefixes)
+	}
+	return res == netset.NewIPBlock()
 }

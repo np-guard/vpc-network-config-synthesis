@@ -32,49 +32,28 @@ func (s *SGSynthesizer) Synth() ir.Collection {
 // 2. generate SGs for blocked endpoints (endpoints that do not appear in Spec)
 func (s *SGSynthesizer) makeSG() *ir.SGCollection {
 	for c := range s.spec.Connections {
-		s.generateSGRulesFromConnection(s.spec.Connections[c])
+		s.generateSGRulesFromConnection(s.spec.Connections[c], ir.Outbound)
+		s.generateSGRulesFromConnection(s.spec.Connections[c], ir.Inbound)
 	}
 	s.generateSGsForBlockedResources()
 	return s.result
 }
 
-//  1. check that both resources are supported in SG generation.
-//  2. check that at least one resource is internal.
-//  3. convert src and dst resources to namedAddrs slices to make it more convenient to go through the addrs
-//     and add the rule to the relevant SG.
-//  4. generate rules and add them to relevant SG to allow traffic for all pairs of IPAddrs of both resources.
-func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection) {
-	internalSrc, internalDst, internalConn := internalConn(conn)
+func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection, direction ir.Direction) {
+	localResource, remoteResource, internalEndpoint, internalConn := connSettings(conn, direction)
 
-	for _, srcEndpoint := range conn.Src.NamedAddrs {
-		for _, dstCidr := range conn.Dst.Cidrs {
-			if srcEndpoint.IPAddrs.Equal(dstCidr.IPAddrs) {
-				continue
-			}
-
+	for _, localEndpoint := range localResource.NamedAddrs {
+		for _, remoteCidr := range remoteResource.Cidrs {
 			for _, trackedProtocol := range conn.TrackedProtocols {
 				ruleExplanation := explanation{internal: internalConn, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}.String()
-				s.allowConnectionEndpoint(srcEndpoint, dstCidr, trackedProtocol.Protocol, ir.Outbound, internalSrc, ruleExplanation)
-			}
-		}
-	}
-
-	for _, dstEndpoint := range conn.Dst.NamedAddrs {
-		for _, srcCidr := range conn.Src.Cidrs {
-			if dstEndpoint.IPAddrs.Equal(srcCidr.IPAddrs) {
-				continue
-			}
-
-			for _, trackedProtocol := range conn.TrackedProtocols {
-				ruleExplanation := explanation{internal: internalConn, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}.String()
-				s.allowConnectionEndpoint(dstEndpoint, srcCidr, trackedProtocol.Protocol, ir.Inbound, internalDst, ruleExplanation)
+				s.allowConnectionEndpoint(localEndpoint, remoteCidr, remoteResource.Type, trackedProtocol.Protocol, direction, internalEndpoint, ruleExplanation)
 			}
 		}
 	}
 }
 
 // if the endpoint in internal, a rule will be created to allow traffic.
-func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *ir.NamedAddrs, p netp.Protocol, direction ir.Direction,
+func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *ir.NamedAddrs, remoteType *ir.ResourceType, p netp.Protocol, direction ir.Direction,
 	internalEndpoint bool, ruleExplanation string) {
 	if !internalEndpoint {
 		return
@@ -83,7 +62,7 @@ func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *i
 	localSG := s.result.LookupOrCreate(localSGName)
 	localSG.Attached = []ir.ID{ir.ID(localSGName)}
 	rule := &ir.SGRule{
-		Remote:      sgRemote(s.spec.Defs, remoteEndpoint),
+		Remote:      sgRemote(remoteEndpoint, remoteType),
 		Direction:   direction,
 		Protocol:    p,
 		Explanation: ruleExplanation,
@@ -91,16 +70,28 @@ func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *i
 	localSG.Add(rule)
 }
 
-// what to do if its a cidr segment?
-func sgRemote(s *ir.Definitions, resource *ir.NamedAddrs) ir.RemoteType {
-	if _, ok := s.Externals[*resource.Name]; ok {
-		return resource.IPAddrs
+func sgRemote(resource *ir.NamedAddrs, t *ir.ResourceType) ir.RemoteType {
+	if isSGRemote(*t) {
+		return ir.SGName(*resource.Name)
 	}
-	if _, ok := s.Subnets[*resource.Name]; ok {
-		return resource.IPAddrs
+	return resource.IPAddrs
+}
+
+func connSettings(conn *ir.Connection, direction ir.Direction) (*ir.Resource, *ir.Resource, bool, bool) {
+	internalSrc, internalDst, internalConn := internalConn(conn)
+	localResource := conn.Src
+	remoteResource := conn.Dst
+	internalEndpoint := internalSrc
+	if direction == ir.Inbound {
+		localResource = conn.Dst
+		remoteResource = conn.Src
+		internalEndpoint = internalDst
 	}
-	// what to do if its a cidr?
-	return ir.SGName(*resource.Name)
+	return localResource, remoteResource, internalEndpoint, internalConn
+}
+
+func isSGRemote(t ir.ResourceType) bool {
+	return t == ir.ResourceTypeInstance || t == ir.ResourceTypeNIF || t == ir.ResourceTypeVPE
 }
 
 // generate SGs for blocked endpoints (endpoints that do not appear in Spec)

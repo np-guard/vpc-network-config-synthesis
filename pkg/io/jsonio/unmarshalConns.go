@@ -62,9 +62,9 @@ func transalteConnectionResource(defs *ir.Definitions, resource *spec.Resource, 
 	}
 	var res *ir.Resource
 	if isSG {
-		res, err = defs.LookupSG(resourceType, resource.Name)
+		res, err = defs.LookupForSGSynth(resourceType, resource.Name)
 	} else {
-		res, err = defs.LookupACL(resourceType, resource.Name)
+		res, err = defs.LookupForACLSynth(resourceType, resource.Name)
 	}
 	return res, resourceType == ir.ResourceTypeExternal, err
 }
