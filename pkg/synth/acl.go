@@ -36,32 +36,25 @@ func (a *ACLSynthesizer) Synth() ir.Collection {
 // 1. generate nACL rules for relevant subnets for each connection
 // 2. generate nACL rules for blocked subnets (subnets that do not appear in Spec)
 func (a *ACLSynthesizer) makeACL() *ir.ACLCollection {
-	for c := range a.spec.Connections {
-		a.generateACLRulesFromConnection(a.spec.Connections[c])
+	for i := range a.spec.Connections {
+		conn := a.spec.Connections[i]
+		a.generateACLRulesFromConnection(conn, conn.Src, conn.Dst, a.allowConnectionSrc)
+		a.generateACLRulesFromConnection(conn, conn.Dst, conn.Src, a.allowConnectionDst)
 	}
 	a.generateACLRulesForBlockedSubnets()
 	return a.result
 }
 
-func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection) {
-	for _, srcSubnet := range conn.Src.NamedAddrs {
-		for _, dstCidr := range conn.Dst.Cidrs {
-			if srcSubnet.IPAddrs.Equal(dstCidr.IPAddrs) && *conn.Src.Type != ir.ResourceTypeCidr && *conn.Dst.Type != ir.ResourceTypeCidr {
+func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection, thisResource, otherResource *ir.Resource,
+	allowConnection func(*ir.Connection, *ir.TrackedProtocol, *ir.NamedAddrs, *netset.IPBlock)) {
+	for _, thisSubnet := range thisResource.NamedAddrs {
+		for _, otherCidr := range otherResource.Cidrs {
+			if thisSubnet.IPAddrs.Equal(otherCidr.IPAddrs) && *thisResource.Type != ir.ResourceTypeCidr &&
+				*otherResource.Type != ir.ResourceTypeCidr {
 				continue
 			}
 			for _, trackedProtocol := range conn.TrackedProtocols {
-				a.allowConnectionSrc(conn, trackedProtocol, srcSubnet, dstCidr.IPAddrs)
-			}
-		}
-	}
-
-	for _, srcCidr := range conn.Src.Cidrs {
-		for _, dstSubnet := range conn.Dst.NamedAddrs {
-			if dstSubnet.IPAddrs.Equal(srcCidr.IPAddrs) && *conn.Src.Type != ir.ResourceTypeCidr && *conn.Dst.Type != ir.ResourceTypeCidr {
-				continue
-			}
-			for _, trackedProtocol := range conn.TrackedProtocols {
-				a.allowConnectionDst(conn, trackedProtocol, dstSubnet, srcCidr.IPAddrs)
+				allowConnection(conn, trackedProtocol, thisSubnet, otherCidr.IPAddrs)
 			}
 		}
 	}

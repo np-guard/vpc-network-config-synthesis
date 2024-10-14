@@ -111,8 +111,6 @@ type (
 
 	VPCDetails struct {
 		AddressPrefixes *netset.IPBlock
-		// tg
-		// lb
 	}
 
 	SubnetDetails struct {
