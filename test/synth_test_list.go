@@ -12,6 +12,9 @@ const (
 	aclNifConfig = "%s/acl_nif/config_object.json"
 	aclNifSpec   = "%s/acl_nif/conn_spec.json"
 
+	aclNifInstanceSegmentsConfig = "%s/acl_nif_instance_segments/config_object.json"
+	aclNifInstanceSegmentsSpec   = "%s/acl_nif_instance_segments/conn_spec.json"
+
 	aclProtocolsConfig = "%s/acl_protocols/config_object.json"
 	aclProtocolsSpec   = "%s/acl_protocols/conn_spec.json"
 
@@ -74,6 +77,18 @@ func synthACLTestsList() []testCase {
 				config:     aclNifConfig,
 				spec:       aclNifSpec,
 				outputFile: "%s/acl_nif_tf/nacl_expected.tf",
+			},
+		},
+
+		// acl nif instance segments    ## tg-multiple config
+		{
+			testName: "acl_nif_instance_segments_tf",
+			args: &command{
+				cmd:        synth,
+				subcmd:     acl,
+				config:     aclNifInstanceSegmentsConfig,
+				spec:       aclNifInstanceSegmentsSpec,
+				outputFile: "%s/acl_nif_instance_segments_tf/nacl_expected.tf",
 			},
 		},
 
