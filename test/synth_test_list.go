@@ -20,6 +20,10 @@ const (
 	aclTgMultipleSpec          = "%s/acl_tg_multiple/conn_spec.json"
 	aclVpeSpec                 = "%s/acl_vpe/conn_spec.json"
 	sgProtocolsSpec            = "%s/sg_protocols/conn_spec.json"
+	sgSegments1Spec            = "%s/sg_segments1/conn_spec.json"
+	sgSegments2Spec            = "%s/sg_segments2/conn_spec.json"
+	sgSegments3Spec            = "%s/sg_segments3/conn_spec.json"
+	sgSegments4Spec            = "%s/sg_segments4/conn_spec.json"
 	sgTesting3Spec             = "%s/sg_testing3/conn_spec.json"
 	sgTgMultipleSpec           = "%s/sg_tg_multiple/conn_spec.json"
 
@@ -224,6 +228,7 @@ func synthACLTestsList() []testCase {
 	}
 }
 
+//nolint:funlen // test cases
 func synthSGTestsList() []testCase {
 	return []testCase{
 		// sg protocols (all output fmts, externals, scoping, nif as a resource)    ## tg-multiple config
@@ -265,6 +270,54 @@ func synthSGTestsList() []testCase {
 				config:     tgMultipleConfig,
 				spec:       sgProtocolsSpec,
 				outputFile: "%s/sg_protocols_tf/sg_expected.tf",
+			},
+		},
+
+		// sg segments1 (cidrSegment -> cidrSegment)
+		{
+			testName: "sg_segments1_tf",
+			args: &command{
+				cmd:        synth,
+				subcmd:     sg,
+				config:     tgMultipleConfig,
+				spec:       sgSegments1Spec,
+				outputFile: "%s/sg_segments1_tf/sg_expected.tf",
+			},
+		},
+
+		// sg segments2 (instanceSegment -> cidrSegment)
+		{
+			testName: "sg_segments2_tf",
+			args: &command{
+				cmd:        synth,
+				subcmd:     sg,
+				config:     tgMultipleConfig,
+				spec:       sgSegments2Spec,
+				outputFile: "%s/sg_segments2_tf/sg_expected.tf",
+			},
+		},
+
+		// sg segments3 (subnetSegment -> nifSegment)
+		{
+			testName: "sg_segments3_tf",
+			args: &command{
+				cmd:        synth,
+				subcmd:     sg,
+				config:     tgMultipleConfig,
+				spec:       sgSegments3Spec,
+				outputFile: "%s/sg_segments3_tf/sg_expected.tf",
+			},
+		},
+
+		// sg segments4 (vpeSegment -> instanceSegment)
+		{
+			testName: "sg_segments4_tf",
+			args: &command{
+				cmd:        synth,
+				subcmd:     sg,
+				config:     sgTesting3Config,
+				spec:       sgSegments4Spec,
+				outputFile: "%s/sg_segments4_tf/sg_expected.tf",
 			},
 		},
 

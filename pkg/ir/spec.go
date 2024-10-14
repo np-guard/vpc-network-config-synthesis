@@ -283,7 +283,7 @@ func (s *Definitions) lookupSegment(segment map[ID]*SegmentDetails, name string,
 		return nil, fmt.Errorf(containerNotFound, name, t)
 	}
 
-	res := &Resource{Name: &name, NamedAddrs: []*NamedAddrs{}, Cidrs: []*NamedAddrs{}, Type: utils.Ptr(ResourceTypeSubnet)}
+	res := &Resource{Name: &name, NamedAddrs: []*NamedAddrs{}, Cidrs: []*NamedAddrs{}, Type: utils.Ptr(elementType)}
 	for _, elementName := range segmentDetails.Elements {
 		subnet, err := lookup(elementType, elementName)
 		if err != nil {

@@ -130,6 +130,7 @@ func translateResourceType(defs *ir.Definitions, resource *spec.Resource) (ir.Re
 		if _, ok := defs.VpeSegments[resource.Name]; ok {
 			return ir.ResourceTypeVpeSegment, nil
 		}
+		return ir.ResourceTypeSubnet, fmt.Errorf("could not find segment %v", resource.Name)
 	}
 	return ir.ResourceTypeSubnet, fmt.Errorf("unsupported resource type %v (%v)", resource.Type, resource.Name)
 }
