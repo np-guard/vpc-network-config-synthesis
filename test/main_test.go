@@ -14,6 +14,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/cmd/subcmds"
 )
 
+// comment lines 18-20 and uncomment `update_test.go` file to update all test outputs
 func TestMain(t *testing.T) {
 	testMain(t)
 }
