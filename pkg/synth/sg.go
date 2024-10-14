@@ -47,15 +47,16 @@ func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection, direc
 		for _, remoteCidr := range remoteResource.Cidrs {
 			for _, trackedProtocol := range conn.TrackedProtocols {
 				ruleExplanation := explanation{internal: internalConn, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}.String()
-				s.allowConnectionEndpoint(localEndpoint, remoteCidr, remoteResource.Type, trackedProtocol.Protocol, direction, internalEndpoint, ruleExplanation)
+				s.allowConnectionEndpoint(localEndpoint, remoteCidr, remoteResource.Type, trackedProtocol.Protocol, direction,
+					internalEndpoint, ruleExplanation)
 			}
 		}
 	}
 }
 
 // if the endpoint in internal, a rule will be created to allow traffic.
-func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *ir.NamedAddrs, remoteType *ir.ResourceType, p netp.Protocol, direction ir.Direction,
-	internalEndpoint bool, ruleExplanation string) {
+func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *ir.NamedAddrs, remoteType *ir.ResourceType,
+	p netp.Protocol, direction ir.Direction, internalEndpoint bool, ruleExplanation string) {
 	if !internalEndpoint {
 		return
 	}
@@ -78,17 +79,17 @@ func sgRemote(resource *ir.NamedAddrs, t *ir.ResourceType) ir.RemoteType {
 	return resource.IPAddrs
 }
 
-func connSettings(conn *ir.Connection, direction ir.Direction) (*ir.Resource, *ir.Resource, bool, bool) {
-	internalSrc, internalDst, internalConn := internalConn(conn)
-	localResource := conn.Src
-	remoteResource := conn.Dst
-	internalEndpoint := internalSrc
+func connSettings(conn *ir.Connection, direction ir.Direction) (local, remote *ir.Resource, internalEndpoint, internalConn bool) {
+	internalSrc, internalDst, internalConn := internalConnection(conn)
+	local = conn.Src
+	remote = conn.Dst
+	internalEndpoint = internalSrc
 	if direction == ir.Inbound {
-		localResource = conn.Dst
-		remoteResource = conn.Src
+		local = conn.Dst
+		remote = conn.Src
 		internalEndpoint = internalDst
 	}
-	return localResource, remoteResource, internalEndpoint, internalConn
+	return
 }
 
 func isSGRemote(t ir.ResourceType) bool {

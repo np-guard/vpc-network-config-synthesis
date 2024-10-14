@@ -174,14 +174,14 @@ type (
 		Address() *netset.IPBlock
 	}
 
-	InternalNWResource interface {
+	INWResource interface {
 		NWResource
 		SubnetName() ID
 	}
 
 	EndpointProvider interface {
 		endpointNames() []ID
-		endpointMap(s *Definitions) map[ID]InternalNWResource
+		endpointMap(s *Definitions) map[ID]INWResource
 		endpointType() ResourceType
 	}
 )
@@ -238,8 +238,8 @@ func (i *InstanceDetails) endpointNames() []ID {
 	return i.Nifs
 }
 
-func (i *InstanceDetails) endpointMap(s *Definitions) map[ID]InternalNWResource {
-	res := make(map[ID]InternalNWResource, len(s.NIFs))
+func (i *InstanceDetails) endpointMap(s *Definitions) map[ID]INWResource {
+	res := make(map[ID]INWResource, len(s.NIFs))
 	for k, v := range s.NIFs {
 		res[k] = v
 	}
@@ -254,8 +254,8 @@ func (v *VPEDetails) endpointNames() []ID {
 	return v.VPEReservedIPs
 }
 
-func (v *VPEDetails) endpointMap(s *Definitions) map[ID]InternalNWResource {
-	res := make(map[ID]InternalNWResource, len(s.VPEReservedIPs))
+func (v *VPEDetails) endpointMap(s *Definitions) map[ID]INWResource {
+	res := make(map[ID]INWResource, len(s.VPEReservedIPs))
 	for k, v := range s.VPEReservedIPs {
 		res[k] = v
 	}

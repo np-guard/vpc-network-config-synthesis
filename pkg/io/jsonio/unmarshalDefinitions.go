@@ -146,7 +146,7 @@ func internalCidr(configDefs *ir.ConfigDefs, cidr *netset.IPBlock) bool {
 	for _, vpcDetails := range configDefs.VPCs {
 		res = res.Subtract(vpcDetails.AddressPrefixes)
 	}
-	return res == netset.NewIPBlock()
+	return res.IsEmpty()
 }
 
 func prepareBlockedResources(configDefs *ir.ConfigDefs) ir.BlockedResources {

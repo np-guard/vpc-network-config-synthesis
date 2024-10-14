@@ -38,7 +38,7 @@ func (s *Definitions) LookupForACLSynth(t ResourceType, name string) (*Resource,
 	return nil, nil // should not get here
 }
 
-func lookupSingleForACLSynth[T InternalNWResource](m map[ID]T, subnets map[ID]*SubnetDetails, name string, t ResourceType) (*Resource, error) {
+func lookupSingleForACLSynth[T INWResource](m map[ID]T, subnets map[ID]*SubnetDetails, name string, t ResourceType) (*Resource, error) {
 	details, ok := m[name]
 	if !ok {
 		return nil, fmt.Errorf(resourceNotFound, name, t)

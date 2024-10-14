@@ -42,7 +42,7 @@ func (e explanation) String() string {
 	return result
 }
 
-func internalConn(conn *ir.Connection) (internalSrc, internalDst, internal bool) {
+func internalConnection(conn *ir.Connection) (internalSrc, internalDst, internal bool) {
 	internalSrc = *conn.Src.Type != ir.ResourceTypeExternal
 	internalDst = *conn.Dst.Type != ir.ResourceTypeExternal
 	internal = internalSrc && internalDst

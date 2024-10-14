@@ -32,7 +32,7 @@ func (r *Reader) transalteConnections(conns []spec.SpecRequiredConnectionsElem, 
 func translateConnection(defs *ir.Definitions, conn *spec.SpecRequiredConnectionsElem, connIdx int, isSG bool) ([]*ir.Connection, error) {
 	protocols, err1 := translateProtocols(conn.AllowedProtocols)
 	srcResource, isSrcExternal, err2 := transalteConnectionResource(defs, &conn.Src, isSG)
-	dstResource, isDstExternal, err3 := transalteConnectionResource(defs, &conn.Src, isSG)
+	dstResource, isDstExternal, err3 := transalteConnectionResource(defs, &conn.Dst, isSG)
 	if err := errors.Join(err1, err2, err3); err != nil {
 		return nil, err
 	}
@@ -74,29 +74,30 @@ func transalteConnectionResource(defs *ir.Definitions, resource *spec.Resource, 
 func translateProtocols(protocols spec.ProtocolList) ([]*ir.TrackedProtocol, error) {
 	var result = make([]*ir.TrackedProtocol, len(protocols))
 	for i, _p := range protocols {
-		result[i].Origin = protocolOrigin{protocolIndex: i}
+		res := &ir.TrackedProtocol{Origin: protocolOrigin{protocolIndex: i}}
 		switch p := _p.(type) {
 		case spec.AnyProtocol:
 			if len(protocols) != 1 {
 				log.Println("when allowing any protocol, there is no need in other protocols")
 			}
-			result[i].Protocol = netp.AnyProtocol{}
+			res.Protocol = netp.AnyProtocol{}
 		case spec.Icmp:
 			icmp, err := netp.ICMPFromTypeAndCode(p.Type, p.Code)
 			if err != nil {
 				return nil, err
 			}
-			result[i].Protocol = icmp
+			res.Protocol = icmp
 		case spec.TcpUdp:
 			tcpudp, err := netp.NewTCPUDP(p.Protocol == spec.TcpUdpProtocolTCP, p.MinSourcePort, p.MaxSourcePort,
 				p.MinDestinationPort, p.MaxDestinationPort)
 			if err != nil {
 				return nil, err
 			}
-			result[i].Protocol = tcpudp
+			res.Protocol = tcpudp
 		default:
 			return nil, fmt.Errorf("impossible protocol: %v", p)
 		}
+		result[i] = res
 	}
 	return result, nil
 }

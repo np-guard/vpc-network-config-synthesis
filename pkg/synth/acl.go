@@ -50,7 +50,7 @@ func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection) {
 				continue
 			}
 			for _, trackedProtocol := range conn.TrackedProtocols {
-				a.allowConnectionFromSrc(conn, trackedProtocol, srcSubnet, dstCidr.IPAddrs)
+				a.allowConnectionSrc(conn, trackedProtocol, srcSubnet, dstCidr.IPAddrs)
 			}
 		}
 	}
@@ -61,7 +61,7 @@ func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection) {
 				continue
 			}
 			for _, trackedProtocol := range conn.TrackedProtocols {
-				a.allowConnectionToDst(conn, trackedProtocol, dstSubnet, srcCidr.IPAddrs)
+				a.allowConnectionDst(conn, trackedProtocol, dstSubnet, srcCidr.IPAddrs)
 			}
 		}
 	}
@@ -69,8 +69,8 @@ func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection) {
 
 // if the src in internal, rule(s) will be created to allow traffic.
 // if the protocol allows response, more rules will be created.
-func (a *ACLSynthesizer) allowConnectionFromSrc(conn *ir.Connection, p *ir.TrackedProtocol, srcSubnet *ir.NamedAddrs, dstCidr *netset.IPBlock) {
-	internalSrc, _, internal := internalConn(conn)
+func (a *ACLSynthesizer) allowConnectionSrc(conn *ir.Connection, p *ir.TrackedProtocol, srcSubnet *ir.NamedAddrs, dstCidr *netset.IPBlock) {
+	internalSrc, _, internal := internalConnection(conn)
 
 	if !internalSrc || srcSubnet.IPAddrs.Equal(dstCidr) {
 		return
@@ -86,8 +86,8 @@ func (a *ACLSynthesizer) allowConnectionFromSrc(conn *ir.Connection, p *ir.Track
 
 // if the dst in internal, rule(s) will be created to allow traffic.
 // if the protocol allows response, more rules will be created.
-func (a *ACLSynthesizer) allowConnectionToDst(conn *ir.Connection, p *ir.TrackedProtocol, dstSubnet *ir.NamedAddrs, srcCidr *netset.IPBlock) {
-	_, internalDst, internal := internalConn(conn)
+func (a *ACLSynthesizer) allowConnectionDst(conn *ir.Connection, p *ir.TrackedProtocol, dstSubnet *ir.NamedAddrs, srcCidr *netset.IPBlock) {
+	_, internalDst, internal := internalConnection(conn)
 
 	if !internalDst || dstSubnet.IPAddrs.Equal(srcCidr) {
 		return

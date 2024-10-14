@@ -63,10 +63,12 @@ func replaceResourcesName(jsonSpec *spec.Spec, defs *ir.Definitions) (*spec.Spec
 	distinctVpes, ambiguousVpes := inverseMapToFullyQualifiedName(config.VPEs)
 
 	// translate segments to fully qualified names
-	subnetSegments, err1 := replaceSegmentNames(defs.SubnetSegments, distinctSubnets, ambiguousSubnets, spec.ResourceType(spec.SegmentTypeSubnet))
 	nifSegments, err2 := replaceSegmentNames(defs.NifSegments, distinctNifs, ambiguousNifs, spec.ResourceType(spec.SegmentTypeNif))
-	instanceSegments, err3 := replaceSegmentNames(defs.InstanceSegments, distinctInstances, ambiguousInstances, spec.ResourceType(spec.SegmentTypeInstance))
 	vpeSegments, err4 := replaceSegmentNames(defs.VpeSegments, distinctVpes, ambiguousVpes, spec.ResourceType(spec.SegmentTypeVpe))
+	subnetSegments, err1 := replaceSegmentNames(defs.SubnetSegments, distinctSubnets, ambiguousSubnets,
+		spec.ResourceType(spec.SegmentTypeSubnet))
+	instanceSegments, err3 := replaceSegmentNames(defs.InstanceSegments, distinctInstances, ambiguousInstances,
+		spec.ResourceType(spec.SegmentTypeInstance))
 
 	if err := errors.Join(err1, err2, err3, err4); err != nil {
 		return nil, nil, err

@@ -15,6 +15,10 @@ import (
 )
 
 func TestMain(t *testing.T) {
+	testMain(t)
+}
+
+func testMain(t *testing.T) {
 	for _, tt := range allMainTests() {
 		t.Run(tt.testName, func(t *testing.T) {
 			// create a sub folder
