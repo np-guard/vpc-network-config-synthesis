@@ -266,6 +266,25 @@ func lookupSingle[T NWResource](m map[ID]T, name string, t ResourceType) (*Resou
 	return nil, fmt.Errorf(resourceNotFound, name, t)
 }
 
+func (s *Definitions) lookupSegment(segment map[ID]*SegmentDetails, name string, t, elementType ResourceType,
+	lookup func(ResourceType, string) (*Resource, error)) (*Resource, error) {
+	segmentDetails, ok := segment[name]
+	if !ok {
+		return nil, fmt.Errorf(containerNotFound, name, t)
+	}
+
+	res := &Resource{Name: &name, NamedAddrs: []*NamedAddrs{}, Cidrs: []*NamedAddrs{}, Type: utils.Ptr(ResourceTypeSubnet)}
+	for _, elementName := range segmentDetails.Elements {
+		subnet, err := lookup(elementType, elementName)
+		if err != nil {
+			return nil, err
+		}
+		res.NamedAddrs = append(res.NamedAddrs, subnet.NamedAddrs...)
+		res.Cidrs = append(res.Cidrs, subnet.Cidrs...)
+	}
+	return res, nil
+}
+
 func (s *ConfigDefs) SubnetsContainedInCidr(cidr *netset.IPBlock) ([]ID, error) {
 	var containedSubnets []string
 	for subnet, subnetDetails := range s.Subnets {

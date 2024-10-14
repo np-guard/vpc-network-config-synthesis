@@ -25,17 +25,17 @@ func (s *Definitions) LookupForSGSynth(t ResourceType, name string) (*Resource, 
 	case ResourceTypeInstance:
 		return lookupContainerForSGSynth(s.Instances, name, ResourceTypeInstance)
 	case ResourceTypeVPE:
-		return lookupContainerForSGSynth(s.Instances, name, ResourceTypeVPE)
+		return lookupContainerForSGSynth(s.VPEs, name, ResourceTypeVPE)
 	case ResourceTypeSubnetSegment:
-		return s.lookupSubnetSegmentForSGSynth(name)
+		return s.lookupSegment(s.SubnetSegments, name, t, ResourceTypeSubnet, s.LookupForSGSynth)
 	case ResourceTypeCidrSegment:
 		return s.lookupCidrSegmentForSGSynth(name)
 	case ResourceTypeNifSegment:
-		return s.lookupSegmentForSGSynth(s.NifSegments, name, ResourceTypeNIF)
+		return s.lookupSegment(s.NifSegments, name, t, ResourceTypeNIF, s.LookupForSGSynth)
 	case ResourceTypeInstanceSegment:
-		return s.lookupSegmentForSGSynth(s.InstanceSegments, name, ResourceTypeInstance)
+		return s.lookupSegment(s.InstanceSegments, name, t, ResourceTypeInstance, s.LookupForSGSynth)
 	case ResourceTypeVpeSegment:
-		return s.lookupSegmentForSGSynth(s.VpeSegments, name, ResourceTypeVPE)
+		return s.lookupSegment(s.VpeSegments, name, t, ResourceTypeVPE, s.LookupForSGSynth)
 	}
 	return nil, nil // should not get here
 }
@@ -75,24 +75,6 @@ func (s *Definitions) lookupSubnetForSGSynth(name string) (*Resource, error) {
 	return nil, fmt.Errorf(resourceNotFound, ResourceTypeSubnet, name)
 }
 
-func (s *Definitions) lookupSubnetSegmentForSGSynth(name string) (*Resource, error) {
-	segmentDetails, ok := s.SubnetSegments[name]
-	if !ok {
-		return nil, fmt.Errorf(containerNotFound, ResourceTypeSubnetSegment, name)
-	}
-
-	res := &Resource{Name: &name, NamedAddrs: []*NamedAddrs{}, Cidrs: []*NamedAddrs{}, Type: utils.Ptr(ResourceTypeSubnet)}
-	for _, subnetName := range segmentDetails.Elements {
-		subnetRes, err := s.lookupSubnetForSGSynth(subnetName)
-		if err != nil {
-			return nil, err
-		}
-		res.NamedAddrs = append(res.NamedAddrs, subnetRes.NamedAddrs...)
-		res.Cidrs = append(res.Cidrs, subnetRes.Cidrs...)
-	}
-	return res, nil
-}
-
 func (s *Definitions) lookupCidrSegmentForSGSynth(name string) (*Resource, error) {
 	if segmentDetails, ok := s.CidrSegments[name]; ok {
 		return &Resource{Name: &name,
@@ -102,13 +84,6 @@ func (s *Definitions) lookupCidrSegmentForSGSynth(name string) (*Resource, error
 		}, nil
 	}
 	return nil, fmt.Errorf(containerNotFound, ResourceTypeCidrSegment, name)
-}
-
-func (s *Definitions) lookupSegmentForSGSynth(segment map[string]*SegmentDetails, name string, t ResourceType) (*Resource, error) {
-	if segmentDetails, ok := segment[name]; ok {
-		return &Resource{Name: &name, NamedAddrs: namesToNamedAddrs(segmentDetails.Elements), Cidrs: []*NamedAddrs{}, Type: utils.Ptr(t)}, nil
-	}
-	return nil, fmt.Errorf(containerNotFound, name, t)
 }
 
 func (s *Definitions) containedResourcesInCidr(cidr *netset.IPBlock) []*NamedAddrs {

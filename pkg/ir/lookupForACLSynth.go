@@ -25,15 +25,15 @@ func (s *Definitions) LookupForACLSynth(t ResourceType, name string) (*Resource,
 	case ResourceTypeVPE:
 		return lookupContainerForACLSynth(s.VPEs, s, name, ResourceTypeVPE)
 	case ResourceTypeSubnetSegment:
-		return s.lookupSegmentForACLSynth(s.SubnetSegments, name, t, ResourceTypeSubnet)
+		return s.lookupSegment(s.SubnetSegments, name, t, ResourceTypeSubnet, s.LookupForACLSynth)
 	case ResourceTypeCidrSegment:
 		return s.lookupCidrSegmentACL(name)
 	case ResourceTypeNifSegment:
-		return s.lookupSegmentForACLSynth(s.SubnetSegments, name, t, ResourceTypeNIF)
+		return s.lookupSegment(s.NifSegments, name, t, ResourceTypeNIF, s.LookupForACLSynth)
 	case ResourceTypeInstanceSegment:
-		return s.lookupSegmentForACLSynth(s.SubnetSegments, name, t, ResourceTypeInstance)
+		return s.lookupSegment(s.InstanceSegments, name, t, ResourceTypeInstance, s.LookupForACLSynth)
 	case ResourceTypeVpeSegment:
-		return s.lookupSegmentForACLSynth(s.SubnetSegments, name, t, ResourceTypeVPE)
+		return s.lookupSegment(s.VpeSegments, name, t, ResourceTypeVPE, s.LookupForACLSynth)
 	}
 	return nil, nil // should not get here
 }
@@ -49,24 +49,6 @@ func lookupSingleForACLSynth[T InternalNWResource](m map[ID]T, subnets map[ID]*S
 		return nil, err
 	}
 	res.Name = &name // save NIF's name as resource name
-	return res, nil
-}
-
-func (s *Definitions) lookupSegmentForACLSynth(segment map[ID]*SegmentDetails, name string, t, elementType ResourceType) (*Resource, error) {
-	segmentDetails, ok := segment[name]
-	if !ok {
-		return nil, fmt.Errorf(containerNotFound, name, t)
-	}
-
-	res := &Resource{Name: &name, NamedAddrs: []*NamedAddrs{}, Cidrs: []*NamedAddrs{}, Type: utils.Ptr(ResourceTypeSubnet)}
-	for _, elementName := range segmentDetails.Elements {
-		subnet, err := s.LookupForACLSynth(elementType, elementName)
-		if err != nil {
-			return nil, err
-		}
-		res.NamedAddrs = append(res.NamedAddrs, subnet.NamedAddrs...)
-		res.Cidrs = append(res.Cidrs, subnet.Cidrs...)
-	}
 	return res, nil
 }
 
