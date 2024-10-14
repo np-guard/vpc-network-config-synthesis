@@ -15,8 +15,8 @@ const (
 	aclProtocolsConfig = "%s/acl_protocols/config_object.json"
 	aclProtocolsSpec   = "%s/acl_protocols/conn_spec.json"
 
-	aclSegmentsConfig = "%s/acl_segments/config_object.json"
-	aclSegmentsSpec   = "%s/acl_segments/conn_spec.json"
+	aclSubnetCidrSegmentsConfig = "%s/acl_subnet_cidr_segments/config_object.json"
+	aclSubnetCidrSegmentsSpec   = "%s/acl_subnet_cidr_segments/conn_spec.json"
 
 	aclTesting5Config = "%s/acl_testing5/config_object.json"
 	aclTesting5Spec   = "%s/acl_testing5/conn_spec.json"
@@ -119,15 +119,15 @@ func synthACLTestsList() []testCase {
 			},
 		},
 
-		// acl segments (bidi)    ## acl_testing5 config
+		// acl subnet and cidr segments (bidi)    ## acl_testing5 config
 		{
-			testName: "acl_segments_tf",
+			testName: "acl_subnet_cidr_segments_tf",
 			args: &command{
 				cmd:        synth,
 				subcmd:     acl,
-				config:     aclSegmentsConfig,
-				spec:       aclSegmentsSpec,
-				outputFile: "%s/acl_segments_tf/nacl_expected.tf",
+				config:     aclSubnetCidrSegmentsConfig,
+				spec:       aclSubnetCidrSegmentsSpec,
+				outputFile: "%s/acl_subnet_cidr_segments_tf/nacl_expected.tf",
 			},
 		},
 
