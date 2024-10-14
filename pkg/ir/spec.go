@@ -8,6 +8,7 @@ package ir
 
 import (
 	"fmt"
+	"log"
 	"sort"
 	"strings"
 
@@ -84,8 +85,10 @@ type (
 	// Definitions adds to ConfigDefs the spec-specific definitions
 	Definitions struct {
 		ConfigDefs
-		// Segments are a way for users to create aggregations.
 
+		BlockedResources
+
+		// Segments are a way for users to create aggregations.
 		SubnetSegments map[ID]*SegmentDetails
 
 		CidrSegments map[ID]*CidrSegmentDetails
@@ -98,6 +101,12 @@ type (
 
 		// Externals are a way for users to name IP addresses or ranges external to the VPC.
 		Externals map[ID]*ExternalDetails
+	}
+
+	BlockedResources struct {
+		BlockedSubnets   map[ID]bool
+		BlockedInstances map[ID]bool
+		BlockedVPEs      map[ID]bool
 	}
 
 	VPCDetails struct {
@@ -192,6 +201,9 @@ const (
 
 	resourceNotFound  = "%v %v not found"
 	containerNotFound = "container %v %v not found"
+
+	WarningUnspecifiedACL = "The following subnets do not have required connections; the generated ACL will block all traffic: "
+	WarningUnspecifiedSG  = "The following endpoints do not have required connections; the generated SGs will block all traffic: "
 )
 
 func (n *NamedEntity) Name() string {
@@ -306,4 +318,10 @@ func VpcFromScopedResource(resource ID) ID {
 
 func ChangeScoping(s string) string {
 	return strings.ReplaceAll(s, "/", "--")
+}
+
+func PrintUnspecifiedWarning(warning string, blockedResources []ID) {
+	if len(blockedResources) > 0 {
+		log.Println(warning, strings.Join(blockedResources, ", "))
+	}
 }

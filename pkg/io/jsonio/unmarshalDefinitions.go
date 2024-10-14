@@ -13,6 +13,7 @@ import (
 	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/models/pkg/spec"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
 type segmentsTypes struct {
@@ -29,10 +30,10 @@ func (r *Reader) readDefinitions(jsonSpec *spec.Spec, configDefs *ir.ConfigDefs)
 		return nil, err
 	}
 	segments := divideSegmentsByType(&jsonSpec.Segments)
-	subnetSegments := parseSegments(segments.subnetSegment, spec.SegmentTypeSubnet)
-	nifSegments := parseSegments(segments.nifSegment, spec.SegmentTypeNif)
-	instanceSegments := parseSegments(segments.instanceSegment, spec.SegmentTypeInstance)
-	vpeSegments := parseSegments(segments.vpeSegment, spec.SegmentTypeVpe)
+	subnetSegments := parseSegments(segments.subnetSegment)
+	nifSegments := parseSegments(segments.nifSegment)
+	instanceSegments := parseSegments(segments.instanceSegment)
+	vpeSegments := parseSegments(segments.vpeSegment)
 	cidrSegments, err := parseCidrSegments(segments.cidrSegment, configDefs)
 	if err != nil {
 		return nil, err
@@ -43,6 +44,7 @@ func (r *Reader) readDefinitions(jsonSpec *spec.Spec, configDefs *ir.ConfigDefs)
 	}
 	return &ir.Definitions{
 		ConfigDefs:       *configDefs,
+		BlockedResources: prepareBlockedResources(configDefs),
 		SubnetSegments:   subnetSegments,
 		CidrSegments:     cidrSegments,
 		NifSegments:      nifSegments,
@@ -65,7 +67,7 @@ func validateSegments(jsonSegments *spec.SpecSegments) error {
 }
 
 // translates segment to ir ds
-func parseSegments(segments map[string][]string, segmentType spec.SegmentType) map[ir.ID]*ir.SegmentDetails {
+func parseSegments(segments map[string][]string) map[ir.ID]*ir.SegmentDetails {
 	result := make(map[string]*ir.SegmentDetails)
 	for segmentName, elements := range segments {
 		result[segmentName] = &ir.SegmentDetails{Elements: elements}
@@ -145,4 +147,18 @@ func internalCidr(configDefs *ir.ConfigDefs, cidr *netset.IPBlock) bool {
 		res = res.Subtract(vpcDetails.AddressPrefixes)
 	}
 	return res == netset.NewIPBlock()
+}
+
+func prepareBlockedResources(configDefs *ir.ConfigDefs) ir.BlockedResources {
+	return ir.BlockedResources{BlockedSubnets: sliceToMap(utils.SortedMapKeys(configDefs.Subnets)),
+		BlockedInstances: sliceToMap(utils.SortedMapKeys(configDefs.Instances)),
+		BlockedVPEs:      sliceToMap(utils.SortedMapKeys(configDefs.VPEs))}
+}
+
+func sliceToMap(slice []string) map[string]bool {
+	res := make(map[string]bool, len(slice))
+	for _, elem := range slice {
+		res[elem] = true
+	}
+	return res
 }

@@ -63,8 +63,10 @@ func transalteConnectionResource(defs *ir.Definitions, resource *spec.Resource, 
 	var res *ir.Resource
 	if isSG {
 		res, err = defs.LookupForSGSynth(resourceType, resource.Name)
+		updateBlockedResourcesSGSynth(defs, res)
 	} else {
 		res, err = defs.LookupForACLSynth(resourceType, resource.Name)
+		updateBlockedResourcesACLSynth(defs, res)
 	}
 	return res, resourceType == ir.ResourceTypeExternal, err
 }
@@ -129,4 +131,23 @@ func translateResourceType(defs *ir.Definitions, resource *spec.Resource) (ir.Re
 		}
 	}
 	return ir.ResourceTypeSubnet, fmt.Errorf("unsupported resource type %v (%v)", resource.Type, resource.Name)
+}
+
+func updateBlockedResourcesSGSynth(defs *ir.Definitions, resource *ir.Resource) {
+	for _, namedAddrs := range resource.NamedAddrs {
+		if _, ok := defs.BlockedInstances[*namedAddrs.Name]; ok {
+			defs.BlockedInstances[*namedAddrs.Name] = false
+		}
+		if _, ok := defs.BlockedVPEs[*namedAddrs.Name]; ok {
+			defs.BlockedVPEs[*namedAddrs.Name] = false
+		}
+	}
+}
+
+func updateBlockedResourcesACLSynth(defs *ir.Definitions, resource *ir.Resource) {
+	for _, namedAddrs := range resource.NamedAddrs {
+		if _, ok := defs.BlockedSubnets[*namedAddrs.Name]; ok {
+			defs.BlockedSubnets[*namedAddrs.Name] = false
+		}
+	}
 }

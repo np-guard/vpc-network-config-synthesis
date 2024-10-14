@@ -55,7 +55,7 @@ func lookupSingleForACLSynth[T InternalNWResource](m map[ID]T, subnets map[ID]*S
 func lookupContainerForACLSynth[T EndpointProvider](m map[ID]T, defs *Definitions, name string, t ResourceType) (*Resource, error) {
 	containerDetails, ok := m[name]
 	if !ok {
-		return nil, fmt.Errorf(containerNotFound, name, ResourceTypeInstance)
+		return nil, fmt.Errorf(containerNotFound, name, t)
 	}
 
 	res := &Resource{Name: &name, NamedAddrs: []*NamedAddrs{}, Cidrs: []*NamedAddrs{}, Type: utils.Ptr(ResourceTypeSubnet)}

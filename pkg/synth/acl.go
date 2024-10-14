@@ -12,6 +12,7 @@ import (
 	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
 const ACLTypeNotSupported = "ACL: src/dst of type %s is not supported"
@@ -118,7 +119,8 @@ func (a *ACLSynthesizer) addRuleToACL(rule *ir.ACLRule, resourceName ir.ID, inte
 
 // generate nACL rules for blocked subnets (subnets that do not appear in Spec)
 func (a *ACLSynthesizer) generateACLRulesForBlockedSubnets() {
-	blockedSubnets := a.spec.ComputeBlockedSubnets()
+	blockedSubnets := utils.TrueKeyValues(a.spec.Defs.BlockedSubnets)
+	ir.PrintUnspecifiedWarning(ir.WarningUnspecifiedACL, blockedSubnets)
 	for _, subnet := range blockedSubnets {
 		acl := a.result.LookupOrCreate(aclSelector(subnet, a.singleACL))
 		cidr := a.spec.Defs.Subnets[subnet].Address()

@@ -45,7 +45,7 @@ func (s *Definitions) lookupNIFForSGSynth(name string) (*Resource, error) {
 		return &Resource{
 			Name:       &name,
 			NamedAddrs: []*NamedAddrs{{Name: &s.NIFs[name].Instance}},
-			Cidrs:      []*NamedAddrs{},
+			Cidrs:      []*NamedAddrs{{Name: &s.NIFs[name].Instance}},
 			Type:       utils.Ptr(ResourceTypeNIF),
 		}, nil
 	}
@@ -57,7 +57,7 @@ func lookupContainerForSGSynth[T EndpointProvider](m map[string]T, name string, 
 		return &Resource{
 			Name:       &name,
 			NamedAddrs: []*NamedAddrs{{Name: &name}},
-			Cidrs:      []*NamedAddrs{},
+			Cidrs:      []*NamedAddrs{{Name: &name}},
 			Type:       utils.Ptr(t),
 		}, nil
 	}
@@ -98,23 +98,22 @@ func (s *Definitions) containedResourcesInCidr(cidr *netset.IPBlock) []*NamedAdd
 			names = append(names, reservedIPName.VPEName)
 		}
 	}
-	slices.Compact(slices.Sorted(slices.Values(names)))
-	return namesToNamedAddrs(names)
+	return namesToNamedAddrs(slices.Compact(slices.Sorted(slices.Values(names))))
 }
 
 func cidrToNamedAddrs(cidr *netset.IPBlock) []*NamedAddrs {
 	cidrs := cidr.SplitToCidrs()
 	res := make([]*NamedAddrs, len(cidrs))
-	for _, c := range cidrs {
-		res = append(res, &NamedAddrs{IPAddrs: c})
+	for i, c := range cidrs {
+		res[i] = &NamedAddrs{IPAddrs: c}
 	}
 	return res
 }
 
 func namesToNamedAddrs(names []string) []*NamedAddrs {
 	res := make([]*NamedAddrs, len(names))
-	for _, name := range names {
-		res = append(res, &NamedAddrs{Name: &name})
+	for i, name := range names {
+		res[i] = &NamedAddrs{Name: &name}
 	}
 	return res
 }

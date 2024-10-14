@@ -9,6 +9,7 @@ import (
 	"github.com/np-guard/models/pkg/netp"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
 const SGTypeNotSupported = "SG: src/dst of type %s is not supported"
@@ -96,7 +97,8 @@ func isSGRemote(t ir.ResourceType) bool {
 
 // generate SGs for blocked endpoints (endpoints that do not appear in Spec)
 func (s *SGSynthesizer) generateSGsForBlockedResources() {
-	blockedResources := s.spec.ComputeBlockedResources()
+	blockedResources := append(utils.TrueKeyValues(s.spec.Defs.BlockedInstances), utils.TrueKeyValues(s.spec.Defs.BlockedVPEs)...)
+	ir.PrintUnspecifiedWarning(ir.WarningUnspecifiedSG, blockedResources)
 	for _, resource := range blockedResources {
 		sg := s.result.LookupOrCreate(ir.SGName(resource)) // an empty SG allows no connections
 		sg.Attached = []ir.ID{resource}
