@@ -2231,13 +2231,13 @@
                         "name": "rule1"
                     },
                     "created_at": null,
-                    "destination": "10.240.64.0/24",
-                    "direction": "inbound",
+                    "destination": "10.240.1.0/24",
+                    "direction": "outbound",
                     "href": "fake:href:61",
                     "id": "fake:id:61",
                     "ip_version": "ipv4",
                     "name": "rule0",
-                    "source": "10.240.1.0/24",
+                    "source": "10.240.64.0/24",
                     "protocol": "all"
                 },
                 {
@@ -2248,13 +2248,13 @@
                         "name": "rule2"
                     },
                     "created_at": null,
-                    "destination": "10.240.1.0/24",
-                    "direction": "outbound",
+                    "destination": "10.240.64.0/24",
+                    "direction": "inbound",
                     "href": "fake:href:60",
                     "id": "fake:id:60",
                     "ip_version": "ipv4",
                     "name": "rule1",
-                    "source": "10.240.64.0/24",
+                    "source": "10.240.1.0/24",
                     "protocol": "all"
                 },
                 {

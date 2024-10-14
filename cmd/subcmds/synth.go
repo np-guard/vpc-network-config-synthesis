@@ -30,16 +30,12 @@ func NewSynthCommand(args *inArgs) *cobra.Command {
 	return cmd
 }
 
-func synthesis(cmd *cobra.Command, args *inArgs, newSynthesizer func(*ir.Spec, bool) synth.Synthesizer, single bool) error {
+func synthesis(cmd *cobra.Command, args *inArgs, newSynthesizer func(*ir.Spec, bool) synth.Synthesizer, singleacl, isSG bool) error {
 	cmd.SilenceUsage = true // if we got this far, flags are syntactically correct, so no need to print usage
-	spec, err := unmarshal(args)
+	spec, err := unmarshal(args, isSG)
 	if err != nil {
 		return err
 	}
-	synthesizer := newSynthesizer(spec, single)
-	collection, err := synthesizer.Synth()
-	if err != nil {
-		return err
-	}
-	return writeOutput(args, collection, utils.MapKeys(spec.Defs.ConfigDefs.VPCs))
+	synthesizer := newSynthesizer(spec, singleacl)
+	return writeOutput(args, synthesizer.Synth(), utils.MapKeys(spec.Defs.ConfigDefs.VPCs))
 }

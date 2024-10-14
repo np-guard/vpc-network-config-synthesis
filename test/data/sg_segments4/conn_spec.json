@@ -1,0 +1,30 @@
+{
+    "segments": {
+        "vpeSegment": { 
+            "type": "vpe",
+            "items": [
+                "appdata-endpoint-gateway",
+                "policydb-endpoint-gateway"
+            ]
+        },
+        "instanceSegment": { 
+            "type": "instance",
+            "items": [
+                "fe",
+                "be"
+            ]
+        }
+    },
+    "required-connections": [
+        {
+            "src": {
+                "name": "vpeSegment",
+                "type": "segment"
+            },
+            "dst": {
+                "name": "instanceSegment",
+                "type": "segment"
+            }
+        }
+    ]
+}

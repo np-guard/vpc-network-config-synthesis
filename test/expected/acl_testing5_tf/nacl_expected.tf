@@ -342,17 +342,17 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc--sub2-1" {
   rules {
     name        = "rule0"
     action      = "allow"
-    direction   = "inbound"
-    source      = "10.240.1.0/24"
-    destination = "10.240.64.0/24"
+    direction   = "outbound"
+    source      = "10.240.64.0/24"
+    destination = "10.240.1.0/24"
   }
   # Internal. response to required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
   rules {
     name        = "rule1"
     action      = "allow"
-    direction   = "outbound"
-    source      = "10.240.64.0/24"
-    destination = "10.240.1.0/24"
+    direction   = "inbound"
+    source      = "10.240.1.0/24"
+    destination = "10.240.64.0/24"
   }
   # Internal. required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
   rules {

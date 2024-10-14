@@ -65,17 +65,17 @@ resource "ibm_is_network_acl" "acl-test-vpc0--subnet2" {
   rules {
     name        = "rule0"
     action      = "allow"
-    direction   = "inbound"
-    source      = "10.240.0.0/24"
-    destination = "10.240.4.0/24"
+    direction   = "outbound"
+    source      = "10.240.4.0/24"
+    destination = "10.240.0.0/24"
   }
   # Internal. response to required-connections[0]: (segment segment1)->(segment segment1); allowed-protocols[0]
   rules {
     name        = "rule1"
     action      = "allow"
-    direction   = "outbound"
-    source      = "10.240.4.0/24"
-    destination = "10.240.0.0/24"
+    direction   = "inbound"
+    source      = "10.240.0.0/24"
+    destination = "10.240.4.0/24"
   }
   # Internal. required-connections[1]: (segment segment1)->(subnet test-vpc0/subnet3); allowed-protocols[0]
   rules {

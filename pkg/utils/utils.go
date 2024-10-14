@@ -31,3 +31,13 @@ func SortedAllInnerMapsKeys[T, K cmp.Ordered, V any](m map[K]map[T]V) []T {
 	slices.Sort(keys)
 	return keys
 }
+
+func TrueKeyValues[T comparable](m map[T]bool) []T {
+	keys := make([]T, 0)
+	for k, v := range m {
+		if v {
+			keys = append(keys, k)
+		}
+	}
+	return keys
+}

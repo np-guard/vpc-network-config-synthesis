@@ -22,17 +22,17 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc--singleACL" {
   rules {
     name        = "rule2"
     action      = "allow"
-    direction   = "inbound"
-    source      = "10.240.1.0/24"
-    destination = "10.240.64.0/24"
+    direction   = "outbound"
+    source      = "10.240.64.0/24"
+    destination = "10.240.1.0/24"
   }
   # Internal. response to required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
   rules {
     name        = "rule3"
     action      = "allow"
-    direction   = "outbound"
-    source      = "10.240.64.0/24"
-    destination = "10.240.1.0/24"
+    direction   = "inbound"
+    source      = "10.240.1.0/24"
+    destination = "10.240.64.0/24"
   }
   # Internal. required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
   rules {
@@ -60,28 +60,6 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc--singleACL" {
   rules {
     name        = "rule6"
     action      = "allow"
-    direction   = "inbound"
-    source      = "10.240.1.0/24"
-    destination = "10.240.128.0/24"
-    icmp {
-      type = 0
-    }
-  }
-  # Internal. response to required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
-  rules {
-    name        = "rule7"
-    action      = "allow"
-    direction   = "outbound"
-    source      = "10.240.128.0/24"
-    destination = "10.240.1.0/24"
-    icmp {
-      type = 8
-    }
-  }
-  # Internal. required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
-  rules {
-    name        = "rule8"
-    action      = "allow"
     direction   = "outbound"
     source      = "10.240.64.0/24"
     destination = "10.240.128.0/24"
@@ -91,11 +69,33 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc--singleACL" {
   }
   # Internal. response to required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
   rules {
-    name        = "rule9"
+    name        = "rule7"
     action      = "allow"
     direction   = "inbound"
     source      = "10.240.128.0/24"
     destination = "10.240.64.0/24"
+    icmp {
+      type = 8
+    }
+  }
+  # Internal. required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
+  rules {
+    name        = "rule8"
+    action      = "allow"
+    direction   = "inbound"
+    source      = "10.240.1.0/24"
+    destination = "10.240.128.0/24"
+    icmp {
+      type = 0
+    }
+  }
+  # Internal. response to required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]
+  rules {
+    name        = "rule9"
+    action      = "allow"
+    direction   = "outbound"
+    source      = "10.240.128.0/24"
+    destination = "10.240.1.0/24"
     icmp {
       type = 8
     }
