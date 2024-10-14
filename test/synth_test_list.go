@@ -27,6 +27,9 @@ const (
 	aclTgMultipleConfig = "%s/acl_tg_multiple/config_object.json"
 	aclTgMultipleSpec   = "%s/acl_tg_multiple/conn_spec.json"
 
+	aclVpeConfig = "%s/acl_vpe/config_object.json"
+	aclVpeSpec   = "%s/acl_vpe/conn_spec.json"
+
 	sgProtocolsConfig = "%s/sg_protocols/config_object.json"
 	sgProtocolsSpec   = "%s/sg_protocols/conn_spec.json"
 
@@ -220,6 +223,18 @@ func synthACLTestsList() []testCase {
 				spec:      aclTgMultipleSpec,
 				outputDir: "%s/acl_tg_multiple_tf_separate",
 				format:    tfOutputFmt,
+			},
+		},
+
+		// acl vpe    ## sg_testing3 config
+		{
+			testName: "acl_vpe_tf",
+			args: &command{
+				cmd:        synth,
+				subcmd:     acl,
+				config:     aclVpeConfig,
+				spec:       aclVpeSpec,
+				outputFile: "%s/acl_vpe_tf/nacl_expected.tf",
 			},
 		},
 	}
