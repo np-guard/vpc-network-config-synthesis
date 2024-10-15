@@ -28,8 +28,14 @@ func testMain(t *testing.T) {
 			}
 
 			// run command
-			if err := subcmds.Main(tt.args.Args(dataFolder, resultsFolder)); err != nil {
+			warning, err := subcmds.Main(tt.args.Args(dataFolder, resultsFolder))
+			if err != nil {
 				t.Fatalf("Bad test %s; unexpected err: %v", tt.testName, err)
+			}
+
+			if tt.blockedWarning != nil && *tt.blockedWarning != warning {
+				t.Errorf("Bad test %s; blocked resources warning is different than expected; \n expected: %s got: %s", tt.testName,
+					*tt.blockedWarning, warning)
 			}
 
 			// compare results

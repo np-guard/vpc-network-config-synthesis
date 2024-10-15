@@ -318,8 +318,11 @@ func ChangeScoping(s string) string {
 	return strings.ReplaceAll(s, "/", "--")
 }
 
-func PrintUnspecifiedWarning(warning string, blockedResources []ID) {
+func SetUnspecifiedWarning(warningPrefix string, blockedResources []ID) string {
+	warning := ""
 	if len(blockedResources) > 0 {
-		log.Println(warning, strings.Join(blockedResources, ", "))
+		warning = warningPrefix + strings.Join(blockedResources, ", ")
+		log.Println(warning)
 	}
+	return warning
 }

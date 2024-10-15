@@ -11,7 +11,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/synth"
 )
 
-func NewSynthACLCommand(args *inArgs) *cobra.Command {
+func newSynthACLCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "acl",
 		Short: "Generate Networks ACLs from connectivity specification",
@@ -19,7 +19,9 @@ func NewSynthACLCommand(args *inArgs) *cobra.Command {
 		Endpoints in the required-connectivity specification may be subnets, subnet segments, CIDR segments and externals.`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			return synthesis(cmd, args, synth.NewACLSynthesizer, args.singleacl, false)
+			warning, err := synthesis(cmd, args, synth.NewACLSynthesizer, args.singleacl, false)
+			cmd.Println(warning)
+			return err
 		},
 	}
 
