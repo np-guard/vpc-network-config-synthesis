@@ -8,9 +8,10 @@ package test
 import "fmt"
 
 type testCase struct {
-	testName    string
-	args        *command
-	expectedErr string
+	testName       string
+	args           *command
+	expectedErr    string
+	blockedWarning *string
 }
 
 type command struct {

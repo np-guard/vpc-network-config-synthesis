@@ -13,7 +13,7 @@ import (
 
 type (
 	Synthesizer interface {
-		Synth() ir.Collection
+		Synth() (ir.Collection, string)
 	}
 
 	explanation struct {

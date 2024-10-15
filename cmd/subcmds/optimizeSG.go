@@ -7,7 +7,7 @@ package subcmds
 
 import "github.com/spf13/cobra"
 
-func NewOptimizeSGCommand(args *inArgs) *cobra.Command {
+func newOptimizeSGCommand(_ *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "sg",
 		Short: "OptimizeSG is not supported yet",

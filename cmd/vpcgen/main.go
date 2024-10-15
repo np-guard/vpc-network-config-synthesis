@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	err := subcmds.Main(os.Args)
+	_, err := subcmds.Main(os.Args)
 	if err != nil {
 		log.Fatal(err)
 	}

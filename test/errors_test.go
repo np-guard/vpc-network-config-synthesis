@@ -15,7 +15,7 @@ import (
 func TestErrors(t *testing.T) {
 	for _, tt := range errorTestsList() {
 		t.Run(tt.testName, func(t *testing.T) {
-			err := subcmds.Main(tt.args.Args(dataForTestingErrorsFolder, dataForTestingErrorsFolder))
+			_, err := subcmds.Main(tt.args.Args(dataForTestingErrorsFolder, dataForTestingErrorsFolder))
 			if err == nil || !strings.Contains(err.Error(), tt.expectedErr) {
 				res := "nil"
 				if err != nil {

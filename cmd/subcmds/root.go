@@ -34,7 +34,7 @@ type inArgs struct {
 	locals     bool
 }
 
-func NewRootCommand() *cobra.Command {
+func newRootCommand() *cobra.Command {
 	args := &inArgs{}
 
 	rootCmd := &cobra.Command{

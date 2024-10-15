@@ -5,8 +5,22 @@ SPDX-License-Identifier: Apache-2.0
 
 package subcmds
 
-func Main(args []string) error {
-	rootCmd := NewRootCommand()
+import (
+	"bytes"
+
+	"github.com/spf13/cobra"
+)
+
+func Main(args []string) (string, error) {
+	rootCmd := newRootCommand()
 	rootCmd.SetArgs(args[1:])
-	return rootCmd.Execute()
+	return coolCommand(rootCmd)
+}
+
+func coolCommand(cmd *cobra.Command) (string, error) {
+	var outBuffer bytes.Buffer
+	cmd.SetOut(&outBuffer)
+
+	err := cmd.Execute()
+	return outBuffer.String(), err
 }
