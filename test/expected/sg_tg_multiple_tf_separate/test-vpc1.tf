@@ -1,4 +1,4 @@
-### SG attached to test-vpc1/vsi0-subnet10
+### SG test-vpc1--vsi0-subnet10 is attached to test-vpc1/vsi0-subnet10
 resource "ibm_is_security_group" "test-vpc1--vsi0-subnet10" {
   name           = "sg-test-vpc1--vsi0-subnet10"
   resource_group = local.sg_synth_resource_group_id
@@ -13,7 +13,7 @@ resource "ibm_is_security_group_rule" "test-vpc1--vsi0-subnet10-0" {
   }
 }
 
-### SG attached to test-vpc1/vsi0-subnet11
+### SG test-vpc1--vsi0-subnet11 is attached to test-vpc1/vsi0-subnet11
 resource "ibm_is_security_group" "test-vpc1--vsi0-subnet11" {
   name           = "sg-test-vpc1--vsi0-subnet11"
   resource_group = local.sg_synth_resource_group_id
