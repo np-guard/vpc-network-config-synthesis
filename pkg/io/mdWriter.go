@@ -30,7 +30,7 @@ func NewMDWriter(w io.Writer) *MDWriter {
 	return &MDWriter{w: bufio.NewWriter(w)}
 }
 
-func (w *MDWriter) WriteSG(collection *ir.SGCollection, vpc string) error {
+func (w *MDWriter) WriteSG(collection *ir.SGCollection, vpc string, _ bool) error {
 	sgTable, err := WriteSG(collection, vpc)
 	if err != nil {
 		return err
@@ -38,7 +38,7 @@ func (w *MDWriter) WriteSG(collection *ir.SGCollection, vpc string) error {
 	return w.writeAll(append(append(SGHeader(), addAlighns(sgColsNum)...), sgTable...))
 }
 
-func (w *MDWriter) WriteACL(collection *ir.ACLCollection, vpc string) error {
+func (w *MDWriter) WriteACL(collection *ir.ACLCollection, vpc string, _ bool) error {
 	aclTable, err := WriteACL(collection, vpc)
 	if err != nil {
 		return err

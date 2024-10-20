@@ -18,7 +18,7 @@ import (
 )
 
 // WriteSG prints an entire collection of Security Groups as a sequence of terraform resources.
-func (w *Writer) WriteSG(c *ir.SGCollection, vpc string) error {
+func (w *Writer) WriteSG(c *ir.SGCollection, vpc string, isSynth bool) error {
 	collection, err := sgCollection(c, vpc)
 	if err != nil {
 		return err

@@ -54,7 +54,7 @@ type (
 	}
 
 	SGWriter interface {
-		WriteSG(sgColl *SGCollection, vpc string) error
+		WriteSG(sgColl *SGCollection, vpc string, isSynth bool) error
 	}
 )
 
@@ -122,8 +122,8 @@ func (c *SGCollection) VpcNames() []string {
 	return utils.SortedMapKeys(c.SGs)
 }
 
-func (c *SGCollection) Write(w Writer, vpc string) error {
-	return w.WriteSG(c, vpc)
+func (c *SGCollection) Write(w Writer, vpc string, isSynth bool) error {
+	return w.WriteSG(c, vpc, isSynth)
 }
 
 func (c *SGCollection) SortedSGNames(vpc ID) []SGName {
