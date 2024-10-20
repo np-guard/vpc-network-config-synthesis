@@ -18,11 +18,11 @@ import (
 
 // SG remote
 func rulesToSGCubes(rules *rulesPerProtocol) *sgCubesPerProtocol {
-	tcpSpan := tcpudpRulesSGCubes(rules.tcp)
-	udpSpan := tcpudpRulesSGCubes(rules.udp)
-	icmpSpan := icmpRulesSGCubes(rules.icmp)
-	allSpan := allProtocolRulesToSGCubes(rules.all)
-	return &sgCubesPerProtocol{tcp: tcpSpan, udp: udpSpan, icmp: icmpSpan, all: allSpan}
+	return &sgCubesPerProtocol{tcp: tcpudpRulesSGCubes(rules.tcp),
+		udp:  tcpudpRulesSGCubes(rules.udp),
+		icmp: icmpRulesSGCubes(rules.icmp),
+		all:  allProtocolRulesToSGCubes(rules.all),
+	}
 }
 
 // all protocol rules to cubes
@@ -66,11 +66,11 @@ func icmpRulesSGCubes(rules []*ir.SGRule) map[ir.SGName]*netset.ICMPSet {
 
 // IP remote
 func rulesToIPCubes(rules *rulesPerProtocol) *ipCubesPerProtocol {
-	tcpCubes := tcpudpRulesToIPCubes(rules.tcp)
-	udpCubes := tcpudpRulesToIPCubes(rules.udp)
-	icmpCubes := icmpRulesToIPCubes(rules.icmp)
-	allCubes := allProtocolRulesToIPCubes(rules.all)
-	return &ipCubesPerProtocol{tcp: tcpCubes, udp: udpCubes, icmp: icmpCubes, all: allCubes}
+	return &ipCubesPerProtocol{tcp: tcpudpRulesToIPCubes(rules.tcp),
+		udp:  tcpudpRulesToIPCubes(rules.udp),
+		icmp: icmpRulesToIPCubes(rules.icmp),
+		all:  allProtocolRulesToIPCubes(rules.all),
+	}
 }
 
 // all protocol rules to cubes

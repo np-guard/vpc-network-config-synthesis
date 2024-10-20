@@ -137,7 +137,7 @@ func (s *sgOptimizer) reduceRules(rules []*ir.SGRule, direction ir.Direction) []
 }
 
 func reduceRulesSGRemote(cubes *sgCubesPerProtocol, direction ir.Direction) []*ir.SGRule {
-	cubes = reduceSGCubes(cubes)
+	reduceSGCubes(cubes)
 
 	// cubes to SG rules
 	tcpRules := tcpudpSGCubesToRules(cubes.tcp, direction, true)
@@ -150,7 +150,7 @@ func reduceRulesSGRemote(cubes *sgCubesPerProtocol, direction ir.Direction) []*i
 }
 
 func reduceRulesIPRemote(cubes *ipCubesPerProtocol, direction ir.Direction) []*ir.SGRule {
-	cubes = reduceIPCubes(cubes)
+	reduceIPCubes(cubes)
 
 	// cubes to SG rules
 	tcpRules := tcpudpIPCubesToRules(cubes.tcp, cubes.all, direction, true)

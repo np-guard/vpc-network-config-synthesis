@@ -13,23 +13,22 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/optimize"
 )
 
-func reduceSGCubes(spans *sgCubesPerProtocol) *sgCubesPerProtocol {
-	spans = deleteOtherProtocolIfAllProtocolExists(spans)
-	return compressThreeProtocolsToAllProtocol(spans)
+func reduceSGCubes(spans *sgCubesPerProtocol) {
+	deleteOtherProtocolIfAllProtocolExists(spans)
+	compressThreeProtocolsToAllProtocol(spans)
 }
 
 // delete other protocols rules if all protocol rule exists
-func deleteOtherProtocolIfAllProtocolExists(spans *sgCubesPerProtocol) *sgCubesPerProtocol {
+func deleteOtherProtocolIfAllProtocolExists(spans *sgCubesPerProtocol) {
 	for _, sgName := range spans.all {
 		delete(spans.tcp, sgName)
 		delete(spans.udp, sgName)
 		delete(spans.icmp, sgName)
 	}
-	return spans
 }
 
 // merge tcp, udp and icmp rules into all protocol rule
-func compressThreeProtocolsToAllProtocol(spans *sgCubesPerProtocol) *sgCubesPerProtocol {
+func compressThreeProtocolsToAllProtocol(spans *sgCubesPerProtocol) {
 	for sgName, tcpPorts := range spans.tcp {
 		if udpPorts, ok := spans.udp[sgName]; ok {
 			if ic, ok := spans.icmp[sgName]; ok {
@@ -42,19 +41,17 @@ func compressThreeProtocolsToAllProtocol(spans *sgCubesPerProtocol) *sgCubesPerP
 			}
 		}
 	}
-	return spans
 }
 
 // observation: It pays to switch to all protocol rule when we have rules that cover all other protocols
 // on exactly the same cidr (only one protocol can exceed).
 //
 //nolint:gocyclo // multiple if statments
-func reduceIPCubes(cubes *ipCubesPerProtocol) *ipCubesPerProtocol {
+func reduceIPCubes(cubes *ipCubesPerProtocol) {
 	tcpPtr := 0
 	udpPtr := 0
 	icmpPtr := 0
 
-	var changed bool
 	for tcpPtr < len(cubes.tcp) && udpPtr < len(cubes.udp) && icmpPtr < len(cubes.icmp) {
 		if !cubes.tcp[tcpPtr].Right.Equal(netset.AllPorts()) {
 			tcpPtr++
@@ -69,8 +66,7 @@ func reduceIPCubes(cubes *ipCubesPerProtocol) *ipCubesPerProtocol {
 			continue
 		}
 
-		cubes, changed = compressToAllCube(cubes, tcpPtr, udpPtr, icmpPtr)
-		if changed {
+		if compressedToAllCube(cubes, tcpPtr, udpPtr, icmpPtr) {
 			continue
 		}
 
@@ -79,7 +75,7 @@ func reduceIPCubes(cubes *ipCubesPerProtocol) *ipCubesPerProtocol {
 		icmpIP := cubes.icmp[icmpPtr].Left
 
 		switch {
-		// one protocol ipb contains two other ipbs. advance the smaller ipb
+		// one protocol ipb contains two other ipbs ==> advance the smaller ipb
 		case udpIP.IsSubset(tcpIP) && icmpIP.IsSubset(tcpIP) && optimize.LessIPBlock(udpIP, icmpIP):
 			udpPtr++
 		case udpIP.IsSubset(tcpIP) && icmpIP.IsSubset(tcpIP) && optimize.LessIPBlock(icmpIP, udpIP):
@@ -102,11 +98,10 @@ func reduceIPCubes(cubes *ipCubesPerProtocol) *ipCubesPerProtocol {
 			icmpPtr++
 		}
 	}
-	return cubes
 }
 
 // compress three protocol rules to all protocol rule (and maybe another protocol rule)
-func compressToAllCube(cubes *ipCubesPerProtocol, tcpPtr, udpPtr, icmpPtr int) (*ipCubesPerProtocol, bool) {
+func compressedToAllCube(cubes *ipCubesPerProtocol, tcpPtr, udpPtr, icmpPtr int) bool {
 	tcpIP := cubes.tcp[tcpPtr].Left
 	udpIP := cubes.udp[udpPtr].Left
 	icmpIP := cubes.icmp[icmpPtr].Left
@@ -119,17 +114,17 @@ func compressToAllCube(cubes *ipCubesPerProtocol, tcpPtr, udpPtr, icmpPtr int) (
 		cubes.udp = slices.Delete(cubes.udp, udpPtr, udpPtr+1)
 		cubes.icmp = slices.Delete(cubes.icmp, icmpPtr, icmpPtr+1)
 		cubes.all = cubes.all.Union(udpIP)
-		return cubes, true
+		return true
 	case tcpIP.IsSubset(udpIP) && tcpIP.Equal(icmpIP):
 		cubes.tcp = slices.Delete(cubes.tcp, tcpPtr, tcpPtr+1)
 		cubes.icmp = slices.Delete(cubes.icmp, icmpPtr, icmpPtr+1)
 		cubes.all = cubes.all.Union(tcpIP)
-		return cubes, true
+		return true
 	case tcpIP.IsSubset(icmpIP) && tcpIP.Equal(udpIP):
 		cubes.tcp = slices.Delete(cubes.tcp, tcpPtr, tcpPtr+1)
 		cubes.udp = slices.Delete(cubes.udp, udpPtr, udpPtr+1)
 		cubes.all = cubes.all.Union(tcpIP)
-		return cubes, true
+		return true
 	}
-	return cubes, false
+	return false
 }
