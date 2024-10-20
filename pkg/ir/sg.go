@@ -46,7 +46,7 @@ type (
 		SGName        SGName
 		InboundRules  []*SGRule
 		OutboundRules []*SGRule
-		Attached      []ID
+		Targets       []ID
 	}
 
 	SGCollection struct {
@@ -85,7 +85,7 @@ func NewSGRule(direction Direction, remote RemoteType, p netp.Protocol, local *n
 }
 
 func NewSG(sgName SGName) *SG {
-	return &SG{SGName: sgName, InboundRules: []*SGRule{}, OutboundRules: []*SGRule{}, Attached: []ID{}}
+	return &SG{SGName: sgName, InboundRules: []*SGRule{}, OutboundRules: []*SGRule{}, Targets: []ID{}}
 }
 
 func NewSGCollection() *SGCollection {

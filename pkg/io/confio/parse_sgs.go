@@ -39,7 +39,10 @@ func ReadSGs(filename string) (*ir.SGCollection, error) {
 		if result.SGs[vpcName] == nil {
 			result.SGs[vpcName] = make(map[ir.SGName]*ir.SG)
 		}
-		result.SGs[vpcName][ir.SGName(*sg.Name)] = &ir.SG{InboundRules: inbound, OutboundRules: outbound}
+		result.SGs[vpcName][ir.SGName(*sg.Name)] = &ir.SG{InboundRules: inbound,
+			OutboundRules: outbound,
+			Targets:       transalteTargets(sg.Targets),
+		}
 	}
 	return result, nil
 }
@@ -168,6 +171,17 @@ func translateLocal(local vpcv1.SecurityGroupRuleLocalIntf) (*netset.IPBlock, er
 		return verifyLocalValue(ipAddrs)
 	}
 	return nil, fmt.Errorf("error parsing Local field")
+}
+
+// translate SG targets
+func transalteTargets(targets []vpcv1.SecurityGroupTargetReferenceIntf) []string {
+	res := make([]string, 0)
+	for i := range targets {
+		if t, ok := targets[i].(*vpcv1.SecurityGroupTargetReference); ok && t.Name != nil {
+			res = append(res, *t.Name)
+		}
+	}
+	return res
 }
 
 // temporary - first version of optimization requires local = 0.0.0.0/32
