@@ -54,7 +54,7 @@ func sgRemote(nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteSecurit
 	st := rule.Remote.String()
 	switch t := rule.Remote.(type) {
 	case *netset.IPBlock:
-		if ipString := t.ToIPAddressString(); ipString != "" { // single IP address
+		if t.IsSingleIPAddress() { // single IP address
 			return &vpcv1.SecurityGroupRuleRemoteIP{
 				Address: &st,
 			}
@@ -72,12 +72,19 @@ func makeSGRuleItem(nameToSGRemoteRef map[string]*vpcv1.SecurityGroupRuleRemoteS
 	rule *ir.SGRule, i int) (vpcv1.SecurityGroupRuleIntf, error) {
 	iPVersion := utils.Ptr(ipv4Const)
 	direction := direction(rule.Direction)
-	cidrAll := netset.CidrAll
-	local := &vpcv1.SecurityGroupRuleLocal{
-		CIDRBlock: &cidrAll,
-	}
 	ref := allocateRef()
 	remote := sgRemote(nameToSGRemoteRef, rule)
+
+	var local vpcv1.SecurityGroupRuleLocalIntf
+	if rule.Local.IsSingleIPAddress() {
+		local = &vpcv1.SecurityGroupRuleLocalIP{
+			Address: utils.Ptr(rule.Local.FirstIPAddress()),
+		}
+	} else {
+		local = &vpcv1.SecurityGroupRuleLocalCIDR{
+			CIDRBlock: utils.Ptr(rule.Local.ToCidrList()[0]),
+		}
+	}
 
 	switch p := rule.Protocol.(type) {
 	case netp.TCPUDP:
@@ -245,7 +252,7 @@ func updateSGEndpointGW(model *configModel.ResourcesContainerModel, collection *
 	return nil
 }
 
-func updateSG(model *configModel.ResourcesContainerModel, collection *ir.SGCollection) error {
+func writeSGs(model *configModel.ResourcesContainerModel, collection *ir.SGCollection) error {
 	nameToSGRemoteRef := make(map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference)
 	idToSGIndex := make(map[string]int, len(model.SecurityGroupList))
 	for i := range model.SecurityGroupList {
@@ -254,13 +261,19 @@ func updateSG(model *configModel.ResourcesContainerModel, collection *ir.SGColle
 
 	err1 := updateSGInstances(model, collection, nameToSGRemoteRef, idToSGIndex)
 	err2 := updateSGEndpointGW(model, collection, nameToSGRemoteRef, idToSGIndex)
-	globalIndex = 0 // making test results more predictable
 	return errors.Join(err1, err2)
 }
 
 func (w *Writer) WriteSG(collection *ir.SGCollection, _ string, isSynth bool) error {
-	if err := updateSG(w.model, collection); err != nil {
+	var err error
+	if isSynth {
+		err = writeSGs(w.model, collection)
+	} else {
+		err = updateSGs(w.model, collection)
+	}
+	if err != nil {
 		return err
 	}
+	globalIndex = 0 // making test results more predictable
 	return w.writeModel()
 }

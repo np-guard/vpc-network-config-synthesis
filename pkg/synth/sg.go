@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
@@ -77,7 +78,7 @@ func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection) error
 }
 
 // if the endpoint in internal, a rule will be created to allow traffic.
-func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *namedAddrs, protocol netp.Protocol,
+func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *namedAddrs, p netp.Protocol,
 	direction ir.Direction, internalEndpoint bool, ruleExplanation string) {
 	if !internalEndpoint {
 		return
@@ -85,13 +86,7 @@ func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *n
 	localSGName := ir.SGName(localEndpoint.Name)
 	localSG := s.result.LookupOrCreate(localSGName)
 	localSG.Targets = []ir.ID{ir.ID(localSGName)}
-	rule := &ir.SGRule{
-		Remote:      sgRemote(&s.spec.Defs, remoteEndpoint),
-		Direction:   direction,
-		Protocol:    protocol,
-		Explanation: ruleExplanation,
-	}
-	localSG.Add(rule)
+	localSG.Add(ir.NewSGRule(direction, sgRemote(&s.spec.Defs, remoteEndpoint), p, netset.GetCidrAll(), ruleExplanation))
 }
 
 // generate SGs for blocked endpoints (endpoints that do not appear in Spec)

@@ -60,7 +60,7 @@ func writeOutput(args *inArgs, collection ir.Collection, vpcNames []string, isSy
 
 func writeCollection(args *inArgs, collection ir.Collection, vpc string, isSynth bool) (*bytes.Buffer, error) {
 	var data bytes.Buffer
-	writer, err := pickWriter(args, &data, isSynth)
+	writer, err := pickWriter(args, &data)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func writeCollection(args *inArgs, collection ir.Collection, vpc string, isSynth
 	return &data, nil
 }
 
-func pickWriter(args *inArgs, data *bytes.Buffer, isSynth bool) (ir.Writer, error) {
+func pickWriter(args *inArgs, data *bytes.Buffer) (ir.Writer, error) {
 	w := bufio.NewWriter(data)
 	switch args.outputFmt {
 	case tfOutputFormat:
@@ -80,9 +80,7 @@ func pickWriter(args *inArgs, data *bytes.Buffer, isSynth bool) (ir.Writer, erro
 	case mdOutputFormat:
 		return io.NewMDWriter(w), nil
 	case jsonOutputFormat:
-		if isSynth {
-			return confio.NewWriter(w, args.configFile)
-		}
+		return confio.NewWriter(w, args.configFile)
 	}
 	return nil, fmt.Errorf("bad output format: %q", args.outputFmt)
 }
