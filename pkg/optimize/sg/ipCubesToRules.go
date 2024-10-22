@@ -17,17 +17,17 @@ import (
 
 // all protocol cubes, represented by a single ipblock that will be decomposed
 // into cidrs. Each cidr will be the remote of a SG rule
-func allProtocolIPCubesIPToRules(cubes *netset.IPBlock, direction ir.Direction) []*ir.SGRule {
+func allProtocolIPCubesIPToRules(cubes *netset.IPBlock, direction ir.Direction, l *netset.IPBlock) []*ir.SGRule {
 	result := make([]*ir.SGRule, 0)
 	for _, cidr := range cubes.SplitToCidrs() {
-		result = append(result, ir.NewSGRule(direction, cidr, netp.AnyProtocol{}, netset.GetCidrAll(), ""))
+		result = append(result, ir.NewSGRule(direction, cidr, netp.AnyProtocol{}, l, ""))
 	}
 	return result
 }
 
 // tcpudpIPCubesToRules converts cubes representing tcp or udp protocol rules to SG rules
 func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], allCubes *netset.IPBlock, direction ir.Direction,
-	isTCP bool) []*ir.SGRule {
+	isTCP bool, l *netset.IPBlock) []*ir.SGRule {
 	if len(cubes) == 0 {
 		return []*ir.SGRule{}
 	}
@@ -38,7 +38,7 @@ func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], all
 	for i := range cubes {
 		// if it is not possible to continue the rule between the cubes, generate all the existing rules
 		if i > 0 && !continuation(cubes[i-1], cubes[i], allCubes) {
-			result = append(result, createActiveRules(activeRules, cubes[i-1].Left.LastIPAddressObject(), direction)...)
+			result = append(result, createActiveRules(activeRules, cubes[i-1].Left.LastIPAddressObject(), direction, l)...)
 			activeRules = make(map[*netset.IPBlock]netp.Protocol)
 		}
 
@@ -48,7 +48,7 @@ func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], all
 		for ipb, protocol := range activeRules {
 			if tcpudp, ok := protocol.(netp.TCPUDP); ok {
 				if !tcpudp.DstPorts().ToSet().IsSubset(cubes[i].Right) {
-					result = append(result, createNewRules(protocol, ipb, cubes[i-1].Left.LastIPAddressObject(), direction)...)
+					result = append(result, createNewRules(protocol, ipb, cubes[i-1].Left.LastIPAddressObject(), direction, l)...)
 				} else {
 					activePorts.AddInterval(tcpudp.DstPorts())
 				}
@@ -64,11 +64,12 @@ func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], all
 		}
 	}
 	// generate all the existing rules
-	return append(result, createActiveRules(activeRules, cubes[len(cubes)-1].Left.LastIPAddressObject(), direction)...)
+	return append(result, createActiveRules(activeRules, cubes[len(cubes)-1].Left.LastIPAddressObject(), direction, l)...)
 }
 
 // icmpIPCubesToRules converts cubes representing icmp protocol rules to SG rules
-func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], allCubes *netset.IPBlock, direction ir.Direction) []*ir.SGRule {
+func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], allCubes *netset.IPBlock, direction ir.Direction,
+	l *netset.IPBlock) []*ir.SGRule {
 	if len(cubes) == 0 {
 		return []*ir.SGRule{}
 	}
@@ -79,7 +80,7 @@ func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], allCu
 	for i := range cubes {
 		// if it is not possible to continue the rule between the cubes, generate all the existing rules
 		if i > 0 && !continuation(cubes[i-1], cubes[i], allCubes) {
-			result = append(result, createActiveRules(activeRules, cubes[i-1].Left.LastIPAddressObject(), direction)...)
+			result = append(result, createActiveRules(activeRules, cubes[i-1].Left.LastIPAddressObject(), direction, l)...)
 			activeRules = make(map[*netset.IPBlock]netp.Protocol)
 		}
 
@@ -90,7 +91,7 @@ func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], allCu
 			if icmp, ok := protocol.(netp.ICMP); ok {
 				ruleIcmpSet := optimize.IcmpRuleToIcmpSet(icmp)
 				if !ruleIcmpSet.IsSubset(cubes[i].Right) {
-					result = append(result, createNewRules(protocol, ipb, cubes[i-1].Left.LastIPAddressObject(), direction)...)
+					result = append(result, createNewRules(protocol, ipb, cubes[i-1].Left.LastIPAddressObject(), direction, l)...)
 				} else {
 					activeICMP.Union(ruleIcmpSet)
 				}
@@ -106,7 +107,7 @@ func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], allCu
 	}
 
 	// generate all the existing rules
-	return append(result, createActiveRules(activeRules, cubes[len(cubes)-1].Left.LastIPAddressObject(), direction)...)
+	return append(result, createActiveRules(activeRules, cubes[len(cubes)-1].Left.LastIPAddressObject(), direction, l)...)
 }
 
 // continuation returns true if the rules can be continued between the two cubes
@@ -124,20 +125,21 @@ func continuation[T ds.Set[T]](prevPair, currPair ds.Pair[*netset.IPBlock, T], a
 }
 
 // creates sgRules from SG active rules
-func createActiveRules(activeRules map[*netset.IPBlock]netp.Protocol, endIP *netset.IPBlock, direction ir.Direction) []*ir.SGRule {
+func createActiveRules(activeRules map[*netset.IPBlock]netp.Protocol, endIP *netset.IPBlock, direction ir.Direction,
+	l *netset.IPBlock) []*ir.SGRule {
 	res := make([]*ir.SGRule, 0)
 	for ipb, protocol := range activeRules {
-		res = append(res, createNewRules(protocol, ipb, endIP, direction)...)
+		res = append(res, createNewRules(protocol, ipb, endIP, direction, l)...)
 	}
 	return res
 }
 
 // createNewRules breaks the startIP-endIP ip range into cidrs and creates SG rules
-func createNewRules(protocol netp.Protocol, startIP, endIP *netset.IPBlock, direction ir.Direction) []*ir.SGRule {
+func createNewRules(protocol netp.Protocol, startIP, endIP *netset.IPBlock, direction ir.Direction, l *netset.IPBlock) []*ir.SGRule {
 	res := make([]*ir.SGRule, 0)
 	ipRange, _ := netset.IPBlockFromIPRange(startIP, endIP)
 	for _, cidr := range ipRange.SplitToCidrs() {
-		res = append(res, ir.NewSGRule(direction, cidr, protocol, netset.GetCidrAll(), ""))
+		res = append(res, ir.NewSGRule(direction, cidr, protocol, l, ""))
 	}
 	return res
 }
