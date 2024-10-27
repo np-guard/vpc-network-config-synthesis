@@ -134,9 +134,6 @@ func replaceSegmentNames(segments map[ir.ID]*ir.SegmentDetails, distinctNames ma
 
 func replaceResourceName(distinctNames map[string]ir.ID, ambiguousNames map[string]struct{}, resourceName string,
 	resourceType spec.ResourceType) (string, error) {
-	if len(ir.ScopingComponents(resourceName)) != 1 {
-		return resourceName, nil
-	}
 	if val, ok := distinctNames[resourceName]; ok {
 		return val, nil
 	}
@@ -148,20 +145,25 @@ func replaceResourceName(distinctNames map[string]ir.ID, ambiguousNames map[stri
 
 // inverseMapToFullyQualifiedName returns two maps: one from a name to a fully qualified name,
 // and the second is a set of ambiguous names
-func inverseMapToFullyQualifiedName[T ir.Named](m map[ir.ID]T) (distinctNames map[string]ir.ID, ambiguousNames map[string]struct{}) {
+func inverseMapToFullyQualifiedName[T any](m map[ir.ID]T) (distinctNames map[string]ir.ID, ambiguousNames map[string]struct{}) {
 	ambiguousNames = make(map[string]struct{})
 	distinctNames = make(map[string]ir.ID)
 
-	for fullNifName, nif := range m {
-		nifName := nif.Name()
-		if _, ok := ambiguousNames[nifName]; ok {
-			continue
-		}
-		if _, ok := distinctNames[nifName]; !ok {
-			distinctNames[nifName] = fullNifName
-		} else {
-			delete(distinctNames, nifName)
-			ambiguousNames[nifName] = struct{}{}
+	for fullNifName := range m {
+		distinctNames[fullNifName] = fullNifName
+		for i, c := range fullNifName {
+			if c == '/' && i+1 < len(fullNifName) {
+				currName := fullNifName[i+1:]
+				if _, ok := ambiguousNames[currName]; ok {
+					break
+				}
+				if _, ok := distinctNames[currName]; !ok {
+					distinctNames[currName] = fullNifName
+				} else {
+					ambiguousNames[currName] = struct{}{}
+					delete(distinctNames, currName)
+				}
+			}
 		}
 	}
 	return distinctNames, ambiguousNames

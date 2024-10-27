@@ -19,7 +19,6 @@ import (
 
 type (
 	ID           = string
-	NamedEntity  string
 	ResourceType string
 
 	Spec struct {
@@ -114,37 +113,27 @@ type (
 	}
 
 	SubnetDetails struct {
-		NamedEntity
 		CIDR *netset.IPBlock
-		VPC  ID
 	}
 
 	NifDetails struct {
-		NamedEntity
 		IP       *netset.IPBlock
-		VPC      ID
 		Instance ID
 		Subnet   ID
 	}
 
 	InstanceDetails struct {
-		NamedEntity
-		VPC  ID
 		Nifs []ID
 	}
 
 	VPEReservedIPsDetails struct {
-		NamedEntity
 		IP      *netset.IPBlock
 		VPEName ID
 		Subnet  ID
-		VPC     ID
 	}
 
 	VPEDetails struct {
-		NamedEntity
 		VPEReservedIPs []ID
-		VPC            ID
 	}
 
 	SegmentDetails struct {
@@ -162,10 +151,6 @@ type (
 
 	Reader interface {
 		ReadSpec(filename string, defs *ConfigDefs) (*Spec, error)
-	}
-
-	Named interface {
-		Name() string
 	}
 
 	NWResource interface {
@@ -203,10 +188,6 @@ const (
 	WarningUnspecifiedACL = "The following subnets do not have required connections; the generated ACL will block all traffic: "
 	WarningUnspecifiedSG  = "The following endpoints do not have required connections; the generated SGs will block all traffic: "
 )
-
-func (n *NamedEntity) Name() string {
-	return string(*n)
-}
 
 func (s *SubnetDetails) Address() *netset.IPBlock {
 	return s.CIDR

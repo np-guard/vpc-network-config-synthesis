@@ -81,9 +81,7 @@ func parseSubnets(config *configModel.ResourcesContainerModel) (map[ir.ID]*ir.Su
 			return nil, err
 		}
 		subnetDetails := ir.SubnetDetails{
-			NamedEntity: ir.NamedEntity(*subnet.Name),
-			VPC:         *subnet.VPC.Name,
-			CIDR:        cidr,
+			CIDR: cidr,
 		}
 		subnets[uniqueName] = &subnetDetails
 	}
@@ -104,19 +102,15 @@ func parseInstancesNifs(config *configModel.ResourcesContainerModel) (instances 
 				return nil, nil, err
 			}
 			nifDetails := ir.NifDetails{
-				NamedEntity: ir.NamedEntity(*instance.NetworkInterfaces[i].Name),
-				Instance:    ScopingString(*instance.VPC.Name, *instance.Name),
-				VPC:         *instance.VPC.Name,
-				IP:          nifIP,
-				Subnet:      ScopingString(*instance.VPC.Name, *instance.NetworkInterfaces[i].Subnet.Name),
+				Instance: ScopingString(*instance.VPC.Name, *instance.Name),
+				IP:       nifIP,
+				Subnet:   ScopingString(*instance.VPC.Name, *instance.NetworkInterfaces[i].Subnet.Name),
 			}
 			nifs[nifUniqueName] = &nifDetails
 			instanceNifs[i] = nifUniqueName
 		}
 		instanceDetails := ir.InstanceDetails{
-			NamedEntity: ir.NamedEntity(*instance.Name),
-			VPC:         *instance.VPC.Name,
-			Nifs:        instanceNifs,
+			Nifs: instanceNifs,
 		}
 		instances[instanceUniqueName] = &instanceDetails
 	}
@@ -134,9 +128,7 @@ func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]*ir.
 		}
 		uniqueVpeName := ScopingString(*vpe.VPC.Name, *vpe.Name)
 		vpeDetails := ir.VPEDetails{
-			NamedEntity:    ir.NamedEntity(*vpe.Name),
 			VPEReservedIPs: []ir.ID{},
-			VPC:            *vpe.VPC.Name,
 		}
 		vpes[uniqueVpeName] = &vpeDetails
 	}
@@ -154,11 +146,9 @@ func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]*ir.
 				return nil, nil, err
 			}
 			vpeReservedIPDetails := ir.VPEReservedIPsDetails{
-				NamedEntity: ir.NamedEntity(*r.Name),
-				VPEName:     VPEName,
-				Subnet:      subnetName,
-				IP:          vpeIP,
-				VPC:         vpes[VPEName].VPC,
+				VPEName: VPEName,
+				Subnet:  subnetName,
+				IP:      vpeIP,
 			}
 			vpeReservedIPs[uniqueVpeReservedIPName] = &vpeReservedIPDetails
 			vpe := vpes[VPEName]
