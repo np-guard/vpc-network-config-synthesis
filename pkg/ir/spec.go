@@ -30,10 +30,10 @@ type (
 
 	Connection struct {
 		// Egress resource
-		Src *Resource
+		Src *FirewallResource
 
 		// Ingress resource
-		Dst *Resource
+		Dst *FirewallResource
 
 		// Allowed protocols
 		TrackedProtocols []*TrackedProtocol
@@ -42,15 +42,14 @@ type (
 		Origin fmt.Stringer
 	}
 
-	Resource struct {
+	FirewallResource struct {
 		// Symbolic name of resource, if available
 		Name *string
 
-		// list of CIDR / Ip addresses.
-		NamedAddrs []*NamedAddrs
+		AppliedTo []*NamedAddrs
 
 		// Cidr list
-		Cidrs []*NamedAddrs
+		RemoteCidrs []*NamedAddrs
 
 		// Type of resource
 		Type *ResourceType
@@ -245,33 +244,33 @@ func (v *VPEDetails) endpointType() ResourceType {
 	return ResourceTypeVPE
 }
 
-func lookupSingle[T NWResource](m map[ID]T, name string, t ResourceType) (*Resource, error) {
+func lookupSingle[T NWResource](m map[ID]T, name string, t ResourceType) (*FirewallResource, error) {
 	if details, ok := m[name]; ok {
-		return &Resource{
-			Name:       &name,
-			NamedAddrs: []*NamedAddrs{{Name: &name, IPAddrs: details.Address()}},
-			Cidrs:      []*NamedAddrs{{Name: &name, IPAddrs: details.Address()}},
-			Type:       utils.Ptr(t),
+		return &FirewallResource{
+			Name:        &name,
+			AppliedTo:   []*NamedAddrs{{Name: &name, IPAddrs: details.Address()}},
+			RemoteCidrs: []*NamedAddrs{{Name: &name, IPAddrs: details.Address()}},
+			Type:        utils.Ptr(t),
 		}, nil
 	}
 	return nil, fmt.Errorf(resourceNotFound, name, t)
 }
 
 func (s *Definitions) lookupSegment(segment map[ID]*SegmentDetails, name string, t, elementType ResourceType,
-	lookup func(ResourceType, string) (*Resource, error)) (*Resource, error) {
+	lookup func(ResourceType, string) (*FirewallResource, error)) (*FirewallResource, error) {
 	segmentDetails, ok := segment[name]
 	if !ok {
 		return nil, fmt.Errorf(containerNotFound, name, t)
 	}
 
-	res := &Resource{Name: &name, NamedAddrs: []*NamedAddrs{}, Cidrs: []*NamedAddrs{}, Type: utils.Ptr(elementType)}
+	res := &FirewallResource{Name: &name, AppliedTo: []*NamedAddrs{}, RemoteCidrs: []*NamedAddrs{}, Type: utils.Ptr(elementType)}
 	for _, elementName := range segmentDetails.Elements {
 		subnet, err := lookup(elementType, elementName)
 		if err != nil {
 			return nil, err
 		}
-		res.NamedAddrs = append(res.NamedAddrs, subnet.NamedAddrs...)
-		res.Cidrs = append(res.Cidrs, subnet.Cidrs...)
+		res.AppliedTo = append(res.AppliedTo, subnet.AppliedTo...)
+		res.RemoteCidrs = append(res.RemoteCidrs, subnet.RemoteCidrs...)
 	}
 	return res, nil
 }

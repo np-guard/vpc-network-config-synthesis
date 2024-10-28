@@ -16,8 +16,8 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-// transalteConnections translate requires connections from spec.Spec to []*ir.Connection
-func (r *Reader) transalteConnections(conns []spec.SpecRequiredConnectionsElem, defs *ir.Definitions, isSG bool) ([]*ir.Connection, error) {
+// translateConnections translate requires connections from spec.Spec to []*ir.Connection
+func (r *Reader) translateConnections(conns []spec.SpecRequiredConnectionsElem, defs *ir.Definitions, isSG bool) ([]*ir.Connection, error) {
 	var connections []*ir.Connection
 	for i := range conns {
 		conns, err := translateConnection(defs, &conns[i], i, isSG)
@@ -31,8 +31,8 @@ func (r *Reader) transalteConnections(conns []spec.SpecRequiredConnectionsElem, 
 
 func translateConnection(defs *ir.Definitions, conn *spec.SpecRequiredConnectionsElem, connIdx int, isSG bool) ([]*ir.Connection, error) {
 	protocols, err1 := translateProtocols(conn.AllowedProtocols)
-	srcResource, isSrcExternal, err2 := transalteConnectionResource(defs, &conn.Src, isSG)
-	dstResource, isDstExternal, err3 := transalteConnectionResource(defs, &conn.Dst, isSG)
+	srcResource, isSrcExternal, err2 := translateConnectionResource(defs, &conn.Src, isSG)
+	dstResource, isDstExternal, err3 := translateConnectionResource(defs, &conn.Dst, isSG)
 	if err := errors.Join(err1, err2, err3); err != nil {
 		return nil, err
 	}
@@ -55,12 +55,13 @@ func translateConnection(defs *ir.Definitions, conn *spec.SpecRequiredConnection
 	return []*ir.Connection{out}, nil
 }
 
-func transalteConnectionResource(defs *ir.Definitions, resource *spec.Resource, isSG bool) (r *ir.Resource, isExternal bool, err error) {
+func translateConnectionResource(defs *ir.Definitions, resource *spec.Resource,
+	isSG bool) (r *ir.FirewallResource, isExternal bool, err error) {
 	resourceType, err := translateResourceType(defs, resource)
 	if err != nil {
 		return nil, false, err
 	}
-	var res *ir.Resource
+	var res *ir.FirewallResource
 	if isSG {
 		res, err = defs.LookupForSGSynth(resourceType, resource.Name)
 		updateBlockedResourcesSGSynth(defs, res)
@@ -135,8 +136,8 @@ func translateResourceType(defs *ir.Definitions, resource *spec.Resource) (ir.Re
 	return ir.ResourceTypeSubnet, fmt.Errorf("unsupported resource type %v (%v)", resource.Type, resource.Name)
 }
 
-func updateBlockedResourcesSGSynth(defs *ir.Definitions, resource *ir.Resource) {
-	for _, namedAddrs := range resource.NamedAddrs {
+func updateBlockedResourcesSGSynth(defs *ir.Definitions, resource *ir.FirewallResource) {
+	for _, namedAddrs := range resource.AppliedTo {
 		if _, ok := defs.BlockedInstances[*namedAddrs.Name]; ok {
 			defs.BlockedInstances[*namedAddrs.Name] = false
 		}
@@ -146,8 +147,8 @@ func updateBlockedResourcesSGSynth(defs *ir.Definitions, resource *ir.Resource) 
 	}
 }
 
-func updateBlockedResourcesACLSynth(defs *ir.Definitions, resource *ir.Resource) {
-	for _, namedAddrs := range resource.NamedAddrs {
+func updateBlockedResourcesACLSynth(defs *ir.Definitions, resource *ir.FirewallResource) {
+	for _, namedAddrs := range resource.AppliedTo {
 		if _, ok := defs.BlockedSubnets[*namedAddrs.Name]; ok {
 			defs.BlockedSubnets[*namedAddrs.Name] = false
 		}

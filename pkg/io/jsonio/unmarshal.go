@@ -41,7 +41,7 @@ func (r *Reader) ReadSpec(filename string, configDefs *ir.ConfigDefs, isSG bool)
 		return nil, err
 	}
 
-	connections, err := r.transalteConnections(jsonSpec.RequiredConnections, defs, isSG)
+	connections, err := r.translateConnections(jsonSpec.RequiredConnections, defs, isSG)
 	if err != nil {
 		return nil, err
 	}
