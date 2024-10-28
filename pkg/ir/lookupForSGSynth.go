@@ -43,10 +43,10 @@ func (s *Definitions) LookupForSGSynth(t ResourceType, name string) (*FirewallRe
 func (s *Definitions) lookupNIFForSGSynth(name string) (*FirewallResource, error) {
 	if _, ok := s.NIFs[name]; ok {
 		return &FirewallResource{
-			Name:       &name,
-			NamedAddrs: []*NamedAddrs{{Name: &s.NIFs[name].Instance}},
-			Cidrs:      []*NamedAddrs{{Name: &s.NIFs[name].Instance}},
-			Type:       utils.Ptr(ResourceTypeNIF),
+			Name:      &name,
+			AppliedTo: []*NamedAddrs{{Name: &s.NIFs[name].Instance}},
+			Cidrs:     []*NamedAddrs{{Name: &s.NIFs[name].Instance}},
+			Type:      utils.Ptr(ResourceTypeNIF),
 		}, nil
 	}
 	return nil, fmt.Errorf(resourceNotFound, ResourceTypeNIF, name)
@@ -55,10 +55,10 @@ func (s *Definitions) lookupNIFForSGSynth(name string) (*FirewallResource, error
 func lookupContainerForSGSynth[T EndpointProvider](m map[string]T, name string, t ResourceType) (*FirewallResource, error) {
 	if _, ok := m[name]; ok {
 		return &FirewallResource{
-			Name:       &name,
-			NamedAddrs: []*NamedAddrs{{Name: &name}},
-			Cidrs:      []*NamedAddrs{{Name: &name}},
-			Type:       utils.Ptr(t),
+			Name:      &name,
+			AppliedTo: []*NamedAddrs{{Name: &name}},
+			Cidrs:     []*NamedAddrs{{Name: &name}},
+			Type:      utils.Ptr(t),
 		}, nil
 	}
 	return nil, fmt.Errorf(containerNotFound, t, name)
@@ -67,9 +67,9 @@ func lookupContainerForSGSynth[T EndpointProvider](m map[string]T, name string, 
 func (s *Definitions) lookupSubnetForSGSynth(name string) (*FirewallResource, error) {
 	if subnetDetails, ok := s.Subnets[name]; ok {
 		return &FirewallResource{Name: &name,
-			NamedAddrs: s.containedResourcesInCidr(subnetDetails.CIDR),
-			Cidrs:      []*NamedAddrs{{IPAddrs: subnetDetails.CIDR}},
-			Type:       utils.Ptr(ResourceTypeSubnet),
+			AppliedTo: s.containedResourcesInCidr(subnetDetails.CIDR),
+			Cidrs:     []*NamedAddrs{{IPAddrs: subnetDetails.CIDR}},
+			Type:      utils.Ptr(ResourceTypeSubnet),
 		}, nil
 	}
 	return nil, fmt.Errorf(resourceNotFound, ResourceTypeSubnet, name)
@@ -78,9 +78,9 @@ func (s *Definitions) lookupSubnetForSGSynth(name string) (*FirewallResource, er
 func (s *Definitions) lookupCidrSegmentForSGSynth(name string) (*FirewallResource, error) {
 	if segmentDetails, ok := s.CidrSegments[name]; ok {
 		return &FirewallResource{Name: &name,
-			NamedAddrs: s.containedResourcesInCidr(segmentDetails.Cidrs),
-			Cidrs:      cidrToNamedAddrs(segmentDetails.Cidrs),
-			Type:       utils.Ptr(ResourceTypeCidr),
+			AppliedTo: s.containedResourcesInCidr(segmentDetails.Cidrs),
+			Cidrs:     cidrToNamedAddrs(segmentDetails.Cidrs),
+			Type:      utils.Ptr(ResourceTypeCidr),
 		}, nil
 	}
 	return nil, fmt.Errorf(containerNotFound, ResourceTypeCidrSegment, name)

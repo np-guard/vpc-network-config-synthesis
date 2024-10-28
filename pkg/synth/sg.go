@@ -43,7 +43,7 @@ func (s *SGSynthesizer) makeSG() *ir.SGCollection {
 func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection, direction ir.Direction) {
 	localResource, remoteResource, internalEndpoint, internalConn := connSettings(conn, direction)
 
-	for _, localEndpoint := range localResource.NamedAddrs {
+	for _, localEndpoint := range localResource.AppliedTo {
 		for _, remoteCidr := range remoteResource.Cidrs {
 			for _, trackedProtocol := range conn.TrackedProtocols {
 				ruleExplanation := explanation{internal: internalConn, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}.String()

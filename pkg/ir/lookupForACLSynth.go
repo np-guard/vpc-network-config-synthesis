@@ -59,7 +59,7 @@ func lookupContainerForACLSynth[T EndpointProvider](m map[ID]T, defs *Definition
 		return nil, fmt.Errorf(containerNotFound, name, t)
 	}
 
-	res := &FirewallResource{Name: &name, NamedAddrs: []*NamedAddrs{}, Cidrs: []*NamedAddrs{}, Type: utils.Ptr(ResourceTypeSubnet)}
+	res := &FirewallResource{Name: &name, AppliedTo: []*NamedAddrs{}, Cidrs: []*NamedAddrs{}, Type: utils.Ptr(ResourceTypeSubnet)}
 	endpointMap := containerDetails.endpointMap(defs)
 	for _, endpointName := range containerDetails.endpointNames() {
 		subnet, err := lookupSingleForACLSynth(endpointMap, defs.Subnets, endpointName, containerDetails.endpointType())
@@ -67,7 +67,7 @@ func lookupContainerForACLSynth[T EndpointProvider](m map[ID]T, defs *Definition
 			return nil, err
 		}
 		res.Cidrs = append(res.Cidrs, subnet.Cidrs...)
-		res.NamedAddrs = append(res.NamedAddrs, subnet.NamedAddrs...)
+		res.AppliedTo = append(res.AppliedTo, subnet.AppliedTo...)
 	}
 	return res, nil
 }
@@ -78,13 +78,13 @@ func (s *Definitions) lookupCidrSegmentACL(name string) (*FirewallResource, erro
 		return nil, fmt.Errorf(containerNotFound, name, ResourceTypeCidrSegment)
 	}
 
-	res := &FirewallResource{Name: &name, NamedAddrs: []*NamedAddrs{}, Cidrs: []*NamedAddrs{}, Type: utils.Ptr(ResourceTypeSubnet)}
+	res := &FirewallResource{Name: &name, AppliedTo: []*NamedAddrs{}, Cidrs: []*NamedAddrs{}, Type: utils.Ptr(ResourceTypeSubnet)}
 	for _, subnetName := range segmentDetails.ContainedSubnets {
 		subnet, err := lookupSingle(s.Subnets, subnetName, ResourceTypeSubnet)
 		if err != nil {
 			return nil, fmt.Errorf("%w while looking up %v %v for cidr segment %v", err, ResourceTypeSubnet, subnetName, name)
 		}
-		res.NamedAddrs = append(res.NamedAddrs, subnet.NamedAddrs...)
+		res.AppliedTo = append(res.AppliedTo, subnet.AppliedTo...)
 	}
 	for _, cidr := range segmentDetails.Cidrs.SplitToCidrs() {
 		res.Cidrs = append(res.Cidrs, &NamedAddrs{Name: &name, IPAddrs: cidr})
