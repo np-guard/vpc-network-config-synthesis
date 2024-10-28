@@ -45,7 +45,7 @@ func (a *ACLSynthesizer) makeACL() *ir.ACLCollection {
 	return a.result
 }
 
-func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection, thisResource, otherResource *ir.Resource,
+func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection, thisResource, otherResource *ir.FirewallResource,
 	allowConnection func(*ir.Connection, *ir.TrackedProtocol, *ir.NamedAddrs, *netset.IPBlock)) {
 	for _, thisSubnet := range thisResource.NamedAddrs {
 		for _, otherCidr := range otherResource.Cidrs {

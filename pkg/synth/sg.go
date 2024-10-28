@@ -79,7 +79,7 @@ func sgRemote(resource *ir.NamedAddrs, t *ir.ResourceType) ir.RemoteType {
 	return resource.IPAddrs
 }
 
-func connSettings(conn *ir.Connection, direction ir.Direction) (local, remote *ir.Resource, internalEndpoint, internalConn bool) {
+func connSettings(conn *ir.Connection, direction ir.Direction) (local, remote *ir.FirewallResource, internalEndpoint, internalConn bool) {
 	internalSrc, internalDst, internalConn := internalConnection(conn)
 	local = conn.Src
 	remote = conn.Dst
