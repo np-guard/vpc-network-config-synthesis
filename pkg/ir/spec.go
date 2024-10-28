@@ -50,7 +50,7 @@ type (
 		AppliedTo []*NamedAddrs
 
 		// Cidr list
-		Cidrs []*NamedAddrs
+		RemoteCidrs []*NamedAddrs
 
 		// Type of resource
 		Type *ResourceType
@@ -266,10 +266,10 @@ func (v *VPEDetails) endpointType() ResourceType {
 func lookupSingle[T NWResource](m map[ID]T, name string, t ResourceType) (*FirewallResource, error) {
 	if details, ok := m[name]; ok {
 		return &FirewallResource{
-			Name:      &name,
-			AppliedTo: []*NamedAddrs{{Name: &name, IPAddrs: details.Address()}},
-			Cidrs:     []*NamedAddrs{{Name: &name, IPAddrs: details.Address()}},
-			Type:      utils.Ptr(t),
+			Name:        &name,
+			AppliedTo:   []*NamedAddrs{{Name: &name, IPAddrs: details.Address()}},
+			RemoteCidrs: []*NamedAddrs{{Name: &name, IPAddrs: details.Address()}},
+			Type:        utils.Ptr(t),
 		}, nil
 	}
 	return nil, fmt.Errorf(resourceNotFound, name, t)
@@ -282,14 +282,14 @@ func (s *Definitions) lookupSegment(segment map[ID]*SegmentDetails, name string,
 		return nil, fmt.Errorf(containerNotFound, name, t)
 	}
 
-	res := &FirewallResource{Name: &name, AppliedTo: []*NamedAddrs{}, Cidrs: []*NamedAddrs{}, Type: utils.Ptr(elementType)}
+	res := &FirewallResource{Name: &name, AppliedTo: []*NamedAddrs{}, RemoteCidrs: []*NamedAddrs{}, Type: utils.Ptr(elementType)}
 	for _, elementName := range segmentDetails.Elements {
 		subnet, err := lookup(elementType, elementName)
 		if err != nil {
 			return nil, err
 		}
 		res.AppliedTo = append(res.AppliedTo, subnet.AppliedTo...)
-		res.Cidrs = append(res.Cidrs, subnet.Cidrs...)
+		res.RemoteCidrs = append(res.RemoteCidrs, subnet.RemoteCidrs...)
 	}
 	return res, nil
 }

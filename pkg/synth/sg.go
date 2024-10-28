@@ -44,7 +44,7 @@ func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection, direc
 	localResource, remoteResource, internalEndpoint, internalConn := connSettings(conn, direction)
 
 	for _, localEndpoint := range localResource.AppliedTo {
-		for _, remoteCidr := range remoteResource.Cidrs {
+		for _, remoteCidr := range remoteResource.RemoteCidrs {
 			for _, trackedProtocol := range conn.TrackedProtocols {
 				ruleExplanation := explanation{internal: internalConn, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}.String()
 				s.allowConnectionEndpoint(localEndpoint, remoteCidr, remoteResource.Type, trackedProtocol.Protocol, direction,
