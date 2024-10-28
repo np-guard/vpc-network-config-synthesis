@@ -14,7 +14,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
-func (s *Definitions) LookupForSGSynth(t ResourceType, name string) (*Resource, error) {
+func (s *Definitions) LookupForSGSynth(t ResourceType, name string) (*FirewallResource, error) {
 	switch t {
 	case ResourceTypeExternal:
 		return lookupSingle(s.Externals, name, t)
@@ -40,47 +40,47 @@ func (s *Definitions) LookupForSGSynth(t ResourceType, name string) (*Resource, 
 	return nil, nil // should not get here
 }
 
-func (s *Definitions) lookupNIFForSGSynth(name string) (*Resource, error) {
+func (s *Definitions) lookupNIFForSGSynth(name string) (*FirewallResource, error) {
 	if _, ok := s.NIFs[name]; ok {
-		return &Resource{
-			Name:       &name,
-			NamedAddrs: []*NamedAddrs{{Name: &s.NIFs[name].Instance}},
-			Cidrs:      []*NamedAddrs{{Name: &s.NIFs[name].Instance}},
-			Type:       utils.Ptr(ResourceTypeNIF),
+		return &FirewallResource{
+			Name:        &name,
+			AppliedTo:   []*NamedAddrs{{Name: &s.NIFs[name].Instance}},
+			RemoteCidrs: []*NamedAddrs{{Name: &s.NIFs[name].Instance}},
+			Type:        utils.Ptr(ResourceTypeNIF),
 		}, nil
 	}
 	return nil, fmt.Errorf(resourceNotFound, ResourceTypeNIF, name)
 }
 
-func lookupContainerForSGSynth[T EndpointProvider](m map[string]T, name string, t ResourceType) (*Resource, error) {
+func lookupContainerForSGSynth[T EndpointProvider](m map[string]T, name string, t ResourceType) (*FirewallResource, error) {
 	if _, ok := m[name]; ok {
-		return &Resource{
-			Name:       &name,
-			NamedAddrs: []*NamedAddrs{{Name: &name}},
-			Cidrs:      []*NamedAddrs{{Name: &name}},
-			Type:       utils.Ptr(t),
+		return &FirewallResource{
+			Name:        &name,
+			AppliedTo:   []*NamedAddrs{{Name: &name}},
+			RemoteCidrs: []*NamedAddrs{{Name: &name}},
+			Type:        utils.Ptr(t),
 		}, nil
 	}
 	return nil, fmt.Errorf(containerNotFound, t, name)
 }
 
-func (s *Definitions) lookupSubnetForSGSynth(name string) (*Resource, error) {
+func (s *Definitions) lookupSubnetForSGSynth(name string) (*FirewallResource, error) {
 	if subnetDetails, ok := s.Subnets[name]; ok {
-		return &Resource{Name: &name,
-			NamedAddrs: s.containedResourcesInCidr(subnetDetails.CIDR),
-			Cidrs:      []*NamedAddrs{{IPAddrs: subnetDetails.CIDR}},
-			Type:       utils.Ptr(ResourceTypeSubnet),
+		return &FirewallResource{Name: &name,
+			AppliedTo:   s.containedResourcesInCidr(subnetDetails.CIDR),
+			RemoteCidrs: []*NamedAddrs{{IPAddrs: subnetDetails.CIDR}},
+			Type:        utils.Ptr(ResourceTypeSubnet),
 		}, nil
 	}
 	return nil, fmt.Errorf(resourceNotFound, ResourceTypeSubnet, name)
 }
 
-func (s *Definitions) lookupCidrSegmentForSGSynth(name string) (*Resource, error) {
+func (s *Definitions) lookupCidrSegmentForSGSynth(name string) (*FirewallResource, error) {
 	if segmentDetails, ok := s.CidrSegments[name]; ok {
-		return &Resource{Name: &name,
-			NamedAddrs: s.containedResourcesInCidr(segmentDetails.Cidrs),
-			Cidrs:      cidrToNamedAddrs(segmentDetails.Cidrs),
-			Type:       utils.Ptr(ResourceTypeCidr),
+		return &FirewallResource{Name: &name,
+			AppliedTo:   s.containedResourcesInCidr(segmentDetails.Cidrs),
+			RemoteCidrs: cidrToNamedAddrs(segmentDetails.Cidrs),
+			Type:        utils.Ptr(ResourceTypeCidr),
 		}, nil
 	}
 	return nil, fmt.Errorf(containerNotFound, ResourceTypeCidrSegment, name)

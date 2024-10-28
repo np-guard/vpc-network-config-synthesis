@@ -43,8 +43,8 @@ func (s *SGSynthesizer) makeSG() (collection *ir.SGCollection, warning string) {
 func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection, direction ir.Direction) {
 	localResource, remoteResource, internalEndpoint, internalConn := connSettings(conn, direction)
 
-	for _, localEndpoint := range localResource.NamedAddrs {
-		for _, remoteCidr := range remoteResource.Cidrs {
+	for _, localEndpoint := range localResource.AppliedTo {
+		for _, remoteCidr := range remoteResource.RemoteCidrs {
 			for _, trackedProtocol := range conn.TrackedProtocols {
 				ruleExplanation := explanation{internal: internalConn, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}.String()
 				s.allowConnectionEndpoint(localEndpoint, remoteCidr, remoteResource.Type, trackedProtocol.Protocol, direction,
@@ -79,7 +79,7 @@ func sgRemote(resource *ir.NamedAddrs, t *ir.ResourceType) ir.RemoteType {
 	return resource.IPAddrs
 }
 
-func connSettings(conn *ir.Connection, direction ir.Direction) (local, remote *ir.Resource, internalEndpoint, internalConn bool) {
+func connSettings(conn *ir.Connection, direction ir.Direction) (local, remote *ir.FirewallResource, internalEndpoint, internalConn bool) {
 	internalSrc, internalDst, internalConn := internalConnection(conn)
 	local = conn.Src
 	remote = conn.Dst
