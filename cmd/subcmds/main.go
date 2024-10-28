@@ -14,10 +14,11 @@ import (
 func Main(args []string) (string, error) {
 	rootCmd := newRootCommand()
 	rootCmd.SetArgs(args[1:])
-	return coolCommand(rootCmd)
+	return cmdWrapper(rootCmd)
 }
 
-func coolCommand(cmd *cobra.Command) (string, error) {
+// also returns a warning as string
+func cmdWrapper(cmd *cobra.Command) (string, error) {
 	var outBuffer bytes.Buffer
 	cmd.SetOut(&outBuffer)
 
