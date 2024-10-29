@@ -29,7 +29,7 @@ func updateSGs(model *configModel.ResourcesContainerModel, collection *ir.SGColl
 
 func updateSG(sg *vpcv1.SecurityGroup, optimizedSG *ir.SG, sgRefMap map[string]*vpcv1.SecurityGroupRuleRemoteSecurityGroupReference) error {
 	optimizedRules := optimizedSG.AllRules()
-	if len(optimizedRules) == len(sg.Rules) {
+	if len(optimizedRules) >= len(sg.Rules) {
 		return nil
 	}
 	sg.Rules = make([]vpcv1.SecurityGroupRuleIntf, len(optimizedRules))
