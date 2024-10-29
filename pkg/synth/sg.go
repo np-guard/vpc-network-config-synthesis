@@ -12,14 +12,12 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
-const SGTypeNotSupported = "SG: src/dst of type %s is not supported"
-
 type SGSynthesizer struct {
 	spec   *ir.Spec
 	result *ir.SGCollection
 }
 
-// NewSGSynthesizer creates and returns a new SGSynthesizer instances
+// NewSGSynthesizer creates and returns a new SGSynthesizer instance
 func NewSGSynthesizer(s *ir.Spec, _ bool) Synthesizer {
 	return &SGSynthesizer{spec: s, result: ir.NewSGCollection()}
 }
@@ -32,9 +30,9 @@ func (s *SGSynthesizer) Synth() ir.Collection {
 // 1. generate SGs for relevant endpoints for each connection
 // 2. generate SGs for blocked endpoints (endpoints that do not appear in Spec)
 func (s *SGSynthesizer) makeSG() *ir.SGCollection {
-	for c := range s.spec.Connections {
-		s.generateSGRulesFromConnection(s.spec.Connections[c], ir.Outbound)
-		s.generateSGRulesFromConnection(s.spec.Connections[c], ir.Inbound)
+	for _, c := range s.spec.Connections {
+		s.generateSGRulesFromConnection(c, ir.Outbound)
+		s.generateSGRulesFromConnection(c, ir.Inbound)
 	}
 	s.generateSGsForBlockedResources()
 	return s.result

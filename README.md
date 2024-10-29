@@ -19,7 +19,7 @@ Specifying the `--single` flag results in generating a single nACL for all subne
 
 ### Supported types
 The input supports subnets, subnet segments, CIDR segments, NIFs, NIF segments, instances (VSIs), instance segments, VPEs, VPE segments and externals.  
-**Note 1**: The segments are defined in the `conn_spec.json` file.  
+**Note**: Segments should be defined in the spec file.  
 
 ### Output
 1. If the `output-dir` flag is used, the specified folder will be created, containing one file per VPC. Each generated file will contain the network resources (Security Groups or Network ACLs) relevant to its VPC. File names are set as `prefix_vpc`, where prefix is ​​the value received in the `prefix` flag. If the `prefix` flag is omitted, file names will match VPC names.

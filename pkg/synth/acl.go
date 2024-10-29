@@ -15,8 +15,6 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
-const ACLTypeNotSupported = "ACL: src/dst of type %s is not supported"
-
 type ACLSynthesizer struct {
 	spec      *ir.Spec
 	singleACL bool
@@ -36,8 +34,7 @@ func (a *ACLSynthesizer) Synth() ir.Collection {
 // 1. generate nACL rules for relevant subnets for each connection
 // 2. generate nACL rules for blocked subnets (subnets that do not appear in Spec)
 func (a *ACLSynthesizer) makeACL() *ir.ACLCollection {
-	for i := range a.spec.Connections {
-		conn := a.spec.Connections[i]
+	for _, conn := range a.spec.Connections {
 		a.generateACLRulesFromConnection(conn, conn.Src, conn.Dst, a.allowConnectionSrc)
 		a.generateACLRulesFromConnection(conn, conn.Dst, conn.Src, a.allowConnectionDst)
 	}
@@ -49,8 +46,7 @@ func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection, thi
 	allowConnection func(*ir.Connection, *ir.TrackedProtocol, *ir.NamedAddrs, *netset.IPBlock)) {
 	for _, thisSubnet := range thisResource.LocalCidrs {
 		for _, otherCidr := range otherResource.RemoteCidrs {
-			if thisSubnet.IPAddrs.Equal(otherCidr.IPAddrs) && thisResource.LocalType != ir.ResourceTypeCidr &&
-				otherResource.LocalType != ir.ResourceTypeCidr {
+			if thisSubnet.IPAddrs.Equal(otherCidr.IPAddrs) {
 				continue
 			}
 			for _, trackedProtocol := range conn.TrackedProtocols {
@@ -65,7 +61,7 @@ func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection, thi
 func (a *ACLSynthesizer) allowConnectionSrc(conn *ir.Connection, p *ir.TrackedProtocol, srcSubnet *ir.NamedAddrs, dstCidr *netset.IPBlock) {
 	internalSrc, _, internal := internalConnection(conn)
 
-	if !internalSrc || srcSubnet.IPAddrs.Equal(dstCidr) {
+	if !internalSrc {
 		return
 	}
 	reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: p.Origin}
@@ -82,7 +78,7 @@ func (a *ACLSynthesizer) allowConnectionSrc(conn *ir.Connection, p *ir.TrackedPr
 func (a *ACLSynthesizer) allowConnectionDst(conn *ir.Connection, p *ir.TrackedProtocol, dstSubnet *ir.NamedAddrs, srcCidr *netset.IPBlock) {
 	_, internalDst, internal := internalConnection(conn)
 
-	if !internalDst || dstSubnet.IPAddrs.Equal(srcCidr) {
+	if !internalDst {
 		return
 	}
 	reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: p.Origin}
