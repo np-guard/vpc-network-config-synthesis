@@ -20,7 +20,7 @@ func NewOptimizeACLCommand(args *inArgs) *cobra.Command {
 		Long:  `OptimizeACL attempts to reduce the number of nACL rules in an nACL without changing the semantic.`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			return optimization(cmd, args, acloptimizer.NewSGOptimizer, false)
+			return optimization(cmd, args, acloptimizer.NewACLOptimizer, false)
 		},
 	}
 
