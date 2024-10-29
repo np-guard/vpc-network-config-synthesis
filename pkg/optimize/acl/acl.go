@@ -18,7 +18,7 @@ type (
 	}
 )
 
-func NewSGOptimizer(collection ir.Collection, aclName string) optimize.Optimizer {
+func NewACLOptimizer(collection ir.Collection, aclName string) optimize.Optimizer {
 	components := ir.ScopingComponents(aclName)
 	if len(components) == 1 {
 		return &aclOptimizer{aclCollection: collection.(*ir.ACLCollection), aclName: aclName, aclVPC: nil}
