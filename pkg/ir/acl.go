@@ -28,7 +28,8 @@ type (
 	}
 
 	ACL struct {
-		Subnet   string
+		ACLName  string
+		Subnets  []string
 		Internal []*ACLRule
 		External []*ACLRule
 		Inbound  []*ACLRule
@@ -74,6 +75,9 @@ func (r *ACLRule) Target() *netset.IPBlock {
 }
 
 func (a *ACL) Rules() []*ACLRule {
+	if a.Internal == nil { // optimization mode
+		return append(a.Inbound, a.Outbound...)
+	}
 	rules := a.Internal
 	if len(a.External) != 0 {
 		rules = append(rules, append(makeDenyInternal(), a.External...)...)
@@ -91,7 +95,7 @@ func (a *ACL) AppendInternal(rule *ACLRule) {
 }
 
 func (a *ACL) Name() string {
-	return fmt.Sprintf("acl-%v", a.Subnet)
+	return fmt.Sprintf("acl-%v", a.ACLName)
 }
 
 func (a *ACL) AppendExternal(rule *ACLRule) {
@@ -109,7 +113,7 @@ func NewACLCollection() *ACLCollection {
 }
 
 func NewACL(subnet string) *ACL {
-	return &ACL{Subnet: subnet, Internal: []*ACLRule{}, External: []*ACLRule{}}
+	return &ACL{ACLName: subnet, Subnets: []string{subnet}, Internal: []*ACLRule{}, External: []*ACLRule{}}
 }
 
 func (c *ACLCollection) LookupOrCreate(subnet string) *ACL {
@@ -133,7 +137,7 @@ func (c *ACLCollection) Write(w Writer, vpc string, isSynth bool) error {
 	return w.WriteACL(c, vpc, isSynth)
 }
 
-func (c *ACLCollection) SortedACLSubnets(vpc string) []string {
+func (c *ACLCollection) SortedACLNames(vpc string) []string {
 	if vpc == "" {
 		return utils.SortedAllInnerMapsKeys(c.ACLs)
 	}

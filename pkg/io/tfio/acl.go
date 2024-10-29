@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/np-guard/models/pkg/netp"
-	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/tfio/tf"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
@@ -76,8 +75,8 @@ func aclRule(rule *ir.ACLRule, name string) (tf.Block, error) {
 	}, nil
 }
 
-func singleACL(t *ir.ACL, comment string) (tf.Block, error) {
-	rules := t.Rules()
+func singleACL(acl *ir.ACL, vpcName string) (tf.Block, error) {
+	rules := acl.Rules()
 	blocks := make([]tf.Block, len(rules))
 	for i, rule := range rules {
 		rule, err := aclRule(rule, fmt.Sprintf("rule%v", i))
@@ -86,49 +85,46 @@ func singleACL(t *ir.ACL, comment string) (tf.Block, error) {
 		}
 		blocks[i] = rule
 	}
-	aclName := ir.ChangeScoping(t.Name())
+	aclName := ir.ChangeScoping(acl.Name())
 	if err := verifyName(aclName); err != nil {
 		return tf.Block{}, err
 	}
 	return tf.Block{
-		Comment: comment,
+		Comment: aclComment(acl.Subnets),
 		Name:    "resource",
 		Labels:  []string{quote("ibm_is_network_acl"), quote(aclName)},
 		Arguments: []tf.Argument{
 			{Name: "name", Value: quote(aclName)}, //nolint:revive  // obvious false positive
 			{Name: "resource_group", Value: "local.acl_synth_resource_group_id"},
-			{Name: "vpc", Value: fmt.Sprintf("local.acl_synth_%s_id", ir.VpcFromScopedResource(t.Subnet))},
+			{Name: "vpc", Value: fmt.Sprintf("local.acl_synth_%s_id", vpcName)},
 		},
 		Blocks: blocks,
 	}, nil
 }
 
-func aclCollection(t *ir.ACLCollection, vpc string) (*tf.ConfigFile, error) {
-	sortedACLs := t.SortedACLSubnets(vpc)
-	var acls = make([]tf.Block, len(sortedACLs))
-	i := 0
-	for _, subnet := range sortedACLs {
-		comment := "\n"
-		vpcName := ir.VpcFromScopedResource(subnet)
-		acl := t.ACLs[vpcName][subnet]
-		if len(sortedACLs) > 1 { // not a single nacl
-			comment = fmt.Sprintf("\n# %v [%v]", subnet, subnetCidr(acl))
+func aclCollection(collection *ir.ACLCollection, vpc string) (*tf.ConfigFile, error) {
+	res := make([]tf.Block, 0)
+	for _, vpcName := range collection.VpcNames() {
+		if vpc != vpcName && vpc != "" {
+			continue
 		}
-		singleACL, err := singleACL(acl, comment)
-		if err != nil {
-			return nil, err
+		for _, aclName := range collection.SortedACLNames(vpcName) {
+			acl := collection.ACLs[vpcName][aclName]
+			aclBlock, err := singleACL(acl, vpcName)
+			if err != nil {
+				return nil, err
+			}
+			res = append(res, aclBlock)
 		}
-		acls[i] = singleACL
-		i += 1
 	}
 	return &tf.ConfigFile{
-		Resources: acls,
+		Resources: res,
 	}, nil
 }
 
-func subnetCidr(acl *ir.ACL) *netset.IPBlock {
-	if len(acl.Internal) > 0 {
-		return acl.Internal[0].Target()
+func aclComment(subnets []string) string {
+	if len(subnets) == 0 {
+		return "# No attached subnets\n"
 	}
-	return acl.External[0].Target()
+	return fmt.Sprintf("# Attached subnets: %s\n", strings.Join(subnets, ", "))
 }
