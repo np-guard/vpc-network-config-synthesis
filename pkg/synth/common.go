@@ -43,8 +43,8 @@ func (e explanation) String() string {
 }
 
 func internalConnection(conn *ir.Connection) (internalSrc, internalDst, internal bool) {
-	internalSrc = *conn.Src.Type != ir.ResourceTypeExternal
-	internalDst = *conn.Dst.Type != ir.ResourceTypeExternal
+	internalSrc = conn.Src.LocalType != ir.ResourceTypeExternal
+	internalDst = conn.Dst.LocalType != ir.ResourceTypeExternal
 	internal = internalSrc && internalDst
 	return
 }

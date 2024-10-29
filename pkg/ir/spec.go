@@ -14,7 +14,6 @@ import (
 
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
 type (
@@ -31,10 +30,10 @@ type (
 
 	Connection struct {
 		// Egress resource
-		Src *FirewallResource
+		Src *LocalRemotePair
 
 		// Ingress resource
-		Dst *FirewallResource
+		Dst *LocalRemotePair
 
 		// Allowed protocols
 		TrackedProtocols []*TrackedProtocol
@@ -43,17 +42,17 @@ type (
 		Origin fmt.Stringer
 	}
 
-	FirewallResource struct {
+	LocalRemotePair struct {
 		// Symbolic name of resource, if available
 		Name *string
 
-		AppliedTo []*NamedAddrs
+		LocalCidrs []*NamedAddrs
 
 		// Cidr list
 		RemoteCidrs []*NamedAddrs
 
-		// Type of resource
-		Type *ResourceType
+		// LocalType of resource
+		LocalType ResourceType
 	}
 
 	NamedAddrs struct {
@@ -263,32 +262,32 @@ func (v *VPEDetails) endpointType() ResourceType {
 	return ResourceTypeVPE
 }
 
-func lookupSingle[T NWResource](m map[ID]T, name string, t ResourceType) (*FirewallResource, error) {
+func lookupSingle[T NWResource](m map[ID]T, name string, t ResourceType) (*LocalRemotePair, error) {
 	if details, ok := m[name]; ok {
-		return &FirewallResource{
+		return &LocalRemotePair{
 			Name:        &name,
-			AppliedTo:   []*NamedAddrs{{Name: &name, IPAddrs: details.Address()}},
+			LocalCidrs:  []*NamedAddrs{{Name: &name, IPAddrs: details.Address()}},
 			RemoteCidrs: []*NamedAddrs{{Name: &name, IPAddrs: details.Address()}},
-			Type:        utils.Ptr(t),
+			LocalType:   t,
 		}, nil
 	}
 	return nil, fmt.Errorf(resourceNotFound, name, t)
 }
 
 func (s *Definitions) lookupSegment(segment map[ID]*SegmentDetails, name string, t, elementType ResourceType,
-	lookup func(ResourceType, string) (*FirewallResource, error)) (*FirewallResource, error) {
+	lookup func(ResourceType, string) (*LocalRemotePair, error)) (*LocalRemotePair, error) {
 	segmentDetails, ok := segment[name]
 	if !ok {
 		return nil, fmt.Errorf(containerNotFound, name, t)
 	}
 
-	res := &FirewallResource{Name: &name, AppliedTo: []*NamedAddrs{}, RemoteCidrs: []*NamedAddrs{}, Type: utils.Ptr(elementType)}
+	res := &LocalRemotePair{Name: &name, LocalCidrs: []*NamedAddrs{}, RemoteCidrs: []*NamedAddrs{}, LocalType: elementType}
 	for _, elementName := range segmentDetails.Elements {
 		subnet, err := lookup(elementType, elementName)
 		if err != nil {
 			return nil, err
 		}
-		res.AppliedTo = append(res.AppliedTo, subnet.AppliedTo...)
+		res.LocalCidrs = append(res.LocalCidrs, subnet.LocalCidrs...)
 		res.RemoteCidrs = append(res.RemoteCidrs, subnet.RemoteCidrs...)
 	}
 	return res, nil

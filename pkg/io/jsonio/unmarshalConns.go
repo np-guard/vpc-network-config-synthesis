@@ -56,12 +56,12 @@ func translateConnection(defs *ir.Definitions, conn *spec.SpecRequiredConnection
 }
 
 func translateConnectionResource(defs *ir.Definitions, resource *spec.Resource,
-	isSG bool) (r *ir.FirewallResource, isExternal bool, err error) {
+	isSG bool) (r *ir.LocalRemotePair, isExternal bool, err error) {
 	resourceType, err := translateResourceType(defs, resource)
 	if err != nil {
 		return nil, false, err
 	}
-	var res *ir.FirewallResource
+	var res *ir.LocalRemotePair
 	if isSG {
 		res, err = defs.LookupForSGSynth(resourceType, resource.Name)
 		updateBlockedResourcesSGSynth(defs, res)
@@ -136,8 +136,8 @@ func translateResourceType(defs *ir.Definitions, resource *spec.Resource) (ir.Re
 	return ir.ResourceTypeSubnet, fmt.Errorf("unsupported resource type %v (%v)", resource.Type, resource.Name)
 }
 
-func updateBlockedResourcesSGSynth(defs *ir.Definitions, resource *ir.FirewallResource) {
-	for _, namedAddrs := range resource.AppliedTo {
+func updateBlockedResourcesSGSynth(defs *ir.Definitions, resource *ir.LocalRemotePair) {
+	for _, namedAddrs := range resource.LocalCidrs {
 		if _, ok := defs.BlockedInstances[*namedAddrs.Name]; ok {
 			defs.BlockedInstances[*namedAddrs.Name] = false
 		}
@@ -147,8 +147,8 @@ func updateBlockedResourcesSGSynth(defs *ir.Definitions, resource *ir.FirewallRe
 	}
 }
 
-func updateBlockedResourcesACLSynth(defs *ir.Definitions, resource *ir.FirewallResource) {
-	for _, namedAddrs := range resource.AppliedTo {
+func updateBlockedResourcesACLSynth(defs *ir.Definitions, resource *ir.LocalRemotePair) {
+	for _, namedAddrs := range resource.LocalCidrs {
 		if _, ok := defs.BlockedSubnets[*namedAddrs.Name]; ok {
 			defs.BlockedSubnets[*namedAddrs.Name] = false
 		}

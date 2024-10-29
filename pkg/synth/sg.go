@@ -43,11 +43,11 @@ func (s *SGSynthesizer) makeSG() *ir.SGCollection {
 func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection, direction ir.Direction) {
 	localResource, remoteResource, internalEndpoint, internalConn := connSettings(conn, direction)
 
-	for _, localEndpoint := range localResource.AppliedTo {
+	for _, localEndpoint := range localResource.LocalCidrs {
 		for _, remoteCidr := range remoteResource.RemoteCidrs {
 			for _, trackedProtocol := range conn.TrackedProtocols {
 				ruleExplanation := explanation{internal: internalConn, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}.String()
-				s.allowConnectionEndpoint(localEndpoint, remoteCidr, remoteResource.Type, trackedProtocol.Protocol, direction,
+				s.allowConnectionEndpoint(localEndpoint, remoteCidr, remoteResource.LocalType, trackedProtocol.Protocol, direction,
 					internalEndpoint, ruleExplanation)
 			}
 		}
@@ -55,7 +55,7 @@ func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection, direc
 }
 
 // if the endpoint in internal, a rule will be created to allow traffic.
-func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *ir.NamedAddrs, remoteType *ir.ResourceType,
+func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *ir.NamedAddrs, remoteType ir.ResourceType,
 	p netp.Protocol, direction ir.Direction, internalEndpoint bool, ruleExplanation string) {
 	if !internalEndpoint {
 		return
@@ -72,14 +72,14 @@ func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *i
 	localSG.Add(rule)
 }
 
-func sgRemote(resource *ir.NamedAddrs, t *ir.ResourceType) ir.RemoteType {
-	if isSGRemote(*t) {
+func sgRemote(resource *ir.NamedAddrs, t ir.ResourceType) ir.RemoteType {
+	if isSGRemote(t) {
 		return ir.SGName(*resource.Name)
 	}
 	return resource.IPAddrs
 }
 
-func connSettings(conn *ir.Connection, direction ir.Direction) (local, remote *ir.FirewallResource, internalEndpoint, internalConn bool) {
+func connSettings(conn *ir.Connection, direction ir.Direction) (local, remote *ir.LocalRemotePair, internalEndpoint, internalConn bool) {
 	internalSrc, internalDst, internalConn := internalConnection(conn)
 	local = conn.Src
 	remote = conn.Dst

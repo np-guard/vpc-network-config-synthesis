@@ -8,11 +8,9 @@ package ir
 
 import (
 	"fmt"
-
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
-func (s *Definitions) LookupForACLSynth(t ResourceType, name string) (*FirewallResource, error) {
+func (s *Definitions) LookupForACLSynth(t ResourceType, name string) (*LocalRemotePair, error) {
 	switch t {
 	case ResourceTypeExternal:
 		return lookupSingle(s.Externals, name, t)
@@ -39,7 +37,7 @@ func (s *Definitions) LookupForACLSynth(t ResourceType, name string) (*FirewallR
 }
 
 func lookupSingleForACLSynth[T INWResource](m map[ID]T, subnets map[ID]*SubnetDetails, name string,
-	t ResourceType) (*FirewallResource, error) {
+	t ResourceType) (*LocalRemotePair, error) {
 	details, ok := m[name]
 	if !ok {
 		return nil, fmt.Errorf(resourceNotFound, name, t)
@@ -53,13 +51,13 @@ func lookupSingleForACLSynth[T INWResource](m map[ID]T, subnets map[ID]*SubnetDe
 	return res, nil
 }
 
-func lookupContainerForACLSynth[T EndpointProvider](m map[ID]T, defs *Definitions, name string, t ResourceType) (*FirewallResource, error) {
+func lookupContainerForACLSynth[T EndpointProvider](m map[ID]T, defs *Definitions, name string, t ResourceType) (*LocalRemotePair, error) {
 	containerDetails, ok := m[name]
 	if !ok {
 		return nil, fmt.Errorf(containerNotFound, name, t)
 	}
 
-	res := &FirewallResource{Name: &name, AppliedTo: []*NamedAddrs{}, RemoteCidrs: []*NamedAddrs{}, Type: utils.Ptr(ResourceTypeSubnet)}
+	res := &LocalRemotePair{Name: &name, LocalCidrs: []*NamedAddrs{}, RemoteCidrs: []*NamedAddrs{}, LocalType: ResourceTypeSubnet}
 	endpointMap := containerDetails.endpointMap(defs)
 	for _, endpointName := range containerDetails.endpointNames() {
 		subnet, err := lookupSingleForACLSynth(endpointMap, defs.Subnets, endpointName, containerDetails.endpointType())
@@ -67,24 +65,24 @@ func lookupContainerForACLSynth[T EndpointProvider](m map[ID]T, defs *Definition
 			return nil, err
 		}
 		res.RemoteCidrs = append(res.RemoteCidrs, subnet.RemoteCidrs...)
-		res.AppliedTo = append(res.AppliedTo, subnet.AppliedTo...)
+		res.LocalCidrs = append(res.LocalCidrs, subnet.LocalCidrs...)
 	}
 	return res, nil
 }
 
-func (s *Definitions) lookupCidrSegmentACL(name string) (*FirewallResource, error) {
+func (s *Definitions) lookupCidrSegmentACL(name string) (*LocalRemotePair, error) {
 	segmentDetails, ok := s.CidrSegments[name]
 	if !ok {
 		return nil, fmt.Errorf(containerNotFound, name, ResourceTypeCidrSegment)
 	}
 
-	res := &FirewallResource{Name: &name, AppliedTo: []*NamedAddrs{}, RemoteCidrs: []*NamedAddrs{}, Type: utils.Ptr(ResourceTypeSubnet)}
+	res := &LocalRemotePair{Name: &name, LocalCidrs: []*NamedAddrs{}, RemoteCidrs: []*NamedAddrs{}, LocalType: ResourceTypeSubnet}
 	for _, subnetName := range segmentDetails.ContainedSubnets {
 		subnet, err := lookupSingle(s.Subnets, subnetName, ResourceTypeSubnet)
 		if err != nil {
 			return nil, fmt.Errorf("%w while looking up %v %v for cidr segment %v", err, ResourceTypeSubnet, subnetName, name)
 		}
-		res.AppliedTo = append(res.AppliedTo, subnet.AppliedTo...)
+		res.LocalCidrs = append(res.LocalCidrs, subnet.LocalCidrs...)
 	}
 	for _, cidr := range segmentDetails.Cidrs.SplitToCidrs() {
 		res.RemoteCidrs = append(res.RemoteCidrs, &NamedAddrs{Name: &name, IPAddrs: cidr})
