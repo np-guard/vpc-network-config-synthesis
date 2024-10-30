@@ -178,7 +178,6 @@ type (
 	EndpointProvider interface {
 		endpointNames() []ID
 		endpointMap(s *Definitions) map[ID]INWResource
-		endpointType() ResourceType
 	}
 )
 
@@ -188,7 +187,6 @@ const (
 	ResourceTypeSubnet          ResourceType = "subnet"
 	ResourceTypeNIF             ResourceType = "nif"
 	ResourceTypeVPE             ResourceType = "vpe"
-	ResourceTypeVPERIP          ResourceType = "vperip"
 	ResourceTypeInstance        ResourceType = "instance"
 	ResourceTypeSubnetSegment   ResourceType = "subnetSegment"
 	ResourceTypeCidrSegment     ResourceType = "cidrSegment"
@@ -240,10 +238,6 @@ func (i *InstanceDetails) endpointMap(s *Definitions) map[ID]INWResource {
 	return res
 }
 
-func (i *InstanceDetails) endpointType() ResourceType {
-	return ResourceTypeNIF
-}
-
 func (v *VPEDetails) endpointNames() []ID {
 	return v.VPEReservedIPs
 }
@@ -254,10 +248,6 @@ func (v *VPEDetails) endpointMap(s *Definitions) map[ID]INWResource {
 		res[ripName] = s.VPEReservedIPs[ripName]
 	}
 	return res
-}
-
-func (v *VPEDetails) endpointType() ResourceType {
-	return ResourceTypeVPERIP
 }
 
 // lookupSingle is called only when the resource type is ResourceTypeSubnet or ResourceTypeExternal
