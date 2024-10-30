@@ -47,3 +47,13 @@ func Int64PointerToIntPointer(v *int64) *int {
 	}
 	return Ptr(int(*v))
 }
+
+func TrueKeyValues[T comparable](m map[T]bool) []T {
+	keys := make([]T, 0)
+	for k, v := range m {
+		if v {
+			keys = append(keys, k)
+		}
+	}
+	return keys
+}
