@@ -260,6 +260,7 @@ func (v *VPEDetails) endpointType() ResourceType {
 	return ResourceTypeVPERIP
 }
 
+// lookupSingle is called only when the resource type is ResourceTypeSubnet or ResourceTypeExternal
 func lookupSingle[T NWResource](m map[ID]T, name string, t ResourceType) (*LocalRemotePair, error) {
 	if details, ok := m[name]; ok {
 		return &LocalRemotePair{
