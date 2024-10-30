@@ -7,6 +7,8 @@ package synth
 
 import (
 	"fmt"
+	"log"
+	"strings"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
@@ -47,4 +49,10 @@ func internalConnection(conn *ir.Connection) (internalSrc, internalDst, internal
 	internalDst = conn.Dst.LocalType != ir.ResourceTypeExternal
 	internal = internalSrc && internalDst
 	return
+}
+
+func printUnspecifiedWarning(warning string, blockedResources []ir.ID) {
+	if len(blockedResources) > 0 {
+		log.Println(warning, strings.Join(blockedResources, ", "))
+	}
 }

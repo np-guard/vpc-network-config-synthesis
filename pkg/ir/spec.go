@@ -8,7 +8,6 @@ package ir
 
 import (
 	"fmt"
-	"log"
 	"sort"
 	"strings"
 
@@ -198,9 +197,6 @@ const (
 
 	resourceNotFound  = "%v %v not found"
 	containerNotFound = "container %v %v not found"
-
-	WarningUnspecifiedACL = "The following subnets do not have required connections; the generated ACL will block all traffic: "
-	WarningUnspecifiedSG  = "The following endpoints do not have required connections; the generated SGs will block all traffic: "
 )
 
 func (n *NamedEntity) Name() string {
@@ -282,14 +278,14 @@ func (s *Definitions) lookupSegment(segment map[ID]*SegmentDetails, name string,
 		return nil, fmt.Errorf(containerNotFound, name, t)
 	}
 
-	res := &LocalRemotePair{Name: &name, LocalCidrs: []*NamedAddrs{}, RemoteCidrs: []*NamedAddrs{}, LocalType: elementType}
+	res := &LocalRemotePair{Name: &name, LocalType: elementType}
 	for _, elementName := range segmentDetails.Elements {
-		subnet, err := lookup(elementType, elementName)
+		element, err := lookup(elementType, elementName)
 		if err != nil {
 			return nil, err
 		}
-		res.LocalCidrs = append(res.LocalCidrs, subnet.LocalCidrs...)
-		res.RemoteCidrs = append(res.RemoteCidrs, subnet.RemoteCidrs...)
+		res.LocalCidrs = append(res.LocalCidrs, element.LocalCidrs...)
+		res.RemoteCidrs = append(res.RemoteCidrs, element.RemoteCidrs...)
 	}
 	return res, nil
 }
@@ -315,10 +311,4 @@ func VpcFromScopedResource(resource ID) ID {
 
 func ChangeScoping(s string) string {
 	return strings.ReplaceAll(s, "/", "--")
-}
-
-func PrintUnspecifiedWarning(warning string, blockedResources []ID) {
-	if len(blockedResources) > 0 {
-		log.Println(warning, strings.Join(blockedResources, ", "))
-	}
 }

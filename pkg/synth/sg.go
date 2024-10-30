@@ -17,6 +17,8 @@ type SGSynthesizer struct {
 	result *ir.SGCollection
 }
 
+const warningUnspecifiedSG = "The following endpoints do not have required connections; the generated SGs will block all traffic: "
+
 // NewSGSynthesizer creates and returns a new SGSynthesizer instance
 func NewSGSynthesizer(s *ir.Spec, _ bool) Synthesizer {
 	return &SGSynthesizer{spec: s, result: ir.NewSGCollection()}
@@ -97,7 +99,7 @@ func isSGRemote(t ir.ResourceType) bool {
 // generate SGs for blocked endpoints (endpoints that do not appear in Spec)
 func (s *SGSynthesizer) generateSGsForBlockedResources() {
 	blockedResources := append(utils.TrueKeyValues(s.spec.BlockedInstances), utils.TrueKeyValues(s.spec.BlockedVPEs)...)
-	ir.PrintUnspecifiedWarning(ir.WarningUnspecifiedSG, blockedResources)
+	printUnspecifiedWarning(warningUnspecifiedSG, blockedResources)
 	for _, resource := range blockedResources {
 		sg := s.result.LookupOrCreate(ir.SGName(resource)) // an empty SG allows no connections
 		sg.Attached = []ir.ID{resource}

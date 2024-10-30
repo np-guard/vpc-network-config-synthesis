@@ -21,6 +21,8 @@ type ACLSynthesizer struct {
 	result    *ir.ACLCollection
 }
 
+const warningUnspecifiedACL = "The following subnets do not have required connections; the generated ACL will block all traffic: "
+
 // NewACLSynthesizer creates and returns a new ACLSynthesizer instance
 func NewACLSynthesizer(s *ir.Spec, single bool) Synthesizer {
 	return &ACLSynthesizer{spec: s, singleACL: single, result: ir.NewACLCollection()}
@@ -109,7 +111,7 @@ func (a *ACLSynthesizer) addRuleToACL(rule *ir.ACLRule, resourceName ir.ID, inte
 // generate nACL rules for blocked subnets (subnets that do not appear in Spec)
 func (a *ACLSynthesizer) generateACLRulesForBlockedSubnets() {
 	blockedSubnets := utils.TrueKeyValues(a.spec.BlockedSubnets)
-	ir.PrintUnspecifiedWarning(ir.WarningUnspecifiedACL, blockedSubnets)
+	printUnspecifiedWarning(warningUnspecifiedACL, blockedSubnets)
 	for _, subnet := range blockedSubnets {
 		acl := a.result.LookupOrCreate(aclSelector(subnet, a.singleACL))
 		cidr := a.spec.Defs.Subnets[subnet].Address()

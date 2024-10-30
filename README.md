@@ -11,7 +11,7 @@ Use the `vpcgen` CLI tool with one of the following commands to specify the type
 * `vpcgen synth acl --single` - generate a single nACL for all subnets in the same VPC.
 
 ### nACLs Generation
-Specifying the `--single` flag results in generating a single nACL for all subnets in the same VPC. Otherwise, an nACL is generated for each subnet separately.
+Specifying the `--single` flag results in generating a single nACL for all subnets in the same VPC. Otherwise, an nACL is generated for each subnet separately.  
 **Note**: A required connection between NIFs/VSIs/VPEs implies connectivity will be allowed between the subnets they are contained in.
 
 ### SGs Generation 
