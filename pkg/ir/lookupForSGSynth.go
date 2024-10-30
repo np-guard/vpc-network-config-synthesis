@@ -64,25 +64,32 @@ func lookupContainerForSGSynth[T EndpointProvider](m map[string]T, name string, 
 }
 
 func (s *Definitions) lookupSubnetForSGSynth(name string) (*LocalRemotePair, error) {
-	if subnetDetails, ok := s.Subnets[name]; ok {
-		return &LocalRemotePair{Name: &name,
-			LocalCidrs:  s.containedResourcesInCidr(subnetDetails.CIDR),
-			RemoteCidrs: []*NamedAddrs{{IPAddrs: subnetDetails.CIDR}},
-			LocalType:   ResourceTypeSubnet,
-		}, nil
+	subnetDetails, ok := s.Subnets[name]
+	if !ok {
+		return nil, fmt.Errorf(resourceNotFound, ResourceTypeSubnet, name)
 	}
-	return nil, fmt.Errorf(resourceNotFound, ResourceTypeSubnet, name)
+	subnetDetails.LRPair = &LocalRemotePair{Name: &name,
+		LocalCidrs:  s.containedResourcesInCidr(subnetDetails.CIDR),
+		RemoteCidrs: []*NamedAddrs{{IPAddrs: subnetDetails.CIDR}},
+		LocalType:   ResourceTypeSubnet,
+	}
+	return subnetDetails.LRPair, nil
 }
 
 func (s *Definitions) lookupCidrSegmentForSGSynth(name string) (*LocalRemotePair, error) {
-	if segmentDetails, ok := s.CidrSegments[name]; ok {
-		return &LocalRemotePair{Name: &name,
-			LocalCidrs:  s.containedResourcesInCidr(segmentDetails.Cidrs),
-			RemoteCidrs: cidrToNamedAddrs(segmentDetails.Cidrs),
-			LocalType:   ResourceTypeCidr,
-		}, nil
+	segmentDetails, ok := s.CidrSegments[name]
+	if !ok {
+		return nil, fmt.Errorf(containerNotFound, ResourceTypeCidrSegment, name)
 	}
-	return nil, fmt.Errorf(containerNotFound, ResourceTypeCidrSegment, name)
+	if segmentDetails.LRPair != nil {
+		return segmentDetails.LRPair, nil
+	}
+	segmentDetails.LRPair = &LocalRemotePair{Name: &name,
+		LocalCidrs:  s.containedResourcesInCidr(segmentDetails.Cidrs),
+		RemoteCidrs: cidrToNamedAddrs(segmentDetails.Cidrs),
+		LocalType:   ResourceTypeCidr,
+	}
+	return segmentDetails.LRPair, nil
 }
 
 func (s *Definitions) containedResourcesInCidr(cidr *netset.IPBlock) []*NamedAddrs {

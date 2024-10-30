@@ -56,6 +56,9 @@ func lookupContainerForACLSynth[T EndpointProvider](m map[ID]T, defs *Definition
 	if !ok {
 		return nil, fmt.Errorf(containerNotFound, name, t)
 	}
+	if containerDetails.getLocalRemotePair() != nil {
+		return containerDetails.getLocalRemotePair(), nil
+	}
 
 	seenSubnets := make(map[string]struct{})
 	res := &LocalRemotePair{Name: &name, LocalCidrs: []*NamedAddrs{}, RemoteCidrs: []*NamedAddrs{}, LocalType: ResourceTypeSubnet}
@@ -71,6 +74,7 @@ func lookupContainerForACLSynth[T EndpointProvider](m map[ID]T, defs *Definition
 		res.RemoteCidrs = append(res.RemoteCidrs, namedAddrs)
 		res.LocalCidrs = append(res.LocalCidrs, namedAddrs)
 	}
+	containerDetails.setLocalRemotePair(res)
 	return res, nil
 }
 
@@ -78,6 +82,9 @@ func (s *Definitions) lookupCidrSegmentACL(name string) (*LocalRemotePair, error
 	segmentDetails, ok := s.CidrSegments[name]
 	if !ok {
 		return nil, fmt.Errorf(containerNotFound, name, ResourceTypeCidrSegment)
+	}
+	if segmentDetails.LRPair != nil {
+		return segmentDetails.LRPair, nil
 	}
 
 	res := &LocalRemotePair{Name: &name, LocalCidrs: []*NamedAddrs{}, RemoteCidrs: []*NamedAddrs{}, LocalType: ResourceTypeSubnet}
@@ -91,5 +98,6 @@ func (s *Definitions) lookupCidrSegmentACL(name string) (*LocalRemotePair, error
 	for _, cidr := range segmentDetails.Cidrs.SplitToCidrs() {
 		res.RemoteCidrs = append(res.RemoteCidrs, &NamedAddrs{Name: &name, IPAddrs: cidr})
 	}
+	segmentDetails.LRPair = res
 	return res, nil
 }

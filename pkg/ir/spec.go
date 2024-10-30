@@ -113,8 +113,9 @@ type (
 
 	SubnetDetails struct {
 		NamedEntity
-		CIDR *netset.IPBlock
-		VPC  ID
+		CIDR   *netset.IPBlock
+		VPC    ID
+		LRPair *LocalRemotePair // caching lookup result
 	}
 
 	NifDetails struct {
@@ -127,8 +128,9 @@ type (
 
 	InstanceDetails struct {
 		NamedEntity
-		VPC  ID
-		Nifs []ID
+		VPC    ID
+		Nifs   []ID
+		LRPair *LocalRemotePair // caching lookup result
 	}
 
 	VPEReservedIPsDetails struct {
@@ -143,15 +145,18 @@ type (
 		NamedEntity
 		VPEReservedIPs []ID
 		VPC            ID
+		LRPair         *LocalRemotePair // caching lookup result
 	}
 
 	SegmentDetails struct {
 		Elements []ID
+		LRPair   *LocalRemotePair // caching lookup result
 	}
 
 	CidrSegmentDetails struct {
 		Cidrs            *netset.IPBlock
 		ContainedSubnets []ID
+		LRPair           *LocalRemotePair // caching lookup result
 	}
 
 	ExternalDetails struct {
@@ -178,6 +183,8 @@ type (
 	EndpointProvider interface {
 		endpointNames() []ID
 		endpointMap(s *Definitions) map[ID]INWResource
+		getLocalRemotePair() *LocalRemotePair
+		setLocalRemotePair(l *LocalRemotePair)
 	}
 )
 
@@ -238,6 +245,14 @@ func (i *InstanceDetails) endpointMap(s *Definitions) map[ID]INWResource {
 	return res
 }
 
+func (i *InstanceDetails) getLocalRemotePair() *LocalRemotePair {
+	return i.LRPair
+}
+
+func (i *InstanceDetails) setLocalRemotePair(l *LocalRemotePair) {
+	i.LRPair = l
+}
+
 func (v *VPEDetails) endpointNames() []ID {
 	return v.VPEReservedIPs
 }
@@ -248,6 +263,14 @@ func (v *VPEDetails) endpointMap(s *Definitions) map[ID]INWResource {
 		res[ripName] = s.VPEReservedIPs[ripName]
 	}
 	return res
+}
+
+func (v *VPEDetails) getLocalRemotePair() *LocalRemotePair {
+	return v.LRPair
+}
+
+func (v *VPEDetails) setLocalRemotePair(l *LocalRemotePair) {
+	v.LRPair = l
 }
 
 // lookupSingle is called only when the resource type is ResourceTypeSubnet or ResourceTypeExternal
@@ -269,6 +292,9 @@ func (s *Definitions) lookupSegment(segment map[ID]*SegmentDetails, name string,
 	if !ok {
 		return nil, fmt.Errorf(containerNotFound, name, t)
 	}
+	if segmentDetails.LRPair != nil {
+		return segmentDetails.LRPair, nil
+	}
 
 	res := &LocalRemotePair{Name: &name, LocalType: elementType}
 	for _, elementName := range segmentDetails.Elements {
@@ -279,6 +305,7 @@ func (s *Definitions) lookupSegment(segment map[ID]*SegmentDetails, name string,
 		res.LocalCidrs = append(res.LocalCidrs, element.LocalCidrs...)
 		res.RemoteCidrs = append(res.RemoteCidrs, element.RemoteCidrs...)
 	}
+	segmentDetails.LRPair = res
 	return res, nil
 }
 
