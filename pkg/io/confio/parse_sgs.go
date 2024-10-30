@@ -6,6 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 package confio
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -42,7 +43,7 @@ func ReadSGs(filename string) (*ir.SGCollection, error) {
 		result.SGs[vpcName][ir.SGName(*sg.Name)] = &ir.SG{SGName: ir.SGName(*sg.Name),
 			InboundRules:  inbound,
 			OutboundRules: outbound,
-			Targets:       transalteTargets(&sg.SecurityGroup),
+			Targets:       translateTargets(&sg.SecurityGroup),
 		}
 	}
 	return result, nil
@@ -81,56 +82,32 @@ func translateSGRule(sg *vpcv1.SecurityGroup, index int) (sgRule *ir.SGRule, err
 }
 
 func translateSGRuleProtocolAll(rule *vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolAll) (sgRule *ir.SGRule, err error) {
-	direction, err := translateDirection(*rule.Direction)
-	if err != nil {
-		return nil, err
-	}
-	remote, err := translateRemote(rule.Remote)
-	if err != nil {
-		return nil, err
-	}
-	local, err := translateLocal(rule.Local)
-	if err != nil {
+	direction, err1 := translateDirection(*rule.Direction)
+	remote, err2 := translateRemote(rule.Remote)
+	local, err3 := translateLocal(rule.Local)
+	if err := errors.Join(err1, err2, err3); err != nil {
 		return nil, err
 	}
 	return &ir.SGRule{Direction: direction, Remote: remote, Protocol: netp.AnyProtocol{}, Local: local}, nil
 }
 
 func translateSGRuleProtocolTCPUDP(rule *vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp) (sgRule *ir.SGRule, err error) {
-	direction, err := translateDirection(*rule.Direction)
-	if err != nil {
-		return nil, err
-	}
-	remote, err := translateRemote(rule.Remote)
-	if err != nil {
-		return nil, err
-	}
-	local, err := translateLocal(rule.Local)
-	if err != nil {
-		return nil, err
-	}
-	protocol, err := translateProtocolTCPUDP(rule)
-	if err != nil {
+	direction, err1 := translateDirection(*rule.Direction)
+	remote, err2 := translateRemote(rule.Remote)
+	local, err3 := translateLocal(rule.Local)
+	protocol, err4 := translateProtocolTCPUDP(*rule.Protocol, rule.PortMin, rule.PortMax)
+	if err := errors.Join(err1, err2, err3, err4); err != nil {
 		return nil, err
 	}
 	return &ir.SGRule{Direction: direction, Remote: remote, Protocol: protocol, Local: local}, nil
 }
 
 func translateSGRuleProtocolIcmp(rule *vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp) (sgRule *ir.SGRule, err error) {
-	direction, err := translateDirection(*rule.Direction)
-	if err != nil {
-		return nil, err
-	}
-	remote, err := translateRemote(rule.Remote)
-	if err != nil {
-		return nil, err
-	}
-	local, err := translateLocal(rule.Local)
-	if err != nil {
-		return nil, err
-	}
-	protocol, err := netp.ICMPFromTypeAndCode64WithoutRFCValidation(rule.Type, rule.Code)
-	if err != nil {
+	direction, err1 := translateDirection(*rule.Direction)
+	remote, err2 := translateRemote(rule.Remote)
+	local, err3 := translateLocal(rule.Local)
+	protocol, err4 := netp.ICMPFromTypeAndCode64WithoutRFCValidation(rule.Type, rule.Code)
+	if err := errors.Join(err1, err2, err3, err4); err != nil {
 		return nil, err
 	}
 	return &ir.SGRule{Direction: direction, Remote: remote, Protocol: protocol, Local: local}, nil
@@ -142,7 +119,7 @@ func translateDirection(direction string) (ir.Direction, error) {
 	} else if direction == "outbound" {
 		return ir.Outbound, nil
 	}
-	return ir.Inbound, fmt.Errorf("SG rule direction must be either inbound or outbound")
+	return ir.Inbound, fmt.Errorf("a firewall rule direction must be either inbound or outbound")
 }
 
 func translateRemote(remote vpcv1.SecurityGroupRuleRemoteIntf) (ir.RemoteType, error) {
@@ -172,7 +149,7 @@ func translateLocal(local vpcv1.SecurityGroupRuleLocalIntf) (*netset.IPBlock, er
 }
 
 // translate SG targets
-func transalteTargets(sg *vpcv1.SecurityGroup) []string {
+func translateTargets(sg *vpcv1.SecurityGroup) []string {
 	if len(sg.Targets) == 0 {
 		log.Printf("Warning: Security Groups %s does not have attached resources", *sg.Name)
 	}
@@ -187,9 +164,9 @@ func transalteTargets(sg *vpcv1.SecurityGroup) []string {
 	return res
 }
 
-func translateProtocolTCPUDP(rule *vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp) (netp.Protocol, error) {
-	isTCP := *rule.Protocol == vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudpProtocolTCPConst
-	minDstPort := utils.GetProperty(rule.PortMin, netp.MinPort)
-	maxDstPort := utils.GetProperty(rule.PortMax, netp.MaxPort)
+func translateProtocolTCPUDP(protocolName string, portMin, portMax *int64) (netp.Protocol, error) {
+	isTCP := protocolName == vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudpProtocolTCPConst
+	minDstPort := utils.GetProperty(portMin, netp.MinPort)
+	maxDstPort := utils.GetProperty(portMax, netp.MaxPort)
 	return netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(minDstPort), int(maxDstPort))
 }

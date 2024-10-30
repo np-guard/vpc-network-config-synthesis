@@ -28,8 +28,7 @@ func (w *Writer) WriteACL(c *ir.ACLCollection, vpc string, _ bool) error {
 	if err != nil {
 		return err
 	}
-	err = w.w.Flush()
-	return err
+	return w.w.Flush()
 }
 
 func aclProtocol(t netp.Protocol) []tf.Block {
