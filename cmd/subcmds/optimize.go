@@ -17,12 +17,13 @@ import (
 func NewOptimizeCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "optimize",
-		Short: "optimization of existing SG (nACLS are not supported yet)",
-		Long:  `optimization of existing SG (nACLS are not supported yet)`,
+		Short: "optimization of existing SG and nACLs",
+		Long:  `optimization of existing SG and nACLs`,
 	}
 
 	// sub cmds
 	cmd.AddCommand(NewOptimizeSGCommand(args))
+	cmd.AddCommand(NewOptimizeACLCommand(args))
 
 	return cmd
 }
