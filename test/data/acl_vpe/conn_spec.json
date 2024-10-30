@@ -1,0 +1,27 @@
+{
+    "externals": {
+        "public internet": "0.0.0.0/0"
+    },
+    "required-connections": [
+        {
+            "src": {
+                "name": "public internet",
+                "type": "external"
+            },
+            "dst": {
+                "name": "appdata-endpoint-gateway",
+                "type": "vpe"
+            }
+        },
+        {
+            "src": {
+                "name": "policydb-endpoint-gateway",
+                "type": "vpe"
+            },
+            "dst": {
+                "name": "sub1",
+                "type": "subnet"
+            }
+        }
+    ]
+}

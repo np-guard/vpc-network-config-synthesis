@@ -41,7 +41,7 @@ func packetACLRule(packet *Packet, direction Direction, action Action) *ACLRule 
 func makeDenyInternal() []*ACLRule {
 	localCidrs := []string{"10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"} // https://datatracker.ietf.org/doc/html/rfc1918#section-3
 	localCidrsIPBlocks, _ := netset.IPBlockFromCidrList(localCidrs)
-	localCidrsList := localCidrsIPBlocks.Split() // should be splitted to CIDRs
+	localCidrsList := localCidrsIPBlocks.SplitToCidrs()
 	var denyInternal []*ACLRule
 	for i, localCidrSrc := range localCidrsList {
 		for j, localCidrDst := range localCidrsList {
