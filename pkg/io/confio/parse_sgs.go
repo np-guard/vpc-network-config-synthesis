@@ -27,13 +27,13 @@ func ReadSGs(filename string) (*ir.SGCollection, error) {
 
 	result := ir.NewSGCollection()
 	for i, sg := range config.SecurityGroupList {
-		inbound, outbound, err := translateSGRules(&sg.SecurityGroup)
-		if err != nil {
-			return nil, err
-		}
 		if sg.Name == nil || sg.VPC == nil || sg.VPC.Name == nil {
 			log.Printf("Warning: missing SG/VPC name in sg at index %d\n", i)
 			continue
+		}
+		inbound, outbound, err := translateSGRules(&sg.SecurityGroup)
+		if err != nil {
+			return nil, err
 		}
 		vpcName := *sg.VPC.Name
 		if result.SGs[vpcName] == nil {
@@ -49,16 +49,19 @@ func ReadSGs(filename string) (*ir.SGCollection, error) {
 }
 
 // parse security rules, splitted into ingress and egress rules
-func translateSGRules(sg *vpcv1.SecurityGroup) (ingressRules, egressRules []*ir.SGRule, err error) {
+func translateSGRules(sg *vpcv1.SecurityGroup) (ingressRules, egressRules map[string][]*ir.SGRule, err error) {
+	ingressRules = make(map[string][]*ir.SGRule)
+	egressRules = make(map[string][]*ir.SGRule)
 	for index := range sg.Rules {
 		rule, err := translateSGRule(sg, index)
 		if err != nil {
 			return nil, nil, err
 		}
+		local := rule.Local.String()
 		if rule.Direction == ir.Inbound {
-			ingressRules = append(ingressRules, rule)
+			ingressRules[local] = append(ingressRules[local], rule)
 		} else {
-			egressRules = append(egressRules, rule)
+			egressRules[local] = append(egressRules[local], rule)
 		}
 	}
 	return ingressRules, egressRules, nil
@@ -157,19 +160,13 @@ func translateRemote(remote vpcv1.SecurityGroupRuleRemoteIntf) (ir.RemoteType, e
 }
 
 func translateLocal(local vpcv1.SecurityGroupRuleLocalIntf) (*netset.IPBlock, error) {
-	var err error
-	var ipAddrs *netset.IPBlock
 	if l, ok := local.(*vpcv1.SecurityGroupRuleLocal); ok {
 		if l.CIDRBlock != nil {
-			ipAddrs, err = netset.IPBlockFromCidr(*l.CIDRBlock)
+			return netset.IPBlockFromCidr(*l.CIDRBlock)
 		}
 		if l.Address != nil {
-			ipAddrs, err = netset.IPBlockFromIPAddress(*l.CIDRBlock)
+			return netset.IPBlockFromIPAddress(*l.Address)
 		}
-		if err != nil {
-			return nil, err
-		}
-		return verifyLocalValue(ipAddrs)
 	}
 	return nil, fmt.Errorf("error parsing Local field")
 }
@@ -188,14 +185,6 @@ func transalteTargets(sg *vpcv1.SecurityGroup) []string {
 		}
 	}
 	return res
-}
-
-// temporary - first version of optimization requires local = 0.0.0.0/32
-func verifyLocalValue(ipAddrs *netset.IPBlock) (*netset.IPBlock, error) {
-	if !ipAddrs.Equal(netset.GetCidrAll()) {
-		return nil, fmt.Errorf("only 0.0.0.0/32 CIDR block is supported for local values")
-	}
-	return ipAddrs, nil
 }
 
 func translateProtocolTCPUDP(rule *vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp) (netp.Protocol, error) {

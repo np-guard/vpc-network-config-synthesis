@@ -14,33 +14,33 @@ import (
 )
 
 // cubes (SGName X portSet) to SG rules
-func tcpudpSGCubesToRules(span map[ir.SGName]*netset.PortSet, direction ir.Direction, isTCP bool) []*ir.SGRule {
+func tcpudpSGCubesToRules(span map[ir.SGName]*netset.PortSet, direction ir.Direction, isTCP bool, l *netset.IPBlock) []*ir.SGRule {
 	result := make([]*ir.SGRule, 0)
 	for sgName, portSet := range span {
 		for _, dstPorts := range portSet.Intervals() {
 			p, _ := netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(dstPorts.Start()), int(dstPorts.End()))
-			result = append(result, ir.NewSGRule(direction, sgName, p, netset.GetCidrAll(), ""))
+			result = append(result, ir.NewSGRule(direction, sgName, p, l, ""))
 		}
 	}
 	return result
 }
 
 // cubes (SGName X icmpset) to SG rules
-func icmpSGCubesToRules(span map[ir.SGName]*netset.ICMPSet, direction ir.Direction) []*ir.SGRule {
+func icmpSGCubesToRules(span map[ir.SGName]*netset.ICMPSet, direction ir.Direction, l *netset.IPBlock) []*ir.SGRule {
 	result := make([]*ir.SGRule, 0)
 	for sgName, icmpSet := range span {
 		for _, icmp := range optimize.IcmpsetPartitions(icmpSet) {
-			result = append(result, ir.NewSGRule(direction, sgName, icmp, netset.GetCidrAll(), ""))
+			result = append(result, ir.NewSGRule(direction, sgName, icmp, l, ""))
 		}
 	}
 	return result
 }
 
 // cubes (slice of SGs) to SG rules
-func protocolAllCubesToRules(span []ir.SGName, direction ir.Direction) []*ir.SGRule {
+func protocolAllCubesToRules(span []ir.SGName, direction ir.Direction, l *netset.IPBlock) []*ir.SGRule {
 	result := make([]*ir.SGRule, len(span))
 	for i, sgName := range span {
-		result[i] = ir.NewSGRule(direction, sgName, netp.AnyProtocol{}, netset.GetCidrAll(), "")
+		result[i] = ir.NewSGRule(direction, sgName, netp.AnyProtocol{}, l, "")
 	}
 	return result
 }
