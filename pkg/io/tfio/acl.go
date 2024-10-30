@@ -90,7 +90,7 @@ func singleACL(acl *ir.ACL, vpcName string) (tf.Block, error) {
 		return tf.Block{}, err
 	}
 	return tf.Block{
-		Comment: aclComment(acl.Subnets),
+		Comment: aclComment(acl),
 		Name:    "resource",
 		Labels:  []string{quote("ibm_is_network_acl"), quote(aclName)},
 		Arguments: []tf.Argument{
@@ -122,9 +122,9 @@ func aclCollection(collection *ir.ACLCollection, vpc string) (*tf.ConfigFile, er
 	}, nil
 }
 
-func aclComment(subnets []string) string {
-	if len(subnets) == 0 {
-		return "# No attached subnets\n"
+func aclComment(acl *ir.ACL) string {
+	if len(acl.Subnets) == 0 {
+		return "\n# No attached subnets"
 	}
-	return fmt.Sprintf("# Attached subnets: %s\n", strings.Join(subnets, ", "))
+	return fmt.Sprintf("\n# Attached subnets: %s", acl.AttachedSubnetsString())
 }

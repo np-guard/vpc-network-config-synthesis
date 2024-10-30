@@ -1,4 +1,4 @@
-# test-vpc1/subnet10 [10.240.64.0/24]
+# Attached subnets: test-vpc1/subnet10
 resource "ibm_is_network_acl" "acl-test-vpc1--subnet10" {
   name           = "acl-test-vpc1--subnet10"
   resource_group = local.acl_synth_resource_group_id
@@ -27,7 +27,7 @@ resource "ibm_is_network_acl" "acl-test-vpc1--subnet10" {
   }
 }
 
-# test-vpc1/subnet11 [10.240.80.0/24]
+# Attached subnets: test-vpc1/subnet11
 resource "ibm_is_network_acl" "acl-test-vpc1--subnet11" {
   name           = "acl-test-vpc1--subnet11"
   resource_group = local.acl_synth_resource_group_id

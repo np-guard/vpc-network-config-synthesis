@@ -1,3 +1,4 @@
+# Attached subnets: test-vpc2/subnet20
 resource "ibm_is_network_acl" "acl-test-vpc2--subnet20" {
   name           = "acl-test-vpc2--subnet20"
   resource_group = local.acl_synth_resource_group_id

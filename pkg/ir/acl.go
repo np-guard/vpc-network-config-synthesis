@@ -8,6 +8,8 @@ package ir
 import (
 	"fmt"
 	"reflect"
+	"slices"
+	"strings"
 
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
@@ -98,6 +100,11 @@ func (a *ACL) Name() string {
 	return fmt.Sprintf("acl-%v", a.ACLName)
 }
 
+func (a *ACL) AttachedSubnetsString() string {
+	a.Subnets = slices.Compact(slices.Sorted(slices.Values(a.Subnets)))
+	return strings.Join(a.Subnets, ", ")
+}
+
 func (a *ACL) AppendExternal(rule *ACLRule) {
 	if a.External == nil {
 		panic("ACLs should be created with non-null External")
@@ -111,20 +118,32 @@ func NewACLCollection() *ACLCollection {
 	return &ACLCollection{ACLs: map[ID]map[string]*ACL{}}
 }
 
-func NewACL(subnet string) *ACL {
-	return &ACL{ACLName: subnet, Subnets: []string{subnet}, Internal: []*ACLRule{}, External: []*ACLRule{}}
+func NewACL(aclName, subnetName string) *ACL {
+	return &ACL{ACLName: aclName, Subnets: []string{subnetName}, Internal: []*ACLRule{}, External: []*ACLRule{}}
 }
 
-func (c *ACLCollection) LookupOrCreate(name string) *ACL {
-	vpcName := VpcFromScopedResource(name)
-	if acl, ok := c.ACLs[vpcName][name]; ok {
+func aclSelector(subnetName ID, single bool) string {
+	if single {
+		return fmt.Sprintf("%s/singleACL", VpcFromScopedResource(subnetName))
+	}
+	return subnetName
+}
+
+func (c *ACLCollection) LookupOrCreate(subnetName string, singleACL bool) *ACL {
+	vpcName := VpcFromScopedResource(subnetName)
+	aclName := aclSelector(subnetName, singleACL)
+
+	if acl, ok := c.ACLs[vpcName][aclName]; ok {
+		if singleACL {
+			acl.Subnets = append(acl.Subnets, subnetName)
+		}
 		return acl
 	}
 	if c.ACLs[vpcName] == nil {
 		c.ACLs[vpcName] = make(map[string]*ACL)
 	}
-	c.ACLs[vpcName][name] = NewACL(name)
-	return c.ACLs[vpcName][name]
+	c.ACLs[vpcName][aclName] = NewACL(aclName, subnetName)
+	return c.ACLs[vpcName][aclName]
 }
 
 func (c *ACLCollection) VpcNames() []string {

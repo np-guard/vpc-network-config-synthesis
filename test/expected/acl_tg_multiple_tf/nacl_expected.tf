@@ -1,4 +1,4 @@
-# test-vpc0/subnet0 [10.240.0.0/24]
+# Attached subnets: test-vpc0/subnet0
 resource "ibm_is_network_acl" "acl-test-vpc0--subnet0" {
   name           = "acl-test-vpc0--subnet0"
   resource_group = local.acl_synth_resource_group_id
@@ -33,7 +33,7 @@ resource "ibm_is_network_acl" "acl-test-vpc0--subnet0" {
   }
 }
 
-# test-vpc0/subnet1 [10.240.1.0/24]
+# Attached subnets: test-vpc0/subnet1
 resource "ibm_is_network_acl" "acl-test-vpc0--subnet1" {
   name           = "acl-test-vpc0--subnet1"
   resource_group = local.acl_synth_resource_group_id
@@ -56,7 +56,7 @@ resource "ibm_is_network_acl" "acl-test-vpc0--subnet1" {
   }
 }
 
-# test-vpc0/subnet2 [10.240.4.0/24]
+# Attached subnets: test-vpc0/subnet2
 resource "ibm_is_network_acl" "acl-test-vpc0--subnet2" {
   name           = "acl-test-vpc0--subnet2"
   resource_group = local.acl_synth_resource_group_id
@@ -91,7 +91,7 @@ resource "ibm_is_network_acl" "acl-test-vpc0--subnet2" {
   }
 }
 
-# test-vpc0/subnet3 [10.240.5.0/24]
+# Attached subnets: test-vpc0/subnet3
 resource "ibm_is_network_acl" "acl-test-vpc0--subnet3" {
   name           = "acl-test-vpc0--subnet3"
   resource_group = local.acl_synth_resource_group_id
@@ -122,7 +122,7 @@ resource "ibm_is_network_acl" "acl-test-vpc0--subnet3" {
   }
 }
 
-# test-vpc0/subnet4 [10.240.8.0/24]
+# Attached subnets: test-vpc0/subnet4
 resource "ibm_is_network_acl" "acl-test-vpc0--subnet4" {
   name           = "acl-test-vpc0--subnet4"
   resource_group = local.acl_synth_resource_group_id
@@ -140,7 +140,7 @@ resource "ibm_is_network_acl" "acl-test-vpc0--subnet4" {
   }
 }
 
-# test-vpc0/subnet5 [10.240.9.0/24]
+# Attached subnets: test-vpc0/subnet5
 resource "ibm_is_network_acl" "acl-test-vpc0--subnet5" {
   name           = "acl-test-vpc0--subnet5"
   resource_group = local.acl_synth_resource_group_id
@@ -158,7 +158,7 @@ resource "ibm_is_network_acl" "acl-test-vpc0--subnet5" {
   }
 }
 
-# test-vpc1/subnet10 [10.240.64.0/24]
+# Attached subnets: test-vpc1/subnet10
 resource "ibm_is_network_acl" "acl-test-vpc1--subnet10" {
   name           = "acl-test-vpc1--subnet10"
   resource_group = local.acl_synth_resource_group_id
@@ -187,7 +187,7 @@ resource "ibm_is_network_acl" "acl-test-vpc1--subnet10" {
   }
 }
 
-# test-vpc1/subnet11 [10.240.80.0/24]
+# Attached subnets: test-vpc1/subnet11
 resource "ibm_is_network_acl" "acl-test-vpc1--subnet11" {
   name           = "acl-test-vpc1--subnet11"
   resource_group = local.acl_synth_resource_group_id
@@ -216,7 +216,7 @@ resource "ibm_is_network_acl" "acl-test-vpc1--subnet11" {
   }
 }
 
-# test-vpc2/subnet20 [10.240.128.0/24]
+# Attached subnets: test-vpc2/subnet20
 resource "ibm_is_network_acl" "acl-test-vpc2--subnet20" {
   name           = "acl-test-vpc2--subnet20"
   resource_group = local.acl_synth_resource_group_id
@@ -239,7 +239,7 @@ resource "ibm_is_network_acl" "acl-test-vpc2--subnet20" {
   }
 }
 
-# test-vpc3/subnet30 [10.240.192.0/24]
+# Attached subnets: test-vpc3/subnet30
 resource "ibm_is_network_acl" "acl-test-vpc3--subnet30" {
   name           = "acl-test-vpc3--subnet30"
   resource_group = local.acl_synth_resource_group_id

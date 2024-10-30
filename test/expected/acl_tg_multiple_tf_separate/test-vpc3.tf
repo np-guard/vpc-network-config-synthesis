@@ -1,3 +1,4 @@
+# Attached subnets: test-vpc3/subnet30
 resource "ibm_is_network_acl" "acl-test-vpc3--subnet30" {
   name           = "acl-test-vpc3--subnet30"
   resource_group = local.acl_synth_resource_group_id

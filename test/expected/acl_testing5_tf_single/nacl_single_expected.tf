@@ -1,3 +1,4 @@
+# Attached subnets: testacl5-vpc/sub1-1, testacl5-vpc/sub1-2, testacl5-vpc/sub1-3, testacl5-vpc/sub2-1, testacl5-vpc/sub2-2, testacl5-vpc/sub3-1
 resource "ibm_is_network_acl" "acl-testacl5-vpc--singleACL" {
   name           = "acl-testacl5-vpc--singleACL"
   resource_group = local.acl_synth_resource_group_id
