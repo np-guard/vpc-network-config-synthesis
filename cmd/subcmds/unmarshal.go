@@ -13,13 +13,13 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-func unmarshal(args *inArgs) (*ir.Spec, error) {
+func unmarshal(args *inArgs, isSG bool) (*ir.Spec, error) {
 	defs, err := confio.ReadDefs(args.configFile)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse config file %v: %w", args.configFile, err)
 	}
 
-	model, err := jsonio.NewReader().ReadSpec(args.specFile, defs)
+	model, err := jsonio.NewReader().ReadSpec(args.specFile, defs, isSG)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse connectivity file %s: %w", args.specFile, err)
 	}

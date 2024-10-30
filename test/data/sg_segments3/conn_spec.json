@@ -1,0 +1,30 @@
+{
+    "segments": {
+        "subnetSegment": { 
+            "type": "subnet",
+            "items": [
+                "subnet10",
+                "subnet20"
+            ]
+        },
+        "nifSegment": { 
+            "type": "nif",
+            "items": [
+                "bullring-ransack-feint-cheer",
+                "scratch-outward-raging-hunchback"
+            ]
+        }
+    },
+    "required-connections": [
+        {
+            "src": {
+                "name": "subnetSegment",
+                "type": "segment"
+            },
+            "dst": {
+                "name": "nifSegment",
+                "type": "segment"
+            }
+        }
+    ]
+}
