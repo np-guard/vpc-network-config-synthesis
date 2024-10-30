@@ -30,7 +30,7 @@ func (r *Reader) ReadSpec(filename string, configDefs *ir.ConfigDefs, isSG bool)
 	if err != nil {
 		return nil, err
 	}
-	defs, err := r.readDefinitions(jsonSpec, configDefs)
+	defs, blocked, err := r.readDefinitions(jsonSpec, configDefs)
 	if err != nil {
 		return nil, err
 	}
@@ -41,14 +41,15 @@ func (r *Reader) ReadSpec(filename string, configDefs *ir.ConfigDefs, isSG bool)
 		return nil, err
 	}
 
-	connections, err := r.translateConnections(jsonSpec.RequiredConnections, defs, isSG)
+	connections, err := r.translateConnections(jsonSpec.RequiredConnections, defs, blocked, isSG)
 	if err != nil {
 		return nil, err
 	}
 
 	return &ir.Spec{
-		Connections: connections,
-		Defs:        defs,
+		Connections:      connections,
+		Defs:             defs,
+		BlockedResources: blocked,
 	}, nil
 }
 

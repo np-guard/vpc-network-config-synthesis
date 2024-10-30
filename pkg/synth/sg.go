@@ -96,7 +96,7 @@ func isSGRemote(t ir.ResourceType) bool {
 
 // generate SGs for blocked endpoints (endpoints that do not appear in Spec)
 func (s *SGSynthesizer) generateSGsForBlockedResources() {
-	blockedResources := append(utils.TrueKeyValues(s.spec.Defs.BlockedInstances), utils.TrueKeyValues(s.spec.Defs.BlockedVPEs)...)
+	blockedResources := append(utils.TrueKeyValues(s.spec.BlockedInstances), utils.TrueKeyValues(s.spec.BlockedVPEs)...)
 	ir.PrintUnspecifiedWarning(ir.WarningUnspecifiedSG, blockedResources)
 	for _, resource := range blockedResources {
 		sg := s.result.LookupOrCreate(ir.SGName(resource)) // an empty SG allows no connections

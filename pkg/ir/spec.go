@@ -26,6 +26,8 @@ type (
 		Connections []*Connection
 
 		Defs *Definitions
+
+		*BlockedResources
 	}
 
 	Connection struct {
@@ -42,6 +44,7 @@ type (
 		Origin fmt.Stringer
 	}
 
+	// LocalRemotePair holds a local resource and the remote CIDRs it should be connected to
 	LocalRemotePair struct {
 		// Symbolic name of resource, if available
 		Name *string
@@ -83,8 +86,6 @@ type (
 	// Definitions adds to ConfigDefs the spec-specific definitions
 	Definitions struct {
 		ConfigDefs
-
-		BlockedResources
 
 		// Segments are a way for users to create aggregations.
 		SubnetSegments map[ID]*SegmentDetails
