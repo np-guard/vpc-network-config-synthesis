@@ -57,15 +57,19 @@ func lookupContainerForACLSynth[T EndpointProvider](m map[ID]T, defs *Definition
 		return nil, fmt.Errorf(containerNotFound, name, t)
 	}
 
+	seenSubnets := make(map[string]struct{})
 	res := &LocalRemotePair{Name: &name, LocalCidrs: []*NamedAddrs{}, RemoteCidrs: []*NamedAddrs{}, LocalType: ResourceTypeSubnet}
 	endpointMap := containerDetails.endpointMap(defs)
 	for _, endpointName := range containerDetails.endpointNames() {
-		subnet, err := lookupSingleForACLSynth(endpointMap, defs.Subnets, endpointName, containerDetails.endpointType())
-		if err != nil {
-			return nil, err
+		subnetName := endpointMap[endpointName].SubnetName()
+		if _, ok := seenSubnets[subnetName]; ok {
+			continue
 		}
-		res.RemoteCidrs = append(res.RemoteCidrs, subnet.RemoteCidrs...)
-		res.LocalCidrs = append(res.LocalCidrs, subnet.LocalCidrs...)
+		seenSubnets[subnetName] = struct{}{}
+
+		namedAddrs := &NamedAddrs{Name: &subnetName, IPAddrs: defs.Subnets[subnetName].CIDR}
+		res.RemoteCidrs = append(res.RemoteCidrs, namedAddrs)
+		res.LocalCidrs = append(res.LocalCidrs, namedAddrs)
 	}
 	return res, nil
 }

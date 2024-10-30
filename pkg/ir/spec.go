@@ -233,9 +233,9 @@ func (i *InstanceDetails) endpointNames() []ID {
 }
 
 func (i *InstanceDetails) endpointMap(s *Definitions) map[ID]INWResource {
-	res := make(map[ID]INWResource, len(s.NIFs))
-	for k, val := range s.NIFs {
-		res[k] = val
+	res := make(map[ID]INWResource, len(i.Nifs))
+	for _, nifName := range i.Nifs {
+		res[nifName] = s.NIFs[nifName]
 	}
 	return res
 }
@@ -249,9 +249,9 @@ func (v *VPEDetails) endpointNames() []ID {
 }
 
 func (v *VPEDetails) endpointMap(s *Definitions) map[ID]INWResource {
-	res := make(map[ID]INWResource, len(s.VPEReservedIPs))
-	for k, val := range s.VPEReservedIPs {
-		res[k] = val
+	res := make(map[ID]INWResource, len(v.VPEReservedIPs))
+	for _, ripName := range v.VPEReservedIPs {
+		res[ripName] = s.VPEReservedIPs[ripName]
 	}
 	return res
 }
