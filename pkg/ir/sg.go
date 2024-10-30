@@ -15,17 +15,6 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
-type SGResource string
-
-const (
-	SGResourceNIF                  SGResource = "nif"
-	SGResourceBareMetalNIF         SGResource = "bnif"
-	SGResourceLoadBalancer         SGResource = "loadbalancer"
-	SGResourceVPE                  SGResource = "vpe"
-	SGResourceVPNServer            SGResource = "vpn"
-	SGResourceFileShareMountTarget SGResource = "fsmt"
-)
-
 type (
 	SGName string
 
