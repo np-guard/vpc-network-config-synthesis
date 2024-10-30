@@ -85,7 +85,7 @@ func singleACL(acl *ir.ACL, vpcName string) (tf.Block, error) {
 		}
 		blocks[i] = rule
 	}
-	aclName := ir.ChangeScoping(acl.Name())
+	aclName := ir.ChangeScoping(acl.Name)
 	if err := verifyName(aclName); err != nil {
 		return tf.Block{}, err
 	}

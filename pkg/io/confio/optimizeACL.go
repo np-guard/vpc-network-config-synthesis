@@ -7,6 +7,7 @@ package confio
 
 import (
 	"github.com/IBM/vpc-go-sdk/vpcv1"
+
 	configModel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
@@ -17,7 +18,7 @@ func updateACLs(model *configModel.ResourcesContainerModel, collection *ir.ACLCo
 		if acl.Name == nil || acl.VPC == nil || acl.VPC.Name == nil {
 			continue
 		}
-		if err := updateACL(&acl.NetworkACL, collection.ACLs[*acl.VPC.Name][*acl.VPC.Name]); err != nil {
+		if err := updateACL(&acl.NetworkACL, collection.ACLs[*acl.VPC.Name][*acl.Name]); err != nil {
 			return err
 		}
 	}

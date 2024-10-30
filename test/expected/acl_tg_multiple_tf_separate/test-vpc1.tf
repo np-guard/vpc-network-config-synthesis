@@ -1,6 +1,6 @@
 # Attached subnets: test-vpc1/subnet10
-resource "ibm_is_network_acl" "acl-test-vpc1--subnet10" {
-  name           = "acl-test-vpc1--subnet10"
+resource "ibm_is_network_acl" "test-vpc1--subnet10" {
+  name           = "test-vpc1--subnet10"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_test-vpc1_id
   # Internal. required-connections[3]: (subnet test-vpc1/subnet10)->(subnet test-vpc1/subnet11); allowed-protocols[0]
@@ -28,8 +28,8 @@ resource "ibm_is_network_acl" "acl-test-vpc1--subnet10" {
 }
 
 # Attached subnets: test-vpc1/subnet11
-resource "ibm_is_network_acl" "acl-test-vpc1--subnet11" {
-  name           = "acl-test-vpc1--subnet11"
+resource "ibm_is_network_acl" "test-vpc1--subnet11" {
+  name           = "test-vpc1--subnet11"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_test-vpc1_id
   # Internal. required-connections[3]: (subnet test-vpc1/subnet10)->(subnet test-vpc1/subnet11); allowed-protocols[0]

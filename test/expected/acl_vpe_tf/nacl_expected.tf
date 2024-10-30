@@ -1,6 +1,6 @@
 # Attached subnets: test-vpc/sub1
-resource "ibm_is_network_acl" "acl-test-vpc--sub1" {
-  name           = "acl-test-vpc--sub1"
+resource "ibm_is_network_acl" "test-vpc--sub1" {
+  name           = "test-vpc--sub1"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_test-vpc_id
   # Internal. required-connections[1]: (vpe test-vpc/policydb-endpoint-gateway)->(subnet test-vpc/sub1); allowed-protocols[0]
@@ -198,8 +198,8 @@ resource "ibm_is_network_acl" "acl-test-vpc--sub1" {
 }
 
 # Attached subnets: test-vpc/sub2
-resource "ibm_is_network_acl" "acl-test-vpc--sub2" {
-  name           = "acl-test-vpc--sub2"
+resource "ibm_is_network_acl" "test-vpc--sub2" {
+  name           = "test-vpc--sub2"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_test-vpc_id
   # Internal. required-connections[1]: (vpe test-vpc/policydb-endpoint-gateway)->(subnet test-vpc/sub1); allowed-protocols[0]
@@ -381,8 +381,8 @@ resource "ibm_is_network_acl" "acl-test-vpc--sub2" {
 }
 
 # Attached subnets: test-vpc/sub3
-resource "ibm_is_network_acl" "acl-test-vpc--sub3" {
-  name           = "acl-test-vpc--sub3"
+resource "ibm_is_network_acl" "test-vpc--sub3" {
+  name           = "test-vpc--sub3"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_test-vpc_id
   # Internal. required-connections[1]: (vpe test-vpc/policydb-endpoint-gateway)->(subnet test-vpc/sub1); allowed-protocols[0]

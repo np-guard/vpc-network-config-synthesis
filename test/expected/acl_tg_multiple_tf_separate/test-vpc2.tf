@@ -1,6 +1,6 @@
 # Attached subnets: test-vpc2/subnet20
-resource "ibm_is_network_acl" "acl-test-vpc2--subnet20" {
-  name           = "acl-test-vpc2--subnet20"
+resource "ibm_is_network_acl" "test-vpc2--subnet20" {
+  name           = "test-vpc2--subnet20"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_test-vpc2_id
   # Deny all communication; subnet test-vpc2/subnet20[10.240.128.0/24] does not have required connections

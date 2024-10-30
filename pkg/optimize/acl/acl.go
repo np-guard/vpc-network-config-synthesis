@@ -27,5 +27,5 @@ func NewACLOptimizer(collection ir.Collection, aclName string) optimize.Optimize
 }
 
 func (a *aclOptimizer) Optimize() (ir.Collection, error) {
-	return nil, nil
+	return a.aclCollection, nil
 }

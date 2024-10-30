@@ -30,7 +30,7 @@ type (
 	}
 
 	ACL struct {
-		ACLName  string
+		Name     string
 		Subnets  []string
 		Internal []*ACLRule
 		External []*ACLRule
@@ -96,10 +96,6 @@ func (a *ACL) AppendInternal(rule *ACLRule) {
 	}
 }
 
-func (a *ACL) Name() string {
-	return fmt.Sprintf("acl-%v", a.ACLName)
-}
-
 func (a *ACL) AttachedSubnetsString() string {
 	a.Subnets = slices.Compact(slices.Sorted(slices.Values(a.Subnets)))
 	return strings.Join(a.Subnets, ", ")
@@ -119,7 +115,7 @@ func NewACLCollection() *ACLCollection {
 }
 
 func NewACL(aclName, subnetName string) *ACL {
-	return &ACL{ACLName: aclName, Subnets: []string{subnetName}, Internal: []*ACLRule{}, External: []*ACLRule{}}
+	return &ACL{Name: aclName, Subnets: []string{subnetName}, Internal: []*ACLRule{}, External: []*ACLRule{}}
 }
 
 func aclSelector(subnetName ID, single bool) string {

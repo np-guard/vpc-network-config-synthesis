@@ -77,7 +77,7 @@ func makeACLRow(acl *ir.ACL, priority int, rule *ir.ACLRule) ([]string, error) {
 	}
 
 	return []string{
-		acl.Name(),
+		acl.Name,
 		strings.Join(acl.Subnets, ", "),
 		direction(rule.Direction),
 		strconv.Itoa(priority),

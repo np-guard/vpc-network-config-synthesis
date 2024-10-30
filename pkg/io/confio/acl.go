@@ -103,7 +103,7 @@ func newACLItem(subnet *configModel.Subnet, acl *ir.ACL) (*configModel.NetworkAC
 		CRN:           ref.CRN,
 		Href:          ref.Href,
 		ID:            ref.ID,
-		Name:          utils.Ptr(ir.ChangeScoping(acl.Name())),
+		Name:          utils.Ptr(ir.ChangeScoping(acl.Name)),
 		ResourceGroup: subnet.ResourceGroup,
 		Rules:         rules,
 		Subnets:       []vpcv1.SubnetReference{*subnetRef(subnet)},

@@ -1,6 +1,6 @@
 # Attached subnets: test-vpc1/subnet1
-resource "ibm_is_network_acl" "acl-test-vpc1--subnet1" {
-  name           = "acl-test-vpc1--subnet1"
+resource "ibm_is_network_acl" "test-vpc1--subnet1" {
+  name           = "test-vpc1--subnet1"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_test-vpc1_id
   # Deny other internal communication; see rfc1918#3; item 0,0
@@ -166,8 +166,8 @@ resource "ibm_is_network_acl" "acl-test-vpc1--subnet1" {
 }
 
 # Attached subnets: test-vpc1/subnet2
-resource "ibm_is_network_acl" "acl-test-vpc1--subnet2" {
-  name           = "acl-test-vpc1--subnet2"
+resource "ibm_is_network_acl" "test-vpc1--subnet2" {
+  name           = "test-vpc1--subnet2"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_test-vpc1_id
   # Deny other internal communication; see rfc1918#3; item 0,0
@@ -333,8 +333,8 @@ resource "ibm_is_network_acl" "acl-test-vpc1--subnet2" {
 }
 
 # Attached subnets: test-vpc1/subnet3
-resource "ibm_is_network_acl" "acl-test-vpc1--subnet3" {
-  name           = "acl-test-vpc1--subnet3"
+resource "ibm_is_network_acl" "test-vpc1--subnet3" {
+  name           = "test-vpc1--subnet3"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_test-vpc1_id
   # Deny all communication; subnet test-vpc1/subnet3[10.240.30.0/24] does not have required connections

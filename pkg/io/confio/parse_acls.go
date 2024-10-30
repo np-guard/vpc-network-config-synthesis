@@ -39,7 +39,7 @@ func ReadACLs(filename string) (*ir.ACLCollection, error) {
 		if result.ACLs[vpcName] == nil {
 			result.ACLs[vpcName] = make(map[string]*ir.ACL)
 		}
-		result.ACLs[vpcName][*acl.Name] = &ir.ACL{ACLName: *acl.Name,
+		result.ACLs[vpcName][*acl.Name] = &ir.ACL{Name: *acl.Name,
 			Subnets:  parseAttachedSubnets(&acl.NetworkACL),
 			Inbound:  inbound,
 			Outbound: outbound,
