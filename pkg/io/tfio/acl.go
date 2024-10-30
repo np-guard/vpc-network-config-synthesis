@@ -63,7 +63,7 @@ func aclRule(rule *ir.ACLRule, name string) (tf.Block, error) {
 		{Name: "destination", Value: quote(rule.Destination.String())},
 	}
 
-	comment := "\n"
+	comment := ""
 	if rule.Explanation != "" {
 		comment = fmt.Sprintf("# %v", rule.Explanation)
 	}
