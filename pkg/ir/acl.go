@@ -81,7 +81,7 @@ func (a *ACL) Rules() []*ACLRule {
 }
 
 func (a *ACL) AppendInternal(rule *ACLRule) {
-	if a.External == nil {
+	if a.Internal == nil {
 		panic("ACLs should be created with non-null Internal")
 	}
 	if !rule.isRedundant(a.Internal) {
@@ -97,10 +97,9 @@ func (a *ACL) AppendExternal(rule *ACLRule) {
 	if a.External == nil {
 		panic("ACLs should be created with non-null External")
 	}
-	if rule.isRedundant(a.External) {
-		return
+	if !rule.isRedundant(a.External) {
+		a.External = append(a.External, rule)
 	}
-	a.External = append(a.External, rule)
 }
 
 func NewACLCollection() *ACLCollection {
@@ -111,17 +110,16 @@ func NewACL(subnet string) *ACL {
 	return &ACL{Subnet: subnet, Internal: []*ACLRule{}, External: []*ACLRule{}}
 }
 
-func (c *ACLCollection) LookupOrCreate(subnet string) *ACL {
-	vpcName := VpcFromScopedResource(subnet)
-	if acl, ok := c.ACLs[vpcName][subnet]; ok {
+func (c *ACLCollection) LookupOrCreate(name string) *ACL {
+	vpcName := VpcFromScopedResource(name)
+	if acl, ok := c.ACLs[vpcName][name]; ok {
 		return acl
 	}
-	newACL := NewACL(subnet)
 	if c.ACLs[vpcName] == nil {
 		c.ACLs[vpcName] = make(map[string]*ACL)
 	}
-	c.ACLs[vpcName][subnet] = newACL
-	return newACL
+	c.ACLs[vpcName][name] = NewACL(name)
+	return c.ACLs[vpcName][name]
 }
 
 func (c *ACLCollection) VpcNames() []string {
