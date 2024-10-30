@@ -15,7 +15,7 @@ import (
 // * https://github.com/hashicorp/hcl/blob/main/hclsyntax/ir.md
 // * https://developer.hashicorp.com/terraform/language/syntax/configuration
 //
-// This part knows nothing about ACLs
+// This part knows nothing about ACLs or SGs
 
 type Argument struct {
 	Name  string
@@ -35,6 +35,7 @@ type ConfigFile struct {
 }
 
 const indentation = "  "
+const space = " "
 
 func (b *Block) print(indent string) string {
 	result := ""
@@ -43,13 +44,15 @@ func (b *Block) print(indent string) string {
 	}
 	result += indent + b.Name
 	for _, label := range b.Labels {
-		result += " " + label
+		result += space + label
 	}
 	result += " {\n"
 	{
 		indent := indent + indentation
+		longestName := calculateLongestKey(b.Arguments)
 		for _, keyValue := range b.Arguments {
-			result += indent + fmt.Sprintf("%v = %v\n", keyValue.Name, keyValue.Value)
+			internalIdent := strings.Repeat(space, longestName-len(keyValue.Name))
+			result += indent + fmt.Sprintf("%v%s = %v\n", keyValue.Name, internalIdent, keyValue.Value)
 		}
 		for _, sub := range b.Blocks {
 			result += sub.print(indent)
@@ -65,4 +68,12 @@ func (c *ConfigFile) Print() string {
 		result += block.print("")
 	}
 	return strings.TrimSpace(result) + "\n"
+}
+
+func calculateLongestKey(arguments []Argument) int {
+	longestKey := 0
+	for _, arg := range arguments {
+		longestKey = max(longestKey, len(arg.Name))
+	}
+	return longestKey
 }
