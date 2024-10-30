@@ -33,7 +33,9 @@ const (
 )
 
 func allMainTests() []testCase {
-	return append(synthACLTestsList(), append(synthSGTestsList(), optimizeSGTestsLists()...)...)
+	synthTestList := append(synthACLTestsList(), synthSGTestsList()...)
+	optimizeTestList := append(optimizeACLTestsLists(), optimizeSGTestsLists()...)
+	return append(synthTestList, optimizeTestList...)
 }
 
 //nolint:funlen //all acl synthesis tests
@@ -447,6 +449,47 @@ func optimizeSGTestsLists() []testCase {
 				config:       "%s/optimize_sg_t_all/config_object.json",
 				outputFile:   "%s/optimize_sg_t_all/sg_expected.tf",
 				firewallName: vsi1,
+			},
+		},
+	}
+}
+
+func optimizeACLTestsLists() []testCase {
+	return []testCase{
+		{
+			testName: "optimize_acl_csv",
+			args: &command{
+				cmd:        optimize,
+				subcmd:     acl,
+				config:     aclTesting4Config,
+				outputFile: "%s/optimize_acl_csv/nacl_expected.csv",
+			},
+		},
+		{
+			testName: "optimize_acl_md",
+			args: &command{
+				cmd:        optimize,
+				subcmd:     acl,
+				config:     aclTesting4Config,
+				outputFile: "%s/optimize_acl_md/nacl_expected.md",
+			},
+		},
+		{
+			testName: "optimize_acl_tf",
+			args: &command{
+				cmd:        optimize,
+				subcmd:     acl,
+				config:     aclTesting4Config,
+				outputFile: "%s/optimize_acl_tf/nacl_expected.tf",
+			},
+		},
+		{
+			testName: "optimize_acl_json",
+			args: &command{
+				cmd:        optimize,
+				subcmd:     acl,
+				config:     aclTesting4Config,
+				outputFile: "%s/optimize_acl_json/nacl_expected.json",
 			},
 		},
 	}

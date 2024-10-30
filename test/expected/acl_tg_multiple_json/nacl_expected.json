@@ -448,7 +448,7 @@
                 "crn": "fake:crn:1",
                 "href": "fake:href:1",
                 "id": "fake:id:1",
-                "name": "acl-test-vpc0--subnet5"
+                "name": "test-vpc0--subnet5"
             },
             "resource_group": {
                 "href": "href:16",
@@ -582,7 +582,7 @@
                 "crn": "fake:crn:3",
                 "href": "fake:href:3",
                 "id": "fake:id:3",
-                "name": "acl-test-vpc0--subnet3"
+                "name": "test-vpc0--subnet3"
             },
             "resource_group": {
                 "href": "href:16",
@@ -716,7 +716,7 @@
                 "crn": "fake:crn:6",
                 "href": "fake:href:6",
                 "id": "fake:id:6",
-                "name": "acl-test-vpc0--subnet0"
+                "name": "test-vpc0--subnet0"
             },
             "resource_group": {
                 "href": "href:16",
@@ -850,7 +850,7 @@
                 "crn": "fake:crn:10",
                 "href": "fake:href:10",
                 "id": "fake:id:10",
-                "name": "acl-test-vpc1--subnet11"
+                "name": "test-vpc1--subnet11"
             },
             "resource_group": {
                 "href": "href:16",
@@ -967,7 +967,7 @@
                 "crn": "fake:crn:13",
                 "href": "fake:href:13",
                 "id": "fake:id:13",
-                "name": "acl-test-vpc0--subnet2"
+                "name": "test-vpc0--subnet2"
             },
             "resource_group": {
                 "href": "href:16",
@@ -1101,7 +1101,7 @@
                 "crn": "fake:crn:17",
                 "href": "fake:href:17",
                 "id": "fake:id:17",
-                "name": "acl-test-vpc1--subnet10"
+                "name": "test-vpc1--subnet10"
             },
             "resource_group": {
                 "href": "href:16",
@@ -1218,7 +1218,7 @@
                 "crn": "fake:crn:20",
                 "href": "fake:href:20",
                 "id": "fake:id:20",
-                "name": "acl-test-vpc2--subnet20"
+                "name": "test-vpc2--subnet20"
             },
             "resource_group": {
                 "href": "href:16",
@@ -1369,7 +1369,7 @@
                 "crn": "fake:crn:23",
                 "href": "fake:href:23",
                 "id": "fake:id:23",
-                "name": "acl-test-vpc0--subnet1"
+                "name": "test-vpc0--subnet1"
             },
             "resource_group": {
                 "href": "href:16",
@@ -1503,7 +1503,7 @@
                 "crn": "fake:crn:26",
                 "href": "fake:href:26",
                 "id": "fake:id:26",
-                "name": "acl-test-vpc3--subnet30"
+                "name": "test-vpc3--subnet30"
             },
             "resource_group": {
                 "href": "href:16",
@@ -1620,7 +1620,7 @@
                 "crn": "fake:crn:29",
                 "href": "fake:href:29",
                 "id": "fake:id:29",
-                "name": "acl-test-vpc0--subnet4"
+                "name": "test-vpc0--subnet4"
             },
             "resource_group": {
                 "href": "href:16",
@@ -2492,7 +2492,7 @@
             "crn": "fake:crn:1",
             "href": "fake:href:1",
             "id": "fake:id:1",
-            "name": "acl-test-vpc0--subnet5",
+            "name": "test-vpc0--subnet5",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
@@ -2536,7 +2536,7 @@
             "crn": "fake:crn:3",
             "href": "fake:href:3",
             "id": "fake:id:3",
-            "name": "acl-test-vpc0--subnet3",
+            "name": "test-vpc0--subnet3",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
@@ -2604,7 +2604,7 @@
             "crn": "fake:crn:6",
             "href": "fake:href:6",
             "id": "fake:id:6",
-            "name": "acl-test-vpc0--subnet0",
+            "name": "test-vpc0--subnet0",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
@@ -2685,7 +2685,7 @@
             "crn": "fake:crn:10",
             "href": "fake:href:10",
             "id": "fake:id:10",
-            "name": "acl-test-vpc1--subnet11",
+            "name": "test-vpc1--subnet11",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
@@ -2747,7 +2747,7 @@
             "crn": "fake:crn:13",
             "href": "fake:href:13",
             "id": "fake:id:13",
-            "name": "acl-test-vpc0--subnet2",
+            "name": "test-vpc0--subnet2",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
@@ -2828,7 +2828,7 @@
             "crn": "fake:crn:17",
             "href": "fake:href:17",
             "id": "fake:id:17",
-            "name": "acl-test-vpc1--subnet10",
+            "name": "test-vpc1--subnet10",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
@@ -2890,7 +2890,7 @@
             "crn": "fake:crn:20",
             "href": "fake:href:20",
             "id": "fake:id:20",
-            "name": "acl-test-vpc2--subnet20",
+            "name": "test-vpc2--subnet20",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
@@ -2950,7 +2950,7 @@
             "crn": "fake:crn:23",
             "href": "fake:href:23",
             "id": "fake:id:23",
-            "name": "acl-test-vpc0--subnet1",
+            "name": "test-vpc0--subnet1",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
@@ -3010,7 +3010,7 @@
             "crn": "fake:crn:26",
             "href": "fake:href:26",
             "id": "fake:id:26",
-            "name": "acl-test-vpc3--subnet30",
+            "name": "test-vpc3--subnet30",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
@@ -3070,7 +3070,7 @@
             "crn": "fake:crn:29",
             "href": "fake:href:29",
             "id": "fake:id:29",
-            "name": "acl-test-vpc0--subnet4",
+            "name": "test-vpc0--subnet4",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
