@@ -188,6 +188,7 @@ const (
 	ResourceTypeSubnet          ResourceType = "subnet"
 	ResourceTypeNIF             ResourceType = "nif"
 	ResourceTypeVPE             ResourceType = "vpe"
+	ResourceTypeVPERIP          ResourceType = "vperip"
 	ResourceTypeInstance        ResourceType = "instance"
 	ResourceTypeSubnetSegment   ResourceType = "subnetSegment"
 	ResourceTypeCidrSegment     ResourceType = "cidrSegment"
@@ -233,8 +234,8 @@ func (i *InstanceDetails) endpointNames() []ID {
 
 func (i *InstanceDetails) endpointMap(s *Definitions) map[ID]INWResource {
 	res := make(map[ID]INWResource, len(s.NIFs))
-	for k, v := range s.NIFs {
-		res[k] = v
+	for k, val := range s.NIFs {
+		res[k] = val
 	}
 	return res
 }
@@ -249,14 +250,14 @@ func (v *VPEDetails) endpointNames() []ID {
 
 func (v *VPEDetails) endpointMap(s *Definitions) map[ID]INWResource {
 	res := make(map[ID]INWResource, len(s.VPEReservedIPs))
-	for k, v := range s.VPEReservedIPs {
-		res[k] = v
+	for k, val := range s.VPEReservedIPs {
+		res[k] = val
 	}
 	return res
 }
 
 func (v *VPEDetails) endpointType() ResourceType {
-	return ResourceTypeVPE
+	return ResourceTypeVPERIP
 }
 
 func lookupSingle[T NWResource](m map[ID]T, name string, t ResourceType) (*LocalRemotePair, error) {
