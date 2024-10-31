@@ -46,7 +46,7 @@ func lookupContainerForACLSynth[T EndpointProvider](m map[ID]T, defs *Definition
 	}
 
 	seenSubnets := make(map[string]struct{})
-	res := &LocalRemotePair{Name: &name, LocalCidrs: []*NamedAddrs{}, RemoteCidrs: []*NamedAddrs{}, LocalType: ResourceTypeSubnet}
+	res := &LocalRemotePair{Name: &name, LocalType: ResourceTypeSubnet}
 	endpointMap := containerDetails.endpointMap(defs)
 	for _, endpointName := range containerDetails.endpointNames() {
 		subnetName := endpointMap[endpointName].SubnetName()
@@ -68,15 +68,19 @@ func (s *Definitions) lookupNIFForACLSynth(name string) (*LocalRemotePair, error
 	if !ok {
 		return nil, fmt.Errorf(resourceNotFound, name, ResourceTypeNIF)
 	}
+	if details.LRPair != nil {
+		return details.LRPair, nil
+	}
 
 	NifSubnetName := details.Subnet
 	NifSubnetCidr := s.Subnets[NifSubnetName].CIDR
-	return &LocalRemotePair{
+	details.LRPair = &LocalRemotePair{
 		Name:        &name,
 		LocalCidrs:  []*NamedAddrs{{Name: &NifSubnetName, IPAddrs: NifSubnetCidr}},
 		RemoteCidrs: []*NamedAddrs{{Name: &NifSubnetName, IPAddrs: NifSubnetCidr}},
 		LocalType:   ResourceTypeSubnet,
-	}, nil
+	}
+	return details.LRPair, nil
 }
 
 func (s *Definitions) lookupCidrSegmentACL(name string) (*LocalRemotePair, error) {
@@ -88,7 +92,7 @@ func (s *Definitions) lookupCidrSegmentACL(name string) (*LocalRemotePair, error
 		return segmentDetails.LRPair, nil
 	}
 
-	res := &LocalRemotePair{Name: &name, LocalCidrs: []*NamedAddrs{}, RemoteCidrs: []*NamedAddrs{}, LocalType: ResourceTypeSubnet}
+	res := &LocalRemotePair{Name: &name, LocalType: ResourceTypeSubnet}
 	for _, subnetName := range segmentDetails.ContainedSubnets {
 		subnet, err := lookupSingle(s.Subnets, subnetName, ResourceTypeSubnet)
 		if err != nil {

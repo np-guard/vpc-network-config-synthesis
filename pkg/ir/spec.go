@@ -124,6 +124,7 @@ type (
 		VPC      ID
 		Instance ID
 		Subnet   ID
+		LRPair   *LocalRemotePair // caching lookup result
 	}
 
 	InstanceDetails struct {
@@ -161,6 +162,7 @@ type (
 
 	ExternalDetails struct {
 		ExternalAddrs *netset.IPBlock
+		LRPair        *LocalRemotePair // caching lookup result
 	}
 
 	Reader interface {
@@ -173,11 +175,13 @@ type (
 
 	NWResource interface {
 		Address() *netset.IPBlock
+		getLocalRemotePair() *LocalRemotePair
+		setLocalRemotePair(l *LocalRemotePair)
 	}
 
 	// resources that are in a subnet. used for lookupContainerForACLSynth generic function
 	SubSubnetResource interface {
-		NWResource
+		Address() *netset.IPBlock
 		SubnetName() ID
 	}
 
@@ -214,12 +218,28 @@ func (s *SubnetDetails) Address() *netset.IPBlock {
 	return s.CIDR
 }
 
+func (s *SubnetDetails) getLocalRemotePair() *LocalRemotePair {
+	return s.LRPair
+}
+
+func (s *SubnetDetails) setLocalRemotePair(l *LocalRemotePair) {
+	s.LRPair = l
+}
+
 func (n *NifDetails) Address() *netset.IPBlock {
 	return n.IP
 }
 
 func (n *NifDetails) SubnetName() ID {
 	return n.Subnet
+}
+
+func (n *NifDetails) getLocalRemotePair() *LocalRemotePair {
+	return n.LRPair
+}
+
+func (n *NifDetails) setLocalRemotePair(l *LocalRemotePair) {
+	n.LRPair = l
 }
 
 func (v *VPEReservedIPsDetails) Address() *netset.IPBlock {
@@ -232,6 +252,14 @@ func (v *VPEReservedIPsDetails) SubnetName() ID {
 
 func (e *ExternalDetails) Address() *netset.IPBlock {
 	return e.ExternalAddrs
+}
+
+func (e *ExternalDetails) getLocalRemotePair() *LocalRemotePair {
+	return e.LRPair
+}
+
+func (e *ExternalDetails) setLocalRemotePair(l *LocalRemotePair) {
+	e.LRPair = l
 }
 
 func (i *InstanceDetails) endpointNames() []ID {
@@ -276,15 +304,21 @@ func (v *VPEDetails) setLocalRemotePair(l *LocalRemotePair) {
 
 // lookupSingle is called only when the resource type is ResourceTypeSubnet or ResourceTypeExternal
 func lookupSingle[T NWResource](m map[ID]T, name string, t ResourceType) (*LocalRemotePair, error) {
-	if details, ok := m[name]; ok {
-		return &LocalRemotePair{
-			Name:        &name,
-			LocalCidrs:  []*NamedAddrs{{Name: &name, IPAddrs: details.Address()}},
-			RemoteCidrs: []*NamedAddrs{{Name: &name, IPAddrs: details.Address()}},
-			LocalType:   t,
-		}, nil
+	details, ok := m[name]
+	if !ok {
+		return nil, fmt.Errorf(resourceNotFound, name, t)
 	}
-	return nil, fmt.Errorf(resourceNotFound, name, t)
+	if details.getLocalRemotePair() != nil {
+		return details.getLocalRemotePair(), nil
+	}
+	res := &LocalRemotePair{
+		Name:        &name,
+		LocalCidrs:  []*NamedAddrs{{Name: &name, IPAddrs: details.Address()}},
+		RemoteCidrs: []*NamedAddrs{{Name: &name, IPAddrs: details.Address()}},
+		LocalType:   t,
+	}
+	details.setLocalRemotePair(res)
+	return res, nil
 }
 
 func (s *Definitions) lookupSegment(segment map[ID]*SegmentDetails, name string, t, elementType ResourceType,

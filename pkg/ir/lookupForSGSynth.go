@@ -40,27 +40,38 @@ func (s *Definitions) LookupForSGSynth(t ResourceType, name string) (*LocalRemot
 }
 
 func (s *Definitions) lookupNIFForSGSynth(name string) (*LocalRemotePair, error) {
-	if _, ok := s.NIFs[name]; ok {
-		return &LocalRemotePair{
-			Name:        &name,
-			LocalCidrs:  []*NamedAddrs{{Name: &s.NIFs[name].Instance}},
-			RemoteCidrs: []*NamedAddrs{{Name: &s.NIFs[name].Instance}},
-			LocalType:   ResourceTypeNIF,
-		}, nil
+	details, ok := s.NIFs[name]
+	if !ok {
+		return nil, fmt.Errorf(resourceNotFound, ResourceTypeNIF, name)
 	}
-	return nil, fmt.Errorf(resourceNotFound, ResourceTypeNIF, name)
+	if details.LRPair != nil {
+		return details.LRPair, nil
+	}
+	details.LRPair = &LocalRemotePair{
+		Name:        &name,
+		LocalCidrs:  []*NamedAddrs{{Name: &details.Instance}},
+		RemoteCidrs: []*NamedAddrs{{Name: &details.Instance}},
+		LocalType:   ResourceTypeNIF,
+	}
+	return details.LRPair, nil
 }
 
 func lookupContainerForSGSynth[T EndpointProvider](m map[string]T, name string, t ResourceType) (*LocalRemotePair, error) {
-	if _, ok := m[name]; ok {
-		return &LocalRemotePair{
-			Name:        &name,
-			LocalCidrs:  []*NamedAddrs{{Name: &name}},
-			RemoteCidrs: []*NamedAddrs{{Name: &name}},
-			LocalType:   t,
-		}, nil
+	details, ok := m[name]
+	if !ok {
+		return nil, fmt.Errorf(containerNotFound, t, name)
 	}
-	return nil, fmt.Errorf(containerNotFound, t, name)
+	if details.getLocalRemotePair() != nil {
+		return details.getLocalRemotePair(), nil
+	}
+	lrPair := &LocalRemotePair{
+		Name:        &name,
+		LocalCidrs:  []*NamedAddrs{{Name: &name}},
+		RemoteCidrs: []*NamedAddrs{{Name: &name}},
+		LocalType:   t,
+	}
+	details.setLocalRemotePair(lrPair)
+	return lrPair, nil
 }
 
 func (s *Definitions) lookupSubnetForSGSynth(name string) (*LocalRemotePair, error) {
