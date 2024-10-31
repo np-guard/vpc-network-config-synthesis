@@ -175,14 +175,15 @@ type (
 		Address() *netset.IPBlock
 	}
 
-	INWResource interface {
+	// resources that are in a subnet. used for lookupContainerForACLSynth generic function
+	SubSubnetResource interface {
 		NWResource
 		SubnetName() ID
 	}
 
 	EndpointProvider interface {
 		endpointNames() []ID
-		endpointMap(s *Definitions) map[ID]INWResource
+		endpointMap(s *Definitions) map[ID]SubSubnetResource
 		getLocalRemotePair() *LocalRemotePair
 		setLocalRemotePair(l *LocalRemotePair)
 	}
@@ -237,8 +238,8 @@ func (i *InstanceDetails) endpointNames() []ID {
 	return i.Nifs
 }
 
-func (i *InstanceDetails) endpointMap(s *Definitions) map[ID]INWResource {
-	res := make(map[ID]INWResource, len(i.Nifs))
+func (i *InstanceDetails) endpointMap(s *Definitions) map[ID]SubSubnetResource {
+	res := make(map[ID]SubSubnetResource, len(i.Nifs))
 	for _, nifName := range i.Nifs {
 		res[nifName] = s.NIFs[nifName]
 	}
@@ -257,8 +258,8 @@ func (v *VPEDetails) endpointNames() []ID {
 	return v.VPEReservedIPs
 }
 
-func (v *VPEDetails) endpointMap(s *Definitions) map[ID]INWResource {
-	res := make(map[ID]INWResource, len(v.VPEReservedIPs))
+func (v *VPEDetails) endpointMap(s *Definitions) map[ID]SubSubnetResource {
+	res := make(map[ID]SubSubnetResource, len(v.VPEReservedIPs))
 	for _, ripName := range v.VPEReservedIPs {
 		res[ripName] = s.VPEReservedIPs[ripName]
 	}

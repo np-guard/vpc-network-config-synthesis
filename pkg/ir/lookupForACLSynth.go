@@ -17,7 +17,7 @@ func (s *Definitions) LookupForACLSynth(t ResourceType, name string) (*LocalRemo
 	case ResourceTypeSubnet:
 		return lookupSingle(s.Subnets, name, t)
 	case ResourceTypeNIF:
-		return lookupSingleForACLSynth(s.NIFs, s.Subnets, name, t)
+		return s.lookupNIFForACLSynth(name)
 	case ResourceTypeInstance:
 		return lookupContainerForACLSynth(s.Instances, s, name, ResourceTypeInstance)
 	case ResourceTypeVPE:
@@ -34,21 +34,6 @@ func (s *Definitions) LookupForACLSynth(t ResourceType, name string) (*LocalRemo
 		return s.lookupSegment(s.VpeSegments, name, t, ResourceTypeVPE, s.LookupForACLSynth)
 	}
 	return nil, nil // should not get here
-}
-
-func lookupSingleForACLSynth[T INWResource](m map[ID]T, subnets map[ID]*SubnetDetails, name string,
-	t ResourceType) (*LocalRemotePair, error) {
-	details, ok := m[name]
-	if !ok {
-		return nil, fmt.Errorf(resourceNotFound, name, t)
-	}
-
-	res, err := lookupSingle(subnets, details.SubnetName(), ResourceTypeSubnet)
-	if err != nil {
-		return nil, err
-	}
-	res.Name = &name // save NIF's name as resource name
-	return res, nil
 }
 
 func lookupContainerForACLSynth[T EndpointProvider](m map[ID]T, defs *Definitions, name string, t ResourceType) (*LocalRemotePair, error) {
@@ -76,6 +61,22 @@ func lookupContainerForACLSynth[T EndpointProvider](m map[ID]T, defs *Definition
 	}
 	containerDetails.setLocalRemotePair(res)
 	return res, nil
+}
+
+func (s *Definitions) lookupNIFForACLSynth(name string) (*LocalRemotePair, error) {
+	details, ok := s.NIFs[name]
+	if !ok {
+		return nil, fmt.Errorf(resourceNotFound, name, ResourceTypeNIF)
+	}
+
+	NifSubnetName := details.Subnet
+	NifSubnetCidr := s.Subnets[NifSubnetName].CIDR
+	return &LocalRemotePair{
+		Name:        &name,
+		LocalCidrs:  []*NamedAddrs{{Name: &NifSubnetName, IPAddrs: NifSubnetCidr}},
+		RemoteCidrs: []*NamedAddrs{{Name: &NifSubnetName, IPAddrs: NifSubnetCidr}},
+		LocalType:   ResourceTypeSubnet,
+	}, nil
 }
 
 func (s *Definitions) lookupCidrSegmentACL(name string) (*LocalRemotePair, error) {
