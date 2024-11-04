@@ -74,7 +74,7 @@ func (s *sgOptimizer) Optimize() (ir.Collection, error) {
 				return s.sgCollection, nil
 			}
 		}
-		return nil, fmt.Errorf("could no find %s sg", s.sgName)
+		return nil, fmt.Errorf("could not find %s sg", s.sgName)
 	}
 
 	for _, vpcName := range utils.SortedMapKeys(s.sgCollection.SGs) {
