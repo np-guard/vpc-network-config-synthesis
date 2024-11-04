@@ -13,7 +13,7 @@ import (
 	"github.com/np-guard/models/pkg/netset"
 )
 
-func (s *Definitions) LookupForSGSynth(t ResourceType, name string) (*LocalRemotePair, error) {
+func (s *Definitions) LookupForSGSynth(t ResourceType, name string) (*ConnectedResource, error) {
 	switch t {
 	case ResourceTypeExternal:
 		return lookupSingle(s.Externals, name, t)
@@ -39,68 +39,68 @@ func (s *Definitions) LookupForSGSynth(t ResourceType, name string) (*LocalRemot
 	return nil, nil // should not get here
 }
 
-func (s *Definitions) lookupNIFForSGSynth(name string) (*LocalRemotePair, error) {
+func (s *Definitions) lookupNIFForSGSynth(name string) (*ConnectedResource, error) {
 	details, ok := s.NIFs[name]
 	if !ok {
 		return nil, fmt.Errorf(resourceNotFound, ResourceTypeNIF, name)
 	}
-	if details.LRPair != nil {
-		return details.LRPair, nil
+	if details.ConnectedResource != nil {
+		return details.ConnectedResource, nil
 	}
-	details.LRPair = &LocalRemotePair{
-		Name:        &name,
-		LocalCidrs:  []*NamedAddrs{{Name: &details.Instance}},
-		RemoteCidrs: []*NamedAddrs{{Name: &details.Instance}},
-		LocalType:   ResourceTypeNIF,
+	details.ConnectedResource = &ConnectedResource{
+		Name:            name,
+		CidrsWhenLocal:  []*NamedAddrs{{Name: &details.Instance}},
+		CidrsWhenRemote: []*NamedAddrs{{Name: &details.Instance}},
+		ResourceType:    ResourceTypeNIF,
 	}
-	return details.LRPair, nil
+	return details.ConnectedResource, nil
 }
 
-func lookupContainerForSGSynth[T EndpointProvider](m map[string]T, name string, t ResourceType) (*LocalRemotePair, error) {
+func lookupContainerForSGSynth[T EndpointProvider](m map[string]T, name string, t ResourceType) (*ConnectedResource, error) {
 	details, ok := m[name]
 	if !ok {
 		return nil, fmt.Errorf(containerNotFound, t, name)
 	}
-	if details.getLocalRemotePair() != nil {
-		return details.getLocalRemotePair(), nil
+	if details.getConnectedResource() != nil {
+		return details.getConnectedResource(), nil
 	}
-	lrPair := &LocalRemotePair{
-		Name:        &name,
-		LocalCidrs:  []*NamedAddrs{{Name: &name}},
-		RemoteCidrs: []*NamedAddrs{{Name: &name}},
-		LocalType:   t,
+	res := &ConnectedResource{
+		Name:            name,
+		CidrsWhenLocal:  []*NamedAddrs{{Name: &name}},
+		CidrsWhenRemote: []*NamedAddrs{{Name: &name}},
+		ResourceType:    t,
 	}
-	details.setLocalRemotePair(lrPair)
-	return lrPair, nil
+	details.setConnectedResource(res)
+	return res, nil
 }
 
-func (s *Definitions) lookupSubnetForSGSynth(name string) (*LocalRemotePair, error) {
+func (s *Definitions) lookupSubnetForSGSynth(name string) (*ConnectedResource, error) {
 	subnetDetails, ok := s.Subnets[name]
 	if !ok {
 		return nil, fmt.Errorf(resourceNotFound, ResourceTypeSubnet, name)
 	}
-	subnetDetails.LRPair = &LocalRemotePair{Name: &name,
-		LocalCidrs:  s.containedResourcesInCidr(subnetDetails.CIDR),
-		RemoteCidrs: []*NamedAddrs{{IPAddrs: subnetDetails.CIDR}},
-		LocalType:   ResourceTypeSubnet,
+	subnetDetails.ConnectedResource = &ConnectedResource{Name: name,
+		CidrsWhenLocal:  s.containedResourcesInCidr(subnetDetails.CIDR),
+		CidrsWhenRemote: []*NamedAddrs{{IPAddrs: subnetDetails.CIDR}},
+		ResourceType:    ResourceTypeSubnet,
 	}
-	return subnetDetails.LRPair, nil
+	return subnetDetails.ConnectedResource, nil
 }
 
-func (s *Definitions) lookupCidrSegmentForSGSynth(name string) (*LocalRemotePair, error) {
+func (s *Definitions) lookupCidrSegmentForSGSynth(name string) (*ConnectedResource, error) {
 	segmentDetails, ok := s.CidrSegments[name]
 	if !ok {
 		return nil, fmt.Errorf(containerNotFound, ResourceTypeCidrSegment, name)
 	}
-	if segmentDetails.LRPair != nil {
-		return segmentDetails.LRPair, nil
+	if segmentDetails.ConnectedResource != nil {
+		return segmentDetails.ConnectedResource, nil
 	}
-	segmentDetails.LRPair = &LocalRemotePair{Name: &name,
-		LocalCidrs:  s.containedResourcesInCidr(segmentDetails.Cidrs),
-		RemoteCidrs: cidrToNamedAddrs(segmentDetails.Cidrs),
-		LocalType:   ResourceTypeCidr,
+	segmentDetails.ConnectedResource = &ConnectedResource{Name: name,
+		CidrsWhenLocal:  s.containedResourcesInCidr(segmentDetails.Cidrs),
+		CidrsWhenRemote: cidrToNamedAddrs(segmentDetails.Cidrs),
+		ResourceType:    ResourceTypeCidr,
 	}
-	return segmentDetails.LRPair, nil
+	return segmentDetails.ConnectedResource, nil
 }
 
 func (s *Definitions) containedResourcesInCidr(cidr *netset.IPBlock) []*NamedAddrs {

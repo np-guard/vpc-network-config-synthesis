@@ -8,9 +8,12 @@ package ir
 
 import (
 	"fmt"
+	"sort"
+
+	"github.com/np-guard/models/pkg/netset"
 )
 
-func (s *Definitions) LookupForACLSynth(t ResourceType, name string) (*LocalRemotePair, error) {
+func (s *Definitions) LookupForACLSynth(t ResourceType, name string) (*ConnectedResource, error) {
 	switch t {
 	case ResourceTypeExternal:
 		return lookupSingle(s.Externals, name, t)
@@ -36,17 +39,18 @@ func (s *Definitions) LookupForACLSynth(t ResourceType, name string) (*LocalRemo
 	return nil, nil // should not get here
 }
 
-func lookupContainerForACLSynth[T EndpointProvider](m map[ID]T, defs *Definitions, name string, t ResourceType) (*LocalRemotePair, error) {
+func lookupContainerForACLSynth[T EndpointProvider](m map[ID]T, defs *Definitions, name string,
+	t ResourceType) (*ConnectedResource, error) {
 	containerDetails, ok := m[name]
 	if !ok {
 		return nil, fmt.Errorf(containerNotFound, name, t)
 	}
-	if containerDetails.getLocalRemotePair() != nil {
-		return containerDetails.getLocalRemotePair(), nil
+	if containerDetails.getConnectedResource() != nil {
+		return containerDetails.getConnectedResource(), nil
 	}
 
 	seenSubnets := make(map[string]struct{})
-	res := &LocalRemotePair{Name: &name, LocalType: ResourceTypeSubnet}
+	res := &ConnectedResource{Name: name, ResourceType: ResourceTypeSubnet}
 	endpointMap := containerDetails.endpointMap(defs)
 	for _, endpointName := range containerDetails.endpointNames() {
 		subnetName := endpointMap[endpointName].SubnetName()
@@ -56,53 +60,59 @@ func lookupContainerForACLSynth[T EndpointProvider](m map[ID]T, defs *Definition
 		seenSubnets[subnetName] = struct{}{}
 
 		namedAddrs := &NamedAddrs{Name: &subnetName, IPAddrs: defs.Subnets[subnetName].CIDR}
-		res.RemoteCidrs = append(res.RemoteCidrs, namedAddrs)
-		res.LocalCidrs = append(res.LocalCidrs, namedAddrs)
+		res.CidrsWhenRemote = append(res.CidrsWhenRemote, namedAddrs)
+		res.CidrsWhenLocal = append(res.CidrsWhenLocal, namedAddrs)
 	}
-	containerDetails.setLocalRemotePair(res)
+	containerDetails.setConnectedResource(res)
 	return res, nil
 }
 
-func (s *Definitions) lookupNIFForACLSynth(name string) (*LocalRemotePair, error) {
+func (s *Definitions) lookupNIFForACLSynth(name string) (*ConnectedResource, error) {
 	details, ok := s.NIFs[name]
 	if !ok {
 		return nil, fmt.Errorf(resourceNotFound, name, ResourceTypeNIF)
 	}
-	if details.LRPair != nil {
-		return details.LRPair, nil
+	if details.ConnectedResource != nil {
+		return details.ConnectedResource, nil
 	}
 
 	NifSubnetName := details.Subnet
 	NifSubnetCidr := s.Subnets[NifSubnetName].CIDR
-	details.LRPair = &LocalRemotePair{
-		Name:        &name,
-		LocalCidrs:  []*NamedAddrs{{Name: &NifSubnetName, IPAddrs: NifSubnetCidr}},
-		RemoteCidrs: []*NamedAddrs{{Name: &NifSubnetName, IPAddrs: NifSubnetCidr}},
-		LocalType:   ResourceTypeSubnet,
+	details.ConnectedResource = &ConnectedResource{
+		Name:            name,
+		CidrsWhenLocal:  []*NamedAddrs{{Name: &NifSubnetName, IPAddrs: NifSubnetCidr}},
+		CidrsWhenRemote: []*NamedAddrs{{Name: &NifSubnetName, IPAddrs: NifSubnetCidr}},
+		ResourceType:    ResourceTypeSubnet,
 	}
-	return details.LRPair, nil
+	return details.ConnectedResource, nil
 }
 
-func (s *Definitions) lookupCidrSegmentACL(name string) (*LocalRemotePair, error) {
+func (s *Definitions) lookupCidrSegmentACL(name string) (*ConnectedResource, error) {
 	segmentDetails, ok := s.CidrSegments[name]
 	if !ok {
 		return nil, fmt.Errorf(containerNotFound, name, ResourceTypeCidrSegment)
 	}
-	if segmentDetails.LRPair != nil {
-		return segmentDetails.LRPair, nil
+	if segmentDetails.ConnectedResource != nil {
+		return segmentDetails.ConnectedResource, nil
 	}
-
-	res := &LocalRemotePair{Name: &name, LocalType: ResourceTypeSubnet}
-	for _, subnetName := range segmentDetails.ContainedSubnets {
-		subnet, err := lookupSingle(s.Subnets, subnetName, ResourceTypeSubnet)
-		if err != nil {
-			return nil, fmt.Errorf("%w while looking up %v %v for cidr segment %v", err, ResourceTypeSubnet, subnetName, name)
-		}
-		res.LocalCidrs = append(res.LocalCidrs, subnet.LocalCidrs...)
+	res := &ConnectedResource{Name: name,
+		CidrsWhenLocal: s.containedSubnetsInCidr(segmentDetails.Cidrs),
+		ResourceType:   ResourceTypeSubnet,
 	}
 	for _, cidr := range segmentDetails.Cidrs.SplitToCidrs() {
-		res.RemoteCidrs = append(res.RemoteCidrs, &NamedAddrs{Name: &name, IPAddrs: cidr})
+		res.CidrsWhenRemote = append(res.CidrsWhenRemote, &NamedAddrs{Name: &name, IPAddrs: cidr})
 	}
-	segmentDetails.LRPair = res
+	segmentDetails.ConnectedResource = res
 	return res, nil
+}
+
+func (s *Definitions) containedSubnetsInCidr(cidr *netset.IPBlock) []*NamedAddrs {
+	res := make([]*NamedAddrs, 0)
+	for subnet, subnetDetails := range s.Subnets {
+		if subnetDetails.CIDR.IsSubset(cidr) {
+			res = append(res, &NamedAddrs{Name: &subnet, IPAddrs: subnetDetails.CIDR})
+		}
+	}
+	sort.Slice(res, func(i, j int) bool { return *res[i].Name < *res[j].Name })
+	return res
 }

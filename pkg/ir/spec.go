@@ -8,7 +8,6 @@ package ir
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/np-guard/models/pkg/netp"
@@ -26,15 +25,16 @@ type (
 
 		Defs *Definitions
 
+		// resources that does not appear in the Spec file
 		*BlockedResources
 	}
 
 	Connection struct {
 		// Egress resource
-		Src *LocalRemotePair
+		Src *ConnectedResource
 
 		// Ingress resource
-		Dst *LocalRemotePair
+		Dst *ConnectedResource
 
 		// Allowed protocols
 		TrackedProtocols []*TrackedProtocol
@@ -43,18 +43,16 @@ type (
 		Origin fmt.Stringer
 	}
 
-	// LocalRemotePair holds a local resource and the remote CIDRs it should be connected to
-	LocalRemotePair struct {
-		// Symbolic name of resource, if available
-		Name *string
+	ConnectedResource struct {
+		Name string
 
-		LocalCidrs []*NamedAddrs
+		//
+		CidrsWhenLocal []*NamedAddrs
 
 		// Cidr list
-		RemoteCidrs []*NamedAddrs
+		CidrsWhenRemote []*NamedAddrs
 
-		// LocalType of resource
-		LocalType ResourceType
+		ResourceType ResourceType
 	}
 
 	NamedAddrs struct {
@@ -111,27 +109,28 @@ type (
 		AddressPrefixes *netset.IPBlock
 	}
 
+	// ConnectedResource is for caching lookup results
 	SubnetDetails struct {
 		NamedEntity
-		CIDR   *netset.IPBlock
-		VPC    ID
-		LRPair *LocalRemotePair // caching lookup result
+		CIDR              *netset.IPBlock
+		VPC               ID
+		ConnectedResource *ConnectedResource
 	}
 
 	NifDetails struct {
 		NamedEntity
-		IP       *netset.IPBlock
-		VPC      ID
-		Instance ID
-		Subnet   ID
-		LRPair   *LocalRemotePair // caching lookup result
+		IP                *netset.IPBlock
+		VPC               ID
+		Instance          ID
+		Subnet            ID
+		ConnectedResource *ConnectedResource
 	}
 
 	InstanceDetails struct {
 		NamedEntity
-		VPC    ID
-		Nifs   []ID
-		LRPair *LocalRemotePair // caching lookup result
+		VPC               ID
+		Nifs              []ID
+		ConnectedResource *ConnectedResource
 	}
 
 	VPEReservedIPsDetails struct {
@@ -144,25 +143,24 @@ type (
 
 	VPEDetails struct {
 		NamedEntity
-		VPEReservedIPs []ID
-		VPC            ID
-		LRPair         *LocalRemotePair // caching lookup result
+		VPEReservedIPs    []ID
+		VPC               ID
+		ConnectedResource *ConnectedResource
 	}
 
 	SegmentDetails struct {
-		Elements []ID
-		LRPair   *LocalRemotePair // caching lookup result
+		Elements          []ID
+		ConnectedResource *ConnectedResource
 	}
 
 	CidrSegmentDetails struct {
-		Cidrs            *netset.IPBlock
-		ContainedSubnets []ID
-		LRPair           *LocalRemotePair // caching lookup result
+		Cidrs             *netset.IPBlock
+		ConnectedResource *ConnectedResource
 	}
 
 	ExternalDetails struct {
-		ExternalAddrs *netset.IPBlock
-		LRPair        *LocalRemotePair // caching lookup result
+		ExternalAddrs     *netset.IPBlock
+		ConnectedResource *ConnectedResource
 	}
 
 	Reader interface {
@@ -173,10 +171,11 @@ type (
 		Name() string
 	}
 
+	// generalizes subnet and external resource types
 	NWResource interface {
 		Address() *netset.IPBlock
-		getLocalRemotePair() *LocalRemotePair
-		setLocalRemotePair(l *LocalRemotePair)
+		getConnectedResource() *ConnectedResource
+		setConnectedResource(r *ConnectedResource)
 	}
 
 	// resources that are in a subnet. used for lookupContainerForACLSynth generic function
@@ -188,8 +187,8 @@ type (
 	EndpointProvider interface {
 		endpointNames() []ID
 		endpointMap(s *Definitions) map[ID]SubSubnetResource
-		getLocalRemotePair() *LocalRemotePair
-		setLocalRemotePair(l *LocalRemotePair)
+		getConnectedResource() *ConnectedResource
+		setConnectedResource(r *ConnectedResource)
 	}
 )
 
@@ -218,12 +217,12 @@ func (s *SubnetDetails) Address() *netset.IPBlock {
 	return s.CIDR
 }
 
-func (s *SubnetDetails) getLocalRemotePair() *LocalRemotePair {
-	return s.LRPair
+func (s *SubnetDetails) getConnectedResource() *ConnectedResource {
+	return s.ConnectedResource
 }
 
-func (s *SubnetDetails) setLocalRemotePair(l *LocalRemotePair) {
-	s.LRPair = l
+func (s *SubnetDetails) setConnectedResource(r *ConnectedResource) {
+	s.ConnectedResource = r
 }
 
 func (n *NifDetails) Address() *netset.IPBlock {
@@ -232,14 +231,6 @@ func (n *NifDetails) Address() *netset.IPBlock {
 
 func (n *NifDetails) SubnetName() ID {
 	return n.Subnet
-}
-
-func (n *NifDetails) getLocalRemotePair() *LocalRemotePair {
-	return n.LRPair
-}
-
-func (n *NifDetails) setLocalRemotePair(l *LocalRemotePair) {
-	n.LRPair = l
 }
 
 func (v *VPEReservedIPsDetails) Address() *netset.IPBlock {
@@ -254,12 +245,12 @@ func (e *ExternalDetails) Address() *netset.IPBlock {
 	return e.ExternalAddrs
 }
 
-func (e *ExternalDetails) getLocalRemotePair() *LocalRemotePair {
-	return e.LRPair
+func (e *ExternalDetails) getConnectedResource() *ConnectedResource {
+	return e.ConnectedResource
 }
 
-func (e *ExternalDetails) setLocalRemotePair(l *LocalRemotePair) {
-	e.LRPair = l
+func (e *ExternalDetails) setConnectedResource(r *ConnectedResource) {
+	e.ConnectedResource = r
 }
 
 func (i *InstanceDetails) endpointNames() []ID {
@@ -274,12 +265,12 @@ func (i *InstanceDetails) endpointMap(s *Definitions) map[ID]SubSubnetResource {
 	return res
 }
 
-func (i *InstanceDetails) getLocalRemotePair() *LocalRemotePair {
-	return i.LRPair
+func (i *InstanceDetails) getConnectedResource() *ConnectedResource {
+	return i.ConnectedResource
 }
 
-func (i *InstanceDetails) setLocalRemotePair(l *LocalRemotePair) {
-	i.LRPair = l
+func (i *InstanceDetails) setConnectedResource(r *ConnectedResource) {
+	i.ConnectedResource = r
 }
 
 func (v *VPEDetails) endpointNames() []ID {
@@ -294,65 +285,54 @@ func (v *VPEDetails) endpointMap(s *Definitions) map[ID]SubSubnetResource {
 	return res
 }
 
-func (v *VPEDetails) getLocalRemotePair() *LocalRemotePair {
-	return v.LRPair
+func (v *VPEDetails) getConnectedResource() *ConnectedResource {
+	return v.ConnectedResource
 }
 
-func (v *VPEDetails) setLocalRemotePair(l *LocalRemotePair) {
-	v.LRPair = l
+func (v *VPEDetails) setConnectedResource(r *ConnectedResource) {
+	v.ConnectedResource = r
 }
 
 // lookupSingle is called only when the resource type is ResourceTypeSubnet or ResourceTypeExternal
-func lookupSingle[T NWResource](m map[ID]T, name string, t ResourceType) (*LocalRemotePair, error) {
+func lookupSingle[T NWResource](m map[ID]T, name string, t ResourceType) (*ConnectedResource, error) {
 	details, ok := m[name]
 	if !ok {
 		return nil, fmt.Errorf(resourceNotFound, name, t)
 	}
-	if details.getLocalRemotePair() != nil {
-		return details.getLocalRemotePair(), nil
+	if details.getConnectedResource() != nil {
+		return details.getConnectedResource(), nil
 	}
-	res := &LocalRemotePair{
-		Name:        &name,
-		LocalCidrs:  []*NamedAddrs{{Name: &name, IPAddrs: details.Address()}},
-		RemoteCidrs: []*NamedAddrs{{Name: &name, IPAddrs: details.Address()}},
-		LocalType:   t,
+	res := &ConnectedResource{
+		Name:            name,
+		CidrsWhenLocal:  []*NamedAddrs{{Name: &name, IPAddrs: details.Address()}},
+		CidrsWhenRemote: []*NamedAddrs{{Name: &name, IPAddrs: details.Address()}},
+		ResourceType:    t,
 	}
-	details.setLocalRemotePair(res)
+	details.setConnectedResource(res)
 	return res, nil
 }
 
 func (s *Definitions) lookupSegment(segment map[ID]*SegmentDetails, name string, t, elementType ResourceType,
-	lookup func(ResourceType, string) (*LocalRemotePair, error)) (*LocalRemotePair, error) {
+	lookup func(ResourceType, string) (*ConnectedResource, error)) (*ConnectedResource, error) {
 	segmentDetails, ok := segment[name]
 	if !ok {
 		return nil, fmt.Errorf(containerNotFound, name, t)
 	}
-	if segmentDetails.LRPair != nil {
-		return segmentDetails.LRPair, nil
+	if segmentDetails.ConnectedResource != nil {
+		return segmentDetails.ConnectedResource, nil
 	}
 
-	res := &LocalRemotePair{Name: &name, LocalType: elementType}
+	res := &ConnectedResource{Name: name, ResourceType: elementType}
 	for _, elementName := range segmentDetails.Elements {
 		element, err := lookup(elementType, elementName)
 		if err != nil {
 			return nil, err
 		}
-		res.LocalCidrs = append(res.LocalCidrs, element.LocalCidrs...)
-		res.RemoteCidrs = append(res.RemoteCidrs, element.RemoteCidrs...)
+		res.CidrsWhenLocal = append(res.CidrsWhenLocal, element.CidrsWhenLocal...)
+		res.CidrsWhenRemote = append(res.CidrsWhenRemote, element.CidrsWhenRemote...)
 	}
-	segmentDetails.LRPair = res
+	segmentDetails.ConnectedResource = res
 	return res, nil
-}
-
-func (s *ConfigDefs) SubnetsContainedInCidr(cidr *netset.IPBlock) ([]ID, error) {
-	var containedSubnets []string
-	for subnet, subnetDetails := range s.Subnets {
-		if subnetDetails.CIDR.IsSubset(cidr) {
-			containedSubnets = append(containedSubnets, subnet)
-		}
-	}
-	sort.Strings(containedSubnets)
-	return containedSubnets, nil
 }
 
 func ScopingComponents(s string) []string {

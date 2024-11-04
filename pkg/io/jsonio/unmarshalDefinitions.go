@@ -8,7 +8,6 @@ package jsonio
 
 import (
 	"fmt"
-	"slices"
 
 	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/models/pkg/spec"
@@ -79,28 +78,18 @@ func parseCidrSegments(cidrSegments map[string][]string, configDefs *ir.ConfigDe
 	result := make(map[ir.ID]*ir.CidrSegmentDetails)
 	for segmentName, segment := range cidrSegments {
 		cidrs := netset.NewIPBlock()
-		containedSubnets := make([]ir.ID, 0)
 
 		for _, cidr := range segment {
 			c, err := netset.IPBlockFromCidr(cidr)
 			if err != nil {
 				return nil, err
 			}
-			subnets, err := configDefs.SubnetsContainedInCidr(c)
-			if err != nil {
-				return nil, err
-			}
-
 			cidrs = cidrs.Union(c)
-			containedSubnets = append(containedSubnets, subnets...)
 		}
 		if !internalCidr(configDefs, cidrs) {
 			return nil, fmt.Errorf("only internal cidrs are supported in cidr segment resource type (segment name: %v)", segmentName)
 		}
-		cidrSegmentDetails := ir.CidrSegmentDetails{
-			Cidrs:            cidrs,
-			ContainedSubnets: slices.Compact(slices.Sorted(slices.Values(containedSubnets))),
-		}
+		cidrSegmentDetails := ir.CidrSegmentDetails{Cidrs: cidrs}
 		result[segmentName] = &cidrSegmentDetails
 	}
 	return result, nil

@@ -43,11 +43,11 @@ func (s *SGSynthesizer) makeSG() *ir.SGCollection {
 func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection, direction ir.Direction) {
 	localResource, remoteResource, internalEndpoint, internalConn := connSettings(conn, direction)
 
-	for _, localEndpoint := range localResource.LocalCidrs {
-		for _, remoteCidr := range remoteResource.RemoteCidrs {
+	for _, localEndpoint := range localResource.CidrsWhenLocal {
+		for _, remoteCidr := range remoteResource.CidrsWhenRemote {
 			for _, trackedProtocol := range conn.TrackedProtocols {
 				ruleExplanation := explanation{internal: internalConn, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}.String()
-				s.allowConnectionEndpoint(localEndpoint, remoteCidr, remoteResource.LocalType, trackedProtocol.Protocol, direction,
+				s.allowConnectionEndpoint(localEndpoint, remoteCidr, remoteResource.ResourceType, trackedProtocol.Protocol, direction,
 					internalEndpoint, ruleExplanation)
 			}
 		}
@@ -79,7 +79,7 @@ func sgRemote(resource *ir.NamedAddrs, t ir.ResourceType) ir.RemoteType {
 	return resource.IPAddrs
 }
 
-func connSettings(conn *ir.Connection, direction ir.Direction) (local, remote *ir.LocalRemotePair, internalEndpoint, internalConn bool) {
+func connSettings(conn *ir.Connection, direction ir.Direction) (local, remote *ir.ConnectedResource, internalEndpoint, internalConn bool) {
 	internalSrc, internalDst, internalConn := internalConnection(conn)
 	local = conn.Src
 	remote = conn.Dst

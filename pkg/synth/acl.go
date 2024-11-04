@@ -44,10 +44,10 @@ func (a *ACLSynthesizer) makeACL() *ir.ACLCollection {
 	return a.result
 }
 
-func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection, thisResource, otherResource *ir.LocalRemotePair,
+func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection, thisResource, otherResource *ir.ConnectedResource,
 	allowConnection func(*ir.Connection, *ir.TrackedProtocol, *ir.NamedAddrs, *netset.IPBlock)) {
-	for _, thisSubnet := range thisResource.LocalCidrs {
-		for _, otherCidr := range otherResource.RemoteCidrs {
+	for _, thisSubnet := range thisResource.CidrsWhenLocal {
+		for _, otherCidr := range otherResource.CidrsWhenRemote {
 			if thisSubnet.IPAddrs.Equal(otherCidr.IPAddrs) {
 				continue
 			}

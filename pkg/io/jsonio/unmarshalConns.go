@@ -58,12 +58,12 @@ func translateConnection(defs *ir.Definitions, blockedResources *ir.BlockedResou
 }
 
 func translateConnectionResource(defs *ir.Definitions, blockedResources *ir.BlockedResources, resource *spec.Resource,
-	isSG bool) (r *ir.LocalRemotePair, isExternal bool, err error) {
+	isSG bool) (r *ir.ConnectedResource, isExternal bool, err error) {
 	resourceType, err := translateResourceType(defs, resource)
 	if err != nil {
 		return nil, false, err
 	}
-	var res *ir.LocalRemotePair
+	var res *ir.ConnectedResource
 	if isSG {
 		res, err = defs.LookupForSGSynth(resourceType, resource.Name)
 		updateBlockedResourcesSGSynth(blockedResources, res)
@@ -138,8 +138,8 @@ func translateResourceType(defs *ir.Definitions, resource *spec.Resource) (ir.Re
 	return ir.ResourceTypeSubnet, fmt.Errorf("unsupported resource type %v (%v)", resource.Type, resource.Name)
 }
 
-func updateBlockedResourcesSGSynth(blockedResources *ir.BlockedResources, resource *ir.LocalRemotePair) {
-	for _, namedAddrs := range resource.LocalCidrs {
+func updateBlockedResourcesSGSynth(blockedResources *ir.BlockedResources, resource *ir.ConnectedResource) {
+	for _, namedAddrs := range resource.CidrsWhenLocal {
 		if _, ok := blockedResources.BlockedInstances[*namedAddrs.Name]; ok {
 			blockedResources.BlockedInstances[*namedAddrs.Name] = false
 		}
@@ -149,8 +149,8 @@ func updateBlockedResourcesSGSynth(blockedResources *ir.BlockedResources, resour
 	}
 }
 
-func updateBlockedResourcesACLSynth(blockedResources *ir.BlockedResources, resource *ir.LocalRemotePair) {
-	for _, namedAddrs := range resource.LocalCidrs {
+func updateBlockedResourcesACLSynth(blockedResources *ir.BlockedResources, resource *ir.ConnectedResource) {
+	for _, namedAddrs := range resource.CidrsWhenLocal {
 		if _, ok := blockedResources.BlockedSubnets[*namedAddrs.Name]; ok {
 			blockedResources.BlockedSubnets[*namedAddrs.Name] = false
 		}
