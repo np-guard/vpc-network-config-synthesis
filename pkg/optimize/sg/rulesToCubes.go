@@ -17,7 +17,7 @@ import (
 )
 
 // SG remote
-func rulesToSGCubes(rules *rulesPerProtocol) *sgCubesPerProtocol {
+func rulesToSGCubes(rules *sgRulesPerProtocol) *sgCubesPerProtocol {
 	return &sgCubesPerProtocol{tcp: tcpudpRulesSGCubes(rules.tcp),
 		udp:  tcpudpRulesSGCubes(rules.udp),
 		icmp: icmpRulesSGCubes(rules.icmp),
@@ -65,7 +65,7 @@ func icmpRulesSGCubes(rules []*ir.SGRule) map[ir.SGName]*netset.ICMPSet {
 }
 
 // IP remote
-func rulesToIPCubes(rules *rulesPerProtocol) *ipCubesPerProtocol {
+func rulesToIPCubes(rules *sgRulesPerProtocol) *ipCubesPerProtocol {
 	return &ipCubesPerProtocol{tcp: tcpudpRulesToIPCubes(rules.tcp),
 		udp:  tcpudpRulesToIPCubes(rules.udp),
 		icmp: icmpRulesToIPCubes(rules.icmp),
