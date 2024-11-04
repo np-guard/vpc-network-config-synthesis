@@ -66,6 +66,9 @@ func NewSGOptimizer(collection ir.Collection, sgName string) optimize.Optimizer 
 func (s *sgOptimizer) Optimize() (ir.Collection, error) {
 	if s.sgName != "" {
 		for _, vpcName := range utils.SortedMapKeys(s.sgCollection.SGs) {
+			if s.sgVPC != nil && s.sgVPC != &vpcName {
+				continue
+			}
 			if _, ok := s.sgCollection.SGs[vpcName][s.sgName]; ok {
 				s.optimizeSG(vpcName, s.sgName)
 				return s.sgCollection, nil
