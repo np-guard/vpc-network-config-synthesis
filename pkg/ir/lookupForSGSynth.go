@@ -51,7 +51,7 @@ func (s *Definitions) lookupNIFForSGSynth(name string) (*ConnectedResource, erro
 		Name:            name,
 		CidrsWhenLocal:  []*NamedAddrs{{Name: details.Instance}},
 		CidrsWhenRemote: []*NamedAddrs{{Name: details.Instance}},
-		ResourceType:    ResourceTypeNIF,
+		ResourceType:    ResourceTypeInstance,
 	}
 	return details.ConnectedResource, nil
 }
@@ -78,6 +78,9 @@ func (s *Definitions) lookupSubnetForSGSynth(name string) (*ConnectedResource, e
 	subnetDetails, ok := s.Subnets[name]
 	if !ok {
 		return nil, fmt.Errorf(resourceNotFound, ResourceTypeSubnet, name)
+	}
+	if subnetDetails.ConnectedResource != nil {
+		return subnetDetails.ConnectedResource, nil
 	}
 	subnetDetails.ConnectedResource = &ConnectedResource{Name: name,
 		CidrsWhenLocal:  s.containedResourcesInCidr(subnetDetails.CIDR),

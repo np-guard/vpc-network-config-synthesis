@@ -16,18 +16,18 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-// translateConnections translate requires connections from spec.Spec to []*ir.Connection
+// translateConnections translate required connections from spec.Spec to []*ir.Connection
 func (r *Reader) translateConnections(conns []spec.SpecRequiredConnectionsElem, defs *ir.Definitions,
 	blockedResources *ir.BlockedResources, isSG bool) ([]*ir.Connection, error) {
-	var connections []*ir.Connection
+	var res []*ir.Connection
 	for i := range conns {
-		conns, err := translateConnection(defs, blockedResources, &conns[i], i, isSG)
+		connections, err := translateConnection(defs, blockedResources, &conns[i], i, isSG)
 		if err != nil {
 			return nil, err
 		}
-		connections = append(connections, conns...)
+		res = append(res, connections...)
 	}
-	return connections, nil
+	return res, nil
 }
 
 func translateConnection(defs *ir.Definitions, blockedResources *ir.BlockedResources, conn *spec.SpecRequiredConnectionsElem,
@@ -98,7 +98,7 @@ func translateProtocols(protocols spec.ProtocolList) ([]*ir.TrackedProtocol, err
 			}
 			res.Protocol = tcpudp
 		default:
-			return nil, fmt.Errorf("impossible protocol: %v", p)
+			return nil, fmt.Errorf("unsupported protocol: %v", p)
 		}
 		result[i] = res
 	}
@@ -140,10 +140,10 @@ func translateResourceType(defs *ir.Definitions, resource *spec.Resource) (ir.Re
 
 func updateBlockedResourcesSGSynth(blockedResources *ir.BlockedResources, resource *ir.ConnectedResource) {
 	for _, namedAddrs := range resource.CidrsWhenLocal {
-		if _, ok := blockedResources.BlockedInstances[namedAddrs.Name]; ok {
+		if _, ok := blockedResources.BlockedInstances[namedAddrs.Name]; ok && resource.ResourceType == ir.ResourceTypeInstance {
 			blockedResources.BlockedInstances[namedAddrs.Name] = false
 		}
-		if _, ok := blockedResources.BlockedVPEs[namedAddrs.Name]; ok {
+		if _, ok := blockedResources.BlockedVPEs[namedAddrs.Name]; ok && resource.ResourceType == ir.ResourceTypeVPE {
 			blockedResources.BlockedVPEs[namedAddrs.Name] = false
 		}
 	}
