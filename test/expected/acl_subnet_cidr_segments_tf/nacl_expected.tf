@@ -195,17 +195,17 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc--sub2-2" {
   rules {
     name        = "rule2"
     action      = "allow"
-    direction   = "inbound"
-    source      = "10.240.64.0/24"
-    destination = "10.240.65.0/24"
+    direction   = "outbound"
+    source      = "10.240.65.0/24"
+    destination = "10.240.64.0/24"
   }
   # Internal. response to required-connections[2]: (segment subnetSegment)->(segment subnetSegment); allowed-protocols[0]
   rules {
     name        = "rule3"
     action      = "allow"
-    direction   = "outbound"
-    source      = "10.240.65.0/24"
-    destination = "10.240.64.0/24"
+    direction   = "inbound"
+    source      = "10.240.64.0/24"
+    destination = "10.240.65.0/24"
   }
 }
 

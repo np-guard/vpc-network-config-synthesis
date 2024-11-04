@@ -1,0 +1,57 @@
+{
+    "segments": {
+        "instanceSegment": { 
+            "type": "instance",
+            "items": [
+                "vsi0-subnet0",
+                "vsi1-subnet2"
+            ]
+        },
+        "nifSegment": {
+            "type": "nif",
+            "items": [
+                "squatted-fastball-vacant-knoll",
+                "snout-given-twiddle-splinter"
+            ]
+        }
+    },
+    "required-connections": [
+        {
+            "src": {
+                "name": "instanceSegment",
+                "type": "segment"
+            },
+            "dst": {
+                "name": "instanceSegment",
+                "type": "segment"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "UDP",
+                    "min_destination_port": 53,
+                    "max_destination_port": 54
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "nifSegment",
+                "type": "segment"
+            },
+            "dst": {
+                "name": "nifSegment",
+                "type": "segment"
+            }
+        },
+        {
+            "src": {
+                "name": "instanceSegment",
+                "type": "segment"
+            },
+            "dst": {
+                "name": "nifSegment",
+                "type": "segment"
+            }
+        }
+    ]
+}

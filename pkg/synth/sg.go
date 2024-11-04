@@ -6,14 +6,11 @@ SPDX-License-Identifier: Apache-2.0
 package synth
 
 import (
-	"fmt"
-
 	"github.com/np-guard/models/pkg/netp"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
-
-const SGTypeNotSupported = "SG: src/dst of type %s is not supported"
 
 type SGSynthesizer struct {
 	spec   *ir.Spec
@@ -25,109 +22,84 @@ func NewSGSynthesizer(s *ir.Spec, _ bool) Synthesizer {
 	return &SGSynthesizer{spec: s, result: ir.NewSGCollection()}
 }
 
-func (s *SGSynthesizer) Synth() (ir.Collection, error) {
+func (s *SGSynthesizer) Synth() ir.Collection {
 	return s.makeSG()
 }
 
 // this method translates spec to a collection of Security Groups
 // 1. generate SGs for relevant endpoints for each connection
 // 2. generate SGs for blocked endpoints (endpoints that do not appear in Spec)
-func (s *SGSynthesizer) makeSG() (*ir.SGCollection, error) {
-	for c := range s.spec.Connections {
-		err := s.generateSGRulesFromConnection(&s.spec.Connections[c])
-		if err != nil {
-			return nil, err
-		}
+func (s *SGSynthesizer) makeSG() *ir.SGCollection {
+	for _, c := range s.spec.Connections {
+		s.generateSGRulesFromConnection(c, ir.Outbound)
+		s.generateSGRulesFromConnection(c, ir.Inbound)
 	}
 	s.generateSGsForBlockedResources()
-	return s.result, nil
+	return s.result
 }
 
-//  1. check that both resources are supported in SG generation.
-//  2. check that at least one resource is internal.
-//  3. convert src and dst resources to namedAddrs slices to make it more convenient to go through the addrs
-//     and add the rule to the relevant SG.
-//  4. generate rules and add them to relevant SG to allow traffic for all pairs of IPAddrs of both resources.
-func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection) error {
-	if !resourceRelevantToSG(conn.Src.Type) {
-		return fmt.Errorf(SGTypeNotSupported, string(conn.Src.Type))
-	}
-	if !resourceRelevantToSG(conn.Dst.Type) {
-		return fmt.Errorf(SGTypeNotSupported, string(conn.Dst.Type))
-	}
-	internalSrc, internalDst, internalConn := internalConn(conn)
+func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection, direction ir.Direction) {
+	localResource, remoteResource, internalEndpoint, internalConn := connSettings(conn, direction)
 
-	srcEndpoints := updateEndpoints(&s.spec.Defs, conn.Src)
-	dstEndpoints := updateEndpoints(&s.spec.Defs, conn.Dst)
-
-	for _, srcEndpoint := range srcEndpoints {
-		for _, dstEndpoint := range dstEndpoints {
-			if srcEndpoint.Addrs.Equal(dstEndpoint.Addrs) {
-				continue
-			}
-
+	for _, localEndpoint := range localResource.LocalCidrs {
+		for _, remoteCidr := range remoteResource.RemoteCidrs {
 			for _, trackedProtocol := range conn.TrackedProtocols {
 				ruleExplanation := explanation{internal: internalConn, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}.String()
-				s.allowConnectionEndpoint(srcEndpoint, dstEndpoint, trackedProtocol.Protocol, ir.Outbound, internalSrc, ruleExplanation)
-				s.allowConnectionEndpoint(dstEndpoint, srcEndpoint, trackedProtocol.Protocol, ir.Inbound, internalDst, ruleExplanation)
+				s.allowConnectionEndpoint(localEndpoint, remoteCidr, remoteResource.LocalType, trackedProtocol.Protocol, direction,
+					internalEndpoint, ruleExplanation)
 			}
 		}
 	}
-	return nil
 }
 
 // if the endpoint in internal, a rule will be created to allow traffic.
-func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *namedAddrs, protocol netp.Protocol,
-	direction ir.Direction, internalEndpoint bool, ruleExplanation string) {
+func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *ir.NamedAddrs, remoteType ir.ResourceType,
+	p netp.Protocol, direction ir.Direction, internalEndpoint bool, ruleExplanation string) {
 	if !internalEndpoint {
 		return
 	}
-	localSGName := ir.SGName(localEndpoint.Name)
+	localSGName := ir.SGName(*localEndpoint.Name)
 	localSG := s.result.LookupOrCreate(localSGName)
 	localSG.Attached = []ir.ID{ir.ID(localSGName)}
 	rule := &ir.SGRule{
-		Remote:      sgRemote(&s.spec.Defs, remoteEndpoint),
+		Remote:      sgRemote(remoteEndpoint, remoteType),
 		Direction:   direction,
-		Protocol:    protocol,
+		Protocol:    p,
 		Explanation: ruleExplanation,
 	}
 	localSG.Add(rule)
 }
 
+func sgRemote(resource *ir.NamedAddrs, t ir.ResourceType) ir.RemoteType {
+	if isSGRemote(t) {
+		return ir.SGName(*resource.Name)
+	}
+	return resource.IPAddrs
+}
+
+func connSettings(conn *ir.Connection, direction ir.Direction) (local, remote *ir.LocalRemotePair, internalEndpoint, internalConn bool) {
+	internalSrc, internalDst, internalConn := internalConnection(conn)
+	local = conn.Src
+	remote = conn.Dst
+	internalEndpoint = internalSrc
+	if direction == ir.Inbound {
+		local = conn.Dst
+		remote = conn.Src
+		internalEndpoint = internalDst
+	}
+	return
+}
+
+func isSGRemote(t ir.ResourceType) bool {
+	return t == ir.ResourceTypeInstance || t == ir.ResourceTypeNIF || t == ir.ResourceTypeVPE
+}
+
 // generate SGs for blocked endpoints (endpoints that do not appear in Spec)
 func (s *SGSynthesizer) generateSGsForBlockedResources() {
-	blockedResources := s.spec.ComputeBlockedResources()
+	blockedResources := append(utils.TrueKeyValues(s.spec.Defs.BlockedInstances), utils.TrueKeyValues(s.spec.Defs.BlockedVPEs)...)
+	ir.PrintUnspecifiedWarning(ir.WarningUnspecifiedSG, blockedResources)
 	for _, resource := range blockedResources {
 		sg := s.result.LookupOrCreate(ir.SGName(resource)) // an empty SG allows no connections
 		sg.Attached = []ir.ID{resource}
 	}
-}
-
-// convert src and dst resources to namedAddrs slices to make it more convenient to go through the addrs and add
-// the rule to the relevant sg.
-func updateEndpoints(s *ir.Definitions, resource ir.Resource) []*namedAddrs {
-	if resource.Type == ir.ResourceTypeExternal {
-		return []*namedAddrs{{Name: resource.Name, Addrs: resource.IPAddrs[0]}}
-	}
-	result := make([]*namedAddrs, len(resource.IPAddrs))
-	for i, ip := range resource.IPAddrs {
-		name := resource.Name
-		// TODO: delete the following if statement when there will be a support in VSIs with multiple NIFs
-		if nifDetails, ok := s.NIFs[resource.Name]; ok {
-			name = nifDetails.Instance
-		}
-		result[i] = &namedAddrs{Name: name, Addrs: ip}
-	}
-	return result
-}
-
-func sgRemote(s *ir.Definitions, resource *namedAddrs) ir.RemoteType {
-	if _, ok := s.Externals[resource.Name]; ok {
-		return resource.Addrs
-	}
-	return ir.SGName(resource.Name)
-}
-
-func resourceRelevantToSG(e ir.ResourceType) bool {
-	return e == ir.ResourceTypeNIF || e == ir.ResourceTypeExternal || e == ir.ResourceTypeVPE
 }

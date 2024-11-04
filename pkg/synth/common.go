@@ -8,19 +8,13 @@ package synth
 import (
 	"fmt"
 
-	"github.com/np-guard/models/pkg/netset"
-
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
 type (
 	Synthesizer interface {
-		Synth() (ir.Collection, error)
-	}
-
-	namedAddrs struct {
-		Name  ir.ID
-		Addrs *netset.IPBlock
+		// generates SGs/nACLs
+		Synth() ir.Collection
 	}
 
 	explanation struct {
@@ -49,9 +43,9 @@ func (e explanation) String() string {
 	return result
 }
 
-func internalConn(conn *ir.Connection) (internalSrc, internalDst, internal bool) {
-	internalSrc = conn.Src.Type != ir.ResourceTypeExternal
-	internalDst = conn.Dst.Type != ir.ResourceTypeExternal
+func internalConnection(conn *ir.Connection) (internalSrc, internalDst, internal bool) {
+	internalSrc = conn.Src.LocalType != ir.ResourceTypeExternal
+	internalDst = conn.Dst.LocalType != ir.ResourceTypeExternal
 	internal = internalSrc && internalDst
 	return
 }

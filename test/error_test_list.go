@@ -139,19 +139,6 @@ func errorTestsList() []testCase {
 			},
 		},
 
-		// vpe resource in ACL generation
-		{
-			testName:    "vpe acl",
-			expectedErr: "ACL: src/dst of type vpe is not supported",
-			args: &command{
-				cmd:        synth,
-				subcmd:     acl,
-				config:     "%s/vpe_acl/config_object.json",
-				spec:       "%s/vpe_acl/conn_spec.json",
-				outputFile: outputPath,
-			},
-		},
-
 		// impossible resource type
 		{
 			testName: "impossible resource type",

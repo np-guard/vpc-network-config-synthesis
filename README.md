@@ -12,13 +12,14 @@ Use the `vpcgen` CLI tool with one of the following commands to specify the type
 
 ### nACLs Generation
 Specifying the `--single` flag results in generating a single nACL for all subnets in the same VPC. Otherwise, an nACL is generated for each subnet separately.
-The input supports subnets, subnet segments, CIDR segments, NIFs, instances (VSIs) and externals.  
-**Note 1**: The segments are defined in the `conn_spec.json` file.  
-**Note 2**: A required connection between NIFs or VSIs implies connectivity will be allowed between the subnets they are contained in.
+**Note**: A required connection between NIFs/VSIs/VPEs implies connectivity will be allowed between the subnets they are contained in.
 
-### SGs Generation
-The input supports Instances (VSIs), NIFs, VPEs and externals.  
+### SGs Generation 
 **Note**: A Security Group, generated for a specific VSI (or for one of its NIFs), will be applied to all the NIFs of the VSI. The same goes for Reserved IPs of a VPE.
+
+### Supported types
+The input supports subnets, subnet segments, CIDR segments, NIFs, NIF segments, instances (VSIs), instance segments, VPEs, VPE segments and externals.  
+**Note**: Segments should be defined in the spec file.  
 
 ### Output
 1. If the `output-dir` flag is used, the specified folder will be created, containing one file per VPC. Each generated file will contain the network resources (Security Groups or Network ACLs) relevant to its VPC. File names are set as `prefix_vpc`, where prefix is ​​the value received in the `prefix` flag. If the `prefix` flag is omitted, file names will match VPC names.
