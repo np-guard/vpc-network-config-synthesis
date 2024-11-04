@@ -6,32 +6,26 @@ SPDX-License-Identifier: Apache-2.0
 package test
 
 const (
-	aclExtenalsConfig = "%s/acl_externals/config_object.json"
-	aclExternalsSpec  = "%s/acl_externals/conn_spec.json"
-
-	aclNifConfig = "%s/acl_nif/config_object.json"
-	aclNifSpec   = "%s/acl_nif/conn_spec.json"
-
-	aclProtocolsConfig = "%s/acl_protocols/config_object.json"
-	aclProtocolsSpec   = "%s/acl_protocols/conn_spec.json"
-
-	aclSegmentsConfig = "%s/acl_segments/config_object.json"
-	aclSegmentsSpec   = "%s/acl_segments/conn_spec.json"
-
+	tgMultipleConfig  = "%s/tg_multiple/config_object.json"
+	sgTesting3Config  = "%s/sg_testing3/config_object.json"
+	aclTesting4Config = "%s/acl_testing4/config_object.json"
 	aclTesting5Config = "%s/acl_testing5/config_object.json"
-	aclTesting5Spec   = "%s/acl_testing5/conn_spec.json"
 
-	aclTgMultipleConfig = "%s/acl_tg_multiple/config_object.json"
-	aclTgMultipleSpec   = "%s/acl_tg_multiple/conn_spec.json"
-
-	sgProtocolsConfig = "%s/sg_protocols/config_object.json"
-	sgProtocolsSpec   = "%s/sg_protocols/conn_spec.json"
-
-	sgTesting3Config = "%s/sg_testing3/config_object.json"
-	sgTesting3Spec   = "%s/sg_testing3/conn_spec.json"
-
-	sgTgMultipleConfig = "%s/sg_tg_multiple/config_object.json"
-	sgTgMultipleSpec   = "%s/sg_tg_multiple/conn_spec.json"
+	aclExternalsSpec           = "%s/acl_externals/conn_spec.json"
+	aclNifSpec                 = "%s/acl_nif/conn_spec.json"
+	aclNifInstanceSegmentsSpec = "%s/acl_nif_instance_segments/conn_spec.json"
+	aclProtocolsSpec           = "%s/acl_protocols/conn_spec.json"
+	aclSubnetCidrSegmentsSpec  = "%s/acl_subnet_cidr_segments/conn_spec.json"
+	aclTesting5Spec            = "%s/acl_testing5/conn_spec.json"
+	aclTgMultipleSpec          = "%s/acl_tg_multiple/conn_spec.json"
+	aclVpeSpec                 = "%s/acl_vpe/conn_spec.json"
+	sgProtocolsSpec            = "%s/sg_protocols/conn_spec.json"
+	sgSegments1Spec            = "%s/sg_segments1/conn_spec.json"
+	sgSegments2Spec            = "%s/sg_segments2/conn_spec.json"
+	sgSegments3Spec            = "%s/sg_segments3/conn_spec.json"
+	sgSegments4Spec            = "%s/sg_segments4/conn_spec.json"
+	sgTesting3Spec             = "%s/sg_testing3/conn_spec.json"
+	sgTgMultipleSpec           = "%s/sg_tg_multiple/conn_spec.json"
 
 	tfOutputFmt = "tf"
 )
@@ -43,13 +37,13 @@ func allMainTests() []testCase {
 //nolint:funlen //all acl synthesis tests
 func synthACLTestsList() []testCase {
 	return []testCase{
-		// acl externals    ## acl_testing4 config
+		// acl externals
 		{
 			testName: "acl_externals_json",
 			args: &command{
 				cmd:        synth,
 				subcmd:     acl,
-				config:     aclExtenalsConfig,
+				config:     aclTesting4Config,
 				spec:       aclExternalsSpec,
 				outputFile: "%s/acl_externals_json/nacl_expected.json",
 			},
@@ -59,7 +53,7 @@ func synthACLTestsList() []testCase {
 			args: &command{
 				cmd:        synth,
 				subcmd:     acl,
-				config:     aclExtenalsConfig,
+				config:     aclTesting4Config,
 				spec:       aclExternalsSpec,
 				outputFile: "%s/acl_externals_tf/nacl_expected.tf",
 			},
@@ -71,9 +65,21 @@ func synthACLTestsList() []testCase {
 			args: &command{
 				cmd:        synth,
 				subcmd:     acl,
-				config:     aclNifConfig,
+				config:     tgMultipleConfig,
 				spec:       aclNifSpec,
 				outputFile: "%s/acl_nif_tf/nacl_expected.tf",
+			},
+		},
+
+		// acl nif instance segments    ## tg-multiple config
+		{
+			testName: "acl_nif_instance_segments_tf",
+			args: &command{
+				cmd:        synth,
+				subcmd:     acl,
+				config:     tgMultipleConfig,
+				spec:       aclNifInstanceSegmentsSpec,
+				outputFile: "%s/acl_nif_instance_segments_tf/nacl_expected.tf",
 			},
 		},
 
@@ -83,7 +89,7 @@ func synthACLTestsList() []testCase {
 			args: &command{
 				cmd:        synth,
 				subcmd:     acl,
-				config:     aclProtocolsConfig,
+				config:     tgMultipleConfig,
 				spec:       aclProtocolsSpec,
 				outputFile: "%s/acl_protocols_csv/nacl_expected.csv",
 			},
@@ -93,7 +99,7 @@ func synthACLTestsList() []testCase {
 			args: &command{
 				cmd:        synth,
 				subcmd:     acl,
-				config:     aclProtocolsConfig,
+				config:     tgMultipleConfig,
 				spec:       aclProtocolsSpec,
 				outputFile: "%s/acl_protocols_json/nacl_expected.json",
 			},
@@ -103,7 +109,7 @@ func synthACLTestsList() []testCase {
 			args: &command{
 				cmd:        synth,
 				subcmd:     acl,
-				config:     aclProtocolsConfig,
+				config:     tgMultipleConfig,
 				spec:       aclProtocolsSpec,
 				outputFile: "%s/acl_protocols_md/nacl_expected.md",
 			},
@@ -113,21 +119,21 @@ func synthACLTestsList() []testCase {
 			args: &command{
 				cmd:        synth,
 				subcmd:     acl,
-				config:     aclProtocolsConfig,
+				config:     tgMultipleConfig,
 				spec:       aclProtocolsSpec,
 				outputFile: "%s/acl_protocols_tf/nacl_expected.tf",
 			},
 		},
 
-		// acl segments (bidi)    ## acl_testing5 config
+		// acl subnet and cidr segments (bidi)
 		{
-			testName: "acl_segments_tf",
+			testName: "acl_subnet_cidr_segments_tf",
 			args: &command{
 				cmd:        synth,
 				subcmd:     acl,
-				config:     aclSegmentsConfig,
-				spec:       aclSegmentsSpec,
-				outputFile: "%s/acl_segments_tf/nacl_expected.tf",
+				config:     aclTesting5Config,
+				spec:       aclSubnetCidrSegmentsSpec,
+				outputFile: "%s/acl_subnet_cidr_segments_tf/nacl_expected.tf",
 			},
 		},
 
@@ -181,7 +187,7 @@ func synthACLTestsList() []testCase {
 			args: &command{
 				cmd:        synth,
 				subcmd:     acl,
-				config:     aclTgMultipleConfig,
+				config:     tgMultipleConfig,
 				spec:       aclTgMultipleSpec,
 				outputFile: "%s/acl_tg_multiple_json/nacl_expected.json",
 			},
@@ -191,7 +197,7 @@ func synthACLTestsList() []testCase {
 			args: &command{
 				cmd:        synth,
 				subcmd:     acl,
-				config:     aclTgMultipleConfig,
+				config:     tgMultipleConfig,
 				spec:       aclTgMultipleSpec,
 				outputFile: "%s/acl_tg_multiple_tf/nacl_expected.tf",
 			},
@@ -201,15 +207,28 @@ func synthACLTestsList() []testCase {
 			args: &command{
 				cmd:       synth,
 				subcmd:    acl,
-				config:    aclTgMultipleConfig,
+				config:    tgMultipleConfig,
 				spec:      aclTgMultipleSpec,
 				outputDir: "%s/acl_tg_multiple_tf_separate",
 				format:    tfOutputFmt,
 			},
 		},
+
+		// acl vpe    ## sg_testing3 config
+		{
+			testName: "acl_vpe_tf",
+			args: &command{
+				cmd:        synth,
+				subcmd:     acl,
+				config:     sgTesting3Config,
+				spec:       aclVpeSpec,
+				outputFile: "%s/acl_vpe_tf/nacl_expected.tf",
+			},
+		},
 	}
 }
 
+//nolint:funlen // test cases
 func synthSGTestsList() []testCase {
 	return []testCase{
 		// sg protocols (all output fmts, externals, scoping, nif as a resource)    ## tg-multiple config
@@ -218,7 +237,7 @@ func synthSGTestsList() []testCase {
 			args: &command{
 				cmd:        synth,
 				subcmd:     sg,
-				config:     sgProtocolsConfig,
+				config:     tgMultipleConfig,
 				spec:       sgProtocolsSpec,
 				outputFile: "%s/sg_protocols_csv/sg_expected.csv",
 			},
@@ -228,7 +247,7 @@ func synthSGTestsList() []testCase {
 			args: &command{
 				cmd:        synth,
 				subcmd:     sg,
-				config:     sgProtocolsConfig,
+				config:     tgMultipleConfig,
 				spec:       sgProtocolsSpec,
 				outputFile: "%s/sg_protocols_json/sg_expected.json",
 			},
@@ -238,7 +257,7 @@ func synthSGTestsList() []testCase {
 			args: &command{
 				cmd:        synth,
 				subcmd:     sg,
-				config:     sgProtocolsConfig,
+				config:     tgMultipleConfig,
 				spec:       sgProtocolsSpec,
 				outputFile: "%s/sg_protocols_md/sg_expected.md",
 			},
@@ -248,9 +267,57 @@ func synthSGTestsList() []testCase {
 			args: &command{
 				cmd:        synth,
 				subcmd:     sg,
-				config:     sgProtocolsConfig,
+				config:     tgMultipleConfig,
 				spec:       sgProtocolsSpec,
 				outputFile: "%s/sg_protocols_tf/sg_expected.tf",
+			},
+		},
+
+		// sg segments1 (cidrSegment -> cidrSegment)
+		{
+			testName: "sg_segments1_tf",
+			args: &command{
+				cmd:        synth,
+				subcmd:     sg,
+				config:     tgMultipleConfig,
+				spec:       sgSegments1Spec,
+				outputFile: "%s/sg_segments1_tf/sg_expected.tf",
+			},
+		},
+
+		// sg segments2 (instanceSegment -> cidrSegment)
+		{
+			testName: "sg_segments2_tf",
+			args: &command{
+				cmd:        synth,
+				subcmd:     sg,
+				config:     tgMultipleConfig,
+				spec:       sgSegments2Spec,
+				outputFile: "%s/sg_segments2_tf/sg_expected.tf",
+			},
+		},
+
+		// sg segments3 (subnetSegment -> nifSegment)
+		{
+			testName: "sg_segments3_tf",
+			args: &command{
+				cmd:        synth,
+				subcmd:     sg,
+				config:     tgMultipleConfig,
+				spec:       sgSegments3Spec,
+				outputFile: "%s/sg_segments3_tf/sg_expected.tf",
+			},
+		},
+
+		// sg segments4 (vpeSegment -> instanceSegment)
+		{
+			testName: "sg_segments4_tf",
+			args: &command{
+				cmd:        synth,
+				subcmd:     sg,
+				config:     sgTesting3Config,
+				spec:       sgSegments4Spec,
+				outputFile: "%s/sg_segments4_tf/sg_expected.tf",
 			},
 		},
 
@@ -302,7 +369,7 @@ func synthSGTestsList() []testCase {
 			args: &command{
 				cmd:       synth,
 				subcmd:    sg,
-				config:    sgTgMultipleConfig,
+				config:    tgMultipleConfig,
 				spec:      sgTgMultipleSpec,
 				outputDir: "%s/sg_tg_multiple_tf_separate",
 				format:    tfOutputFmt,

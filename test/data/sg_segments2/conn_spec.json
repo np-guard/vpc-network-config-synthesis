@@ -1,0 +1,30 @@
+{
+    "segments": {
+        "cidrSegment": { 
+            "type": "cidr",
+            "items": [
+                "10.240.0.0/23"
+            ]
+        },
+        "instanceSegment": {
+            "type": "instance",
+            "items": [
+                "vsi0-subnet11",
+                "vsi0-subnet5"
+            ]
+        }
+    },
+    "required-connections": [
+        {
+            
+            "src": {
+                "name": "instanceSegment",
+                "type": "segment"
+            },
+            "dst": {
+                "name": "cidrSegment",
+                "type": "segment"
+            }
+        }
+    ]
+}

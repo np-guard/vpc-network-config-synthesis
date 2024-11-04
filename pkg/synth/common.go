@@ -7,20 +7,15 @@ package synth
 
 import (
 	"fmt"
-
-	"github.com/np-guard/models/pkg/netset"
+	"log"
+	"strings"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
 type (
 	Synthesizer interface {
-		Synth() (ir.Collection, error)
-	}
-
-	namedAddrs struct {
-		Name  ir.ID
-		Addrs *netset.IPBlock
+		Synth() ir.Collection
 	}
 
 	explanation struct {
@@ -49,9 +44,15 @@ func (e explanation) String() string {
 	return result
 }
 
-func internalConn(conn *ir.Connection) (internalSrc, internalDst, internal bool) {
-	internalSrc = conn.Src.Type != ir.ResourceTypeExternal
-	internalDst = conn.Dst.Type != ir.ResourceTypeExternal
+func internalConnection(conn *ir.Connection) (internalSrc, internalDst, internal bool) {
+	internalSrc = conn.Src.ResourceType != ir.ResourceTypeExternal
+	internalDst = conn.Dst.ResourceType != ir.ResourceTypeExternal
 	internal = internalSrc && internalDst
 	return
+}
+
+func printUnspecifiedWarning(warning string, blockedResources []ir.ID) {
+	if len(blockedResources) > 0 {
+		log.Println(warning, strings.Join(blockedResources, ", "))
+	}
 }
