@@ -1,0 +1,10 @@
+vsi1 --> 0.0.0.0/30 (protocol all)
+vsi1 --> 0.0.0.0/31 (protocol all)
+
+vsi1 --> vsi2 (protocol all)
+vsi1 --> vsi2 (protocol all)
+
+====================================
+
+vsi1 --> 0.0.0.0/30 (all protocol)
+vsi1 --> vsi2 (all protocol)

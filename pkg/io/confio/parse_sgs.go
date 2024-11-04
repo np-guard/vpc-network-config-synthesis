@@ -122,7 +122,7 @@ func translateSGRuleProtocolIcmp(rule *vpcv1.SecurityGroupRuleSecurityGroupRuleP
 	if err != nil {
 		return nil, err
 	}
-	protocol, err := netp.ICMPFromTypeAndCode64(rule.Type, rule.Code)
+	protocol, err := netp.ICMPFromTypeAndCode64WithoutRFCValidation(rule.Type, rule.Code)
 	if err != nil {
 		return nil, err
 	}

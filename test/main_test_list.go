@@ -6,10 +6,11 @@ SPDX-License-Identifier: Apache-2.0
 package test
 
 const (
-	tgMultipleConfig  = "%s/tg_multiple/config_object.json"
-	sgTesting3Config  = "%s/sg_testing3/config_object.json"
-	aclTesting4Config = "%s/acl_testing4/config_object.json"
-	aclTesting5Config = "%s/acl_testing5/config_object.json"
+	tgMultipleConfig               = "%s/tg_multiple/config_object.json"
+	sgTesting3Config               = "%s/sg_testing3/config_object.json"
+	aclTesting4Config              = "%s/acl_testing4/config_object.json"
+	aclTesting5Config              = "%s/acl_testing5/config_object.json"
+	optimizeSGProtocolsToAllConfig = "%s/optimize_sg_protocols_to_all/config_object.json"
 
 	aclExternalsSpec           = "%s/acl_externals/conn_spec.json"
 	aclNifSpec                 = "%s/acl_nif/conn_spec.json"
@@ -28,10 +29,11 @@ const (
 	sgTgMultipleSpec           = "%s/sg_tg_multiple/conn_spec.json"
 
 	tfOutputFmt = "tf"
+	vsi1        = "test-vpc1--vsi1"
 )
 
 func allMainTests() []testCase {
-	return append(synthACLTestsList(), synthSGTestsList()...)
+	return append(synthACLTestsList(), append(synthSGTestsList(), optimizeSGTestsLists()...)...)
 }
 
 //nolint:funlen //all acl synthesis tests
@@ -373,6 +375,69 @@ func synthSGTestsList() []testCase {
 				spec:      sgTgMultipleSpec,
 				outputDir: "%s/sg_tg_multiple_tf_separate",
 				format:    tfOutputFmt,
+			},
+		},
+	}
+}
+
+// Note1: spec files in data folder are used to create the config object files (acl_testing4 config)
+// Note2: each data folder has a details.txt file with the test explanation
+func optimizeSGTestsLists() []testCase {
+	return []testCase{
+		{
+			testName: "optimize_sg_protocols_to_all_tf",
+			args: &command{
+				cmd:        optimize,
+				subcmd:     sg,
+				config:     optimizeSGProtocolsToAllConfig,
+				outputFile: "%s/optimize_sg_protocols_to_all_tf/sg_expected.tf",
+			},
+		},
+		{
+			testName: "optimize_sg_protocols_to_all_csv",
+			args: &command{
+				cmd:        optimize,
+				subcmd:     sg,
+				config:     optimizeSGProtocolsToAllConfig,
+				outputFile: "%s/optimize_sg_protocols_to_all_csv/sg_expected.csv",
+			},
+		},
+		{
+			testName: "optimize_sg_protocols_to_all_md",
+			args: &command{
+				cmd:        optimize,
+				subcmd:     sg,
+				config:     optimizeSGProtocolsToAllConfig,
+				outputFile: "%s/optimize_sg_protocols_to_all_md/sg_expected.md",
+			},
+		},
+		{
+			testName: "optimize_sg_redundant",
+			args: &command{
+				cmd:        optimize,
+				subcmd:     sg,
+				config:     "%s/optimize_sg_redundant/config_object.json",
+				outputFile: "%s/optimize_sg_redundant/sg_expected.tf",
+			},
+		},
+		{
+			testName: "optimize_sg_t",
+			args: &command{
+				cmd:          optimize,
+				subcmd:       sg,
+				config:       "%s/optimize_sg_t/config_object.json",
+				outputFile:   "%s/optimize_sg_t/sg_expected.tf",
+				firewallName: vsi1,
+			},
+		},
+		{
+			testName: "optimize_sg_t_all",
+			args: &command{
+				cmd:          optimize,
+				subcmd:       sg,
+				config:       "%s/optimize_sg_t_all/config_object.json",
+				outputFile:   "%s/optimize_sg_t_all/sg_expected.tf",
+				firewallName: vsi1,
 			},
 		},
 	}
