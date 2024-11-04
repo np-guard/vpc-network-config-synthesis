@@ -15,13 +15,13 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
-const ACLTypeNotSupported = "ACL: src/dst of type %s is not supported"
-
 type ACLSynthesizer struct {
 	spec      *ir.Spec
 	singleACL bool
 	result    *ir.ACLCollection
 }
+
+const WarningUnspecifiedACL = "The following subnets do not have required connections; the generated ACL will block all traffic: "
 
 // NewACLSynthesizer creates and returns a new ACLSynthesizer instance
 func NewACLSynthesizer(s *ir.Spec, single bool) Synthesizer {
@@ -45,12 +45,11 @@ func (a *ACLSynthesizer) makeACL() (collection *ir.ACLCollection, warning string
 	return a.result, warning
 }
 
-func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection, thisResource, otherResource *ir.FirewallResource,
+func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection, thisResource, otherResource *ir.ConnectedResource,
 	allowConnection func(*ir.Connection, *ir.TrackedProtocol, *ir.NamedAddrs, *netset.IPBlock)) {
-	for _, thisSubnet := range thisResource.AppliedTo {
-		for _, otherCidr := range otherResource.RemoteCidrs {
-			if thisSubnet.IPAddrs.Equal(otherCidr.IPAddrs) && *thisResource.Type != ir.ResourceTypeCidr &&
-				*otherResource.Type != ir.ResourceTypeCidr {
+	for _, thisSubnet := range thisResource.CidrsWhenLocal {
+		for _, otherCidr := range otherResource.CidrsWhenRemote {
+			if thisSubnet.IPAddrs.Equal(otherCidr.IPAddrs) {
 				continue
 			}
 			for _, trackedProtocol := range conn.TrackedProtocols {
@@ -65,7 +64,7 @@ func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection, thi
 func (a *ACLSynthesizer) allowConnectionSrc(conn *ir.Connection, p *ir.TrackedProtocol, srcSubnet *ir.NamedAddrs, dstCidr *netset.IPBlock) {
 	internalSrc, _, internal := internalConnection(conn)
 
-	if !internalSrc || srcSubnet.IPAddrs.Equal(dstCidr) {
+	if !internalSrc {
 		return
 	}
 	reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: p.Origin}
@@ -82,7 +81,7 @@ func (a *ACLSynthesizer) allowConnectionSrc(conn *ir.Connection, p *ir.TrackedPr
 func (a *ACLSynthesizer) allowConnectionDst(conn *ir.Connection, p *ir.TrackedProtocol, dstSubnet *ir.NamedAddrs, srcCidr *netset.IPBlock) {
 	_, internalDst, internal := internalConnection(conn)
 
-	if !internalDst || dstSubnet.IPAddrs.Equal(srcCidr) {
+	if !internalDst {
 		return
 	}
 	reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: p.Origin}
@@ -112,8 +111,8 @@ func (a *ACLSynthesizer) addRuleToACL(rule *ir.ACLRule, resourceName ir.ID, inte
 
 // generate nACL rules for blocked subnets (subnets that do not appear in Spec)
 func (a *ACLSynthesizer) generateACLRulesForBlockedSubnets() string {
-	blockedSubnets := utils.TrueKeyValues(a.spec.Defs.BlockedSubnets)
-	warning := ir.SetUnspecifiedWarning(ir.WarningUnspecifiedACL, blockedSubnets)
+	blockedSubnets := utils.TrueKeyValues(a.spec.BlockedSubnets)
+	warning := setUnspecifiedWarning(WarningUnspecifiedACL, blockedSubnets)
 	for _, subnet := range blockedSubnets {
 		acl := a.result.LookupOrCreate(aclSelector(subnet, a.singleACL))
 		cidr := a.spec.Defs.Subnets[subnet].Address()

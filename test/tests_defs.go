@@ -35,9 +35,9 @@ const (
 
 	defaultDirectoryPermission = 0o755
 
-	synth string = "synth"
-	acl   string = "acl"
-	sg    string = "sg"
+	synthesis string = "synth"
+	acl       string = "acl"
+	sg        string = "sg"
 )
 
 func (c *command) Args(dataFolder, resultsFolder string) []string {
