@@ -59,7 +59,7 @@ func lookupContainerForACLSynth[T EndpointProvider](m map[ID]T, defs *Definition
 		}
 		seenSubnets[subnetName] = struct{}{}
 
-		namedAddrs := &NamedAddrs{Name: &subnetName, IPAddrs: defs.Subnets[subnetName].CIDR}
+		namedAddrs := &NamedAddrs{Name: subnetName, IPAddrs: defs.Subnets[subnetName].CIDR}
 		res.CidrsWhenRemote = append(res.CidrsWhenRemote, namedAddrs)
 		res.CidrsWhenLocal = append(res.CidrsWhenLocal, namedAddrs)
 	}
@@ -80,8 +80,8 @@ func (s *Definitions) lookupNIFForACLSynth(name string) (*ConnectedResource, err
 	NifSubnetCidr := s.Subnets[NifSubnetName].CIDR
 	details.ConnectedResource = &ConnectedResource{
 		Name:            name,
-		CidrsWhenLocal:  []*NamedAddrs{{Name: &NifSubnetName, IPAddrs: NifSubnetCidr}},
-		CidrsWhenRemote: []*NamedAddrs{{Name: &NifSubnetName, IPAddrs: NifSubnetCidr}},
+		CidrsWhenLocal:  []*NamedAddrs{{Name: NifSubnetName, IPAddrs: NifSubnetCidr}},
+		CidrsWhenRemote: []*NamedAddrs{{Name: NifSubnetName, IPAddrs: NifSubnetCidr}},
 		ResourceType:    ResourceTypeSubnet,
 	}
 	return details.ConnectedResource, nil
@@ -100,7 +100,7 @@ func (s *Definitions) lookupCidrSegmentACL(name string) (*ConnectedResource, err
 		ResourceType:   ResourceTypeSubnet,
 	}
 	for _, cidr := range segmentDetails.Cidrs.SplitToCidrs() {
-		res.CidrsWhenRemote = append(res.CidrsWhenRemote, &NamedAddrs{Name: &name, IPAddrs: cidr})
+		res.CidrsWhenRemote = append(res.CidrsWhenRemote, &NamedAddrs{Name: name, IPAddrs: cidr})
 	}
 	segmentDetails.ConnectedResource = res
 	return res, nil
@@ -110,9 +110,9 @@ func (s *Definitions) containedSubnetsInCidr(cidr *netset.IPBlock) []*NamedAddrs
 	res := make([]*NamedAddrs, 0)
 	for subnet, subnetDetails := range s.Subnets {
 		if subnetDetails.CIDR.IsSubset(cidr) {
-			res = append(res, &NamedAddrs{Name: &subnet, IPAddrs: subnetDetails.CIDR})
+			res = append(res, &NamedAddrs{Name: subnet, IPAddrs: subnetDetails.CIDR})
 		}
 	}
-	sort.Slice(res, func(i, j int) bool { return *res[i].Name < *res[j].Name })
+	sort.Slice(res, func(i, j int) bool { return res[i].Name < res[j].Name })
 	return res
 }

@@ -140,19 +140,19 @@ func translateResourceType(defs *ir.Definitions, resource *spec.Resource) (ir.Re
 
 func updateBlockedResourcesSGSynth(blockedResources *ir.BlockedResources, resource *ir.ConnectedResource) {
 	for _, namedAddrs := range resource.CidrsWhenLocal {
-		if _, ok := blockedResources.BlockedInstances[*namedAddrs.Name]; ok {
-			blockedResources.BlockedInstances[*namedAddrs.Name] = false
+		if _, ok := blockedResources.BlockedInstances[namedAddrs.Name]; ok {
+			blockedResources.BlockedInstances[namedAddrs.Name] = false
 		}
-		if _, ok := blockedResources.BlockedVPEs[*namedAddrs.Name]; ok {
-			blockedResources.BlockedVPEs[*namedAddrs.Name] = false
+		if _, ok := blockedResources.BlockedVPEs[namedAddrs.Name]; ok {
+			blockedResources.BlockedVPEs[namedAddrs.Name] = false
 		}
 	}
 }
 
 func updateBlockedResourcesACLSynth(blockedResources *ir.BlockedResources, resource *ir.ConnectedResource) {
 	for _, namedAddrs := range resource.CidrsWhenLocal {
-		if _, ok := blockedResources.BlockedSubnets[*namedAddrs.Name]; ok {
-			blockedResources.BlockedSubnets[*namedAddrs.Name] = false
+		if _, ok := blockedResources.BlockedSubnets[namedAddrs.Name]; ok {
+			blockedResources.BlockedSubnets[namedAddrs.Name] = false
 		}
 	}
 }

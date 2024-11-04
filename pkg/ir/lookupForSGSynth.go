@@ -49,8 +49,8 @@ func (s *Definitions) lookupNIFForSGSynth(name string) (*ConnectedResource, erro
 	}
 	details.ConnectedResource = &ConnectedResource{
 		Name:            name,
-		CidrsWhenLocal:  []*NamedAddrs{{Name: &details.Instance}},
-		CidrsWhenRemote: []*NamedAddrs{{Name: &details.Instance}},
+		CidrsWhenLocal:  []*NamedAddrs{{Name: details.Instance}},
+		CidrsWhenRemote: []*NamedAddrs{{Name: details.Instance}},
 		ResourceType:    ResourceTypeNIF,
 	}
 	return details.ConnectedResource, nil
@@ -66,8 +66,8 @@ func lookupContainerForSGSynth[T EndpointProvider](m map[string]T, name string, 
 	}
 	res := &ConnectedResource{
 		Name:            name,
-		CidrsWhenLocal:  []*NamedAddrs{{Name: &name}},
-		CidrsWhenRemote: []*NamedAddrs{{Name: &name}},
+		CidrsWhenLocal:  []*NamedAddrs{{Name: name}},
+		CidrsWhenRemote: []*NamedAddrs{{Name: name}},
 		ResourceType:    t,
 	}
 	details.setConnectedResource(res)
@@ -130,7 +130,7 @@ func cidrToNamedAddrs(cidr *netset.IPBlock) []*NamedAddrs {
 func namesToNamedAddrs(names []string) []*NamedAddrs {
 	res := make([]*NamedAddrs, len(names))
 	for i, name := range names {
-		res[i] = &NamedAddrs{Name: &name}
+		res[i] = &NamedAddrs{Name: name}
 	}
 	return res
 }

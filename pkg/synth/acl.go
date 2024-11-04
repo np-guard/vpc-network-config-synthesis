@@ -68,10 +68,10 @@ func (a *ACLSynthesizer) allowConnectionSrc(conn *ir.Connection, p *ir.TrackedPr
 	}
 	reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: p.Origin}
 	request := &ir.Packet{Src: srcSubnet.IPAddrs, Dst: dstCidr, Protocol: p.Protocol, Explanation: reason.String()}
-	a.addRuleToACL(ir.AllowSend(request), *srcSubnet.Name, internal, a.singleACL)
+	a.addRuleToACL(ir.AllowSend(request), srcSubnet.Name, internal, a.singleACL)
 	if inverseProtocol := p.Protocol.InverseDirection(); inverseProtocol != nil {
 		response := &ir.Packet{Src: dstCidr, Dst: srcSubnet.IPAddrs, Protocol: inverseProtocol, Explanation: reason.response().String()}
-		a.addRuleToACL(ir.AllowReceive(response), *srcSubnet.Name, internal, a.singleACL)
+		a.addRuleToACL(ir.AllowReceive(response), srcSubnet.Name, internal, a.singleACL)
 	}
 }
 
@@ -85,10 +85,10 @@ func (a *ACLSynthesizer) allowConnectionDst(conn *ir.Connection, p *ir.TrackedPr
 	}
 	reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: p.Origin}
 	request := &ir.Packet{Src: srcCidr, Dst: dstSubnet.IPAddrs, Protocol: p.Protocol, Explanation: reason.String()}
-	a.addRuleToACL(ir.AllowReceive(request), *dstSubnet.Name, internal, a.singleACL)
+	a.addRuleToACL(ir.AllowReceive(request), dstSubnet.Name, internal, a.singleACL)
 	if inverseProtocol := p.Protocol.InverseDirection(); inverseProtocol != nil {
 		response := &ir.Packet{Src: dstSubnet.IPAddrs, Dst: srcCidr, Protocol: inverseProtocol, Explanation: reason.response().String()}
-		a.addRuleToACL(ir.AllowSend(response), *dstSubnet.Name, internal, a.singleACL)
+		a.addRuleToACL(ir.AllowSend(response), dstSubnet.Name, internal, a.singleACL)
 	}
 }
 

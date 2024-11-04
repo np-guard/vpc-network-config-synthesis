@@ -57,7 +57,7 @@ type (
 
 	NamedAddrs struct {
 		IPAddrs *netset.IPBlock
-		Name    *string
+		Name    string
 	}
 
 	TrackedProtocol struct {
@@ -304,8 +304,8 @@ func lookupSingle[T NWResource](m map[ID]T, name string, t ResourceType) (*Conne
 	}
 	res := &ConnectedResource{
 		Name:            name,
-		CidrsWhenLocal:  []*NamedAddrs{{Name: &name, IPAddrs: details.Address()}},
-		CidrsWhenRemote: []*NamedAddrs{{Name: &name, IPAddrs: details.Address()}},
+		CidrsWhenLocal:  []*NamedAddrs{{Name: name, IPAddrs: details.Address()}},
+		CidrsWhenRemote: []*NamedAddrs{{Name: name, IPAddrs: details.Address()}},
 		ResourceType:    t,
 	}
 	details.setConnectedResource(res)

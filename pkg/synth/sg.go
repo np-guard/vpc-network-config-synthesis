@@ -60,7 +60,7 @@ func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *i
 	if !internalEndpoint {
 		return
 	}
-	localSGName := ir.SGName(*localEndpoint.Name)
+	localSGName := ir.SGName(localEndpoint.Name)
 	localSG := s.result.LookupOrCreate(localSGName)
 	localSG.Attached = []ir.ID{ir.ID(localSGName)}
 	rule := &ir.SGRule{
@@ -74,7 +74,7 @@ func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *i
 
 func sgRemote(resource *ir.NamedAddrs, t ir.ResourceType) ir.RemoteType {
 	if isSGRemote(t) {
-		return ir.SGName(*resource.Name)
+		return ir.SGName(resource.Name)
 	}
 	return resource.IPAddrs
 }
