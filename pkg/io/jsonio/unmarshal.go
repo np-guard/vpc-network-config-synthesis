@@ -64,11 +64,11 @@ func replaceResourcesName(jsonSpec *spec.Spec, defs *ir.Definitions) (*spec.Spec
 	distinctVpes, ambiguousVpes := inverseMapToFullyQualifiedName(config.VPEs)
 
 	// translate segments to fully qualified names
-	nifSegments, err2 := replaceSegmentNames(defs.NifSegments, distinctNifs, ambiguousNifs, spec.ResourceType(spec.SegmentTypeNif))
-	vpeSegments, err4 := replaceSegmentNames(defs.VpeSegments, distinctVpes, ambiguousVpes, spec.ResourceType(spec.SegmentTypeVpe))
-	subnetSegments, err1 := replaceSegmentNames(defs.SubnetSegments, distinctSubnets, ambiguousSubnets,
+	nifSegments, err1 := replaceSegmentNames(defs.NifSegments, distinctNifs, ambiguousNifs, spec.ResourceType(spec.SegmentTypeNif))
+	vpeSegments, err2 := replaceSegmentNames(defs.VpeSegments, distinctVpes, ambiguousVpes, spec.ResourceType(spec.SegmentTypeVpe))
+	subnetSegments, err3 := replaceSegmentNames(defs.SubnetSegments, distinctSubnets, ambiguousSubnets,
 		spec.ResourceType(spec.SegmentTypeSubnet))
-	instanceSegments, err3 := replaceSegmentNames(defs.InstanceSegments, distinctInstances, ambiguousInstances,
+	instanceSegments, err4 := replaceSegmentNames(defs.InstanceSegments, distinctInstances, ambiguousInstances,
 		spec.ResourceType(spec.SegmentTypeInstance))
 
 	if err := errors.Join(err1, err2, err3, err4); err != nil {
@@ -153,16 +153,16 @@ func inverseMapToFullyQualifiedName[T ir.Named](m map[ir.ID]T) (distinctNames ma
 	ambiguousNames = make(map[string]struct{})
 	distinctNames = make(map[string]ir.ID)
 
-	for fullNifName, nif := range m {
-		nifName := nif.Name()
-		if _, ok := ambiguousNames[nifName]; ok {
+	for fullElementName, element := range m {
+		elementName := element.Name()
+		if _, ok := ambiguousNames[elementName]; ok {
 			continue
 		}
-		if _, ok := distinctNames[nifName]; !ok {
-			distinctNames[nifName] = fullNifName
+		if _, ok := distinctNames[elementName]; !ok {
+			distinctNames[elementName] = fullElementName
 		} else {
-			delete(distinctNames, nifName)
-			ambiguousNames[nifName] = struct{}{}
+			delete(distinctNames, elementName)
+			ambiguousNames[elementName] = struct{}{}
 		}
 	}
 	return distinctNames, ambiguousNames

@@ -49,9 +49,9 @@ func (s *Definitions) lookupNIFForSGSynth(name string) (*ConnectedResource, erro
 	}
 	details.ConnectedResource = &ConnectedResource{
 		Name:            name,
-		CidrsWhenLocal:  []*NamedAddrs{{Name: &details.Instance}},
-		CidrsWhenRemote: []*NamedAddrs{{Name: &details.Instance}},
-		ResourceType:    ResourceTypeNIF,
+		CidrsWhenLocal:  []*NamedAddrs{{Name: details.Instance}},
+		CidrsWhenRemote: []*NamedAddrs{{Name: details.Instance}},
+		ResourceType:    ResourceTypeInstance,
 	}
 	return details.ConnectedResource, nil
 }
@@ -66,8 +66,8 @@ func lookupContainerForSGSynth[T EndpointProvider](m map[string]T, name string, 
 	}
 	res := &ConnectedResource{
 		Name:            name,
-		CidrsWhenLocal:  []*NamedAddrs{{Name: &name}},
-		CidrsWhenRemote: []*NamedAddrs{{Name: &name}},
+		CidrsWhenLocal:  []*NamedAddrs{{Name: name}},
+		CidrsWhenRemote: []*NamedAddrs{{Name: name}},
 		ResourceType:    t,
 	}
 	details.setConnectedResource(res)
@@ -78,6 +78,9 @@ func (s *Definitions) lookupSubnetForSGSynth(name string) (*ConnectedResource, e
 	subnetDetails, ok := s.Subnets[name]
 	if !ok {
 		return nil, fmt.Errorf(resourceNotFound, ResourceTypeSubnet, name)
+	}
+	if subnetDetails.ConnectedResource != nil {
+		return subnetDetails.ConnectedResource, nil
 	}
 	subnetDetails.ConnectedResource = &ConnectedResource{Name: name,
 		CidrsWhenLocal:  s.containedResourcesInCidr(subnetDetails.CIDR),
@@ -130,7 +133,7 @@ func cidrToNamedAddrs(cidr *netset.IPBlock) []*NamedAddrs {
 func namesToNamedAddrs(names []string) []*NamedAddrs {
 	res := make([]*NamedAddrs, len(names))
 	for i, name := range names {
-		res[i] = &NamedAddrs{Name: &name}
+		res[i] = &NamedAddrs{Name: name}
 	}
 	return res
 }
