@@ -112,12 +112,11 @@ func (a *ACLSynthesizer) addRuleToACL(rule *ir.ACLRule, resourceName ir.ID, inte
 // generate nACL rules for blocked subnets (subnets that do not appear in Spec)
 func (a *ACLSynthesizer) generateACLRulesForBlockedSubnets() string {
 	blockedSubnets := utils.TrueKeyValues(a.spec.BlockedSubnets)
-	warning := setUnspecifiedWarning(WarningUnspecifiedACL, blockedSubnets)
 	for _, subnet := range blockedSubnets {
 		acl := a.result.LookupOrCreate(aclSelector(subnet, a.singleACL))
 		cidr := a.spec.Defs.Subnets[subnet].Address()
 		acl.AppendInternal(ir.DenyAllReceive(subnet, cidr))
 		acl.AppendInternal(ir.DenyAllSend(subnet, cidr))
 	}
-	return warning
+	return setUnspecifiedWarning(WarningUnspecifiedACL, blockedSubnets)
 }
