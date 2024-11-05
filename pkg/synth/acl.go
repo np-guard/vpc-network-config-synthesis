@@ -36,8 +36,7 @@ func (a *ACLSynthesizer) Synth() (collection ir.Collection, warning string) {
 // 1. generate nACL rules for relevant subnets for each connection
 // 2. generate nACL rules for blocked subnets (subnets that do not appear in Spec)
 func (a *ACLSynthesizer) makeACL() (collection *ir.ACLCollection, warning string) {
-	for i := range a.spec.Connections {
-		conn := a.spec.Connections[i]
+	for _, conn := range a.spec.Connections {
 		a.generateACLRulesFromConnection(conn, conn.Src, conn.Dst, a.allowConnectionSrc)
 		a.generateACLRulesFromConnection(conn, conn.Dst, conn.Src, a.allowConnectionDst)
 	}
