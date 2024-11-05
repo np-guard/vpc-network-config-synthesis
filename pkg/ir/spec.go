@@ -16,7 +16,6 @@ import (
 
 type (
 	ID           = string
-	NamedEntity  string
 	ResourceType string
 
 	Spec struct {
@@ -109,24 +108,18 @@ type (
 
 	// ConnectedResource is for caching lookup results
 	SubnetDetails struct {
-		NamedEntity
 		CIDR              *netset.IPBlock
-		VPC               ID
 		ConnectedResource *ConnectedResource
 	}
 
 	NifDetails struct {
-		NamedEntity
 		IP                *netset.IPBlock
-		VPC               ID
 		Instance          ID
 		Subnet            ID
 		ConnectedResource *ConnectedResource
 	}
 
 	InstanceDetails struct {
-		NamedEntity
-		VPC               ID
 		Nifs              []ID
 		ConnectedResource *ConnectedResource
 	}
@@ -138,9 +131,7 @@ type (
 	}
 
 	VPEDetails struct {
-		NamedEntity
 		VPEReservedIPs    []ID
-		VPC               ID
 		ConnectedResource *ConnectedResource
 	}
 
