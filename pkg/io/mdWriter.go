@@ -35,7 +35,7 @@ func (w *MDWriter) WriteSG(collection *ir.SGCollection, vpc string) error {
 	if err != nil {
 		return err
 	}
-	return w.writeAll(append(append(SGHeader(), addAlighns(sgColsNum)...), sgTable...))
+	return w.writeAll(append(append(SGHeader(), addAlighns(sgColsNum)), sgTable...))
 }
 
 func (w *MDWriter) WriteACL(collection *ir.ACLCollection, vpc string) error {
@@ -43,7 +43,7 @@ func (w *MDWriter) WriteACL(collection *ir.ACLCollection, vpc string) error {
 	if err != nil {
 		return err
 	}
-	return w.writeAll(append(append(ACLHeader(), addAlighns(aclColsNum)...), aclTable...))
+	return w.writeAll(append(append(ACLHeader(), addAlighns(aclColsNum)), aclTable...))
 }
 
 func (w *MDWriter) writeAll(rows [][]string) error {
@@ -62,10 +62,10 @@ func (w *MDWriter) writeAll(rows [][]string) error {
 	return nil
 }
 
-func addAlighns(n int) [][]string {
+func addAlighns(n int) []string {
 	res := make([]string, n)
 	for i := range n {
 		res[i] = leftAlign
 	}
-	return [][]string{res}
+	return res
 }
