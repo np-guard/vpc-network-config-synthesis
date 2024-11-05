@@ -32,9 +32,9 @@ func (s *SGSynthesizer) Synth() (collection ir.Collection, warning string) {
 // 1. generate SGs for relevant endpoints for each connection
 // 2. generate SGs for blocked endpoints (endpoints that do not appear in Spec)
 func (s *SGSynthesizer) makeSG() (collection *ir.SGCollection, warning string) {
-	for c := range s.spec.Connections {
-		s.generateSGRulesFromConnection(s.spec.Connections[c], ir.Outbound)
-		s.generateSGRulesFromConnection(s.spec.Connections[c], ir.Inbound)
+	for _, conn := range s.spec.Connections {
+		s.generateSGRulesFromConnection(conn, ir.Outbound)
+		s.generateSGRulesFromConnection(conn, ir.Inbound)
 	}
 	warning = s.generateSGsForBlockedResources()
 	return s.result, warning

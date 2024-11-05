@@ -8,7 +8,6 @@ package ir
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/np-guard/models/pkg/netp"
@@ -346,13 +345,4 @@ func VpcFromScopedResource(resource ID) ID {
 
 func ChangeScoping(s string) string {
 	return strings.ReplaceAll(s, "/", "--")
-}
-
-func SetUnspecifiedWarning(warningPrefix string, blockedResources []ID) string {
-	warning := ""
-	if len(blockedResources) > 0 {
-		warning = warningPrefix + strings.Join(blockedResources, ", ")
-		log.Println(warning)
-	}
-	return warning
 }

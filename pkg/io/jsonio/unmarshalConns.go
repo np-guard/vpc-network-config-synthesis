@@ -140,10 +140,11 @@ func translateResourceType(defs *ir.Definitions, resource *spec.Resource) (ir.Re
 
 func updateBlockedResourcesSGSynth(blockedResources *ir.BlockedResources, resource *ir.ConnectedResource) {
 	for _, namedAddrs := range resource.CidrsWhenLocal {
-		if _, ok := blockedResources.BlockedInstances[namedAddrs.Name]; ok && resource.ResourceType == ir.ResourceTypeInstance {
+		// should check also resource type
+		if _, ok := blockedResources.BlockedInstances[namedAddrs.Name]; ok {
 			blockedResources.BlockedInstances[namedAddrs.Name] = false
 		}
-		if _, ok := blockedResources.BlockedVPEs[namedAddrs.Name]; ok && resource.ResourceType == ir.ResourceTypeVPE {
+		if _, ok := blockedResources.BlockedVPEs[namedAddrs.Name]; ok {
 			blockedResources.BlockedVPEs[namedAddrs.Name] = false
 		}
 	}
