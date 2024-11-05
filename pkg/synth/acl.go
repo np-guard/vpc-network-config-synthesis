@@ -63,7 +63,7 @@ func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection, thi
 func (a *ACLSynthesizer) allowConnectionSrc(conn *ir.Connection, p *ir.TrackedProtocol, srcSubnet *ir.NamedAddrs, dstCidr *netset.IPBlock) {
 	internalSrc, _, internal := internalConnection(conn)
 
-	if !internalSrc || srcSubnet.IPAddrs.Equal(dstCidr) {
+	if !internalSrc {
 		return
 	}
 	reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: p.Origin}
@@ -80,7 +80,7 @@ func (a *ACLSynthesizer) allowConnectionSrc(conn *ir.Connection, p *ir.TrackedPr
 func (a *ACLSynthesizer) allowConnectionDst(conn *ir.Connection, p *ir.TrackedProtocol, dstSubnet *ir.NamedAddrs, srcCidr *netset.IPBlock) {
 	_, internalDst, internal := internalConnection(conn)
 
-	if !internalDst || dstSubnet.IPAddrs.Equal(srcCidr) {
+	if !internalDst {
 		return
 	}
 	reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: p.Origin}

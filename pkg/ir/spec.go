@@ -46,10 +46,8 @@ type (
 	ConnectedResource struct {
 		Name string
 
-		//
 		CidrsWhenLocal []*NamedAddrs
 
-		// Cidr list
 		CidrsWhenRemote []*NamedAddrs
 
 		ResourceType ResourceType
