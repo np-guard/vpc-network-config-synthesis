@@ -6,6 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 package confio
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/IBM/vpc-go-sdk/vpcv1"
@@ -25,24 +26,12 @@ func ReadDefs(filename string) (*ir.ConfigDefs, error) {
 		return nil, err
 	}
 
-	subnets, err := parseSubnets(config)
-	if err != nil {
-		return nil, err
-	}
-	instances, nifs, err := parseInstancesNifs(config)
-	if err != nil {
-		return nil, err
-	}
-	vpes, vpeEndpoints, err := parseVPEs(config)
-	if err != nil {
-		return nil, err
-	}
-	vpcs, err := parseVPCs(config)
-	if err != nil {
-		return nil, err
-	}
-	err = validateVpcs(vpcs)
-	if err != nil {
+	subnets, err1 := parseSubnets(config)
+	instances, nifs, err2 := parseInstancesNifs(config)
+	vpes, vpeEndpoints, err3 := parseVPEs(config)
+	vpcs, err4 := parseVPCs(config)
+	err5 := validateVpcs(vpcs)
+	if err := errors.Join(err1, err2, err3, err4, err5); err != nil {
 		return nil, err
 	}
 

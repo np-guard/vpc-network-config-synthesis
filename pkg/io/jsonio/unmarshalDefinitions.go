@@ -8,7 +8,6 @@ package jsonio
 
 import (
 	"fmt"
-	"slices"
 
 	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/models/pkg/spec"
@@ -25,9 +24,9 @@ type segmentsTypes struct {
 }
 
 // ReadDefinitions translates segments and externals
-func (r *Reader) readDefinitions(jsonSpec *spec.Spec, configDefs *ir.ConfigDefs) (*ir.Definitions, error) {
+func (r *Reader) readDefinitions(jsonSpec *spec.Spec, configDefs *ir.ConfigDefs) (*ir.Definitions, *ir.BlockedResources, error) {
 	if err := validateSegments(&jsonSpec.Segments); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	segments := divideSegmentsByType(&jsonSpec.Segments)
 	subnetSegments := parseSegments(segments.subnetSegment)
@@ -36,22 +35,21 @@ func (r *Reader) readDefinitions(jsonSpec *spec.Spec, configDefs *ir.ConfigDefs)
 	vpeSegments := parseSegments(segments.vpeSegment)
 	cidrSegments, err := parseCidrSegments(segments.cidrSegment, configDefs)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	externals, err := translateExternals(jsonSpec.Externals)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	return &ir.Definitions{
 		ConfigDefs:       *configDefs,
-		BlockedResources: prepareBlockedResources(configDefs),
 		SubnetSegments:   subnetSegments,
 		CidrSegments:     cidrSegments,
 		NifSegments:      nifSegments,
 		InstanceSegments: instanceSegments,
 		VpeSegments:      vpeSegments,
 		Externals:        externals,
-	}, nil
+	}, prepareBlockedResources(configDefs), nil
 }
 
 // validateSegments validates that all segments are supported
@@ -80,28 +78,18 @@ func parseCidrSegments(cidrSegments map[string][]string, configDefs *ir.ConfigDe
 	result := make(map[ir.ID]*ir.CidrSegmentDetails)
 	for segmentName, segment := range cidrSegments {
 		cidrs := netset.NewIPBlock()
-		containedSubnets := make([]ir.ID, 0)
 
 		for _, cidr := range segment {
 			c, err := netset.IPBlockFromCidr(cidr)
 			if err != nil {
 				return nil, err
 			}
-			subnets, err := configDefs.SubnetsContainedInCidr(c)
-			if err != nil {
-				return nil, err
-			}
-
 			cidrs = cidrs.Union(c)
-			containedSubnets = append(containedSubnets, subnets...)
 		}
 		if !internalCidr(configDefs, cidrs) {
-			return nil, fmt.Errorf("only internal cidrs are supportd in cidr segment resource type (segment name: %v)", segmentName)
+			return nil, fmt.Errorf("only internal cidrs are supported in cidr segment resource type (segment name: %v)", segmentName)
 		}
-		cidrSegmentDetails := ir.CidrSegmentDetails{
-			Cidrs:            cidrs,
-			ContainedSubnets: slices.Compact(slices.Sorted(slices.Values(containedSubnets))),
-		}
+		cidrSegmentDetails := ir.CidrSegmentDetails{Cidrs: cidrs}
 		result[segmentName] = &cidrSegmentDetails
 	}
 	return result, nil
@@ -149,8 +137,8 @@ func internalCidr(configDefs *ir.ConfigDefs, cidr *netset.IPBlock) bool {
 	return res.IsEmpty()
 }
 
-func prepareBlockedResources(configDefs *ir.ConfigDefs) ir.BlockedResources {
-	return ir.BlockedResources{BlockedSubnets: sliceToMap(utils.SortedMapKeys(configDefs.Subnets)),
+func prepareBlockedResources(configDefs *ir.ConfigDefs) *ir.BlockedResources {
+	return &ir.BlockedResources{BlockedSubnets: sliceToMap(utils.SortedMapKeys(configDefs.Subnets)),
 		BlockedInstances: sliceToMap(utils.SortedMapKeys(configDefs.Instances)),
 		BlockedVPEs:      sliceToMap(utils.SortedMapKeys(configDefs.VPEs))}
 }

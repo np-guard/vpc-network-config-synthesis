@@ -16,23 +16,25 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-// translateConnections translate requires connections from spec.Spec to []*ir.Connection
-func (r *Reader) translateConnections(conns []spec.SpecRequiredConnectionsElem, defs *ir.Definitions, isSG bool) ([]*ir.Connection, error) {
-	var connections []*ir.Connection
+// translateConnections translate required connections from spec.Spec to []*ir.Connection
+func (r *Reader) translateConnections(conns []spec.SpecRequiredConnectionsElem, defs *ir.Definitions,
+	blockedResources *ir.BlockedResources, isSG bool) ([]*ir.Connection, error) {
+	var res []*ir.Connection
 	for i := range conns {
-		conns, err := translateConnection(defs, &conns[i], i, isSG)
+		connections, err := translateConnection(defs, blockedResources, &conns[i], i, isSG)
 		if err != nil {
 			return nil, err
 		}
-		connections = append(connections, conns...)
+		res = append(res, connections...)
 	}
-	return connections, nil
+	return res, nil
 }
 
-func translateConnection(defs *ir.Definitions, conn *spec.SpecRequiredConnectionsElem, connIdx int, isSG bool) ([]*ir.Connection, error) {
+func translateConnection(defs *ir.Definitions, blockedResources *ir.BlockedResources, conn *spec.SpecRequiredConnectionsElem,
+	connIdx int, isSG bool) ([]*ir.Connection, error) {
 	protocols, err1 := translateProtocols(conn.AllowedProtocols)
-	srcResource, isSrcExternal, err2 := translateConnectionResource(defs, &conn.Src, isSG)
-	dstResource, isDstExternal, err3 := translateConnectionResource(defs, &conn.Dst, isSG)
+	srcResource, isSrcExternal, err2 := translateConnectionResource(defs, blockedResources, &conn.Src, isSG)
+	dstResource, isDstExternal, err3 := translateConnectionResource(defs, blockedResources, &conn.Dst, isSG)
 	if err := errors.Join(err1, err2, err3); err != nil {
 		return nil, err
 	}
@@ -55,19 +57,19 @@ func translateConnection(defs *ir.Definitions, conn *spec.SpecRequiredConnection
 	return []*ir.Connection{out}, nil
 }
 
-func translateConnectionResource(defs *ir.Definitions, resource *spec.Resource,
-	isSG bool) (r *ir.FirewallResource, isExternal bool, err error) {
+func translateConnectionResource(defs *ir.Definitions, blockedResources *ir.BlockedResources, resource *spec.Resource,
+	isSG bool) (r *ir.ConnectedResource, isExternal bool, err error) {
 	resourceType, err := translateResourceType(defs, resource)
 	if err != nil {
 		return nil, false, err
 	}
-	var res *ir.FirewallResource
+	var res *ir.ConnectedResource
 	if isSG {
 		res, err = defs.LookupForSGSynth(resourceType, resource.Name)
-		updateBlockedResourcesSGSynth(defs, res)
+		updateBlockedResourcesSGSynth(blockedResources, res)
 	} else {
 		res, err = defs.LookupForACLSynth(resourceType, resource.Name)
-		updateBlockedResourcesACLSynth(defs, res)
+		updateBlockedResourcesACLSynth(blockedResources, res)
 	}
 	return res, resourceType == ir.ResourceTypeExternal, err
 }
@@ -96,7 +98,7 @@ func translateProtocols(protocols spec.ProtocolList) ([]*ir.TrackedProtocol, err
 			}
 			res.Protocol = tcpudp
 		default:
-			return nil, fmt.Errorf("impossible protocol: %v", p)
+			return nil, fmt.Errorf("unsupported protocol: %v", p)
 		}
 		result[i] = res
 	}
@@ -136,21 +138,21 @@ func translateResourceType(defs *ir.Definitions, resource *spec.Resource) (ir.Re
 	return ir.ResourceTypeSubnet, fmt.Errorf("unsupported resource type %v (%v)", resource.Type, resource.Name)
 }
 
-func updateBlockedResourcesSGSynth(defs *ir.Definitions, resource *ir.FirewallResource) {
-	for _, namedAddrs := range resource.AppliedTo {
-		if _, ok := defs.BlockedInstances[*namedAddrs.Name]; ok {
-			defs.BlockedInstances[*namedAddrs.Name] = false
+func updateBlockedResourcesSGSynth(blockedResources *ir.BlockedResources, resource *ir.ConnectedResource) {
+	for _, namedAddrs := range resource.CidrsWhenLocal {
+		if _, ok := blockedResources.BlockedInstances[namedAddrs.Name]; ok && resource.ResourceType == ir.ResourceTypeInstance {
+			blockedResources.BlockedInstances[namedAddrs.Name] = false
 		}
-		if _, ok := defs.BlockedVPEs[*namedAddrs.Name]; ok {
-			defs.BlockedVPEs[*namedAddrs.Name] = false
+		if _, ok := blockedResources.BlockedVPEs[namedAddrs.Name]; ok && resource.ResourceType == ir.ResourceTypeVPE {
+			blockedResources.BlockedVPEs[namedAddrs.Name] = false
 		}
 	}
 }
 
-func updateBlockedResourcesACLSynth(defs *ir.Definitions, resource *ir.FirewallResource) {
-	for _, namedAddrs := range resource.AppliedTo {
-		if _, ok := defs.BlockedSubnets[*namedAddrs.Name]; ok {
-			defs.BlockedSubnets[*namedAddrs.Name] = false
+func updateBlockedResourcesACLSynth(blockedResources *ir.BlockedResources, resource *ir.ConnectedResource) {
+	for _, namedAddrs := range resource.CidrsWhenLocal {
+		if _, ok := blockedResources.BlockedSubnets[namedAddrs.Name]; ok {
+			blockedResources.BlockedSubnets[namedAddrs.Name] = false
 		}
 	}
 }

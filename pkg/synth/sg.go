@@ -12,14 +12,14 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
-const SGTypeNotSupported = "SG: src/dst of type %s is not supported"
-
 type SGSynthesizer struct {
 	spec   *ir.Spec
 	result *ir.SGCollection
 }
 
-// NewSGSynthesizer creates and returns a new SGSynthesizer instances
+const warningUnspecifiedSG = "The following endpoints do not have required connections; the generated SGs will block all traffic: "
+
+// NewSGSynthesizer creates and returns a new SGSynthesizer instance
 func NewSGSynthesizer(s *ir.Spec, _ bool) Synthesizer {
 	return &SGSynthesizer{spec: s, result: ir.NewSGCollection()}
 }
@@ -32,9 +32,9 @@ func (s *SGSynthesizer) Synth() ir.Collection {
 // 1. generate SGs for relevant endpoints for each connection
 // 2. generate SGs for blocked endpoints (endpoints that do not appear in Spec)
 func (s *SGSynthesizer) makeSG() *ir.SGCollection {
-	for c := range s.spec.Connections {
-		s.generateSGRulesFromConnection(s.spec.Connections[c], ir.Outbound)
-		s.generateSGRulesFromConnection(s.spec.Connections[c], ir.Inbound)
+	for _, c := range s.spec.Connections {
+		s.generateSGRulesFromConnection(c, ir.Outbound)
+		s.generateSGRulesFromConnection(c, ir.Inbound)
 	}
 	s.generateSGsForBlockedResources()
 	return s.result
@@ -43,11 +43,11 @@ func (s *SGSynthesizer) makeSG() *ir.SGCollection {
 func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection, direction ir.Direction) {
 	localResource, remoteResource, internalEndpoint, internalConn := connSettings(conn, direction)
 
-	for _, localEndpoint := range localResource.AppliedTo {
-		for _, remoteCidr := range remoteResource.RemoteCidrs {
+	for _, localEndpoint := range localResource.CidrsWhenLocal {
+		for _, remoteCidr := range remoteResource.CidrsWhenRemote {
 			for _, trackedProtocol := range conn.TrackedProtocols {
 				ruleExplanation := explanation{internal: internalConn, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}.String()
-				s.allowConnectionEndpoint(localEndpoint, remoteCidr, remoteResource.Type, trackedProtocol.Protocol, direction,
+				s.allowConnectionEndpoint(localEndpoint, remoteCidr, remoteResource.ResourceType, trackedProtocol.Protocol, direction,
 					internalEndpoint, ruleExplanation)
 			}
 		}
@@ -55,12 +55,12 @@ func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection, direc
 }
 
 // if the endpoint in internal, a rule will be created to allow traffic.
-func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *ir.NamedAddrs, remoteType *ir.ResourceType,
+func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *ir.NamedAddrs, remoteType ir.ResourceType,
 	p netp.Protocol, direction ir.Direction, internalEndpoint bool, ruleExplanation string) {
 	if !internalEndpoint {
 		return
 	}
-	localSGName := ir.SGName(*localEndpoint.Name)
+	localSGName := ir.SGName(localEndpoint.Name)
 	localSG := s.result.LookupOrCreate(localSGName)
 	localSG.Attached = []ir.ID{ir.ID(localSGName)}
 	rule := &ir.SGRule{
@@ -72,14 +72,14 @@ func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *i
 	localSG.Add(rule)
 }
 
-func sgRemote(resource *ir.NamedAddrs, t *ir.ResourceType) ir.RemoteType {
-	if isSGRemote(*t) {
-		return ir.SGName(*resource.Name)
+func sgRemote(resource *ir.NamedAddrs, t ir.ResourceType) ir.RemoteType {
+	if isSGRemote(t) {
+		return ir.SGName(resource.Name)
 	}
 	return resource.IPAddrs
 }
 
-func connSettings(conn *ir.Connection, direction ir.Direction) (local, remote *ir.FirewallResource, internalEndpoint, internalConn bool) {
+func connSettings(conn *ir.Connection, direction ir.Direction) (local, remote *ir.ConnectedResource, internalEndpoint, internalConn bool) {
 	internalSrc, internalDst, internalConn := internalConnection(conn)
 	local = conn.Src
 	remote = conn.Dst
@@ -98,8 +98,8 @@ func isSGRemote(t ir.ResourceType) bool {
 
 // generate SGs for blocked endpoints (endpoints that do not appear in Spec)
 func (s *SGSynthesizer) generateSGsForBlockedResources() {
-	blockedResources := append(utils.TrueKeyValues(s.spec.Defs.BlockedInstances), utils.TrueKeyValues(s.spec.Defs.BlockedVPEs)...)
-	ir.PrintUnspecifiedWarning(ir.WarningUnspecifiedSG, blockedResources)
+	blockedResources := append(utils.TrueKeyValues(s.spec.BlockedInstances), utils.TrueKeyValues(s.spec.BlockedVPEs)...)
+	printUnspecifiedWarning(warningUnspecifiedSG, blockedResources)
 	for _, resource := range blockedResources {
 		sg := s.result.LookupOrCreate(ir.SGName(resource)) // an empty SG allows no connections
 		sg.Attached = []ir.ID{resource}

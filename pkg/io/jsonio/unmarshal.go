@@ -30,7 +30,7 @@ func (r *Reader) ReadSpec(filename string, configDefs *ir.ConfigDefs, isSG bool)
 	if err != nil {
 		return nil, err
 	}
-	defs, err := r.readDefinitions(jsonSpec, configDefs)
+	defs, blocked, err := r.readDefinitions(jsonSpec, configDefs)
 	if err != nil {
 		return nil, err
 	}
@@ -41,14 +41,15 @@ func (r *Reader) ReadSpec(filename string, configDefs *ir.ConfigDefs, isSG bool)
 		return nil, err
 	}
 
-	connections, err := r.translateConnections(jsonSpec.RequiredConnections, defs, isSG)
+	connections, err := r.translateConnections(jsonSpec.RequiredConnections, defs, blocked, isSG)
 	if err != nil {
 		return nil, err
 	}
 
 	return &ir.Spec{
-		Connections: connections,
-		Defs:        defs,
+		Connections:      connections,
+		Defs:             defs,
+		BlockedResources: blocked,
 	}, nil
 }
 
@@ -63,11 +64,11 @@ func replaceResourcesName(jsonSpec *spec.Spec, defs *ir.Definitions) (*spec.Spec
 	distinctVpes, ambiguousVpes := inverseMapToFullyQualifiedName(config.VPEs)
 
 	// translate segments to fully qualified names
-	nifSegments, err2 := replaceSegmentNames(defs.NifSegments, distinctNifs, ambiguousNifs, spec.ResourceType(spec.SegmentTypeNif))
-	vpeSegments, err4 := replaceSegmentNames(defs.VpeSegments, distinctVpes, ambiguousVpes, spec.ResourceType(spec.SegmentTypeVpe))
-	subnetSegments, err1 := replaceSegmentNames(defs.SubnetSegments, distinctSubnets, ambiguousSubnets,
+	nifSegments, err1 := replaceSegmentNames(defs.NifSegments, distinctNifs, ambiguousNifs, spec.ResourceType(spec.SegmentTypeNif))
+	vpeSegments, err2 := replaceSegmentNames(defs.VpeSegments, distinctVpes, ambiguousVpes, spec.ResourceType(spec.SegmentTypeVpe))
+	subnetSegments, err3 := replaceSegmentNames(defs.SubnetSegments, distinctSubnets, ambiguousSubnets,
 		spec.ResourceType(spec.SegmentTypeSubnet))
-	instanceSegments, err3 := replaceSegmentNames(defs.InstanceSegments, distinctInstances, ambiguousInstances,
+	instanceSegments, err4 := replaceSegmentNames(defs.InstanceSegments, distinctInstances, ambiguousInstances,
 		spec.ResourceType(spec.SegmentTypeInstance))
 
 	if err := errors.Join(err1, err2, err3, err4); err != nil {
