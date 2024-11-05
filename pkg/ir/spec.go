@@ -45,8 +45,13 @@ type (
 	ConnectedResource struct {
 		Name string
 
+		// CidrsWhenLocal is a list of endpoints (IP ranges or names) representing
+		// this resource, to which firewall rules should be applied when allowing
+		// a required connection
 		CidrsWhenLocal []*NamedAddrs
 
+		// CidrsWhenRemote is a list of endpoints for this resource that should be
+		// specified as the remotes of firewall rules
 		CidrsWhenRemote []*NamedAddrs
 
 		ResourceType ResourceType
