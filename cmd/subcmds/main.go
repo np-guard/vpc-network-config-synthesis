@@ -7,21 +7,14 @@ package subcmds
 
 import (
 	"bytes"
-
-	"github.com/spf13/cobra"
 )
 
+// also returns a warning as string
 func Main(args []string) (string, error) {
+	var outBuffer bytes.Buffer
 	rootCmd := newRootCommand()
 	rootCmd.SetArgs(args[1:])
-	return cmdWrapper(rootCmd)
-}
-
-// also returns a warning as string
-func cmdWrapper(cmd *cobra.Command) (string, error) {
-	var outBuffer bytes.Buffer
-	cmd.SetOut(&outBuffer)
-
-	err := cmd.Execute()
+	rootCmd.SetOut(&outBuffer)
+	err := rootCmd.Execute()
 	return outBuffer.String(), err
 }

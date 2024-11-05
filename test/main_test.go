@@ -33,9 +33,9 @@ func testMain(t *testing.T) {
 				t.Fatalf("Bad test %s; unexpected err: %v", tt.testName, err)
 			}
 
-			if tt.blockedWarning != nil && *tt.blockedWarning != warning {
+			if tt.expectedWarning != nil && *tt.expectedWarning != warning {
 				t.Errorf("Bad test %s; blocked resources warning is different than expected; \n expected: %s got: %s", tt.testName,
-					*tt.blockedWarning, warning)
+					*tt.expectedWarning, warning)
 			}
 
 			// compare results
