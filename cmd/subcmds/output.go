@@ -12,9 +12,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/io"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/confio"
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/csvio"
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/mdio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/tfio"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
@@ -77,9 +76,9 @@ func pickWriter(args *inArgs, data *bytes.Buffer, isSynth bool) (ir.Writer, erro
 	case tfOutputFormat:
 		return tfio.NewWriter(w), nil
 	case csvOutputFormat:
-		return csvio.NewWriter(w), nil
+		return io.NewCSVWriter(w), nil
 	case mdOutputFormat:
-		return mdio.NewWriter(w), nil
+		return io.NewMDWriter(w), nil
 	case jsonOutputFormat:
 		if isSynth {
 			return confio.NewWriter(w, args.configFile)
