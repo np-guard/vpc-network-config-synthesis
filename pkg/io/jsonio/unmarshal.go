@@ -70,7 +70,6 @@ func replaceResourcesName(jsonSpec *spec.Spec, defs *ir.Definitions) (*spec.Spec
 		spec.ResourceType(spec.SegmentTypeSubnet))
 	instanceSegments, err4 := replaceSegmentNames(defs.InstanceSegments, distinctInstances, ambiguousInstances,
 		spec.ResourceType(spec.SegmentTypeInstance))
-
 	if err := errors.Join(err1, err2, err3, err4); err != nil {
 		return nil, nil, err
 	}
