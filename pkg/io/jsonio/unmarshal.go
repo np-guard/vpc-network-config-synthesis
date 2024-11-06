@@ -58,10 +58,10 @@ func replaceResourcesName(jsonSpec *spec.Spec, defs *ir.Definitions) (*spec.Spec
 	config := defs.ConfigDefs
 
 	// calculate distinct and ambiguous names for every endpoint type
-	distinctSubnets, ambiguousSubnets := inverseMapToFullyQualifiedName(config.Subnets)
-	distinctNifs, ambiguousNifs := inverseMapToFullyQualifiedName(config.NIFs)
-	distinctInstances, ambiguousInstances := inverseMapToFullyQualifiedName(config.Instances)
-	distinctVpes, ambiguousVpes := inverseMapToFullyQualifiedName(config.VPEs)
+	distinctSubnets, ambiguousSubnets := detectDistinctAndAmbiguousNames(config.Subnets)
+	distinctNifs, ambiguousNifs := detectDistinctAndAmbiguousNames(config.NIFs)
+	distinctInstances, ambiguousInstances := detectDistinctAndAmbiguousNames(config.Instances)
+	distinctVpes, ambiguousVpes := detectDistinctAndAmbiguousNames(config.VPEs)
 
 	// translate segments to fully qualified names
 	nifSegments, err1 := replaceSegmentNames(defs.NifSegments, distinctNifs, ambiguousNifs, spec.ResourceType(spec.SegmentTypeNif))
@@ -70,7 +70,6 @@ func replaceResourcesName(jsonSpec *spec.Spec, defs *ir.Definitions) (*spec.Spec
 		spec.ResourceType(spec.SegmentTypeSubnet))
 	instanceSegments, err4 := replaceSegmentNames(defs.InstanceSegments, distinctInstances, ambiguousInstances,
 		spec.ResourceType(spec.SegmentTypeInstance))
-
 	if err := errors.Join(err1, err2, err3, err4); err != nil {
 		return nil, nil, err
 	}
@@ -135,9 +134,6 @@ func replaceSegmentNames(segments map[ir.ID]*ir.SegmentDetails, distinctNames ma
 
 func replaceResourceName(distinctNames map[string]ir.ID, ambiguousNames map[string]struct{}, resourceName string,
 	resourceType spec.ResourceType) (string, error) {
-	if len(ir.ScopingComponents(resourceName)) != 1 {
-		return resourceName, nil
-	}
 	if val, ok := distinctNames[resourceName]; ok {
 		return val, nil
 	}
@@ -147,22 +143,27 @@ func replaceResourceName(distinctNames map[string]ir.ID, ambiguousNames map[stri
 	return "", fmt.Errorf("unknown resource name %s (resource type: %q)", resourceName, resourceType)
 }
 
-// inverseMapToFullyQualifiedName returns two maps: one from a name to a fully qualified name,
+// detectDistinctAndAmbiguousNames returns two maps: one from a name to a fully qualified name,
 // and the second is a set of ambiguous names
-func inverseMapToFullyQualifiedName[T ir.Named](m map[ir.ID]T) (distinctNames map[string]ir.ID, ambiguousNames map[string]struct{}) {
+func detectDistinctAndAmbiguousNames[T any](m map[ir.ID]T) (distinctNames map[string]ir.ID, ambiguousNames map[string]struct{}) {
 	ambiguousNames = make(map[string]struct{})
 	distinctNames = make(map[string]ir.ID)
 
-	for fullElementName, element := range m {
-		elementName := element.Name()
-		if _, ok := ambiguousNames[elementName]; ok {
-			continue
-		}
-		if _, ok := distinctNames[elementName]; !ok {
-			distinctNames[elementName] = fullElementName
-		} else {
-			delete(distinctNames, elementName)
-			ambiguousNames[elementName] = struct{}{}
+	for fullElementName := range m {
+		distinctNames[fullElementName] = fullElementName
+		for i, c := range fullElementName {
+			if c == '/' && i+1 < len(fullElementName) {
+				currName := fullElementName[i+1:]
+				if _, ok := ambiguousNames[currName]; ok {
+					continue
+				}
+				if _, ok := distinctNames[currName]; !ok {
+					distinctNames[currName] = fullElementName
+				} else {
+					ambiguousNames[currName] = struct{}{}
+					delete(distinctNames, currName)
+				}
+			}
 		}
 	}
 	return distinctNames, ambiguousNames

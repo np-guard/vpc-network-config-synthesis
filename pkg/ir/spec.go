@@ -16,7 +16,6 @@ import (
 
 type (
 	ID           = string
-	NamedEntity  string
 	ResourceType string
 
 	Spec struct {
@@ -46,10 +45,13 @@ type (
 	ConnectedResource struct {
 		Name string
 
-		//
+		// CidrsWhenLocal is a list of endpoints (IP ranges or names) representing
+		// this resource, to which firewall rules should be applied when allowing
+		// a required connection
 		CidrsWhenLocal []*NamedAddrs
 
-		// Cidr list
+		// CidrsWhenRemote is a list of endpoints for this resource that should be
+		// specified as the remotes of firewall rules
 		CidrsWhenRemote []*NamedAddrs
 
 		ResourceType ResourceType
@@ -111,40 +113,30 @@ type (
 
 	// ConnectedResource is for caching lookup results
 	SubnetDetails struct {
-		NamedEntity
 		CIDR              *netset.IPBlock
-		VPC               ID
 		ConnectedResource *ConnectedResource
 	}
 
 	NifDetails struct {
-		NamedEntity
 		IP                *netset.IPBlock
-		VPC               ID
 		Instance          ID
 		Subnet            ID
 		ConnectedResource *ConnectedResource
 	}
 
 	InstanceDetails struct {
-		NamedEntity
-		VPC               ID
 		Nifs              []ID
 		ConnectedResource *ConnectedResource
 	}
 
 	VPEReservedIPsDetails struct {
-		NamedEntity
 		IP      *netset.IPBlock
 		VPEName ID
 		Subnet  ID
-		VPC     ID
 	}
 
 	VPEDetails struct {
-		NamedEntity
 		VPEReservedIPs    []ID
-		VPC               ID
 		ConnectedResource *ConnectedResource
 	}
 
@@ -165,10 +157,6 @@ type (
 
 	Reader interface {
 		ReadSpec(filename string, defs *ConfigDefs) (*Spec, error)
-	}
-
-	Named interface {
-		Name() string
 	}
 
 	// generalizes subnet and external resource types
@@ -208,10 +196,6 @@ const (
 	resourceNotFound  = "%v %v not found"
 	containerNotFound = "container %v %v not found"
 )
-
-func (n *NamedEntity) Name() string {
-	return string(*n)
-}
 
 func (s *SubnetDetails) Address() *netset.IPBlock {
 	return s.CIDR
