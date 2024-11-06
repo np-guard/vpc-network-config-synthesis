@@ -60,7 +60,7 @@ func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *i
 	}
 	localSGName := ir.SGName(*localEndpoint.Name)
 	localSG := s.result.LookupOrCreate(localSGName)
-	localSG.Attached = []ir.ID{ir.ID(localSGName)}
+	localSG.Targets = []ir.ID{ir.ID(localSGName)}
 	rule := &ir.SGRule{
 		Remote:      sgRemote(remoteEndpoint, remoteType),
 		Direction:   direction,
@@ -100,6 +100,6 @@ func (s *SGSynthesizer) generateSGsForBlockedResources() {
 	ir.PrintUnspecifiedWarning(ir.WarningUnspecifiedSG, blockedResources)
 	for _, resource := range blockedResources {
 		sg := s.result.LookupOrCreate(ir.SGName(resource)) // an empty SG allows no connections
-		sg.Attached = []ir.ID{resource}
+		sg.Targets = []ir.ID{resource}
 	}
 }

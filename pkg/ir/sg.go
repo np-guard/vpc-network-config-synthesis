@@ -35,7 +35,7 @@ type (
 		SGName        SGName
 		InboundRules  []*SGRule
 		OutboundRules []*SGRule
-		Attached      []ID
+		Targets       []ID
 	}
 
 	SGCollection struct {
@@ -43,7 +43,7 @@ type (
 	}
 
 	SGWriter interface {
-		WriteSG(sgColl *SGCollection, vpc string) error
+		WriteSG(sgColl *SGCollection, vpc string, isSynth bool) error
 	}
 )
 
@@ -74,7 +74,7 @@ func NewSGRule(direction Direction, remote RemoteType, p netp.Protocol, local *n
 }
 
 func NewSG(sgName SGName) *SG {
-	return &SG{SGName: sgName, InboundRules: []*SGRule{}, OutboundRules: []*SGRule{}, Attached: []ID{}}
+	return &SG{SGName: sgName, InboundRules: []*SGRule{}, OutboundRules: []*SGRule{}, Targets: []ID{}}
 }
 
 func NewSGCollection() *SGCollection {
@@ -111,8 +111,8 @@ func (c *SGCollection) VpcNames() []string {
 	return utils.SortedMapKeys(c.SGs)
 }
 
-func (c *SGCollection) Write(w Writer, vpc string) error {
-	return w.WriteSG(c, vpc)
+func (c *SGCollection) Write(w Writer, vpc string, isSynth bool) error {
+	return w.WriteSG(c, vpc, isSynth)
 }
 
 func (c *SGCollection) SortedSGNames(vpc ID) []SGName {
