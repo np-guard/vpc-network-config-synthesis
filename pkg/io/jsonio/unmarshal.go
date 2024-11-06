@@ -155,7 +155,7 @@ func detectDistinctAndAmbiguousNames[T any](m map[ir.ID]T) (distinctNames map[st
 			if c == '/' && i+1 < len(fullElementName) {
 				currName := fullElementName[i+1:]
 				if _, ok := ambiguousNames[currName]; ok {
-					break
+					continue
 				}
 				if _, ok := distinctNames[currName]; !ok {
 					distinctNames[currName] = fullElementName
