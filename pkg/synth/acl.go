@@ -21,27 +21,27 @@ type ACLSynthesizer struct {
 	result    *ir.ACLCollection
 }
 
-const warningUnspecifiedACL = "The following subnets do not have required connections; the generated ACL will block all traffic: "
+const WarningUnspecifiedACL = "The following subnets do not have required connections; the generated ACL will block all traffic: "
 
 // NewACLSynthesizer creates and returns a new ACLSynthesizer instance
 func NewACLSynthesizer(s *ir.Spec, single bool) Synthesizer {
 	return &ACLSynthesizer{spec: s, singleACL: single, result: ir.NewACLCollection()}
 }
 
-func (a *ACLSynthesizer) Synth() ir.Collection {
+func (a *ACLSynthesizer) Synth() (collection ir.Collection, warning string) {
 	return a.makeACL()
 }
 
 // makeACL translates Spec to a collection of nACLs
 // 1. generate nACL rules for relevant subnets for each connection
 // 2. generate nACL rules for blocked subnets (subnets that do not appear in Spec)
-func (a *ACLSynthesizer) makeACL() *ir.ACLCollection {
+func (a *ACLSynthesizer) makeACL() (collection *ir.ACLCollection, warning string) {
 	for _, conn := range a.spec.Connections {
 		a.generateACLRulesFromConnection(conn, conn.Src, conn.Dst, a.allowConnectionSrc)
 		a.generateACLRulesFromConnection(conn, conn.Dst, conn.Src, a.allowConnectionDst)
 	}
-	a.generateACLRulesForBlockedSubnets()
-	return a.result
+	warning = a.generateACLRulesForBlockedSubnets()
+	return a.result, warning
 }
 
 func (a *ACLSynthesizer) generateACLRulesFromConnection(conn *ir.Connection, thisResource, otherResource *ir.ConnectedResource,
@@ -109,13 +109,13 @@ func (a *ACLSynthesizer) addRuleToACL(rule *ir.ACLRule, resourceName ir.ID, inte
 }
 
 // generate nACL rules for blocked subnets (subnets that do not appear in Spec)
-func (a *ACLSynthesizer) generateACLRulesForBlockedSubnets() {
+func (a *ACLSynthesizer) generateACLRulesForBlockedSubnets() string {
 	blockedSubnets := utils.TrueKeyValues(a.spec.BlockedSubnets)
-	printUnspecifiedWarning(warningUnspecifiedACL, blockedSubnets)
 	for _, subnet := range blockedSubnets {
 		acl := a.result.LookupOrCreate(aclSelector(subnet, a.singleACL))
 		cidr := a.spec.Defs.Subnets[subnet].Address()
 		acl.AppendInternal(ir.DenyAllReceive(subnet, cidr))
 		acl.AppendInternal(ir.DenyAllSend(subnet, cidr))
 	}
+	return setUnspecifiedWarning(WarningUnspecifiedACL, blockedSubnets)
 }

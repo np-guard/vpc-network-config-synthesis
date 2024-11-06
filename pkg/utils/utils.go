@@ -32,10 +32,10 @@ func SortedAllInnerMapsKeys[T, K cmp.Ordered, V any](m map[K]map[T]V) []T {
 	return keys
 }
 
-func TrueKeyValues[T comparable](m map[T]bool) []T {
+func TrueKeyValues[T cmp.Ordered](m map[T]bool) []T {
 	keys := make([]T, 0)
-	for k, v := range m {
-		if v {
+	for _, k := range SortedMapKeys(m) {
+		if m[k] {
 			keys = append(keys, k)
 		}
 	}

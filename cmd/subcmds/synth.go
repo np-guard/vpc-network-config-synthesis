@@ -24,8 +24,8 @@ func NewSynthCommand(args *inArgs) *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&args.specFile, specFlag, "s", "", "JSON file containing spec file")
 	_ = cmd.MarkPersistentFlagRequired(specFlag)
 
-	cmd.AddCommand(NewSynthACLCommand(args))
-	cmd.AddCommand(NewSynthSGCommand(args))
+	cmd.AddCommand(newSynthACLCommand(args))
+	cmd.AddCommand(newSynthSGCommand(args))
 
 	return cmd
 }
@@ -37,5 +37,7 @@ func synthesis(cmd *cobra.Command, args *inArgs, newSynthesizer func(*ir.Spec, b
 		return err
 	}
 	synthesizer := newSynthesizer(spec, singleacl)
-	return writeOutput(args, synthesizer.Synth(), utils.MapKeys(spec.Defs.ConfigDefs.VPCs))
+	collection, warning := synthesizer.Synth()
+	cmd.Print(warning)
+	return writeOutput(args, collection, utils.MapKeys(spec.Defs.ConfigDefs.VPCs))
 }
