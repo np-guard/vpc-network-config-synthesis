@@ -15,7 +15,7 @@ import (
 
 type (
 	Synthesizer interface {
-		Synth() ir.Collection
+		Synth() (ir.Collection, string)
 	}
 
 	explanation struct {
@@ -51,8 +51,11 @@ func internalConnection(conn *ir.Connection) (internalSrc, internalDst, internal
 	return
 }
 
-func printUnspecifiedWarning(warning string, blockedResources []ir.ID) {
+func setUnspecifiedWarning(warningPrefix string, blockedResources []ir.ID) string {
+	warning := ""
 	if len(blockedResources) > 0 {
-		log.Println(warning, strings.Join(blockedResources, ", "))
+		warning = warningPrefix + strings.Join(blockedResources, ", ")
+		log.Println(warning)
 	}
+	return warning
 }

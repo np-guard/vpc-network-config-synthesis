@@ -11,7 +11,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/synth"
 )
 
-func NewSynthACLCommand(args *inArgs) *cobra.Command {
+func newSynthACLCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "acl",
 		Short: "Generate Networks ACLs from connectivity specification",

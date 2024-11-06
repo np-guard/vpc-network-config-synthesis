@@ -17,27 +17,27 @@ type SGSynthesizer struct {
 	result *ir.SGCollection
 }
 
-const warningUnspecifiedSG = "The following endpoints do not have required connections; the generated SGs will block all traffic: "
+const WarningUnspecifiedSG = "The following endpoints do not have required connections; the generated SGs will block all traffic: "
 
 // NewSGSynthesizer creates and returns a new SGSynthesizer instance
 func NewSGSynthesizer(s *ir.Spec, _ bool) Synthesizer {
 	return &SGSynthesizer{spec: s, result: ir.NewSGCollection()}
 }
 
-func (s *SGSynthesizer) Synth() ir.Collection {
+func (s *SGSynthesizer) Synth() (collection ir.Collection, warning string) {
 	return s.makeSG()
 }
 
 // this method translates spec to a collection of Security Groups
 // 1. generate SGs for relevant endpoints for each connection
 // 2. generate SGs for blocked endpoints (endpoints that do not appear in Spec)
-func (s *SGSynthesizer) makeSG() *ir.SGCollection {
-	for _, c := range s.spec.Connections {
-		s.generateSGRulesFromConnection(c, ir.Outbound)
-		s.generateSGRulesFromConnection(c, ir.Inbound)
+func (s *SGSynthesizer) makeSG() (collection *ir.SGCollection, warning string) {
+	for _, conn := range s.spec.Connections {
+		s.generateSGRulesFromConnection(conn, ir.Outbound)
+		s.generateSGRulesFromConnection(conn, ir.Inbound)
 	}
-	s.generateSGsForBlockedResources()
-	return s.result
+	warning = s.generateSGsForBlockedResources()
+	return s.result, warning
 }
 
 func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection, direction ir.Direction) {
@@ -97,11 +97,11 @@ func isSGRemote(t ir.ResourceType) bool {
 }
 
 // generate SGs for blocked endpoints (endpoints that do not appear in Spec)
-func (s *SGSynthesizer) generateSGsForBlockedResources() {
+func (s *SGSynthesizer) generateSGsForBlockedResources() string {
 	blockedResources := append(utils.TrueKeyValues(s.spec.BlockedInstances), utils.TrueKeyValues(s.spec.BlockedVPEs)...)
-	printUnspecifiedWarning(warningUnspecifiedSG, blockedResources)
 	for _, resource := range blockedResources {
 		sg := s.result.LookupOrCreate(ir.SGName(resource)) // an empty SG allows no connections
 		sg.Attached = []ir.ID{resource}
 	}
+	return setUnspecifiedWarning(WarningUnspecifiedSG, blockedResources)
 }
