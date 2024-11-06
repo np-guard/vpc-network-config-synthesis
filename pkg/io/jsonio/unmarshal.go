@@ -58,10 +58,10 @@ func replaceResourcesName(jsonSpec *spec.Spec, defs *ir.Definitions) (*spec.Spec
 	config := defs.ConfigDefs
 
 	// calculate distinct and ambiguous names for every endpoint type
-	distinctSubnets, ambiguousSubnets := inverseMapToFullyQualifiedName(config.Subnets)
-	distinctNifs, ambiguousNifs := inverseMapToFullyQualifiedName(config.NIFs)
-	distinctInstances, ambiguousInstances := inverseMapToFullyQualifiedName(config.Instances)
-	distinctVpes, ambiguousVpes := inverseMapToFullyQualifiedName(config.VPEs)
+	distinctSubnets, ambiguousSubnets := detectDistinctAndAmbiguousNames(config.Subnets)
+	distinctNifs, ambiguousNifs := detectDistinctAndAmbiguousNames(config.NIFs)
+	distinctInstances, ambiguousInstances := detectDistinctAndAmbiguousNames(config.Instances)
+	distinctVpes, ambiguousVpes := detectDistinctAndAmbiguousNames(config.VPEs)
 
 	// translate segments to fully qualified names
 	nifSegments, err1 := replaceSegmentNames(defs.NifSegments, distinctNifs, ambiguousNifs, spec.ResourceType(spec.SegmentTypeNif))
@@ -143,22 +143,22 @@ func replaceResourceName(distinctNames map[string]ir.ID, ambiguousNames map[stri
 	return "", fmt.Errorf("unknown resource name %s (resource type: %q)", resourceName, resourceType)
 }
 
-// inverseMapToFullyQualifiedName returns two maps: one from a name to a fully qualified name,
+// detectDistinctAndAmbiguousNames returns two maps: one from a name to a fully qualified name,
 // and the second is a set of ambiguous names
-func inverseMapToFullyQualifiedName[T any](m map[ir.ID]T) (distinctNames map[string]ir.ID, ambiguousNames map[string]struct{}) {
+func detectDistinctAndAmbiguousNames[T any](m map[ir.ID]T) (distinctNames map[string]ir.ID, ambiguousNames map[string]struct{}) {
 	ambiguousNames = make(map[string]struct{})
 	distinctNames = make(map[string]ir.ID)
 
-	for fullNifName := range m {
-		distinctNames[fullNifName] = fullNifName
-		for i, c := range fullNifName {
-			if c == '/' && i+1 < len(fullNifName) {
-				currName := fullNifName[i+1:]
+	for fullElementName := range m {
+		distinctNames[fullElementName] = fullElementName
+		for i, c := range fullElementName {
+			if c == '/' && i+1 < len(fullElementName) {
+				currName := fullElementName[i+1:]
 				if _, ok := ambiguousNames[currName]; ok {
 					break
 				}
 				if _, ok := distinctNames[currName]; !ok {
-					distinctNames[currName] = fullNifName
+					distinctNames[currName] = fullElementName
 				} else {
 					ambiguousNames[currName] = struct{}{}
 					delete(distinctNames, currName)
