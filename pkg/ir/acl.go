@@ -15,35 +15,37 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
-type Action string
+type (
+	Action string
+
+	ACLRule struct {
+		Action      Action
+		Direction   Direction
+		Source      *netset.IPBlock
+		Destination *netset.IPBlock
+		Protocol    netp.Protocol
+		Explanation string
+	}
+
+	ACL struct {
+		Subnet   string
+		Internal []*ACLRule
+		External []*ACLRule
+	}
+
+	ACLCollection struct {
+		ACLs map[ID]map[string]*ACL
+	}
+
+	ACLWriter interface {
+		WriteACL(aclColl *ACLCollection, vpc string) error
+	}
+)
 
 const (
 	Allow Action = "allow"
 	Deny  Action = "deny"
 )
-
-type ACLRule struct {
-	Action      Action
-	Direction   Direction
-	Source      *netset.IPBlock
-	Destination *netset.IPBlock
-	Protocol    netp.Protocol
-	Explanation string
-}
-
-type ACL struct {
-	Subnet   string
-	Internal []*ACLRule
-	External []*ACLRule
-}
-
-type ACLCollection struct {
-	ACLs map[ID]map[string]*ACL
-}
-
-type ACLWriter interface {
-	WriteACL(aclColl *ACLCollection, vpc string) error
-}
 
 func (r *ACLRule) isRedundant(rules []*ACLRule) bool {
 	for _, rule := range rules {
@@ -118,6 +120,10 @@ func (c *ACLCollection) LookupOrCreate(name string) *ACL {
 	}
 	c.ACLs[vpcName][name] = NewACL(name)
 	return c.ACLs[vpcName][name]
+}
+
+func (c *ACLCollection) VpcNames() []string {
+	return utils.SortedMapKeys(c.ACLs)
 }
 
 func (c *ACLCollection) Write(w Writer, vpc string) error {

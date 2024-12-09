@@ -11,6 +11,8 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/synth"
 )
 
+const singleACLFlag = "single"
+
 func newSynthACLCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "acl",

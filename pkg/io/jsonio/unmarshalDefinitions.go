@@ -78,7 +78,6 @@ func parseCidrSegments(cidrSegments map[string][]string, configDefs *ir.ConfigDe
 	result := make(map[ir.ID]*ir.CidrSegmentDetails)
 	for segmentName, segment := range cidrSegments {
 		cidrs := netset.NewIPBlock()
-
 		for _, cidr := range segment {
 			c, err := netset.IPBlockFromCidr(cidr)
 			if err != nil {
