@@ -22,12 +22,12 @@ func rulesToSGCubes(rules *rulesPerProtocol) *sgCubesPerProtocol {
 	return &sgCubesPerProtocol{tcp: tcpudpRulesSGCubes(rules.tcp),
 		udp:  tcpudpRulesSGCubes(rules.udp),
 		icmp: icmpRulesSGCubes(rules.icmp),
-		all:  allProtocolRulesToSGCubes(rules.all),
+		anyP: anyProtocolRulesToSGCubes(rules.anyP),
 	}
 }
 
 // all protocol rules to cubes
-func allProtocolRulesToSGCubes(rules []*ir.SGRule) []ir.SGName {
+func anyProtocolRulesToSGCubes(rules []*ir.SGRule) []ir.SGName {
 	res := make([]ir.SGName, len(rules))
 	for i := range rules {
 		remote := rules[i].Remote.(ir.SGName) // already checked
@@ -70,12 +70,12 @@ func rulesToIPCubes(rules *rulesPerProtocol) *ipCubesPerProtocol {
 	return &ipCubesPerProtocol{tcp: tcpudpRulesToIPCubes(rules.tcp),
 		udp:  tcpudpRulesToIPCubes(rules.udp),
 		icmp: icmpRulesToIPCubes(rules.icmp),
-		all:  allProtocolRulesToIPCubes(rules.all),
+		anyP: anyProtocolRulesToIPCubes(rules.anyP),
 	}
 }
 
-// all protocol rules to cubes
-func allProtocolRulesToIPCubes(rules []*ir.SGRule) *netset.IPBlock {
+// any protocol rules to cubes
+func anyProtocolRulesToIPCubes(rules []*ir.SGRule) *netset.IPBlock {
 	res := netset.NewIPBlock()
 	for i := range rules {
 		res = res.Union(rules[i].Remote.(*netset.IPBlock))
