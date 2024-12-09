@@ -16,9 +16,6 @@ const (
 	configFlag     = "config"
 	outputFmtFlag  = "format"
 	outputFileFlag = "output-file"
-	outputDirFlag  = "output-dir"
-	prefixFlag     = "prefix"
-	singleACLFlag  = "single"
 	localsFlag     = "locals"
 )
 
@@ -36,9 +33,7 @@ type inArgs struct {
 
 func newRootCommand() *cobra.Command {
 	args := &inArgs{}
-
-	// allow PersistentPreRunE
-	cobra.EnableTraverseRunHooks = true
+	cobra.EnableTraverseRunHooks = true // allow PersistentPreRunE
 
 	rootCmd := &cobra.Command{
 		Use:   "vpcgen",
@@ -62,8 +57,8 @@ func newRootCommand() *cobra.Command {
 	_ = rootCmd.MarkPersistentFlagRequired(configFlag)
 
 	// sub cmds
-	rootCmd.AddCommand(NewSynthCommand(args))
-	rootCmd.AddCommand(NewOptimizeCommand(args))
+	rootCmd.AddCommand(newSynthCommand(args))
+	rootCmd.AddCommand(newOptimizeCommand(args))
 
 	// prevent Cobra from creating a default 'completion' command
 	rootCmd.CompletionOptions.DisableDefaultCmd = true

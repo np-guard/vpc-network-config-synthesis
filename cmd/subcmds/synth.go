@@ -13,9 +13,13 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
-const specFlag = "spec"
+const (
+	specFlag      = "spec"
+	outputDirFlag = "output-dir"
+	prefixFlag    = "prefix"
+)
 
-func NewSynthCommand(args *inArgs) *cobra.Command {
+func newSynthCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "synth",
 		Short: "generate a SG/nACL collection",

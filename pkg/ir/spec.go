@@ -178,11 +178,6 @@ type (
 		getConnectedResource() *ConnectedResource
 		setConnectedResource(r *ConnectedResource)
 	}
-
-	INWResource interface {
-		NWResource
-		SubnetName() ID
-	}
 )
 
 const (

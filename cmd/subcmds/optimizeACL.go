@@ -7,6 +7,7 @@ package subcmds
 
 import "github.com/spf13/cobra"
 
+// temporarily exported and currently unused
 func NewOptimizeACLCommand(_ *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "acl",
@@ -17,6 +18,5 @@ func NewOptimizeACLCommand(_ *inArgs) *cobra.Command {
 			return nil
 		},
 	}
-
 	return cmd
 }
