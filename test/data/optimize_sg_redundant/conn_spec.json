@@ -1,0 +1,48 @@
+{
+    "externals": {
+        "e1": "0.0.0.0/30", 
+        "e2": "0.0.0.0/31"
+    },
+    "required-connections": [
+        {
+            "src": {
+                "name": "vsi1",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "e1",
+                "type": "external"
+            }
+        },
+        {
+            "src": {
+                "name": "vsi1",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "e2",
+                "type": "external"
+            }
+        },
+        {
+            "src": {
+                "name": "vsi1",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "vsi2",
+                "type": "instance"
+            }
+        },
+        {
+            "src": {
+                "name": "vsi1",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "vsi2",
+                "type": "instance"
+            }
+        }
+    ]
+}
