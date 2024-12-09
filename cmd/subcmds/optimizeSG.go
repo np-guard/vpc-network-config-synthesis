@@ -13,7 +13,7 @@ import (
 
 const sgNameFlag = "sg-name"
 
-func NewOptimizeSGCommand(args *inArgs) *cobra.Command {
+func newOptimizeSGCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "sg",
 		Short: "OptimizeSG attempts to reduce the number of security group rules in a SG without changing the semantic.",
