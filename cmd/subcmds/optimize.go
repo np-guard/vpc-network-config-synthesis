@@ -22,7 +22,7 @@ func NewOptimizeCommand(args *inArgs) *cobra.Command {
 	}
 
 	// sub cmds
-	cmd.AddCommand(NewOptimizeSGCommand(args))
+	cmd.AddCommand(newOptimizeSGCommand(args))
 
 	return cmd
 }

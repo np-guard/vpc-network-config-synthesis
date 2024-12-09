@@ -7,7 +7,7 @@ package subcmds
 
 import "github.com/spf13/cobra"
 
-func NewOptimizeACLCommand(args *inArgs) *cobra.Command {
+func NewOptimizeACLCommand(_ *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "acl",
 		Short: "OptimizeACL is not supported yet",

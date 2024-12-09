@@ -33,18 +33,20 @@ func NewSynthCommand(args *inArgs) *cobra.Command {
 	_ = cmd.MarkPersistentFlagRequired(specFlag)
 
 	// subcmds
-	cmd.AddCommand(NewSynthACLCommand(args))
-	cmd.AddCommand(NewSynthSGCommand(args))
+	cmd.AddCommand(newSynthACLCommand(args))
+	cmd.AddCommand(newSynthSGCommand(args))
 
 	return cmd
 }
 
-func synthesis(cmd *cobra.Command, args *inArgs, newSynthesizer func(*ir.Spec, bool) synth.Synthesizer, singleACL, isSG bool) error {
+func synthesis(cmd *cobra.Command, args *inArgs, newSynthesizer func(*ir.Spec, bool) synth.Synthesizer, singleacl, isSG bool) error {
 	cmd.SilenceUsage = true // if we got this far, flags are syntactically correct, so no need to print usage
 	spec, err := unmarshal(args, isSG)
 	if err != nil {
 		return err
 	}
-	synthesizer := newSynthesizer(spec, singleACL)
-	return writeOutput(args, synthesizer.Synth(), utils.MapKeys(spec.Defs.ConfigDefs.VPCs), true)
+	synthesizer := newSynthesizer(spec, singleacl)
+	collection, warning := synthesizer.Synth()
+	cmd.Print(warning)
+	return writeOutput(args, collection, utils.MapKeys(spec.Defs.ConfigDefs.VPCs), true)
 }
