@@ -70,7 +70,7 @@ func (s *sgOptimizer) Optimize() (ir.Collection, error) {
 				continue
 			}
 			if _, ok := s.sgCollection.SGs[vpcName][s.sgName]; ok {
-				s.optimizeSG(vpcName, s.sgName)
+				s.optimizeSG(s.sgCollection.SGs[vpcName][s.sgName])
 				return s.sgCollection, nil
 			}
 		}
@@ -79,7 +79,7 @@ func (s *sgOptimizer) Optimize() (ir.Collection, error) {
 
 	for _, vpcName := range utils.SortedMapKeys(s.sgCollection.SGs) {
 		for _, sgName := range utils.SortedMapKeys(s.sgCollection.SGs[vpcName]) {
-			s.optimizeSG(vpcName, sgName)
+			s.optimizeSG(s.sgCollection.SGs[vpcName][sgName])
 		}
 	}
 	return s.sgCollection, nil
@@ -88,32 +88,31 @@ func (s *sgOptimizer) Optimize() (ir.Collection, error) {
 // optimizeSG attempts to reduce the number of SG rules
 // the algorithm attempts to reduce both inbound and outbound rules separately
 // A message is printed to the log at the end of the algorithm
-func (s *sgOptimizer) optimizeSG(vpcName string, sgName ir.SGName) {
-	sg := s.sgCollection.SGs[vpcName][sgName]
+func (s *sgOptimizer) optimizeSG(sg *ir.SG) {
 	reducedRules := 0
 
 	// reduce inbound rules first
 	newInboundRules := s.reduceRules(sg.InboundRules, ir.Inbound)
 	if len(sg.InboundRules) > len(newInboundRules) {
 		reducedRules += len(sg.InboundRules) - len(newInboundRules)
-		s.sgCollection.SGs[vpcName][sgName].InboundRules = newInboundRules
+		sg.InboundRules = newInboundRules
 	}
 
 	// reduce outbound rules second
 	newOutboundRules := s.reduceRules(sg.OutboundRules, ir.Outbound)
 	if len(sg.OutboundRules) > len(newOutboundRules) {
 		reducedRules += len(sg.OutboundRules) - len(newOutboundRules)
-		s.sgCollection.SGs[vpcName][sgName].OutboundRules = newOutboundRules
+		sg.OutboundRules = newOutboundRules
 	}
 
 	// print a message to the log
 	switch {
 	case reducedRules == 0:
-		log.Printf("no rules were reduced in sg %s\n", string(sgName))
+		log.Printf("no rules were reduced in sg %s\n", string(sg.SGName))
 	case reducedRules == 1:
-		log.Printf("1 rule was reduced in sg %s\n", string(sgName))
+		log.Printf("1 rule was reduced in sg %s\n", string(sg.SGName))
 	default:
-		log.Printf("%d rules were reduced in sg %s\n", reducedRules, string(sgName))
+		log.Printf("%d rules were reduced in sg %s\n", reducedRules, string(sg.SGName))
 	}
 }
 
@@ -125,14 +124,14 @@ func (s *sgOptimizer) reduceRules(rules []*ir.SGRule, direction ir.Direction) []
 	// rules with SG as a remote
 	optimizedRulesToSG := reduceRulesSGRemote(rulesToSGCubes(ruleGroups.sgRemoteRules), direction)
 	originlRulesToSG := ruleGroups.sgRemoteRules.allRules()
-	if len(originlRulesToSG) < len(optimizedRulesToSG) { // failed to reduce number of rules
+	if len(originlRulesToSG) <= len(optimizedRulesToSG) { // failed to reduce number of rules
 		optimizedRulesToSG = originlRulesToSG
 	}
 
 	// rules with IPBlock as a remote
 	optimizedRulesToIPAddrs := reduceRulesIPRemote(rulesToIPCubes(ruleGroups.ipRemoteRules), direction)
 	originalRulesToIPAddrs := ruleGroups.ipRemoteRules.allRules()
-	if len(originalRulesToIPAddrs) < len(optimizedRulesToSG) { // failed to reduce number of rules
+	if len(originalRulesToIPAddrs) <= len(optimizedRulesToSG) { // failed to reduce number of rules
 		optimizedRulesToIPAddrs = originalRulesToIPAddrs
 	}
 

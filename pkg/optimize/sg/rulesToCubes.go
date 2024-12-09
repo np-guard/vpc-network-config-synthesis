@@ -6,6 +6,8 @@ SPDX-License-Identifier: Apache-2.0
 package sgoptimizer
 
 import (
+	"slices"
+
 	"github.com/np-guard/models/pkg/ds"
 	"github.com/np-guard/models/pkg/interval"
 	"github.com/np-guard/models/pkg/netp"
@@ -13,7 +15,6 @@ import (
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/optimize"
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
 // SG remote
@@ -27,26 +28,26 @@ func rulesToSGCubes(rules *rulesPerProtocol) *sgCubesPerProtocol {
 
 // all protocol rules to cubes
 func allProtocolRulesToSGCubes(rules []*ir.SGRule) []ir.SGName {
-	result := make(map[ir.SGName]struct{})
+	res := make([]ir.SGName, len(rules))
 	for i := range rules {
 		remote := rules[i].Remote.(ir.SGName) // already checked
-		result[remote] = struct{}{}
+		res[i] = remote
 	}
-	return utils.SortedMapKeys(result)
+	return slices.Compact(slices.Sorted(slices.Values(res)))
 }
 
 // tcp/udp rules to cubes -- map where the key is the SG name and the value is the protocol ports
 func tcpudpRulesSGCubes(rules []*ir.SGRule) map[ir.SGName]*netset.PortSet {
-	result := make(map[ir.SGName]*netset.PortSet)
+	res := make(map[ir.SGName]*netset.PortSet)
 	for _, rule := range rules {
 		p := rule.Protocol.(netp.TCPUDP)  // already checked
 		remote := rule.Remote.(ir.SGName) // already checked
-		if result[remote] == nil {
-			result[remote] = interval.NewCanonicalSet()
+		if res[remote] == nil {
+			res[remote] = interval.NewCanonicalSet()
 		}
-		result[remote].AddInterval(p.DstPorts())
+		res[remote].AddInterval(p.DstPorts())
 	}
-	return result
+	return res
 }
 
 // icmp rules to cubes -- map where the key is the SG name and the value is icmpset

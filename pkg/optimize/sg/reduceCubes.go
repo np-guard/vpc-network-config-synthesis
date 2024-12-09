@@ -8,8 +8,6 @@ package sgoptimizer
 import (
 	"slices"
 
-	"github.com/np-guard/models/pkg/netset"
-
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/optimize"
 )
 
@@ -32,7 +30,7 @@ func compressThreeProtocolsToAllProtocol(spans *sgCubesPerProtocol) {
 	for sgName, tcpPorts := range spans.tcp {
 		if udpPorts, ok := spans.udp[sgName]; ok {
 			if ic, ok := spans.icmp[sgName]; ok {
-				if ic.IsAll() && tcpPorts.Equal(netset.AllPorts()) && udpPorts.Equal(netset.AllPorts()) {
+				if ic.IsAll() && optimize.AllPorts(tcpPorts) && optimize.AllPorts(udpPorts) {
 					delete(spans.tcp, sgName)
 					delete(spans.udp, sgName)
 					delete(spans.icmp, sgName)
@@ -53,15 +51,15 @@ func reduceIPCubes(cubes *ipCubesPerProtocol) {
 	icmpPtr := 0
 
 	for tcpPtr < len(cubes.tcp) && udpPtr < len(cubes.udp) && icmpPtr < len(cubes.icmp) {
-		if !cubes.tcp[tcpPtr].Right.Equal(netset.AllPorts()) {
+		if !optimize.AllPorts(cubes.tcp[tcpPtr].Right) { // not all tcp ports
 			tcpPtr++
 			continue
 		}
-		if !cubes.udp[udpPtr].Right.Equal(netset.AllPorts()) {
+		if !optimize.AllPorts(cubes.udp[udpPtr].Right) { // not all udp ports
 			udpPtr++
 			continue
 		}
-		if !cubes.icmp[icmpPtr].Right.IsAll() {
+		if !cubes.icmp[icmpPtr].Right.IsAll() { // not all icmp types & codes
 			icmpPtr++
 			continue
 		}
