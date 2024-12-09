@@ -3,36 +3,44 @@ Copyright 2023- IBM Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package mdio
+package io
 
 import (
 	"errors"
 	"fmt"
 	"strconv"
 
-	"github.com/np-guard/models/pkg/interval"
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
-
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-// Write prints an entire collection of acls as a single MD table.
-func (w *Writer) WriteACL(collection *ir.ACLCollection, vpc string) error {
-	if err := w.writeAll(aclHeader()); err != nil {
-		return err
-	}
+func WriteACL(collection *ir.ACLCollection, vpc string) ([][]string, error) {
+	res := make([][]string, 0)
 	for _, subnet := range collection.SortedACLSubnets(vpc) {
 		vpcName := ir.VpcFromScopedResource(subnet)
 		aclTable, err := makeACLTable(collection.ACLs[vpcName][subnet], subnet)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		if err := w.writeAll(aclTable); err != nil {
-			return err
-		}
+		res = append(res, aclTable...)
 	}
-	return nil
+	return res, nil
+}
+
+func ACLHeader() [][]string {
+	return [][]string{{
+		"Acl",
+		"Subnet",
+		"Direction",
+		"Rule priority",
+		"Allow or deny",
+		"Protocol",
+		"Source",
+		"Destination",
+		"Value",
+		"Description",
+	}}
 }
 
 func makeACLTable(t *ir.ACL, subnet string) ([][]string, error) {
@@ -48,13 +56,6 @@ func makeACLTable(t *ir.ACL, subnet string) ([][]string, error) {
 	return rows, nil
 }
 
-func aclPort(p interval.Interval) string {
-	if p.Equal(netp.AllPorts()) {
-		return "any port" //nolint:goconst // independent decision for SG and ACL
-	}
-	return fmt.Sprintf("ports %v-%v", p.Start(), p.End())
-}
-
 func action(a ir.Action) string {
 	if a == ir.Deny {
 		return "Deny"
@@ -62,56 +63,24 @@ func action(a ir.Action) string {
 	return "Allow"
 }
 
-func aclHeader() [][]string {
-	return [][]string{{
-		"",
-		"Acl",
-		"Subnet",
-		"Direction",
-		"Rule priority",
-		"Allow or deny",
-		"Protocol",
-		"Source",
-		"Destination",
-		"Value",
-		"Description",
-		"",
-	}, {
-		"",
-		leftAlign,
-		leftAlign,
-		leftAlign,
-		leftAlign,
-		leftAlign,
-		leftAlign,
-		leftAlign,
-		leftAlign,
-		leftAlign,
-		leftAlign,
-		"",
-	}}
-}
-
 func makeACLRow(priority int, rule *ir.ACLRule, aclName, subnet string) ([]string, error) {
-	srcProtocol, err1 := printIP(rule.Source, rule.Protocol, true)
-	dstProtocol, err2 := printIP(rule.Destination, rule.Protocol, false)
-	if err := errors.Join(err1, err2); err != nil {
-		return nil, err
+	src, err1 := printIP(rule.Source, rule.Protocol, true)
+	dst, err2 := printIP(rule.Destination, rule.Protocol, false)
+	if errors.Join(err1, err2) != nil {
+		return nil, errors.Join(err1, err2)
 	}
 
 	return []string{
-		"",
 		aclName,
 		subnet,
 		direction(rule.Direction),
 		strconv.Itoa(priority),
 		action(rule.Action),
 		printProtocolName(rule.Protocol),
-		srcProtocol,
-		dstProtocol,
+		src,
+		dst,
 		printICMPTypeCode(rule.Protocol),
 		rule.Explanation,
-		"",
 	}, nil
 }
 
@@ -124,13 +93,11 @@ func printIP(ip *netset.IPBlock, protocol netp.Protocol, isSource bool) (string,
 	case netp.ICMP:
 		return ipString, nil
 	case netp.TCPUDP:
-		var r interval.Interval
+		r := p.DstPorts()
 		if isSource {
 			r = p.SrcPorts()
-		} else {
-			r = p.DstPorts()
 		}
-		return fmt.Sprintf("%v, %v", ipString, aclPort(r)), nil
+		return fmt.Sprintf("%v, %v", ipString, printPorts(r)), nil
 	case netp.AnyProtocol:
 		return ipString, nil
 	}
