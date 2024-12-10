@@ -37,7 +37,7 @@ func icmpSGCubesToRules(span map[ir.SGName]*netset.ICMPSet, direction ir.Directi
 }
 
 // cubes (slice of SGs) to SG rules
-func protocolAllCubesToRules(span []ir.SGName, direction ir.Direction) []*ir.SGRule {
+func anyPotocolCubesToRules(span []ir.SGName, direction ir.Direction) []*ir.SGRule {
 	result := make([]*ir.SGRule, len(span))
 	for i, sgName := range span {
 		result[i] = ir.NewSGRule(direction, sgName, netp.AnyProtocol{}, netset.GetCidrAll(), "")

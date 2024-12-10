@@ -35,11 +35,13 @@ func ReadSGs(filename string) (*ir.SGCollection, error) {
 			log.Printf("Warning: missing SG/VPC name in sg at index %d\n", i)
 			continue
 		}
+		sgName := ir.SGName(*sg.Name)
 		vpcName := *sg.VPC.Name
 		if result.SGs[vpcName] == nil {
 			result.SGs[vpcName] = make(map[ir.SGName]*ir.SG)
 		}
-		result.SGs[vpcName][ir.SGName(*sg.Name)] = &ir.SG{SGName: ir.SGName(*sg.Name),
+		result.SGs[vpcName][sgName] = &ir.SG{
+			SGName:        sgName,
 			InboundRules:  inbound,
 			OutboundRules: outbound,
 			Targets:       transalteTargets(&sg.SecurityGroup),

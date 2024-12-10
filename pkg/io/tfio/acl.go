@@ -32,48 +32,26 @@ func (w *Writer) WriteACL(c *ir.ACLCollection, vpc string, _ bool) error {
 	return err
 }
 
-func aclProtocol(t netp.Protocol) []tf.Block {
-	switch p := t.(type) {
-	case netp.TCPUDP:
-		return []tf.Block{{
-			Name: strings.ToLower(string(p.ProtocolString())),
-			Arguments: append(
-				portRange(p.DstPorts(), "port"),
-				portRange(p.SrcPorts(), "source_port")...,
-			),
-		}}
-	case netp.ICMP:
-		return []tf.Block{{
-			Name:      "icmp",
-			Arguments: codeTypeArguments(p.ICMPTypeCode()),
-		}}
-	case netp.AnyProtocol:
-		return []tf.Block{}
+func aclCollection(t *ir.ACLCollection, vpc string) (*tf.ConfigFile, error) {
+	sortedACLs := t.SortedACLSubnets(vpc)
+	var acls = make([]tf.Block, len(sortedACLs))
+	i := 0
+	for _, subnet := range sortedACLs {
+		comment := "\n"
+		vpcName := ir.VpcFromScopedResource(subnet)
+		acl := t.ACLs[vpcName][subnet]
+		if len(sortedACLs) > 1 { // not a single nacl
+			comment = fmt.Sprintf("\n# %v [%v]", subnet, subnetCidr(acl))
+		}
+		singleACL, err := singleACL(acl, comment)
+		if err != nil {
+			return nil, err
+		}
+		acls[i] = singleACL
+		i += 1
 	}
-	return nil
-}
-
-func aclRule(rule *ir.ACLRule, name string) (tf.Block, error) {
-	if err := verifyName(name); err != nil {
-		return tf.Block{}, err
-	}
-	arguments := []tf.Argument{
-		{Name: "name", Value: quote(name)},
-		{Name: "action", Value: quote(action(rule.Action))},
-		{Name: "direction", Value: quote(direction(rule.Direction))},
-		{Name: "source", Value: quote(rule.Source.String())},
-		{Name: "destination", Value: quote(rule.Destination.String())},
-	}
-
-	comment := "\n"
-	if rule.Explanation != "" {
-		comment = fmt.Sprintf("# %v", rule.Explanation)
-	}
-
-	return tf.Block{Name: "rules",
-		Comment:   comment,
-		Arguments: arguments,
-		Blocks:    aclProtocol(rule.Protocol),
+	return &tf.ConfigFile{
+		Resources: acls,
 	}, nil
 }
 
@@ -96,7 +74,7 @@ func singleACL(t *ir.ACL, comment string) (tf.Block, error) {
 		Name:    "resource",
 		Labels:  []string{quote("ibm_is_network_acl"), quote(aclName)},
 		Arguments: []tf.Argument{
-			{Name: "name", Value: quote(aclName)}, //nolint:revive  // obvious false positive
+			{Name: "name", Value: quote(aclName)},
 			{Name: "resource_group", Value: "local.acl_synth_resource_group_id"},
 			{Name: "vpc", Value: fmt.Sprintf("local.acl_synth_%s_id", ir.VpcFromScopedResource(t.Subnet))},
 		},
@@ -104,27 +82,49 @@ func singleACL(t *ir.ACL, comment string) (tf.Block, error) {
 	}, nil
 }
 
-func aclCollection(t *ir.ACLCollection, vpc string) (*tf.ConfigFile, error) {
-	sortedACLs := t.SortedACLSubnets(vpc)
-	var acls = make([]tf.Block, len(sortedACLs))
-	i := 0
-	for _, subnet := range sortedACLs {
-		comment := "\n"
-		vpcName := ir.VpcFromScopedResource(subnet)
-		acl := t.ACLs[vpcName][subnet]
-		if len(sortedACLs) > 1 { // not a single nacl
-			comment = fmt.Sprintf("\n# %v [%v]", subnet, subnetCidr(acl))
-		}
-		singleACL, err := singleACL(acl, comment)
-		if err != nil {
-			return nil, err
-		}
-		acls[i] = singleACL
-		i += 1
+func aclRule(rule *ir.ACLRule, name string) (tf.Block, error) {
+	if err := verifyName(name); err != nil {
+		return tf.Block{}, err
 	}
-	return &tf.ConfigFile{
-		Resources: acls,
+	arguments := []tf.Argument{
+		{Name: "name", Value: quote(name)}, //nolint:revive  // obvious false positive
+		{Name: "action", Value: quote(action(rule.Action))},
+		{Name: "direction", Value: quote(direction(rule.Direction))},
+		{Name: "source", Value: quote(rule.Source.String())},
+		{Name: "destination", Value: quote(rule.Destination.String())},
+	}
+
+	comment := "\n"
+	if rule.Explanation != "" {
+		comment = fmt.Sprintf("# %v", rule.Explanation)
+	}
+
+	return tf.Block{Name: "rules",
+		Comment:   comment,
+		Arguments: arguments,
+		Blocks:    aclProtocol(rule.Protocol),
 	}, nil
+}
+
+func aclProtocol(t netp.Protocol) []tf.Block {
+	switch p := t.(type) {
+	case netp.TCPUDP:
+		return []tf.Block{{
+			Name: strings.ToLower(string(p.ProtocolString())),
+			Arguments: append(
+				portRange(p.DstPorts(), "port"),
+				portRange(p.SrcPorts(), "source_port")...,
+			),
+		}}
+	case netp.ICMP:
+		return []tf.Block{{
+			Name:      "icmp",
+			Arguments: codeTypeArguments(p.ICMPTypeCode()),
+		}}
+	case netp.AnyProtocol:
+		return []tf.Block{}
+	}
+	return nil
 }
 
 func subnetCidr(acl *ir.ACL) *netset.IPBlock {
