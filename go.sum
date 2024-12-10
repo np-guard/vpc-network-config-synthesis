@@ -132,8 +132,8 @@ github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RR
 github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe/go.mod h1:wL8QJuTMNUDYhXwkmfOly8iTdp5TEcJFWZD2D7SIkUc=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e h1:fD57ERR4JtEqsWbfPhv4DMiApHyliiK5xCTNVSPiaAs=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
-github.com/np-guard/cloud-resource-collector v0.16.0 h1:KxFLcH19ZIvfGU63jJuMNN5sxW1uSdOrhCDwKHOyy0M=
-github.com/np-guard/cloud-resource-collector v0.16.0/go.mod h1:93qwf/IT1L2Bv+6C6kund2GmKrSupTPujT0Nh6qB+mg=
+github.com/np-guard/cloud-resource-collector v0.17.0 h1:QFXrFeF9ZS3P4B2dnZNvpWXLUq/QGPuwDGTjarByCvs=
+github.com/np-guard/cloud-resource-collector v0.17.0/go.mod h1:vp82iqdSq12EZJxA11oZkVseFVKg0hvPIUA9tVEdnMc=
 github.com/np-guard/models v0.5.2 h1:lty+shExffJpMQyu36a/NBYEky/rjEddQid4GOVHnhs=
 github.com/np-guard/models v0.5.2/go.mod h1:dqRdt5EQID1GmHuYsMOJzg4sS104om6NwEZ6sVO55z8=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
