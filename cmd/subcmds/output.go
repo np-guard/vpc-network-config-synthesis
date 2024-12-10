@@ -107,11 +107,11 @@ func writeLocals(args *inArgs, vpcNames []ir.ID, collection ir.Collection) error
 	}
 
 	outputFile := ""
-	suffix := "/locals.tf"
+	pathSuffix := "/locals.tf"
 	if args.outputDir != "" {
-		outputFile = args.outputDir + suffix
+		outputFile = args.outputDir + pathSuffix
 	} else if args.outputFile != "" {
-		outputFile = filepath.Dir(args.outputFile) + suffix
+		outputFile = filepath.Dir(args.outputFile) + pathSuffix
 	}
 	return writeToFile(outputFile, data)
 }

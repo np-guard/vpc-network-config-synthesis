@@ -30,48 +30,23 @@ func (w *Writer) WriteACL(c *ir.ACLCollection, vpc string, _ bool) error {
 	return w.w.Flush()
 }
 
-func aclProtocol(t netp.Protocol) []tf.Block {
-	switch p := t.(type) {
-	case netp.TCPUDP:
-		return []tf.Block{{
-			Name: strings.ToLower(string(p.ProtocolString())),
-			Arguments: append(
-				portRange(p.DstPorts(), "port"),
-				portRange(p.SrcPorts(), "source_port")...,
-			),
-		}}
-	case netp.ICMP:
-		return []tf.Block{{
-			Name:      "icmp",
-			Arguments: codeTypeArguments(p.ICMPTypeCode()),
-		}}
-	case netp.AnyProtocol:
-		return []tf.Block{}
+func aclCollection(collection *ir.ACLCollection, vpc string) (*tf.ConfigFile, error) {
+	res := make([]tf.Block, 0)
+	for _, vpcName := range collection.VpcNames() {
+		if vpc != vpcName && vpc != "" {
+			continue
+		}
+		for _, aclName := range collection.SortedACLNames(vpcName) {
+			acl := collection.ACLs[vpcName][aclName]
+			aclBlock, err := singleACL(acl, vpcName)
+			if err != nil {
+				return nil, err
+			}
+			res = append(res, aclBlock)
+		}
 	}
-	return nil
-}
-
-func aclRule(rule *ir.ACLRule, name string) (tf.Block, error) {
-	if err := verifyName(name); err != nil {
-		return tf.Block{}, err
-	}
-	arguments := []tf.Argument{
-		{Name: "name", Value: quote(name)},
-		{Name: "action", Value: quote(action(rule.Action))},
-		{Name: "direction", Value: quote(direction(rule.Direction))},
-		{Name: "source", Value: quote(rule.Source.String())},
-		{Name: "destination", Value: quote(rule.Destination.String())},
-	}
-
-	comment := ""
-	if rule.Explanation != "" {
-		comment = fmt.Sprintf("# %v", rule.Explanation)
-	}
-
-	return tf.Block{Name: "rules",
-		Comment:   comment,
-		Arguments: arguments,
-		Blocks:    aclProtocol(rule.Protocol),
+	return &tf.ConfigFile{
+		Resources: res,
 	}, nil
 }
 
@@ -94,7 +69,7 @@ func singleACL(acl *ir.ACL, vpcName string) (tf.Block, error) {
 		Name:    "resource",
 		Labels:  []string{quote("ibm_is_network_acl"), quote(aclName)},
 		Arguments: []tf.Argument{
-			{Name: "name", Value: quote(aclName)}, //nolint:revive  // obvious false positive
+			{Name: "name", Value: quote(aclName)},
 			{Name: "resource_group", Value: "local.acl_synth_resource_group_id"},
 			{Name: "vpc", Value: fmt.Sprintf("local.acl_synth_%s_id", vpcName)},
 		},
@@ -102,24 +77,49 @@ func singleACL(acl *ir.ACL, vpcName string) (tf.Block, error) {
 	}, nil
 }
 
-func aclCollection(collection *ir.ACLCollection, vpc string) (*tf.ConfigFile, error) {
-	res := make([]tf.Block, 0)
-	for _, vpcName := range collection.VpcNames() {
-		if vpc != vpcName && vpc != "" {
-			continue
-		}
-		for _, aclName := range collection.SortedACLNames(vpcName) {
-			acl := collection.ACLs[vpcName][aclName]
-			aclBlock, err := singleACL(acl, vpcName)
-			if err != nil {
-				return nil, err
-			}
-			res = append(res, aclBlock)
-		}
+func aclRule(rule *ir.ACLRule, name string) (tf.Block, error) {
+	if err := verifyName(name); err != nil {
+		return tf.Block{}, err
 	}
-	return &tf.ConfigFile{
-		Resources: res,
+	arguments := []tf.Argument{
+		{Name: "name", Value: quote(name)}, //nolint:revive  // obvious false positive
+		{Name: "action", Value: quote(action(rule.Action))},
+		{Name: "direction", Value: quote(direction(rule.Direction))},
+		{Name: "source", Value: quote(rule.Source.String())},
+		{Name: "destination", Value: quote(rule.Destination.String())},
+	}
+
+	comment := ""
+	if rule.Explanation != "" {
+		comment = fmt.Sprintf("# %v", rule.Explanation)
+	}
+
+	return tf.Block{Name: "rules",
+		Comment:   comment,
+		Arguments: arguments,
+		Blocks:    aclProtocol(rule.Protocol),
 	}, nil
+}
+
+func aclProtocol(t netp.Protocol) []tf.Block {
+	switch p := t.(type) {
+	case netp.TCPUDP:
+		return []tf.Block{{
+			Name: strings.ToLower(string(p.ProtocolString())),
+			Arguments: append(
+				portRange(p.DstPorts(), "port"),
+				portRange(p.SrcPorts(), "source_port")...,
+			),
+		}}
+	case netp.ICMP:
+		return []tf.Block{{
+			Name:      "icmp",
+			Arguments: codeTypeArguments(p.ICMPTypeCode()),
+		}}
+	case netp.AnyProtocol:
+		return []tf.Block{}
+	}
+	return nil
 }
 
 func aclComment(acl *ir.ACL) string {
