@@ -8,9 +8,10 @@ package test
 import "fmt"
 
 type testCase struct {
-	testName    string
-	args        *command
-	expectedErr string
+	testName        string
+	args            *command
+	expectedErr     string
+	expectedWarning *string
 }
 
 type command struct {
@@ -35,10 +36,10 @@ const (
 
 	defaultDirectoryPermission = 0o755
 
-	synth    string = "synth"
-	optimize string = "optimize"
-	acl      string = "acl"
-	sg       string = "sg"
+	synthesis string = "synth"
+	optimize  string = "optimize"
+	acl       string = "acl"
+	sg        string = "sg"
 )
 
 func (c *command) Args(dataFolder, resultsFolder string) []string {
