@@ -5,6 +5,13 @@ SPDX-License-Identifier: Apache-2.0
 
 package test
 
+import (
+	"fmt"
+
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/synth"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
+)
+
 const (
 	tgMultipleConfig               = "%s/tg_multiple/config_object.json"
 	sgTesting3Config               = "%s/sg_testing3/config_object.json"
@@ -45,7 +52,7 @@ func synthACLTestsList() []testCase {
 		{
 			testName: "acl_externals_json",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     acl,
 				config:     aclTesting4Config,
 				spec:       aclExternalsSpec,
@@ -55,43 +62,49 @@ func synthACLTestsList() []testCase {
 		{
 			testName: "acl_externals_tf",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     acl,
 				config:     aclTesting4Config,
 				spec:       aclExternalsSpec,
 				outputFile: "%s/acl_externals_tf/nacl_expected.tf",
 			},
+			expectedWarning: utils.Ptr(fmt.Sprint(synth.WarningUnspecifiedACL, "test-vpc1/subnet3")),
 		},
 
-		// acl nif (scoping)    ## tg-multiple config
+		// acl nif (scoping)
 		{
 			testName: "acl_nif_tf",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     acl,
 				config:     tgMultipleConfig,
 				spec:       aclNifSpec,
 				outputFile: "%s/acl_nif_tf/nacl_expected.tf",
 			},
+			expectedWarning: utils.Ptr(fmt.Sprint(synth.WarningUnspecifiedACL,
+				"test-vpc0/subnet2, test-vpc0/subnet3, test-vpc0/subnet5, test-vpc1/subnet10, test-vpc1/subnet11, test-vpc2/subnet20, ",
+				"test-vpc3/subnet30")),
 		},
 
-		// acl nif instance segments    ## tg-multiple config
+		// acl nif instance segments
 		{
 			testName: "acl_nif_instance_segments_tf",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     acl,
 				config:     tgMultipleConfig,
 				spec:       aclNifInstanceSegmentsSpec,
 				outputFile: "%s/acl_nif_instance_segments_tf/nacl_expected.tf",
 			},
+			expectedWarning: utils.Ptr(fmt.Sprint(synth.WarningUnspecifiedACL,
+				"test-vpc0/subnet1, test-vpc0/subnet4, test-vpc0/subnet5, test-vpc1/subnet10, test-vpc1/subnet11, test-vpc2/subnet20")),
 		},
 
-		// acl protocols (all output fmts)    ## tg-multiple config
+		// acl protocols (all output fmts)
 		{
 			testName: "acl_protocols_csv",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     acl,
 				config:     tgMultipleConfig,
 				spec:       aclProtocolsSpec,
@@ -101,7 +114,7 @@ func synthACLTestsList() []testCase {
 		{
 			testName: "acl_protocols_json",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     acl,
 				config:     tgMultipleConfig,
 				spec:       aclProtocolsSpec,
@@ -111,7 +124,7 @@ func synthACLTestsList() []testCase {
 		{
 			testName: "acl_protocols_md",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     acl,
 				config:     tgMultipleConfig,
 				spec:       aclProtocolsSpec,
@@ -121,31 +134,35 @@ func synthACLTestsList() []testCase {
 		{
 			testName: "acl_protocols_tf",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     acl,
 				config:     tgMultipleConfig,
 				spec:       aclProtocolsSpec,
 				outputFile: "%s/acl_protocols_tf/nacl_expected.tf",
 			},
+			expectedWarning: utils.Ptr(fmt.Sprint(synth.WarningUnspecifiedACL,
+				"test-vpc2/subnet20, test-vpc3/subnet30")),
 		},
 
 		// acl subnet and cidr segments (bidi)
 		{
 			testName: "acl_subnet_cidr_segments_tf",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     acl,
 				config:     aclTesting5Config,
 				spec:       aclSubnetCidrSegmentsSpec,
 				outputFile: "%s/acl_subnet_cidr_segments_tf/nacl_expected.tf",
 			},
+			expectedWarning: utils.Ptr(fmt.Sprint(synth.WarningUnspecifiedACL,
+				"testacl5-vpc/sub1-1, testacl5-vpc/sub3-1")),
 		},
 
 		// acl testing 5 (json, json single, tf, tf single)
 		{
 			testName: "acl_testing5_json",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     acl,
 				config:     aclTesting5Config,
 				spec:       aclTesting5Spec,
@@ -155,7 +172,7 @@ func synthACLTestsList() []testCase {
 		{
 			testName: "acl_testing5_json_single",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     acl,
 				singleacl:  true,
 				config:     aclTesting5Config,
@@ -166,17 +183,18 @@ func synthACLTestsList() []testCase {
 		{
 			testName: "acl_testing5_tf",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     acl,
 				config:     aclTesting5Config,
 				spec:       aclTesting5Spec,
 				outputFile: "%s/acl_testing5_tf/nacl_expected.tf",
 			},
+			expectedWarning: utils.Ptr(""),
 		},
 		{
 			testName: "acl_testing5_tf_single",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     acl,
 				singleacl:  true,
 				config:     aclTesting5Config,
@@ -189,7 +207,7 @@ func synthACLTestsList() []testCase {
 		{
 			testName: "acl_tg_multiple_json",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     acl,
 				config:     tgMultipleConfig,
 				spec:       aclTgMultipleSpec,
@@ -199,17 +217,19 @@ func synthACLTestsList() []testCase {
 		{
 			testName: "acl_tg_multiple_tf",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     acl,
 				config:     tgMultipleConfig,
 				spec:       aclTgMultipleSpec,
 				outputFile: "%s/acl_tg_multiple_tf/nacl_expected.tf",
 			},
+			expectedWarning: utils.Ptr(fmt.Sprint(synth.WarningUnspecifiedACL,
+				"test-vpc0/subnet1, test-vpc2/subnet20, test-vpc3/subnet30")),
 		},
 		{
 			testName: "acl_tg_multiple_tf_separate",
 			args: &command{
-				cmd:       synth,
+				cmd:       synthesis,
 				subcmd:    acl,
 				config:    tgMultipleConfig,
 				spec:      aclTgMultipleSpec,
@@ -222,12 +242,13 @@ func synthACLTestsList() []testCase {
 		{
 			testName: "acl_vpe_tf",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     acl,
 				config:     sgTesting3Config,
 				spec:       aclVpeSpec,
 				outputFile: "%s/acl_vpe_tf/nacl_expected.tf",
 			},
+			expectedWarning: utils.Ptr(""),
 		},
 	}
 }
@@ -235,11 +256,11 @@ func synthACLTestsList() []testCase {
 //nolint:funlen // test cases
 func synthSGTestsList() []testCase {
 	return []testCase{
-		// sg protocols (all output fmts, externals, scoping, nif as a resource)    ## tg-multiple config
+		// sg protocols (all output fmts, externals, scoping, nif as a resource)
 		{
 			testName: "sg_protocols_csv",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     sg,
 				config:     tgMultipleConfig,
 				spec:       sgProtocolsSpec,
@@ -249,7 +270,7 @@ func synthSGTestsList() []testCase {
 		{
 			testName: "sg_protocols_json",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     sg,
 				config:     tgMultipleConfig,
 				spec:       sgProtocolsSpec,
@@ -259,7 +280,7 @@ func synthSGTestsList() []testCase {
 		{
 			testName: "sg_protocols_md",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     sg,
 				config:     tgMultipleConfig,
 				spec:       sgProtocolsSpec,
@@ -269,67 +290,85 @@ func synthSGTestsList() []testCase {
 		{
 			testName: "sg_protocols_tf",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     sg,
 				config:     tgMultipleConfig,
 				spec:       sgProtocolsSpec,
 				outputFile: "%s/sg_protocols_tf/sg_expected.tf",
 			},
+			expectedWarning: utils.Ptr(fmt.Sprint(synth.WarningUnspecifiedSG,
+				"test-vpc0/vsi0-subnet4, test-vpc0/vsi0-subnet5, test-vpc0/vsi1-subnet2, test-vpc0/vsi1-subnet3, ",
+				"test-vpc0/vsi1-subnet4, test-vpc0/vsi1-subnet5, test-vpc1/vsi0-subnet11, test-vpc2/vsi0-subnet20, ",
+				"test-vpc2/vsi2-subnet20, test-vpc3/vsi0-subnet30")),
 		},
 
 		// sg segments1 (cidrSegment -> cidrSegment)
 		{
 			testName: "sg_segments1_tf",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     sg,
 				config:     tgMultipleConfig,
 				spec:       sgSegments1Spec,
 				outputFile: "%s/sg_segments1_tf/sg_expected.tf",
 			},
+			expectedWarning: utils.Ptr(fmt.Sprint(synth.WarningUnspecifiedSG,
+				"test-vpc0/vsi0-subnet2, test-vpc0/vsi0-subnet3, test-vpc0/vsi0-subnet4, test-vpc0/vsi0-subnet5, ",
+				"test-vpc0/vsi1-subnet2, test-vpc0/vsi1-subnet3, test-vpc0/vsi1-subnet4, test-vpc0/vsi1-subnet5, ",
+				"test-vpc1/vsi0-subnet10, test-vpc1/vsi0-subnet11, test-vpc2/vsi0-subnet20, ",
+				"test-vpc2/vsi1-subnet20, test-vpc2/vsi2-subnet20, test-vpc3/vsi0-subnet30")),
 		},
 
 		// sg segments2 (instanceSegment -> cidrSegment)
 		{
 			testName: "sg_segments2_tf",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     sg,
 				config:     tgMultipleConfig,
 				spec:       sgSegments2Spec,
 				outputFile: "%s/sg_segments2_tf/sg_expected.tf",
 			},
+			expectedWarning: utils.Ptr(fmt.Sprint(synth.WarningUnspecifiedSG,
+				"test-vpc0/vsi0-subnet2, test-vpc0/vsi0-subnet3, test-vpc0/vsi0-subnet4, test-vpc0/vsi1-subnet2, ",
+				"test-vpc0/vsi1-subnet3, test-vpc0/vsi1-subnet4, test-vpc0/vsi1-subnet5, test-vpc1/vsi0-subnet10, ",
+				"test-vpc2/vsi0-subnet20, test-vpc2/vsi1-subnet20, test-vpc2/vsi2-subnet20, test-vpc3/vsi0-subnet30")),
 		},
 
 		// sg segments3 (subnetSegment -> nifSegment)
 		{
 			testName: "sg_segments3_tf",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     sg,
 				config:     tgMultipleConfig,
 				spec:       sgSegments3Spec,
 				outputFile: "%s/sg_segments3_tf/sg_expected.tf",
 			},
+			expectedWarning: utils.Ptr(fmt.Sprint(synth.WarningUnspecifiedSG,
+				"test-vpc0/vsi0-subnet0, test-vpc0/vsi0-subnet1, test-vpc0/vsi0-subnet2, test-vpc0/vsi0-subnet3, ",
+				"test-vpc0/vsi0-subnet5, test-vpc0/vsi1-subnet0, test-vpc0/vsi1-subnet1, test-vpc0/vsi1-subnet2, ",
+				"test-vpc0/vsi1-subnet3, test-vpc0/vsi1-subnet4, test-vpc1/vsi0-subnet11, test-vpc3/vsi0-subnet30")),
 		},
 
 		// sg segments4 (vpeSegment -> instanceSegment)
 		{
 			testName: "sg_segments4_tf",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     sg,
 				config:     sgTesting3Config,
 				spec:       sgSegments4Spec,
 				outputFile: "%s/sg_segments4_tf/sg_expected.tf",
 			},
+			expectedWarning: utils.Ptr(fmt.Sprint(synth.WarningUnspecifiedSG, "test-vpc/opa, test-vpc/proxy")),
 		},
 
 		// sg testing 3 (all fmts, VPEs are included)
 		{
 			testName: "sg_testing3_csv",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     sg,
 				config:     sgTesting3Config,
 				spec:       sgTesting3Spec,
@@ -339,7 +378,7 @@ func synthSGTestsList() []testCase {
 		{
 			testName: "sg_testing3_json",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     sg,
 				config:     sgTesting3Config,
 				spec:       sgTesting3Spec,
@@ -349,7 +388,7 @@ func synthSGTestsList() []testCase {
 		{
 			testName: "sg_testing3_md",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     sg,
 				config:     sgTesting3Config,
 				spec:       sgTesting3Spec,
@@ -359,25 +398,30 @@ func synthSGTestsList() []testCase {
 		{
 			testName: "sg_testing3_tf",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     sg,
 				config:     sgTesting3Config,
 				spec:       sgTesting3Spec,
 				outputFile: "%s/sg_testing3_tf/sg_expected.tf",
 			},
+			expectedWarning: utils.Ptr(fmt.Sprint(synth.WarningUnspecifiedSG, "test-vpc/appdata-endpoint-gateway")),
 		},
 
 		// sg tg multiple (tf separate)
 		{
 			testName: "sg_tg_multiple_tf_separate",
 			args: &command{
-				cmd:       synth,
+				cmd:       synthesis,
 				subcmd:    sg,
 				config:    tgMultipleConfig,
 				spec:      sgTgMultipleSpec,
 				outputDir: "%s/sg_tg_multiple_tf_separate",
 				format:    tfOutputFmt,
 			},
+			expectedWarning: utils.Ptr(fmt.Sprint(synth.WarningUnspecifiedSG,
+				"test-vpc0/vsi0-subnet1, test-vpc0/vsi0-subnet2, test-vpc0/vsi0-subnet3, test-vpc0/vsi0-subnet4, ",
+				"test-vpc0/vsi0-subnet5, test-vpc0/vsi1-subnet0, test-vpc0/vsi1-subnet1, test-vpc0/vsi1-subnet2,",
+				" test-vpc0/vsi1-subnet3, test-vpc0/vsi1-subnet5, test-vpc2/vsi1-subnet20, test-vpc3/vsi0-subnet30")),
 		},
 	}
 }

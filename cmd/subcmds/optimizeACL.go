@@ -13,7 +13,7 @@ import (
 
 const aclNameFlag = "acl-name"
 
-func NewOptimizeACLCommand(args *inArgs) *cobra.Command {
+func newOptimizeACLCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "acl",
 		Short: "OptimizeACL attempts to reduce the number of nACL rules in an nACL without changing the semantic.",

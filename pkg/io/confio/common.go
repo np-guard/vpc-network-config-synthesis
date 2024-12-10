@@ -35,6 +35,5 @@ func (w *Writer) writeModel() error {
 	if err != nil {
 		return err
 	}
-	err = w.w.Flush()
-	return err
+	return w.w.Flush()
 }

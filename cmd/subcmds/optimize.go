@@ -14,7 +14,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/optimize"
 )
 
-func NewOptimizeCommand(args *inArgs) *cobra.Command {
+func newOptimizeCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "optimize",
 		Short: "optimization of existing SG and nACLs",
@@ -22,8 +22,8 @@ func NewOptimizeCommand(args *inArgs) *cobra.Command {
 	}
 
 	// sub cmds
-	cmd.AddCommand(NewOptimizeSGCommand(args))
-	cmd.AddCommand(NewOptimizeACLCommand(args))
+	cmd.AddCommand(newOptimizeSGCommand(args))
+	cmd.AddCommand(newOptimizeACLCommand(args))
 
 	return cmd
 }
