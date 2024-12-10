@@ -6,6 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 package confio
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -75,56 +76,32 @@ func translateSGRule(sg *vpcv1.SecurityGroup, index int) (sgRule *ir.SGRule, err
 }
 
 func translateSGRuleProtocolAll(rule *vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolAll) (sgRule *ir.SGRule, err error) {
-	direction, err := translateDirection(*rule.Direction)
-	if err != nil {
-		return nil, err
-	}
-	remote, err := translateRemote(rule.Remote)
-	if err != nil {
-		return nil, err
-	}
-	local, err := translateLocal(rule.Local)
-	if err != nil {
+	direction, err1 := translateDirection(*rule.Direction)
+	remote, err2 := translateRemote(rule.Remote)
+	local, err3 := translateLocal(rule.Local)
+	if err := errors.Join(err1, err2, err3); err != nil {
 		return nil, err
 	}
 	return &ir.SGRule{Direction: direction, Remote: remote, Protocol: netp.AnyProtocol{}, Local: local}, nil
 }
 
 func translateSGRuleProtocolTCPUDP(rule *vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp) (sgRule *ir.SGRule, err error) {
-	direction, err := translateDirection(*rule.Direction)
-	if err != nil {
-		return nil, err
-	}
-	remote, err := translateRemote(rule.Remote)
-	if err != nil {
-		return nil, err
-	}
-	local, err := translateLocal(rule.Local)
-	if err != nil {
-		return nil, err
-	}
-	protocol, err := translateProtocolTCPUDP(rule)
-	if err != nil {
+	direction, err1 := translateDirection(*rule.Direction)
+	remote, err2 := translateRemote(rule.Remote)
+	local, err3 := translateLocal(rule.Local)
+	protocol, err4 := translateProtocolTCPUDP(rule)
+	if err := errors.Join(err1, err2, err3, err4); err != nil {
 		return nil, err
 	}
 	return &ir.SGRule{Direction: direction, Remote: remote, Protocol: protocol, Local: local}, nil
 }
 
 func translateSGRuleProtocolIcmp(rule *vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp) (sgRule *ir.SGRule, err error) {
-	direction, err := translateDirection(*rule.Direction)
-	if err != nil {
-		return nil, err
-	}
-	remote, err := translateRemote(rule.Remote)
-	if err != nil {
-		return nil, err
-	}
-	local, err := translateLocal(rule.Local)
-	if err != nil {
-		return nil, err
-	}
-	protocol, err := netp.ICMPFromTypeAndCode64WithoutRFCValidation(rule.Type, rule.Code)
-	if err != nil {
+	direction, err1 := translateDirection(*rule.Direction)
+	remote, err2 := translateRemote(rule.Remote)
+	local, err3 := translateLocal(rule.Local)
+	protocol, err4 := netp.ICMPFromTypeAndCode64WithoutRFCValidation(rule.Type, rule.Code)
+	if err := errors.Join(err1, err2, err3, err4); err != nil {
 		return nil, err
 	}
 	return &ir.SGRule{Direction: direction, Remote: remote, Protocol: protocol, Local: local}, nil
