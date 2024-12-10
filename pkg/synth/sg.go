@@ -17,35 +17,37 @@ type SGSynthesizer struct {
 	result *ir.SGCollection
 }
 
+const WarningUnspecifiedSG = "The following endpoints do not have required connections; the generated SGs will block all traffic: "
+
 // NewSGSynthesizer creates and returns a new SGSynthesizer instance
 func NewSGSynthesizer(s *ir.Spec, _ bool) Synthesizer {
 	return &SGSynthesizer{spec: s, result: ir.NewSGCollection()}
 }
 
-func (s *SGSynthesizer) Synth() ir.Collection {
+func (s *SGSynthesizer) Synth() (collection ir.Collection, warning string) {
 	return s.makeSG()
 }
 
 // this method translates spec to a collection of Security Groups
 // 1. generate SGs for relevant endpoints for each connection
 // 2. generate SGs for blocked endpoints (endpoints that do not appear in Spec)
-func (s *SGSynthesizer) makeSG() *ir.SGCollection {
-	for _, c := range s.spec.Connections {
-		s.generateSGRulesFromConnection(c, ir.Outbound)
-		s.generateSGRulesFromConnection(c, ir.Inbound)
+func (s *SGSynthesizer) makeSG() (collection *ir.SGCollection, warning string) {
+	for _, conn := range s.spec.Connections {
+		s.generateSGRulesFromConnection(conn, ir.Outbound)
+		s.generateSGRulesFromConnection(conn, ir.Inbound)
 	}
-	s.generateSGsForBlockedResources()
-	return s.result
+	warning = s.generateSGsForBlockedResources()
+	return s.result, warning
 }
 
 func (s *SGSynthesizer) generateSGRulesFromConnection(conn *ir.Connection, direction ir.Direction) {
 	localResource, remoteResource, internalEndpoint, internalConn := connSettings(conn, direction)
 
-	for _, localEndpoint := range localResource.LocalCidrs {
-		for _, remoteCidr := range remoteResource.RemoteCidrs {
+	for _, localEndpoint := range localResource.CidrsWhenLocal {
+		for _, remoteCidr := range remoteResource.CidrsWhenRemote {
 			for _, trackedProtocol := range conn.TrackedProtocols {
 				ruleExplanation := explanation{internal: internalConn, connectionOrigin: conn.Origin, protocolOrigin: trackedProtocol.Origin}.String()
-				s.allowConnectionEndpoint(localEndpoint, remoteCidr, remoteResource.LocalType, trackedProtocol.Protocol, direction,
+				s.allowConnectionEndpoint(localEndpoint, remoteCidr, remoteResource.ResourceType, trackedProtocol.Protocol, direction,
 					internalEndpoint, ruleExplanation)
 			}
 		}
@@ -58,7 +60,7 @@ func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *i
 	if !internalEndpoint {
 		return
 	}
-	localSGName := ir.SGName(*localEndpoint.Name)
+	localSGName := ir.SGName(localEndpoint.Name)
 	localSG := s.result.LookupOrCreate(localSGName)
 	localSG.Targets = []ir.ID{ir.ID(localSGName)}
 	rule := &ir.SGRule{
@@ -72,12 +74,12 @@ func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *i
 
 func sgRemote(resource *ir.NamedAddrs, t ir.ResourceType) ir.RemoteType {
 	if isSGRemote(t) {
-		return ir.SGName(*resource.Name)
+		return ir.SGName(resource.Name)
 	}
 	return resource.IPAddrs
 }
 
-func connSettings(conn *ir.Connection, direction ir.Direction) (local, remote *ir.LocalRemotePair, internalEndpoint, internalConn bool) {
+func connSettings(conn *ir.Connection, direction ir.Direction) (local, remote *ir.ConnectedResource, internalEndpoint, internalConn bool) {
 	internalSrc, internalDst, internalConn := internalConnection(conn)
 	local = conn.Src
 	remote = conn.Dst
@@ -95,11 +97,11 @@ func isSGRemote(t ir.ResourceType) bool {
 }
 
 // generate SGs for blocked endpoints (endpoints that do not appear in Spec)
-func (s *SGSynthesizer) generateSGsForBlockedResources() {
-	blockedResources := append(utils.TrueKeyValues(s.spec.Defs.BlockedInstances), utils.TrueKeyValues(s.spec.Defs.BlockedVPEs)...)
-	ir.PrintUnspecifiedWarning(ir.WarningUnspecifiedSG, blockedResources)
+func (s *SGSynthesizer) generateSGsForBlockedResources() string {
+	blockedResources := append(utils.TrueKeyValues(s.spec.BlockedInstances), utils.TrueKeyValues(s.spec.BlockedVPEs)...)
 	for _, resource := range blockedResources {
 		sg := s.result.LookupOrCreate(ir.SGName(resource)) // an empty SG allows no connections
 		sg.Targets = []ir.ID{resource}
 	}
+	return setUnspecifiedWarning(WarningUnspecifiedSG, blockedResources)
 }

@@ -32,32 +32,53 @@ func (w *Writer) WriteSG(c *ir.SGCollection, vpc string, _ bool) error {
 	return err
 }
 
-func value(x interface{}) (string, error) {
-	switch v := x.(type) {
-	case *netset.IPBlock:
-		return quote(v.String()), nil
-	case ir.SGName:
-		return ir.ChangeScoping(fmt.Sprintf("ibm_is_security_group.%v.id", v)), nil
+func sgCollection(collection *ir.SGCollection, vpc string) (*tf.ConfigFile, error) {
+	var resources []tf.Block
+
+	for _, vpcName := range collection.VpcNames() {
+		if vpc != vpcName && vpc != "" {
+			continue
+		}
+		for _, sgName := range collection.SortedSGNames(vpcName) {
+			sgObject := collection.SGs[vpcName][sgName]
+			sgTf, err := sg(sgObject, vpcName)
+			if err != nil {
+				return nil, err
+			}
+			resources = append(resources, sgTf)
+			for i, rule := range sgObject.AllRules() {
+				rule, err := sgRule(rule, sgName, i)
+				if err != nil {
+					return nil, err
+				}
+				resources = append(resources, rule)
+			}
+		}
 	}
-	return "", fmt.Errorf("invalid terraform value %v (type %T)", x, x)
+	return &tf.ConfigFile{
+		Resources: resources,
+	}, nil
 }
 
-func sgProtocol(t netp.Protocol) []tf.Block {
-	switch p := t.(type) {
-	case netp.TCPUDP:
-		return []tf.Block{{
-			Name:      strings.ToLower(string(p.ProtocolString())),
-			Arguments: portRange(p.DstPorts(), "port"),
-		}}
-	case netp.ICMP:
-		return []tf.Block{{
-			Name:      "icmp",
-			Arguments: codeTypeArguments(p.ICMPTypeCode()),
-		}}
-	case netp.AnyProtocol:
-		return []tf.Block{}
+func sg(sG *ir.SG, vpcName string) (tf.Block, error) {
+	sgName := ir.ChangeScoping(sG.SGName.String())
+	comment := fmt.Sprintf("\n### SG %s is attached to %s", sgName, strings.Join(sG.Targets, ", "))
+	if len(sG.Targets) == 0 {
+		comment = fmt.Sprintf("\n### SG %s is not attached to anything", sgName)
 	}
-	return nil
+	if err := verifyName(sgName); err != nil {
+		return tf.Block{}, err
+	}
+	return tf.Block{
+		Name:    "resource",
+		Labels:  []string{quote("ibm_is_security_group"), quote(sgName)},
+		Comment: comment,
+		Arguments: []tf.Argument{
+			{Name: "name", Value: quote("sg-" + sgName)},
+			{Name: "resource_group", Value: "local.sg_synth_resource_group_id"},
+			{Name: "vpc", Value: fmt.Sprintf("local.sg_synth_%s_id", vpcName)},
+		},
+	}, nil
 }
 
 func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) (tf.Block, error) {
@@ -78,8 +99,8 @@ func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) (tf.Block, error) {
 	}
 
 	return tf.Block{
-		Name:    "resource",
-		Labels:  []string{quote("ibm_is_security_group_rule"), quote(ruleName)},
+		Name:    "resource", //nolint:revive  // obvious false positive
+		Labels:  []string{quote("ibm_is_security_group_rule"), ir.ChangeScoping(quote(ruleName))},
 		Comment: comment,
 		Arguments: []tf.Argument{
 			{Name: "group", Value: group},
@@ -90,51 +111,30 @@ func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) (tf.Block, error) {
 	}, nil
 }
 
-func sg(sG *ir.SG, vpcName string) (tf.Block, error) {
-	sgName := ir.ChangeScoping(sG.SGName.String())
-	comment := fmt.Sprintf("\n### SG %s is attached to %s", sgName, strings.Join(sG.Targets, ", "))
-	if len(sG.Targets) == 0 {
-		comment = fmt.Sprintf("\n### SG %s is not attached to anything", sgName)
+func sgProtocol(t netp.Protocol) []tf.Block {
+	switch p := t.(type) {
+	case netp.TCPUDP:
+		return []tf.Block{{
+			Name:      strings.ToLower(string(p.ProtocolString())),
+			Arguments: portRange(p.DstPorts(), "port"),
+		}}
+	case netp.ICMP:
+		return []tf.Block{{
+			Name:      "icmp",
+			Arguments: codeTypeArguments(p.ICMPTypeCode()),
+		}}
+	case netp.AnyProtocol:
+		return []tf.Block{}
 	}
-	if err := verifyName(sgName); err != nil {
-		return tf.Block{}, err
-	}
-	return tf.Block{
-		Name:    "resource", //nolint:revive  // obvious false positive
-		Labels:  []string{quote("ibm_is_security_group"), quote(sgName)},
-		Comment: comment,
-		Arguments: []tf.Argument{
-			{Name: "name", Value: quote("sg-" + sgName)},
-			{Name: "resource_group", Value: "local.sg_synth_resource_group_id"},
-			{Name: "vpc", Value: fmt.Sprintf("local.sg_synth_%s_id", vpcName)},
-		},
-	}, nil
+	return nil
 }
 
-func sgCollection(collection *ir.SGCollection, vpc string) (*tf.ConfigFile, error) {
-	var resources []tf.Block
-
-	for _, vpcName := range collection.VpcNames() {
-		if vpc != vpcName && vpc != "" {
-			continue
-		}
-		for _, sgName := range collection.SortedSGNames(vpcName) {
-			sG := collection.SGs[vpcName][sgName]
-			sg, err := sg(sG, vpcName)
-			if err != nil {
-				return nil, err
-			}
-			resources = append(resources, sg)
-			for i, rule := range sG.AllRules() {
-				rule, err := sgRule(rule, sgName, i)
-				if err != nil {
-					return nil, err
-				}
-				resources = append(resources, rule)
-			}
-		}
+func value(x interface{}) (string, error) {
+	switch v := x.(type) {
+	case *netset.IPBlock:
+		return quote(v.String()), nil
+	case ir.SGName:
+		return ir.ChangeScoping(fmt.Sprintf("ibm_is_security_group.%v.id", v)), nil
 	}
-	return &tf.ConfigFile{
-		Resources: resources,
-	}, nil
+	return "", fmt.Errorf("invalid terraform value %v (type %T)", x, x)
 }
