@@ -22,11 +22,11 @@ func rulesToSGCubes(rules *rulesPerProtocol) *sgCubesPerProtocol {
 	return &sgCubesPerProtocol{tcp: tcpudpRulesSGCubes(rules.tcp),
 		udp:         tcpudpRulesSGCubes(rules.udp),
 		icmp:        icmpRulesSGCubes(rules.icmp),
-		anyProtocol: anyProtocolRulesToSGCubes(rules.anyP),
+		anyProtocol: anyProtocolRulesToSGCubes(rules.anyProtocol),
 	}
 }
 
-// all protocol rules to cubes
+// any protocol rules to cubes
 func anyProtocolRulesToSGCubes(rules []*ir.SGRule) []ir.SGName {
 	res := make([]ir.SGName, len(rules))
 	for i := range rules {
@@ -70,7 +70,7 @@ func rulesToIPCubes(rules *rulesPerProtocol) *ipCubesPerProtocol {
 	return &ipCubesPerProtocol{tcp: tcpudpRulesToIPCubes(rules.tcp),
 		udp:         tcpudpRulesToIPCubes(rules.udp),
 		icmp:        icmpRulesToIPCubes(rules.icmp),
-		anyProtocol: anyProtocolRulesToIPCubes(rules.anyP),
+		anyProtocol: anyProtocolRulesToIPCubes(rules.anyProtocol),
 	}
 }
 
@@ -83,7 +83,7 @@ func anyProtocolRulesToIPCubes(rules []*ir.SGRule) *netset.IPBlock {
 	return res
 }
 
-// tcp/udp rules (separately) to cubes (IPBlock X portset).
+// tcp/udp rules (separately) to cubes (IPBlock X portset)
 func tcpudpRulesToIPCubes(rules []*ir.SGRule) []ds.Pair[*netset.IPBlock, *netset.PortSet] {
 	cubes := ds.NewProductLeft[*netset.IPBlock, *netset.PortSet]()
 	for _, rule := range rules {

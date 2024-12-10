@@ -11,30 +11,30 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/optimize"
 )
 
-func reduceSGCubes(spans *sgCubesPerProtocol) {
-	deleteOtherProtocolIfAnyProtocolExists(spans)
-	compressThreeProtocolsToAnyProtocol(spans)
+func reduceCubesWithSGRemote(cubes *sgCubesPerProtocol) {
+	deleteOtherProtocolIfAnyProtocolExists(cubes)
+	compressThreeProtocolsToAnyProtocol(cubes)
 }
 
 // delete other protocols rules if any protocol rule exists
-func deleteOtherProtocolIfAnyProtocolExists(spans *sgCubesPerProtocol) {
-	for _, sgName := range spans.anyProtocol {
-		delete(spans.tcp, sgName)
-		delete(spans.udp, sgName)
-		delete(spans.icmp, sgName)
+func deleteOtherProtocolIfAnyProtocolExists(cubes *sgCubesPerProtocol) {
+	for _, sgName := range cubes.anyProtocol {
+		delete(cubes.tcp, sgName)
+		delete(cubes.udp, sgName)
+		delete(cubes.icmp, sgName)
 	}
 }
 
 // merge tcp, udp and icmp rules into any protocol rule
-func compressThreeProtocolsToAnyProtocol(spans *sgCubesPerProtocol) {
-	for sgName, tcpPorts := range spans.tcp {
-		if udpPorts, ok := spans.udp[sgName]; ok {
-			if ic, ok := spans.icmp[sgName]; ok {
+func compressThreeProtocolsToAnyProtocol(cubes *sgCubesPerProtocol) {
+	for sgName, tcpPorts := range cubes.tcp {
+		if udpPorts, ok := cubes.udp[sgName]; ok {
+			if ic, ok := cubes.icmp[sgName]; ok {
 				if ic.IsAll() && optimize.AllPorts(tcpPorts) && optimize.AllPorts(udpPorts) {
-					delete(spans.tcp, sgName)
-					delete(spans.udp, sgName)
-					delete(spans.icmp, sgName)
-					spans.anyProtocol = append(spans.anyProtocol, sgName)
+					delete(cubes.tcp, sgName)
+					delete(cubes.udp, sgName)
+					delete(cubes.icmp, sgName)
+					cubes.anyProtocol = append(cubes.anyProtocol, sgName)
 				}
 			}
 		}
