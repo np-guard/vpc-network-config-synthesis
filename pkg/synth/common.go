@@ -7,7 +7,6 @@ package synth
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
@@ -55,7 +54,6 @@ func setUnspecifiedWarning(warningPrefix string, blockedResources []ir.ID) strin
 	warning := ""
 	if len(blockedResources) > 0 {
 		warning = warningPrefix + strings.Join(blockedResources, ", ")
-		log.Println(warning)
 	}
 	return warning
 }
