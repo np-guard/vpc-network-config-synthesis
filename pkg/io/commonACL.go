@@ -56,13 +56,6 @@ func makeACLTable(t *ir.ACL, subnet string) ([][]string, error) {
 	return rows, nil
 }
 
-func action(a ir.Action) string {
-	if a == ir.Deny {
-		return "Deny"
-	}
-	return "Allow"
-}
-
 func makeACLRow(priority int, rule *ir.ACLRule, aclName, subnet string) ([]string, error) {
 	src, err1 := printIP(rule.Source, rule.Protocol, true)
 	dst, err2 := printIP(rule.Destination, rule.Protocol, false)
@@ -82,6 +75,13 @@ func makeACLRow(priority int, rule *ir.ACLRule, aclName, subnet string) ([]strin
 		printICMPTypeCode(rule.Protocol),
 		rule.Explanation,
 	}, nil
+}
+
+func action(a ir.Action) string {
+	if a == ir.Deny {
+		return "Deny"
+	}
+	return "Allow"
 }
 
 func printIP(ip *netset.IPBlock, protocol netp.Protocol, isSource bool) (string, error) {
