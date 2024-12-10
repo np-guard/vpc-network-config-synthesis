@@ -20,9 +20,9 @@ import (
 // SG remote
 func rulesToSGCubes(rules *rulesPerProtocol) *sgCubesPerProtocol {
 	return &sgCubesPerProtocol{tcp: tcpudpRulesSGCubes(rules.tcp),
-		udp:  tcpudpRulesSGCubes(rules.udp),
-		icmp: icmpRulesSGCubes(rules.icmp),
-		anyP: anyProtocolRulesToSGCubes(rules.anyP),
+		udp:         tcpudpRulesSGCubes(rules.udp),
+		icmp:        icmpRulesSGCubes(rules.icmp),
+		anyProtocol: anyProtocolRulesToSGCubes(rules.anyP),
 	}
 }
 
@@ -68,9 +68,9 @@ func icmpRulesSGCubes(rules []*ir.SGRule) map[ir.SGName]*netset.ICMPSet {
 // IP remote
 func rulesToIPCubes(rules *rulesPerProtocol) *ipCubesPerProtocol {
 	return &ipCubesPerProtocol{tcp: tcpudpRulesToIPCubes(rules.tcp),
-		udp:  tcpudpRulesToIPCubes(rules.udp),
-		icmp: icmpRulesToIPCubes(rules.icmp),
-		anyP: anyProtocolRulesToIPCubes(rules.anyP),
+		udp:         tcpudpRulesToIPCubes(rules.udp),
+		icmp:        icmpRulesToIPCubes(rules.icmp),
+		anyProtocol: anyProtocolRulesToIPCubes(rules.anyP),
 	}
 }
 

@@ -68,7 +68,8 @@ func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], any
 }
 
 // icmpIPCubesToRules converts cubes representing icmp protocol rules to SG rules
-func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], allCubes *netset.IPBlock, direction ir.Direction) []*ir.SGRule {
+func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], anyProtocolCubes *netset.IPBlock,
+	direction ir.Direction) []*ir.SGRule {
 	if len(cubes) == 0 {
 		return []*ir.SGRule{}
 	}
@@ -78,7 +79,7 @@ func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], allCu
 
 	for i := range cubes {
 		// if it is not possible to continue the rule between the cubes, generate all existing rules
-		if i > 0 && uncoveredHole(cubes[i-1], cubes[i], allCubes) {
+		if i > 0 && uncoveredHole(cubes[i-1], cubes[i], anyProtocolCubes) {
 			res = append(res, createActiveRules(activeRules, cubes[i-1].Left.LastIPAddressObject(), direction)...)
 			activeRules = make(map[*netset.IPBlock]netp.Protocol)
 		}
@@ -111,7 +112,7 @@ func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], allCu
 
 // uncoveredHole returns true if the rules can not be continued between the two cubes
 // i.e there is a hole between two ipblocks that is not a subset of anyProtocol cubes
-func uncoveredHole[T ds.Set[T]](prevPair, currPair ds.Pair[*netset.IPBlock, T], allProtocolCubes *netset.IPBlock) bool {
+func uncoveredHole[T ds.Set[T]](prevPair, currPair ds.Pair[*netset.IPBlock, T], anyProtocolCubes *netset.IPBlock) bool {
 	prevIPBlock := prevPair.Left
 	currIPBlock := currPair.Left
 	touching, _ := prevIPBlock.TouchingIPRanges(currIPBlock)
@@ -121,7 +122,7 @@ func uncoveredHole[T ds.Set[T]](prevPair, currPair ds.Pair[*netset.IPBlock, T], 
 	holeFirstIP, _ := prevIPBlock.NextIP()
 	holeEndIP, _ := currIPBlock.PreviousIP()
 	hole, _ := netset.IPBlockFromIPRange(holeFirstIP, holeEndIP)
-	return !hole.IsSubset(allProtocolCubes)
+	return !hole.IsSubset(anyProtocolCubes)
 }
 
 // creates sgRules from SG active rules

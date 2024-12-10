@@ -38,17 +38,17 @@ type (
 	}
 
 	sgCubesPerProtocol struct {
-		tcp  map[ir.SGName]*netset.PortSet
-		udp  map[ir.SGName]*netset.PortSet
-		icmp map[ir.SGName]*netset.ICMPSet
-		anyP []ir.SGName
+		tcp         map[ir.SGName]*netset.PortSet
+		udp         map[ir.SGName]*netset.PortSet
+		icmp        map[ir.SGName]*netset.ICMPSet
+		anyProtocol []ir.SGName
 	}
 
 	ipCubesPerProtocol struct {
-		tcp  []ds.Pair[*netset.IPBlock, *netset.PortSet]
-		udp  []ds.Pair[*netset.IPBlock, *netset.PortSet]
-		icmp []ds.Pair[*netset.IPBlock, *netset.ICMPSet]
-		anyP *netset.IPBlock
+		tcp         []ds.Pair[*netset.IPBlock, *netset.PortSet]
+		udp         []ds.Pair[*netset.IPBlock, *netset.PortSet]
+		icmp        []ds.Pair[*netset.IPBlock, *netset.ICMPSet]
+		anyProtocol *netset.IPBlock
 	}
 )
 
@@ -145,7 +145,7 @@ func reduceRulesSGRemote(cubes *sgCubesPerProtocol, direction ir.Direction) []*i
 	tcpRules := tcpudpSGCubesToRules(cubes.tcp, direction, true)
 	udpRules := tcpudpSGCubesToRules(cubes.udp, direction, false)
 	icmpRules := icmpSGCubesToRules(cubes.icmp, direction)
-	anyProtocolRules := anyPotocolCubesToRules(cubes.anyP, direction)
+	anyProtocolRules := anyPotocolCubesToRules(cubes.anyProtocol, direction)
 
 	// return all rules
 	return append(tcpRules, append(udpRules, append(icmpRules, anyProtocolRules...)...)...)
@@ -155,16 +155,16 @@ func reduceRulesIPRemote(cubes *ipCubesPerProtocol, direction ir.Direction) []*i
 	reduceIPCubes(cubes)
 
 	// cubes to SG rules
-	tcpRules := tcpudpIPCubesToRules(cubes.tcp, cubes.anyP, direction, true)
-	udpRules := tcpudpIPCubesToRules(cubes.udp, cubes.anyP, direction, false)
-	icmpRules := icmpIPCubesToRules(cubes.icmp, cubes.anyP, direction)
-	anyProtocolRules := anyProtocolIPCubesToRules(cubes.anyP, direction)
+	tcpRules := tcpudpIPCubesToRules(cubes.tcp, cubes.anyProtocol, direction, true)
+	udpRules := tcpudpIPCubesToRules(cubes.udp, cubes.anyProtocol, direction, false)
+	icmpRules := icmpIPCubesToRules(cubes.icmp, cubes.anyProtocol, direction)
+	anyProtocolRules := anyProtocolIPCubesToRules(cubes.anyProtocol, direction)
 
 	// return all rules
 	return append(tcpRules, append(udpRules, append(icmpRules, anyProtocolRules...)...)...)
 }
 
-// divide SGCollection to TCP/UDP/ICMP/ProtocolALL X SGRemote/IPAddrs rules
+// divide SGCollection to TCP/UDP/ICMP/anyProtocols X SGRemote/IPAddrs rules
 func divideSGRules(rules []*ir.SGRule) *ruleGroups {
 	rulesToSG := &rulesPerProtocol{tcp: make([]*ir.SGRule, 0), udp: make([]*ir.SGRule, 0),
 		icmp: make([]*ir.SGRule, 0), anyP: make([]*ir.SGRule, 0)}
@@ -199,7 +199,7 @@ func divideSGRules(rules []*ir.SGRule) *ruleGroups {
 			}
 		}
 
-		// all protocol rules
+		// any protocol rules
 		if _, ok := rule.Protocol.(netp.AnyProtocol); ok {
 			if _, ok := rule.Remote.(*netset.IPBlock); ok {
 				rulesToIPAddrs.anyP = append(rulesToIPAddrs.anyP, rule)
