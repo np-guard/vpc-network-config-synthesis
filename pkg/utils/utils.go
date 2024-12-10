@@ -32,6 +32,22 @@ func SortedAllInnerMapsKeys[T, K cmp.Ordered, V any](m map[K]map[T]V) []T {
 	return keys
 }
 
+// GetProperty returns pointer p if it is valid, else it returns the provided default value
+// used to get min/max port or icmp type
+func GetProperty(p *int64, defaultP int64) int64 {
+	if p == nil {
+		return defaultP
+	}
+	return *p
+}
+
+func Int64PointerToIntPointer(v *int64) *int {
+	if v == nil {
+		return nil
+	}
+	return Ptr(int(*v))
+}
+
 func TrueKeyValues[T cmp.Ordered](m map[T]bool) []T {
 	keys := make([]T, 0)
 	for _, k := range SortedMapKeys(m) {

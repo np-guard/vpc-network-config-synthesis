@@ -20,14 +20,18 @@ func (w *Writer) WriteSG(collection *ir.SGCollection, vpc string) error {
 	if err := w.writeAll(sgHeader()); err != nil {
 		return err
 	}
-	for _, sgName := range collection.SortedSGNames(vpc) {
-		vpcName := ir.VpcFromScopedResource(string(sgName))
-		sgTable, err := makeSGTable(collection.SGs[vpcName][sgName], sgName)
-		if err != nil {
-			return err
+	for _, vpcName := range collection.VpcNames() {
+		if vpc != vpcName && vpc != "" {
+			continue
 		}
-		if err := w.writeAll(sgTable); err != nil {
-			return err
+		for _, sgName := range collection.SortedSGNames(vpcName) {
+			sgTable, err := makeSGTable(collection.SGs[vpcName][sgName], sgName)
+			if err != nil {
+				return err
+			}
+			if err := w.writeAll(sgTable); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

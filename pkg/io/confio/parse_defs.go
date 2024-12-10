@@ -46,7 +46,7 @@ func ReadDefs(filename string) (*ir.ConfigDefs, error) {
 }
 
 func parseVPCs(config *configModel.ResourcesContainerModel) (map[ir.ID]*ir.VPCDetails, error) {
-	VPCs := make(map[ir.ID]*ir.VPCDetails, len(config.VpcList))
+	res := make(map[ir.ID]*ir.VPCDetails, len(config.VpcList))
 	for _, vpc := range config.VpcList {
 		addressPrefixes := netset.NewIPBlock()
 		for _, addressPrefix := range vpc.AddressPrefixes {
@@ -56,9 +56,9 @@ func parseVPCs(config *configModel.ResourcesContainerModel) (map[ir.ID]*ir.VPCDe
 			}
 			addressPrefixes = addressPrefixes.Union(address)
 		}
-		VPCs[*vpc.Name] = &ir.VPCDetails{AddressPrefixes: addressPrefixes}
+		res[*vpc.Name] = &ir.VPCDetails{AddressPrefixes: addressPrefixes}
 	}
-	return VPCs, nil
+	return res, nil
 }
 
 func parseSubnets(config *configModel.ResourcesContainerModel) (map[ir.ID]*ir.SubnetDetails, error) {
@@ -148,6 +148,9 @@ func parseVPEs(config *configModel.ResourcesContainerModel) (vpes map[ir.ID]*ir.
 }
 
 func validateVpcs(vpcs map[ir.ID]*ir.VPCDetails) error {
+	if vpcs == nil {
+		return nil
+	}
 	for vpcName1, vpcDetails1 := range vpcs {
 		for vpcName2, vpcDetails2 := range vpcs {
 			if vpcName1 >= vpcName2 {
