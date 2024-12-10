@@ -7,6 +7,7 @@ package subcmds
 
 import (
 	"bytes"
+	"log"
 )
 
 // also returns a warning as string
@@ -16,5 +17,7 @@ func Main(args []string) (string, error) {
 	rootCmd.SetArgs(args[1:])
 	rootCmd.SetOut(&outBuffer)
 	err := rootCmd.Execute()
-	return outBuffer.String(), err
+	res := outBuffer.String()
+	log.Println(res) // print usage or blocked resources warning
+	return res, err
 }
