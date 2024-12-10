@@ -22,7 +22,7 @@ func errorTestsList() []testCase {
 			testName:    "locals json fmt",
 			expectedErr: "--locals flag requires setting the output format to tf",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     acl,
 				config:     cliConfig,
 				spec:       cliSpec,
@@ -36,7 +36,7 @@ func errorTestsList() []testCase {
 			testName:    "json separate",
 			expectedErr: "-d cannot be used with format json",
 			args: &command{
-				cmd:       synth,
+				cmd:       synthesis,
 				subcmd:    acl,
 				config:    cliConfig,
 				spec:      cliSpec,
@@ -50,7 +50,7 @@ func errorTestsList() []testCase {
 			testName:    "no config file",
 			expectedErr: "required flag(s) \"config\" not set",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     acl,
 				spec:       cliSpec,
 				outputFile: outputPath,
@@ -62,7 +62,7 @@ func errorTestsList() []testCase {
 			testName:    "bad spec file",
 			expectedErr: "could not parse connectivity file",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     acl,
 				config:     cliConfig,
 				spec:       cliConfig,
@@ -92,7 +92,7 @@ func errorTestsList() []testCase {
 			testName:    "ambiguous resource name",
 			expectedErr: "ambiguous resource name: subnet0",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     acl,
 				config:     "%s/ambiguous/config_object.json",
 				spec:       "%s/ambiguous/conn_spec.json",
@@ -105,7 +105,7 @@ func errorTestsList() []testCase {
 			testName:    "bad protocol",
 			expectedErr: "could not parse connectivity file data_for_testing_errors/bad_protocol/conn_spec.json: invalid protocol type \"ALOHA\"",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     acl,
 				config:     "%s/bad_protocol/config_object.json",
 				spec:       "%s/bad_protocol/conn_spec.json",
@@ -118,7 +118,7 @@ func errorTestsList() []testCase {
 			testName:    "externals src and dst",
 			expectedErr: "both source (dns) and destination (public internet) are external in required connection",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     acl,
 				config:     "%s/externals/config_object.json",
 				spec:       "%s/externals/conn_spec.json",
@@ -131,7 +131,7 @@ func errorTestsList() []testCase {
 			testName:    "unknown resource",
 			expectedErr: "unknown resource name subnet35 (resource type: \"subnet\")",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     acl,
 				config:     "%s/unknown_resource/config_object.json",
 				spec:       "%s/unknown_resource/conn_spec.json",
@@ -146,7 +146,7 @@ func errorTestsList() []testCase {
 				"invalid value (expected one of []interface {}{\"external\", \"segment\", \"subnet\"," +
 				" \"instance\", \"nif\", \"cidr\", \"vpe\"}): \"policydb-endpoint-gateway\"",
 			args: &command{
-				cmd:        synth,
+				cmd:        synthesis,
 				subcmd:     acl,
 				config:     "%s/impossible_resource_type/config_object.json",
 				spec:       "%s/impossible_resource_type/conn_spec.json",

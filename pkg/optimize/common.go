@@ -78,3 +78,7 @@ func IcmpRuleToIcmpSet(icmp netp.ICMP) *netset.ICMPSet {
 	icmpCode := int64(*icmp.TypeCode.Code)
 	return netset.NewICMPSet(icmpType, icmpType, icmpCode, icmpCode)
 }
+
+func AllPorts(tcpudpPorts *netset.PortSet) bool {
+	return tcpudpPorts.Equal(netset.AllPorts())
+}

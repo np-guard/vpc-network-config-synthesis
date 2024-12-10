@@ -5,8 +5,16 @@ SPDX-License-Identifier: Apache-2.0
 
 package subcmds
 
-func Main(args []string) error {
-	rootCmd := NewRootCommand()
+import (
+	"bytes"
+)
+
+// also returns a warning as string
+func Main(args []string) (string, error) {
+	var outBuffer bytes.Buffer
+	rootCmd := newRootCommand()
 	rootCmd.SetArgs(args[1:])
-	return rootCmd.Execute()
+	rootCmd.SetOut(&outBuffer)
+	err := rootCmd.Execute()
+	return outBuffer.String(), err
 }
