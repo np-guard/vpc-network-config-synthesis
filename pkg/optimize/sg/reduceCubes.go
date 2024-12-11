@@ -77,9 +77,9 @@ func reduceIPCubes(cubes *ipCubesPerProtocol) {
 		udpIPblock := cubes.udp[udpPtr].Left
 		icmpIPblock := cubes.icmp[icmpPtr].Left
 
-		udpSmallerThanICMP := udpIPblock.Smaller(icmpIPblock)
-		tcpSmallerThanUDP := tcpIPblock.Smaller(udpIPblock)
-		tcpSmallerThanICMP := tcpIPblock.Smaller(icmpIPblock)
+		udpComparedToICMP := udpIPblock.Compare(icmpIPblock)
+		tcpComparedToUDP := tcpIPblock.Compare(udpIPblock)
+		tcpComparedToICMP := tcpIPblock.Compare(icmpIPblock)
 
 		udpAndICMPSubsetOfTCP := udpIPblock.IsSubset(tcpIPblock) && icmpIPblock.IsSubset(tcpIPblock)
 		tcpAndICMPSubsetOfUDP := icmpIPblock.IsSubset(udpIPblock) && tcpIPblock.IsSubset(udpIPblock)
@@ -87,25 +87,25 @@ func reduceIPCubes(cubes *ipCubesPerProtocol) {
 
 		switch {
 		// case 1
-		case udpAndICMPSubsetOfTCP && udpSmallerThanICMP:
+		case udpAndICMPSubsetOfTCP && udpComparedToICMP == -1:
 			udpPtr++
-		case udpAndICMPSubsetOfTCP && !udpSmallerThanICMP:
+		case udpAndICMPSubsetOfTCP && udpComparedToICMP == 1:
 			icmpPtr++
-		case tcpAndICMPSubsetOfUDP && tcpSmallerThanICMP:
+		case tcpAndICMPSubsetOfUDP && tcpComparedToICMP == -1:
 			tcpPtr++
-		case tcpAndICMPSubsetOfUDP && !tcpSmallerThanICMP:
+		case tcpAndICMPSubsetOfUDP && tcpComparedToICMP == 1:
 			icmpPtr++
-		case tcpAndUDPSubsetOfICMP && tcpSmallerThanUDP:
+		case tcpAndUDPSubsetOfICMP && tcpComparedToUDP == -1:
 			tcpPtr++
-		case tcpAndUDPSubsetOfICMP && !tcpSmallerThanUDP:
+		case tcpAndUDPSubsetOfICMP && tcpComparedToUDP == 1:
 			udpPtr++
 
 		// case 2
-		case tcpSmallerThanUDP && tcpSmallerThanICMP:
+		case tcpComparedToUDP == -1 && tcpComparedToICMP == -1:
 			tcpPtr++
-		case !tcpSmallerThanUDP && udpSmallerThanICMP:
+		case tcpComparedToUDP == 1 && udpComparedToICMP == -1:
 			udpPtr++
-		case !tcpSmallerThanICMP && !udpSmallerThanICMP:
+		case tcpComparedToICMP == 1 && udpComparedToICMP == 1:
 			icmpPtr++
 		}
 	}

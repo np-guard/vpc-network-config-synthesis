@@ -94,7 +94,7 @@ func tcpudpRulesToIPCubes(rules []*ir.SGRule, anyProtocolCubes *netset.IPBlock) 
 		cubes = cubes.Union(r).(*ds.ProductLeft[*netset.IPBlock, *netset.PortSet])
 	}
 	anyProtocolPair := ds.CartesianPairLeft(anyProtocolCubes, netset.AllPorts())
-	cubes = cubes.Subtract(anyProtocolPair).(*ds.ProductLeft[*netset.IPBlock, *netset.PortSet]) // subtruct any protocol cubes
+	cubes = cubes.Subtract(anyProtocolPair).(*ds.ProductLeft[*netset.IPBlock, *netset.PortSet]) // subtract any protocol cubes
 	return optimize.SortPartitionsByIPAddrs(cubes.Partitions())
 }
 
@@ -108,6 +108,6 @@ func icmpRulesToIPCubes(rules []*ir.SGRule, anyProtocolCubes *netset.IPBlock) []
 		cubes = cubes.Union(r).(*ds.ProductLeft[*netset.IPBlock, *netset.ICMPSet])
 	}
 	anyProtocolPair := ds.CartesianPairLeft(anyProtocolCubes, netset.AllICMPSet())
-	cubes = cubes.Subtract(anyProtocolPair).(*ds.ProductLeft[*netset.IPBlock, *netset.ICMPSet]) // subtruct any protocol cubes
+	cubes = cubes.Subtract(anyProtocolPair).(*ds.ProductLeft[*netset.IPBlock, *netset.ICMPSet]) // subtract any protocol cubes
 	return optimize.SortPartitionsByIPAddrs(cubes.Partitions())
 }
