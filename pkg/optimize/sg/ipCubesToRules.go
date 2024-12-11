@@ -26,7 +26,7 @@ func anyProtocolIPCubesToRules(cubes *netset.IPBlock, direction ir.Direction) []
 }
 
 // tcpudpIPCubesToRules converts cubes representing tcp or udp protocol rules to SG rules
-func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], anyProtoclCubes *netset.IPBlock, direction ir.Direction,
+func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], anyProtocolCubes *netset.IPBlock, direction ir.Direction,
 	isTCP bool) []*ir.SGRule {
 	if len(cubes) == 0 {
 		return []*ir.SGRule{}
@@ -37,7 +37,7 @@ func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], any
 
 	for i := range cubes {
 		// if it is not possible to continue the rule between the cubes, generate all existing rules
-		if i > 0 && uncoveredHole(cubes[i-1], cubes[i], anyProtoclCubes) {
+		if i > 0 && uncoveredHole(cubes[i-1], cubes[i], anyProtocolCubes) {
 			res = append(res, createActiveRules(activeRules, cubes[i-1].Left.LastIPAddressObject(), direction)...)
 			activeRules = make(map[*netset.IPBlock]netp.Protocol)
 		}
