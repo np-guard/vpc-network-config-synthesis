@@ -12,12 +12,12 @@ import (
 )
 
 func reduceCubesWithSGRemote(cubes *sgCubesPerProtocol) {
-	deleteOtherProtocolIfAnyProtocolExists(cubes)
-	compressThreeProtocolsToAnyProtocol(cubes)
+	deleteOtherProtocolIfAnyProtocolExistsSGRemote(cubes)
+	compressThreeProtocolsToAnyProtocolSGRemote(cubes)
 }
 
 // delete other protocols rules if any protocol rule exists
-func deleteOtherProtocolIfAnyProtocolExists(cubes *sgCubesPerProtocol) {
+func deleteOtherProtocolIfAnyProtocolExistsSGRemote(cubes *sgCubesPerProtocol) {
 	for _, sgName := range cubes.anyProtocol {
 		delete(cubes.tcp, sgName)
 		delete(cubes.udp, sgName)
@@ -26,7 +26,7 @@ func deleteOtherProtocolIfAnyProtocolExists(cubes *sgCubesPerProtocol) {
 }
 
 // merge tcp, udp and icmp rules into any protocol rule
-func compressThreeProtocolsToAnyProtocol(cubes *sgCubesPerProtocol) {
+func compressThreeProtocolsToAnyProtocolSGRemote(cubes *sgCubesPerProtocol) {
 	for sgName, tcpPorts := range cubes.tcp {
 		if udpPorts, ok := cubes.udp[sgName]; ok {
 			if ic, ok := cubes.icmp[sgName]; ok {
@@ -44,7 +44,7 @@ func compressThreeProtocolsToAnyProtocol(cubes *sgCubesPerProtocol) {
 // observation: It pays to switch to all protocol rule when we have rules that cover all other protocols
 // on exactly the same cidr (only one protocol can exceed).
 //
-//nolint:gocyclo // multiple if statments
+//nolint:gocyclo // multiple checks
 func reduceIPCubes(cubes *ipCubesPerProtocol) {
 	tcpPtr := 0
 	udpPtr := 0
@@ -66,38 +66,46 @@ func reduceIPCubes(cubes *ipCubesPerProtocol) {
 
 		// all three protocols include all ports and types & codes
 		// attempt to convert to any protocol rule
-		if compressedToAnyProtocolCube(cubes, tcpPtr, udpPtr, icmpPtr) { // converted to any protocol rule
+		if compressedToAnyProtocolCubeIPCubes(cubes, tcpPtr, udpPtr, icmpPtr) { // converted to any protocol rule
 			continue
 		}
 
 		// could not compress to any protocol rule -- advance one ipblock
 		// case 1: one protocol ipb contains two other ipbs ==> advance the smaller one
 		// case 2: advance the smaller ipb
-		tcpIP := cubes.tcp[tcpPtr].Left
-		udpIP := cubes.udp[udpPtr].Left
-		icmpIP := cubes.icmp[icmpPtr].Left
+		tcpIPblock := cubes.tcp[tcpPtr].Left
+		udpIPblock := cubes.udp[udpPtr].Left
+		icmpIPblock := cubes.icmp[icmpPtr].Left
+
+		udpSmallerThanICMP := udpIPblock.Smaller(icmpIPblock)
+		tcpSmallerThanUDP := tcpIPblock.Smaller(udpIPblock)
+		tcpSmallerThanICMP := tcpIPblock.Smaller(icmpIPblock)
+
+		udpAndICMPSubsetOfTCP := udpIPblock.IsSubset(tcpIPblock) && icmpIPblock.IsSubset(tcpIPblock)
+		tcpAndICMPSubsetOfUDP := icmpIPblock.IsSubset(udpIPblock) && tcpIPblock.IsSubset(udpIPblock)
+		tcpAndUDPSubsetOfICMP := tcpIPblock.IsSubset(icmpIPblock) && udpIPblock.IsSubset(icmpIPblock)
 
 		switch {
 		// case 1
-		case udpIP.IsSubset(tcpIP) && icmpIP.IsSubset(tcpIP) && optimize.LessIPBlock(udpIP, icmpIP):
+		case udpAndICMPSubsetOfTCP && udpSmallerThanICMP:
 			udpPtr++
-		case udpIP.IsSubset(tcpIP) && icmpIP.IsSubset(tcpIP) && optimize.LessIPBlock(icmpIP, udpIP):
+		case udpAndICMPSubsetOfTCP && !udpSmallerThanICMP:
 			icmpPtr++
-		case tcpIP.IsSubset(udpIP) && icmpIP.IsSubset(udpIP) && optimize.LessIPBlock(tcpIP, icmpIP):
+		case tcpAndICMPSubsetOfUDP && tcpSmallerThanICMP:
 			tcpPtr++
-		case tcpIP.IsSubset(udpIP) && icmpIP.IsSubset(udpIP) && optimize.LessIPBlock(icmpIP, tcpIP):
+		case tcpAndICMPSubsetOfUDP && !tcpSmallerThanICMP:
 			icmpPtr++
-		case tcpIP.IsSubset(icmpIP) && udpIP.IsSubset(icmpIP) && optimize.LessIPBlock(tcpIP, udpIP):
+		case tcpAndUDPSubsetOfICMP && tcpSmallerThanUDP:
 			tcpPtr++
-		case tcpIP.IsSubset(icmpIP) && udpIP.IsSubset(icmpIP) && optimize.LessIPBlock(udpIP, tcpIP):
+		case tcpAndUDPSubsetOfICMP && !tcpSmallerThanUDP:
 			udpPtr++
 
 		// case 2
-		case optimize.LessIPBlock(tcpIP, udpIP) && optimize.LessIPBlock(tcpIP, icmpIP):
+		case tcpSmallerThanUDP && tcpSmallerThanICMP:
 			tcpPtr++
-		case optimize.LessIPBlock(udpIP, tcpIP) && optimize.LessIPBlock(udpIP, icmpIP):
+		case !tcpSmallerThanUDP && udpSmallerThanICMP:
 			udpPtr++
-		case optimize.LessIPBlock(icmpIP, tcpIP) && optimize.LessIPBlock(icmpIP, udpIP):
+		case !tcpSmallerThanICMP && !udpSmallerThanICMP:
 			icmpPtr++
 		}
 	}
@@ -105,7 +113,7 @@ func reduceIPCubes(cubes *ipCubesPerProtocol) {
 
 // compress three protocol rules to any protocol rule (and maybe another protocol rule)
 // returns true if the compression was successful
-func compressedToAnyProtocolCube(cubes *ipCubesPerProtocol, tcpPtr, udpPtr, icmpPtr int) bool {
+func compressedToAnyProtocolCubeIPCubes(cubes *ipCubesPerProtocol, tcpPtr, udpPtr, icmpPtr int) bool {
 	tcpIP := cubes.tcp[tcpPtr].Left
 	udpIP := cubes.udp[udpPtr].Left
 	icmpIP := cubes.icmp[icmpPtr].Left

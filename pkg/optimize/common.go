@@ -32,14 +32,6 @@ func SortPartitionsByIPAddrs[T ds.Set[T]](p []ds.Pair[*netset.IPBlock, T]) []ds.
 	return p
 }
 
-// returns true if this<other
-func LessIPBlock(this, other *netset.IPBlock) bool {
-	if this.FirstIPAddress() == other.FirstIPAddress() {
-		return this.LastIPAddress() < other.LastIPAddress()
-	}
-	return this.FirstIPAddress() < other.FirstIPAddress()
-}
-
 func IcmpsetPartitions(icmpset *netset.ICMPSet) []netp.ICMP {
 	result := make([]netp.ICMP, 0)
 	if icmpset.IsAll() {
