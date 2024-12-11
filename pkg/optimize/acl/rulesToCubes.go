@@ -15,14 +15,14 @@ import (
 
 func aclRulesToCubes(rules []*ir.ACLRule) *aclRulesPerProtocol {
 	res := &aclRulesPerProtocol{
-		tcpAllow:  ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.PortSet](),
-		tcpDeny:   ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.PortSet](),
-		udpAllow:  ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.PortSet](),
-		udpDeny:   ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.PortSet](),
-		icmpAllow: ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet](),
-		icmpDeny:  ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet](),
-		allAllow:  ds.NewProductLeft[*netset.IPBlock, *netset.IPBlock](),
-		allDeny:   ds.NewProductLeft[*netset.IPBlock, *netset.IPBlock](),
+		tcpAllow:         ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.PortSet](),
+		tcpDeny:          ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.PortSet](),
+		udpAllow:         ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.PortSet](),
+		udpDeny:          ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.PortSet](),
+		icmpAllow:        ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet](),
+		icmpDeny:         ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet](),
+		anyProtocolAllow: ds.NewProductLeft[*netset.IPBlock, *netset.IPBlock](),
+		anyProtocolDeny:  ds.NewProductLeft[*netset.IPBlock, *netset.IPBlock](),
 	}
 
 	for _, rule := range rules {

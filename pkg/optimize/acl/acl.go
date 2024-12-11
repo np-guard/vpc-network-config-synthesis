@@ -33,8 +33,8 @@ type (
 		icmpAllow ds.TripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet]
 		icmpDeny  ds.TripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet]
 
-		allAllow ds.Product[*netset.IPBlock, *netset.IPBlock]
-		allDeny  ds.Product[*netset.IPBlock, *netset.IPBlock]
+		anyProtocolAllow ds.Product[*netset.IPBlock, *netset.IPBlock]
+		anyProtocolDeny  ds.Product[*netset.IPBlock, *netset.IPBlock]
 	}
 )
 
@@ -89,13 +89,10 @@ func (a *aclOptimizer) optimizeACL(vpcName, aclName string) {
 	}
 
 	// print a message to the log
-	switch {
-	case reducedRules == 0:
-		log.Printf("no rules were reduced in acl %s\n", aclName)
-	case reducedRules == 1:
-		log.Printf("1 rule was reduced in acl %s\n", aclName)
-	default:
-		log.Printf("%d rules were reduced in acl %s\n", reducedRules, aclName)
+	if reducedRules == 0 {
+		log.Printf("no rules were reduced in acl %s\n", a.aclName)
+	} else {
+		log.Printf("the number of rules in acl %s was reduced by %d\n", a.aclName, reducedRules)
 	}
 }
 
