@@ -36,11 +36,12 @@ func ReadSGs(filename string) (*ir.SGCollection, error) {
 			log.Printf("Warning: missing SG/VPC name in sg at index %d\n", i)
 			continue
 		}
+		sgName := ir.SGName(*sg.Name)
 		vpcName := *sg.VPC.Name
 		if result.SGs[vpcName] == nil {
 			result.SGs[vpcName] = make(map[ir.SGName]*ir.SG)
 		}
-		result.SGs[vpcName][ir.SGName(*sg.Name)] = &ir.SG{InboundRules: inbound, OutboundRules: outbound}
+		result.SGs[vpcName][sgName] = &ir.SG{SGName: sgName, InboundRules: inbound, OutboundRules: outbound}
 	}
 	return result, nil
 }
@@ -99,7 +100,7 @@ func translateSGRuleProtocolIcmp(rule *vpcv1.SecurityGroupRuleSecurityGroupRuleP
 	direction, err1 := translateDirection(*rule.Direction)
 	remote, err2 := translateRemote(rule.Remote)
 	local, err3 := translateLocal(rule.Local)
-	protocol, err4 := netp.ICMPFromTypeAndCode64(rule.Type, rule.Code)
+	protocol, err4 := netp.ICMPFromTypeAndCode64WithoutRFCValidation(rule.Type, rule.Code)
 	if err := errors.Join(err1, err2, err3, err4); err != nil {
 		return nil, err
 	}
