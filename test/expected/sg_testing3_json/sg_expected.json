@@ -1597,8 +1597,8 @@
                 "0b00984f-c1e1-43b2-ba1e-35b0a55b2fa5.6131b73286f34215871dfad7254b4f7d.private.databases.appdomain.cloud"
             ],
             "target": {
-                "crn": "crn:161",
-                "resource_type": "provider_cloud_service"
+                "resource_type": "provider_cloud_service",
+                "crn": "crn:161"
             },
             "vpc": {
                 "crn": "crn:1",
@@ -1656,8 +1656,8 @@
                 "d60cdc12-7501-488c-a8d7-91a089497ca9-2.6131b73286f34215871dfad7254b4f7d.private.databases.appdomain.cloud"
             ],
             "target": {
-                "crn": "crn:162",
-                "resource_type": "provider_cloud_service"
+                "resource_type": "provider_cloud_service",
+                "crn": "crn:162"
             },
             "vpc": {
                 "crn": "crn:1",
@@ -1690,6 +1690,7 @@
                     "resource_type": "volume"
                 }
             },
+            "cluster_network_attachments": null,
             "confidential_compute_mode": "disabled",
             "created_at": "2024-06-19T07:12:47.000Z",
             "crn": "crn:163",
@@ -1856,6 +1857,7 @@
                     "resource_type": "volume"
                 }
             },
+            "cluster_network_attachments": null,
             "confidential_compute_mode": "disabled",
             "created_at": "2024-06-19T07:12:46.000Z",
             "crn": "crn:176",
@@ -2014,6 +2016,7 @@
                     "resource_type": "volume"
                 }
             },
+            "cluster_network_attachments": null,
             "confidential_compute_mode": "disabled",
             "created_at": "2024-06-19T07:12:46.000Z",
             "crn": "crn:185",
@@ -2172,6 +2175,7 @@
                     "resource_type": "volume"
                 }
             },
+            "cluster_network_attachments": null,
             "confidential_compute_mode": "disabled",
             "created_at": "2024-06-19T07:12:46.000Z",
             "crn": "crn:194",
