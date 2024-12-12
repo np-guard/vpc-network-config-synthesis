@@ -21,7 +21,7 @@ type Optimizer interface {
 }
 
 // each IPBlock is a single CIDR. The CIDRs are disjoint.
-func SortPartitionsByIPAddrs[T any](p []ds.Pair[*netset.IPBlock, T]) []ds.Pair[*netset.IPBlock, T] {
+func SortPartitionsByIPAddrs[T ds.Set[T]](p []ds.Pair[*netset.IPBlock, T]) []ds.Pair[*netset.IPBlock, T] {
 	cmp := func(i, j int) bool {
 		if p[i].Left.FirstIPAddress() == p[j].Left.FirstIPAddress() {
 			return p[i].Left.LastIPAddress() < p[j].Left.LastIPAddress()
@@ -30,14 +30,6 @@ func SortPartitionsByIPAddrs[T any](p []ds.Pair[*netset.IPBlock, T]) []ds.Pair[*
 	}
 	sort.Slice(p, cmp)
 	return p
-}
-
-// returns true if this<other
-func LessIPBlock(this, other *netset.IPBlock) bool {
-	if this.FirstIPAddress() == other.FirstIPAddress() {
-		return this.LastIPAddress() < other.LastIPAddress()
-	}
-	return this.FirstIPAddress() < other.FirstIPAddress()
 }
 
 func IcmpsetPartitions(icmpset *netset.ICMPSet) []netp.ICMP {

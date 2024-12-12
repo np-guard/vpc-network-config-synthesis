@@ -21,7 +21,7 @@ package test
 // 				t.Errorf("Bad test %s: %s", tt.testName, err)
 // 			}
 
-// 			err := subcmds.Main(tt.args.Args(dataFolder, expectedFolder))
+// 			_, err := subcmds.Main(tt.args.Args(dataFolder, expectedFolder))
 // 			if err != nil {
 // 				t.Errorf("Bad test %s: %s", tt.testName, err)
 // 			}
