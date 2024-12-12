@@ -31,24 +31,26 @@ type (
 	}
 
 	rulesPerProtocol struct {
-		tcp  []*ir.SGRule
-		udp  []*ir.SGRule
-		icmp []*ir.SGRule
-		anyP []*ir.SGRule
+		tcp         []*ir.SGRule
+		udp         []*ir.SGRule
+		icmp        []*ir.SGRule
+		anyProtocol []*ir.SGRule
 	}
 
+	// ir.SGName refers to the remote SG
 	sgCubesPerProtocol struct {
-		tcp  map[ir.SGName]*netset.PortSet
-		udp  map[ir.SGName]*netset.PortSet
-		icmp map[ir.SGName]*netset.ICMPSet
-		anyP []ir.SGName
+		tcp         map[ir.SGName]*netset.PortSet
+		udp         map[ir.SGName]*netset.PortSet
+		icmp        map[ir.SGName]*netset.ICMPSet
+		anyProtocol []ir.SGName
 	}
 
+	// ipblocks refers to remote IPs
 	ipCubesPerProtocol struct {
-		tcp  []ds.Pair[*netset.IPBlock, *netset.PortSet]
-		udp  []ds.Pair[*netset.IPBlock, *netset.PortSet]
-		icmp []ds.Pair[*netset.IPBlock, *netset.ICMPSet]
-		anyP *netset.IPBlock
+		tcp         []ds.Pair[*netset.IPBlock, *netset.PortSet]
+		udp         []ds.Pair[*netset.IPBlock, *netset.PortSet]
+		icmp        []ds.Pair[*netset.IPBlock, *netset.ICMPSet]
+		anyProtocol *netset.IPBlock
 	}
 )
 
@@ -94,7 +96,7 @@ func (s *sgOptimizer) optimizeSG(sg *ir.SG) {
 	// reduce inbound rules first
 	for l, rules := range sg.InboundRules {
 		local, _ := netset.IPBlockFromCidr(l)
-		newInboundRules := s.reduceRules(rules, ir.Inbound, local)
+		newInboundRules := s.reduceSGRules(rules, ir.Inbound, local)
 		if len(rules) > len(newInboundRules) {
 			reducedRules += len(rules) - len(newInboundRules)
 			sg.InboundRules[l] = newInboundRules
@@ -104,7 +106,7 @@ func (s *sgOptimizer) optimizeSG(sg *ir.SG) {
 	// reduce outbound rules second
 	for l, rules := range sg.OutboundRules {
 		local, _ := netset.IPBlockFromCidr(l)
-		newOutboundRules := s.reduceRules(rules, ir.Outbound, local)
+		newOutboundRules := s.reduceSGRules(rules, ir.Outbound, local)
 		if len(rules) > len(newOutboundRules) {
 			reducedRules += len(rules) - len(newOutboundRules)
 			sg.OutboundRules[l] = newOutboundRules
@@ -112,18 +114,15 @@ func (s *sgOptimizer) optimizeSG(sg *ir.SG) {
 	}
 
 	// print a message to the log
-	switch {
-	case reducedRules == 0:
+	if reducedRules == 0 {
 		log.Printf("no rules were reduced in sg %s\n", string(sg.SGName))
-	case reducedRules == 1:
-		log.Printf("1 rule was reduced in sg %s\n", string(sg.SGName))
-	default:
-		log.Printf("%d rules were reduced in sg %s\n", reducedRules, string(sg.SGName))
+	} else {
+		log.Printf("the number of rules in sg %s was reduced by %d\n", string(sg.SGName), reducedRules)
 	}
 }
 
 // reduceSGRules attempts to reduce the number of rules with different remote types separately
-func (s *sgOptimizer) reduceRules(rules []*ir.SGRule, direction ir.Direction, l *netset.IPBlock) []*ir.SGRule {
+func (s *sgOptimizer) reduceSGRules(rules []*ir.SGRule, direction ir.Direction, l *netset.IPBlock) []*ir.SGRule {
 	// separate all rules to groups of protocol X remote ([tcp, udp, icmp, protocolAll] X [ip, sg])
 	ruleGroups := divideSGRules(rules)
 
@@ -145,13 +144,13 @@ func (s *sgOptimizer) reduceRules(rules []*ir.SGRule, direction ir.Direction, l 
 }
 
 func reduceRulesSGRemote(cubes *sgCubesPerProtocol, direction ir.Direction, l *netset.IPBlock) []*ir.SGRule {
-	reduceSGCubes(cubes)
+	reduceCubesWithSGRemote(cubes)
 
 	// cubes to SG rules
 	tcpRules := tcpudpSGCubesToRules(cubes.tcp, direction, true, l)
 	udpRules := tcpudpSGCubesToRules(cubes.udp, direction, false, l)
 	icmpRules := icmpSGCubesToRules(cubes.icmp, direction, l)
-	anyProtocolRules := anyPotocolCubesToRules(cubes.anyP, direction, l)
+	anyProtocolRules := anyPotocolCubesToRules(cubes.anyProtocol, direction, l)
 
 	// return all rules
 	return append(tcpRules, append(udpRules, append(icmpRules, anyProtocolRules...)...)...)
@@ -161,21 +160,21 @@ func reduceRulesIPRemote(cubes *ipCubesPerProtocol, direction ir.Direction, l *n
 	reduceIPCubes(cubes)
 
 	// cubes to SG rules
-	tcpRules := tcpudpIPCubesToRules(cubes.tcp, cubes.anyP, direction, true, l)
-	udpRules := tcpudpIPCubesToRules(cubes.udp, cubes.anyP, direction, false, l)
-	icmpRules := icmpIPCubesToRules(cubes.icmp, cubes.anyP, direction, l)
-	anyProtocolRules := anyProtocolIPCubesToRules(cubes.anyP, direction, l)
+	tcpRules := tcpudpIPCubesToRules(cubes.tcp, cubes.anyProtocol, direction, true, l)
+	udpRules := tcpudpIPCubesToRules(cubes.udp, cubes.anyProtocol, direction, false, l)
+	icmpRules := icmpIPCubesToRules(cubes.icmp, cubes.anyProtocol, direction, l)
+	anyProtocolRules := anyProtocolIPCubesToRules(cubes.anyProtocol, direction, l)
 
 	// return all rules
 	return append(tcpRules, append(udpRules, append(icmpRules, anyProtocolRules...)...)...)
 }
 
-// divide SGCollection to TCP/UDP/ICMP/ProtocolALL X SGRemote/IPAddrs rules
+// divide SGCollection to TCP/UDP/ICMP/anyProtocols X SGRemote/IPAddrs rules
 func divideSGRules(rules []*ir.SGRule) *ruleGroups {
 	rulesToSG := &rulesPerProtocol{tcp: make([]*ir.SGRule, 0), udp: make([]*ir.SGRule, 0),
-		icmp: make([]*ir.SGRule, 0), anyP: make([]*ir.SGRule, 0)}
+		icmp: make([]*ir.SGRule, 0), anyProtocol: make([]*ir.SGRule, 0)}
 	rulesToIPAddrs := &rulesPerProtocol{tcp: make([]*ir.SGRule, 0), udp: make([]*ir.SGRule, 0),
-		icmp: make([]*ir.SGRule, 0), anyP: make([]*ir.SGRule, 0)}
+		icmp: make([]*ir.SGRule, 0), anyProtocol: make([]*ir.SGRule, 0)}
 
 	for _, rule := range rules {
 		// TCP rule
@@ -205,12 +204,12 @@ func divideSGRules(rules []*ir.SGRule) *ruleGroups {
 			}
 		}
 
-		// all protocol rules
+		// any protocol rules
 		if _, ok := rule.Protocol.(netp.AnyProtocol); ok {
 			if _, ok := rule.Remote.(*netset.IPBlock); ok {
-				rulesToIPAddrs.anyP = append(rulesToIPAddrs.anyP, rule)
+				rulesToIPAddrs.anyProtocol = append(rulesToIPAddrs.anyProtocol, rule)
 			} else {
-				rulesToSG.anyP = append(rulesToSG.anyP, rule)
+				rulesToSG.anyProtocol = append(rulesToSG.anyProtocol, rule)
 			}
 		}
 	}
@@ -218,5 +217,5 @@ func divideSGRules(rules []*ir.SGRule) *ruleGroups {
 }
 
 func (s *rulesPerProtocol) allRules() []*ir.SGRule {
-	return append(s.tcp, append(s.udp, append(s.icmp, s.anyP...)...)...)
+	return append(s.tcp, append(s.udp, append(s.icmp, s.anyProtocol...)...)...)
 }
