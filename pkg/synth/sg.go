@@ -7,6 +7,7 @@ package synth
 
 import (
 	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
@@ -63,13 +64,7 @@ func (s *SGSynthesizer) allowConnectionEndpoint(localEndpoint, remoteEndpoint *i
 	localSGName := ir.SGName(localEndpoint.Name)
 	localSG := s.result.LookupOrCreate(localSGName)
 	localSG.Targets = []ir.ID{ir.ID(localSGName)}
-	rule := &ir.SGRule{
-		Remote:      sgRemote(remoteEndpoint, remoteType),
-		Direction:   direction,
-		Protocol:    p,
-		Explanation: ruleExplanation,
-	}
-	localSG.Add(rule)
+	localSG.Add(ir.NewSGRule(direction, sgRemote(remoteEndpoint, remoteType), p, netset.GetCidrAll(), ruleExplanation))
 }
 
 func sgRemote(resource *ir.NamedAddrs, t ir.ResourceType) ir.RemoteType {
