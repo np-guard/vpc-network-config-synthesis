@@ -14,9 +14,9 @@ import (
 )
 
 // cubes (SGName X portSet) to SG rules
-func tcpudpSGCubesToRules(span map[ir.SGName]*netset.PortSet, direction ir.Direction, isTCP bool, l *netset.IPBlock) []*ir.SGRule {
+func tcpudpSGCubesToRules(cubes map[ir.SGName]*netset.PortSet, direction ir.Direction, isTCP bool, l *netset.IPBlock) []*ir.SGRule {
 	result := make([]*ir.SGRule, 0)
-	for sgName, portSet := range span {
+	for sgName, portSet := range cubes {
 		for _, dstPorts := range portSet.Intervals() {
 			p, _ := netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(dstPorts.Start()), int(dstPorts.End()))
 			result = append(result, ir.NewSGRule(direction, sgName, p, l, ""))
@@ -26,9 +26,9 @@ func tcpudpSGCubesToRules(span map[ir.SGName]*netset.PortSet, direction ir.Direc
 }
 
 // cubes (SGName X icmpset) to SG rules
-func icmpSGCubesToRules(span map[ir.SGName]*netset.ICMPSet, direction ir.Direction, l *netset.IPBlock) []*ir.SGRule {
+func icmpSGCubesToRules(cubes map[ir.SGName]*netset.ICMPSet, direction ir.Direction, l *netset.IPBlock) []*ir.SGRule {
 	result := make([]*ir.SGRule, 0)
-	for sgName, icmpSet := range span {
+	for sgName, icmpSet := range cubes {
 		for _, icmp := range optimize.IcmpsetPartitions(icmpSet) {
 			result = append(result, ir.NewSGRule(direction, sgName, icmp, l, ""))
 		}

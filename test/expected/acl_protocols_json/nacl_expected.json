@@ -3854,6 +3854,7 @@
                     "resource_type": "volume"
                 }
             },
+            "cluster_network_attachments": null,
             "confidential_compute_mode": "disabled",
             "created_at": "2024-06-25T15:42:40.000Z",
             "crn": "crn:383",
@@ -4012,6 +4013,7 @@
                     "resource_type": "volume"
                 }
             },
+            "cluster_network_attachments": null,
             "confidential_compute_mode": "disabled",
             "created_at": "2024-06-25T15:42:39.000Z",
             "crn": "crn:396",
@@ -4170,6 +4172,7 @@
                     "resource_type": "volume"
                 }
             },
+            "cluster_network_attachments": null,
             "confidential_compute_mode": "disabled",
             "created_at": "2024-06-25T15:42:22.000Z",
             "crn": "crn:405",
@@ -4328,6 +4331,7 @@
                     "resource_type": "volume"
                 }
             },
+            "cluster_network_attachments": null,
             "confidential_compute_mode": "disabled",
             "created_at": "2024-06-25T15:42:20.000Z",
             "crn": "crn:414",
@@ -4486,6 +4490,7 @@
                     "resource_type": "volume"
                 }
             },
+            "cluster_network_attachments": null,
             "confidential_compute_mode": "disabled",
             "created_at": "2024-06-25T15:42:20.000Z",
             "crn": "crn:423",
@@ -4644,6 +4649,7 @@
                     "resource_type": "volume"
                 }
             },
+            "cluster_network_attachments": null,
             "confidential_compute_mode": "disabled",
             "created_at": "2024-06-25T15:42:16.000Z",
             "crn": "crn:432",
@@ -4802,6 +4808,7 @@
                     "resource_type": "volume"
                 }
             },
+            "cluster_network_attachments": null,
             "confidential_compute_mode": "disabled",
             "created_at": "2024-06-25T15:42:15.000Z",
             "crn": "crn:441",
@@ -4960,6 +4967,7 @@
                     "resource_type": "volume"
                 }
             },
+            "cluster_network_attachments": null,
             "confidential_compute_mode": "disabled",
             "created_at": "2024-06-25T15:42:07.000Z",
             "crn": "crn:450",
@@ -5126,6 +5134,7 @@
                     "resource_type": "volume"
                 }
             },
+            "cluster_network_attachments": null,
             "confidential_compute_mode": "disabled",
             "created_at": "2024-06-25T15:42:00.000Z",
             "crn": "crn:459",
@@ -5284,6 +5293,7 @@
                     "resource_type": "volume"
                 }
             },
+            "cluster_network_attachments": null,
             "confidential_compute_mode": "disabled",
             "created_at": "2024-06-25T15:42:00.000Z",
             "crn": "crn:468",
@@ -5442,6 +5452,7 @@
                     "resource_type": "volume"
                 }
             },
+            "cluster_network_attachments": null,
             "confidential_compute_mode": "disabled",
             "created_at": "2024-06-25T15:42:00.000Z",
             "crn": "crn:477",
@@ -5600,6 +5611,7 @@
                     "resource_type": "volume"
                 }
             },
+            "cluster_network_attachments": null,
             "confidential_compute_mode": "disabled",
             "created_at": "2024-06-25T15:42:00.000Z",
             "crn": "crn:486",
@@ -5758,6 +5770,7 @@
                     "resource_type": "volume"
                 }
             },
+            "cluster_network_attachments": null,
             "confidential_compute_mode": "disabled",
             "created_at": "2024-06-25T15:41:39.000Z",
             "crn": "crn:495",
@@ -5916,6 +5929,7 @@
                     "resource_type": "volume"
                 }
             },
+            "cluster_network_attachments": null,
             "confidential_compute_mode": "disabled",
             "created_at": "2024-06-25T15:41:36.000Z",
             "crn": "crn:504",
@@ -6082,6 +6096,7 @@
                     "resource_type": "volume"
                 }
             },
+            "cluster_network_attachments": null,
             "confidential_compute_mode": "disabled",
             "created_at": "2024-06-25T15:41:24.000Z",
             "crn": "crn:513",
@@ -6248,6 +6263,7 @@
                     "resource_type": "volume"
                 }
             },
+            "cluster_network_attachments": null,
             "confidential_compute_mode": "disabled",
             "created_at": "2024-06-25T15:41:21.000Z",
             "crn": "crn:522",
@@ -6406,6 +6422,7 @@
                     "resource_type": "volume"
                 }
             },
+            "cluster_network_attachments": null,
             "confidential_compute_mode": "disabled",
             "created_at": "2024-06-25T15:41:21.000Z",
             "crn": "crn:531",
@@ -6564,6 +6581,7 @@
                     "resource_type": "volume"
                 }
             },
+            "cluster_network_attachments": null,
             "confidential_compute_mode": "disabled",
             "created_at": "2024-06-25T15:41:00.000Z",
             "crn": "crn:540",

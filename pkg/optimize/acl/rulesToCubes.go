@@ -40,7 +40,6 @@ func aclRulesToCubes(rules []*ir.ACLRule) *aclRulesPerProtocol {
 
 func tcpudpRuleToCubes(rules *aclRulesPerProtocol, rule *ir.ACLRule, isTCP bool) {
 	_ = ds.CartesianLeftTriple(rule.Source, rule.Destination, rule.Protocol.(netp.TCPUDP).DstPorts().ToSet())
-
 }
 
 func icmpRuleToCubes(rules *aclRulesPerProtocol, rule *ir.ACLRule) {
