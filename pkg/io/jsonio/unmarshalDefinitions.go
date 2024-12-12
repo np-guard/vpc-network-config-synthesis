@@ -11,6 +11,7 @@ import (
 
 	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/models/pkg/spec"
+
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )

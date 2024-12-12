@@ -143,7 +143,7 @@
                 "crn": "fake:crn:1",
                 "href": "fake:href:1",
                 "id": "fake:id:1",
-                "name": "acl-testacl5-vpc--singleACL"
+                "name": "testacl5-vpc--singleACL"
             },
             "resource_group": {
                 "href": "href:16",
@@ -245,7 +245,7 @@
                 "crn": "fake:crn:1",
                 "href": "fake:href:1",
                 "id": "fake:id:1",
-                "name": "acl-testacl5-vpc--singleACL"
+                "name": "testacl5-vpc--singleACL"
             },
             "public_gateway": {
                 "crn": "crn:46",
@@ -354,7 +354,7 @@
                 "crn": "fake:crn:1",
                 "href": "fake:href:1",
                 "id": "fake:id:1",
-                "name": "acl-testacl5-vpc--singleACL"
+                "name": "testacl5-vpc--singleACL"
             },
             "public_gateway": {
                 "crn": "crn:65",
@@ -463,7 +463,7 @@
                 "crn": "fake:crn:1",
                 "href": "fake:href:1",
                 "id": "fake:id:1",
-                "name": "acl-testacl5-vpc--singleACL"
+                "name": "testacl5-vpc--singleACL"
             },
             "resource_group": {
                 "href": "href:16",
@@ -565,7 +565,7 @@
                 "crn": "fake:crn:1",
                 "href": "fake:href:1",
                 "id": "fake:id:1",
-                "name": "acl-testacl5-vpc--singleACL"
+                "name": "testacl5-vpc--singleACL"
             },
             "public_gateway": {
                 "crn": "crn:65",
@@ -674,7 +674,7 @@
                 "crn": "fake:crn:1",
                 "href": "fake:href:1",
                 "id": "fake:id:1",
-                "name": "acl-testacl5-vpc--singleACL"
+                "name": "testacl5-vpc--singleACL"
             },
             "resource_group": {
                 "href": "href:16",
@@ -1599,7 +1599,7 @@
             "crn": "fake:crn:1",
             "href": "fake:href:1",
             "id": "fake:id:1",
-            "name": "acl-testacl5-vpc--singleACL",
+            "name": "testacl5-vpc--singleACL",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
