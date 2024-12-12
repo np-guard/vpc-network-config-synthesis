@@ -76,8 +76,7 @@ func (r *ACLRule) Target() *netset.IPBlock {
 func (a *ACL) Rules() []*ACLRule {
 	rules := a.Internal
 	if len(a.External) != 0 {
-		rules = append(rules, makeDenyInternal()...)
-		rules = append(rules, a.External...)
+		rules = append(rules, append(makeDenyInternal(), a.External...)...)
 	}
 	return rules
 }
