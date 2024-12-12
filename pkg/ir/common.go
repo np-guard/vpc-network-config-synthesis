@@ -9,7 +9,7 @@ type (
 	Direction string
 
 	Collection interface {
-		Write(writer Writer, vpc string) error
+		Write(writer Writer, vpc string, isSynth bool) error
 		VpcNames() []string
 	}
 

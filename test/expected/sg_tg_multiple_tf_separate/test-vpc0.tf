@@ -1,4 +1,4 @@
-### SG attached to test-vpc0/vsi0-subnet0
+### SG test-vpc0--vsi0-subnet0 is attached to test-vpc0/vsi0-subnet0
 resource "ibm_is_security_group" "test-vpc0--vsi0-subnet0" {
   name           = "sg-test-vpc0--vsi0-subnet0"
   resource_group = local.sg_synth_resource_group_id
@@ -11,70 +11,70 @@ resource "ibm_is_security_group_rule" "test-vpc0--vsi0-subnet0-0" {
   remote    = ibm_is_security_group.test-vpc0--vsi1-subnet4.id
 }
 
-### SG attached to test-vpc0/vsi0-subnet1
+### SG test-vpc0--vsi0-subnet1 is attached to test-vpc0/vsi0-subnet1
 resource "ibm_is_security_group" "test-vpc0--vsi0-subnet1" {
   name           = "sg-test-vpc0--vsi0-subnet1"
   resource_group = local.sg_synth_resource_group_id
   vpc            = local.sg_synth_test-vpc0_id
 }
 
-### SG attached to test-vpc0/vsi0-subnet2
+### SG test-vpc0--vsi0-subnet2 is attached to test-vpc0/vsi0-subnet2
 resource "ibm_is_security_group" "test-vpc0--vsi0-subnet2" {
   name           = "sg-test-vpc0--vsi0-subnet2"
   resource_group = local.sg_synth_resource_group_id
   vpc            = local.sg_synth_test-vpc0_id
 }
 
-### SG attached to test-vpc0/vsi0-subnet3
+### SG test-vpc0--vsi0-subnet3 is attached to test-vpc0/vsi0-subnet3
 resource "ibm_is_security_group" "test-vpc0--vsi0-subnet3" {
   name           = "sg-test-vpc0--vsi0-subnet3"
   resource_group = local.sg_synth_resource_group_id
   vpc            = local.sg_synth_test-vpc0_id
 }
 
-### SG attached to test-vpc0/vsi0-subnet4
+### SG test-vpc0--vsi0-subnet4 is attached to test-vpc0/vsi0-subnet4
 resource "ibm_is_security_group" "test-vpc0--vsi0-subnet4" {
   name           = "sg-test-vpc0--vsi0-subnet4"
   resource_group = local.sg_synth_resource_group_id
   vpc            = local.sg_synth_test-vpc0_id
 }
 
-### SG attached to test-vpc0/vsi0-subnet5
+### SG test-vpc0--vsi0-subnet5 is attached to test-vpc0/vsi0-subnet5
 resource "ibm_is_security_group" "test-vpc0--vsi0-subnet5" {
   name           = "sg-test-vpc0--vsi0-subnet5"
   resource_group = local.sg_synth_resource_group_id
   vpc            = local.sg_synth_test-vpc0_id
 }
 
-### SG attached to test-vpc0/vsi1-subnet0
+### SG test-vpc0--vsi1-subnet0 is attached to test-vpc0/vsi1-subnet0
 resource "ibm_is_security_group" "test-vpc0--vsi1-subnet0" {
   name           = "sg-test-vpc0--vsi1-subnet0"
   resource_group = local.sg_synth_resource_group_id
   vpc            = local.sg_synth_test-vpc0_id
 }
 
-### SG attached to test-vpc0/vsi1-subnet1
+### SG test-vpc0--vsi1-subnet1 is attached to test-vpc0/vsi1-subnet1
 resource "ibm_is_security_group" "test-vpc0--vsi1-subnet1" {
   name           = "sg-test-vpc0--vsi1-subnet1"
   resource_group = local.sg_synth_resource_group_id
   vpc            = local.sg_synth_test-vpc0_id
 }
 
-### SG attached to test-vpc0/vsi1-subnet2
+### SG test-vpc0--vsi1-subnet2 is attached to test-vpc0/vsi1-subnet2
 resource "ibm_is_security_group" "test-vpc0--vsi1-subnet2" {
   name           = "sg-test-vpc0--vsi1-subnet2"
   resource_group = local.sg_synth_resource_group_id
   vpc            = local.sg_synth_test-vpc0_id
 }
 
-### SG attached to test-vpc0/vsi1-subnet3
+### SG test-vpc0--vsi1-subnet3 is attached to test-vpc0/vsi1-subnet3
 resource "ibm_is_security_group" "test-vpc0--vsi1-subnet3" {
   name           = "sg-test-vpc0--vsi1-subnet3"
   resource_group = local.sg_synth_resource_group_id
   vpc            = local.sg_synth_test-vpc0_id
 }
 
-### SG attached to test-vpc0/vsi1-subnet4
+### SG test-vpc0--vsi1-subnet4 is attached to test-vpc0/vsi1-subnet4
 resource "ibm_is_security_group" "test-vpc0--vsi1-subnet4" {
   name           = "sg-test-vpc0--vsi1-subnet4"
   resource_group = local.sg_synth_resource_group_id
@@ -87,7 +87,7 @@ resource "ibm_is_security_group_rule" "test-vpc0--vsi1-subnet4-0" {
   remote    = ibm_is_security_group.test-vpc0--vsi0-subnet0.id
 }
 
-### SG attached to test-vpc0/vsi1-subnet5
+### SG test-vpc0--vsi1-subnet5 is attached to test-vpc0/vsi1-subnet5
 resource "ibm_is_security_group" "test-vpc0--vsi1-subnet5" {
   name           = "sg-test-vpc0--vsi1-subnet5"
   resource_group = local.sg_synth_resource_group_id

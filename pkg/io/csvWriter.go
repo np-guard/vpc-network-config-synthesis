@@ -21,7 +21,7 @@ func NewCSVWriter(w io.Writer) *CSVWriter {
 	return &CSVWriter{w: csv.NewWriter(w)}
 }
 
-func (w *CSVWriter) WriteSG(collection *ir.SGCollection, vpc string) error {
+func (w *CSVWriter) WriteSG(collection *ir.SGCollection, vpc string, _ bool) error {
 	sgTable, err := WriteSG(collection, vpc)
 	if err != nil {
 		return err
@@ -29,7 +29,7 @@ func (w *CSVWriter) WriteSG(collection *ir.SGCollection, vpc string) error {
 	return w.w.WriteAll(append(SGHeader(), sgTable...))
 }
 
-func (w *CSVWriter) WriteACL(collection *ir.ACLCollection, vpc string) error {
+func (w *CSVWriter) WriteACL(collection *ir.ACLCollection, vpc string, _ bool) error {
 	aclTable, err := WriteACL(collection, vpc)
 	if err != nil {
 		return err

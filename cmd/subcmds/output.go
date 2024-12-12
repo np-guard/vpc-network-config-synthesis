@@ -64,7 +64,7 @@ func writeCollection(args *inArgs, collection ir.Collection, vpc string, isSynth
 	if err != nil {
 		return nil, err
 	}
-	if err := collection.Write(writer, vpc); err != nil {
+	if err := collection.Write(writer, vpc, isSynth); err != nil {
 		return nil, err
 	}
 	return &data, nil
