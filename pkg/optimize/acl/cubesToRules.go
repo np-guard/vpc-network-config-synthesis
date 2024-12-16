@@ -7,6 +7,6 @@ package acloptimizer
 
 import "github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 
-func aclCubesToRules(_ *aclRulesPerProtocol, _ ir.Direction) []*ir.ACLRule {
+func aclCubesToRules(_ *aclCubesPerProtocol, _ ir.Direction) []*ir.ACLRule {
 	return nil
 }

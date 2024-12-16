@@ -75,6 +75,6 @@ func AllPorts(tcpudpPorts *netset.PortSet) bool {
 	return tcpudpPorts.Equal(netset.AllPorts())
 }
 
-func DecomposeTripel[S1 ds.Set[S1], S2 ds.Set[S2], S3 ds.Set[S3]](t ds.Triple[S1, S2, S3]) []ds.Triple[S1, S2, S3] {
+func DecomposeTriple[S1 ds.Set[S1], S2 ds.Set[S2], S3 ds.Set[S3]](t ds.Triple[S1, S2, S3]) []ds.Triple[S1, S2, S3] {
 	return []ds.Triple[S1, S2, S3]{t}
 }
