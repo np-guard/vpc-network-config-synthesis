@@ -30,7 +30,7 @@ func compressThreeProtocolsToAnyProtocolSGRemote(cubes *sgCubesPerProtocol) {
 	for sgName, tcpPorts := range cubes.tcp {
 		if udpPorts, ok := cubes.udp[sgName]; ok {
 			if ic, ok := cubes.icmp[sgName]; ok {
-				if ic.IsAll() && optimize.AllPorts(tcpPorts) && optimize.AllPorts(udpPorts) {
+				if ic.IsAll() && optimize.IsAllPorts(tcpPorts) && optimize.IsAllPorts(udpPorts) {
 					delete(cubes.tcp, sgName)
 					delete(cubes.udp, sgName)
 					delete(cubes.icmp, sgName)
@@ -51,11 +51,11 @@ func reduceIPCubes(cubes *ipCubesPerProtocol) {
 	icmpPtr := 0
 
 	for tcpPtr < len(cubes.tcp) && udpPtr < len(cubes.udp) && icmpPtr < len(cubes.icmp) {
-		if !optimize.AllPorts(cubes.tcp[tcpPtr].Right) { // not all tcp ports
+		if !optimize.IsAllPorts(cubes.tcp[tcpPtr].Right) { // not all tcp ports
 			tcpPtr++
 			continue
 		}
-		if !optimize.AllPorts(cubes.udp[udpPtr].Right) { // not all udp ports
+		if !optimize.IsAllPorts(cubes.udp[udpPtr].Right) { // not all udp ports
 			udpPtr++
 			continue
 		}
