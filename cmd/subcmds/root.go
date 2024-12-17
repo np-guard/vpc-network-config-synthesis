@@ -17,6 +17,8 @@ const (
 	outputFmtFlag  = "format"
 	outputFileFlag = "output-file"
 	localsFlag     = "locals"
+	outputDirFlag  = "output-dir"
+	prefixFlag     = "prefix"
 )
 
 type inArgs struct {
@@ -48,7 +50,10 @@ func newRootCommand() *cobra.Command {
 	rootCmd.PersistentFlags().StringVarP(&args.configFile, configFlag, "c", "",
 		"JSON file containing a configuration object of existing resources")
 	rootCmd.PersistentFlags().StringVarP(&args.outputFmt, outputFmtFlag, "f", "", "Output format; "+mustBeOneOf(outputFormats))
-	rootCmd.PersistentFlags().StringVarP(&args.outputFile, outputFileFlag, "o", "", "Write all generated resources to the specified file.")
+	rootCmd.PersistentFlags().StringVarP(&args.outputFile, outputFileFlag, "o", "", "Write all generated resources to the specified file")
+	rootCmd.PersistentFlags().StringVarP(&args.outputDir, outputDirFlag, "d", "",
+		"Write generated resources to files in the specified directory, one file per VPC.")
+	rootCmd.PersistentFlags().StringVarP(&args.prefix, prefixFlag, "p", "", "The prefix of the files that will be created.")
 	rootCmd.PersistentFlags().BoolVarP(&args.locals, localsFlag, "l", false,
 		"whether to generate a locals.tf file (only possible when the output format is tf)")
 
