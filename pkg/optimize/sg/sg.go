@@ -8,6 +8,7 @@ package sgoptimizer
 import (
 	"fmt"
 	"log"
+	"slices"
 
 	"github.com/np-guard/models/pkg/ds"
 	"github.com/np-guard/models/pkg/netp"
@@ -147,7 +148,7 @@ func reduceRulesSGRemote(cubes *sgCubesPerProtocol, direction ir.Direction) []*i
 	anyProtocolRules := anyProtocolCubesToRules(cubes.anyProtocol, direction)
 
 	// return all rules
-	return append(tcpRules, append(udpRules, append(icmpRules, anyProtocolRules...)...)...)
+	return slices.Concat(tcpRules, udpRules, icmpRules, anyProtocolRules)
 }
 
 func reduceRulesIPRemote(cubes *ipCubesPerProtocol, direction ir.Direction) []*ir.SGRule {
@@ -160,7 +161,7 @@ func reduceRulesIPRemote(cubes *ipCubesPerProtocol, direction ir.Direction) []*i
 	anyProtocolRules := anyProtocolIPCubesToRules(cubes.anyProtocol, direction)
 
 	// return all rules
-	return append(tcpRules, append(udpRules, append(icmpRules, anyProtocolRules...)...)...)
+	return slices.Concat(tcpRules, udpRules, icmpRules, anyProtocolRules)
 }
 
 // divide SGCollection to TCP/UDP/ICMP/anyProtocols X SGRemote/IPAddrs rules
@@ -211,5 +212,5 @@ func divideSGRules(rules []*ir.SGRule) *ruleGroups {
 }
 
 func (s *rulesPerProtocol) allRules() []*ir.SGRule {
-	return append(s.tcp, append(s.udp, append(s.icmp, s.anyProtocol...)...)...)
+	return slices.Concat(s.tcp, s.udp, s.icmp, s.anyProtocol)
 }

@@ -6,6 +6,8 @@ SPDX-License-Identifier: Apache-2.0
 package sgoptimizer
 
 import (
+	"slices"
+
 	"github.com/np-guard/models/pkg/ds"
 	"github.com/np-guard/models/pkg/interval"
 	"github.com/np-guard/models/pkg/netp"
@@ -38,7 +40,7 @@ func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], any
 	for i := range cubes {
 		// if it is not possible to continue the rule between the cubes, generate all existing rules
 		if i > 0 && uncoveredHole(cubes[i-1], cubes[i], anyProtocolCubes) {
-			res = append(res, createActiveRules(activeRules, cubes[i-1].Left.LastIPAddressObject(), direction)...)
+			res = slices.Concat(res, createActiveRules(activeRules, cubes[i-1].Left.LastIPAddressObject(), direction))
 			activeRules = make(map[*netset.IPBlock]netp.Protocol)
 		}
 
@@ -48,7 +50,7 @@ func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], any
 		for startIP, protocol := range activeRules {
 			if tcpudp, ok := protocol.(netp.TCPUDP); ok {
 				if !tcpudp.DstPorts().ToSet().IsSubset(cubes[i].Right) {
-					res = append(res, createNewRules(protocol, startIP, cubes[i-1].Left.LastIPAddressObject(), direction)...)
+					res = slices.Concat(res, createNewRules(protocol, startIP, cubes[i-1].Left.LastIPAddressObject(), direction))
 					delete(activeRules, startIP)
 				} else {
 					activePorts.AddInterval(tcpudp.DstPorts())
@@ -65,7 +67,7 @@ func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], any
 		}
 	}
 	// generate all existing rules
-	return append(res, createActiveRules(activeRules, cubes[len(cubes)-1].Left.LastIPAddressObject(), direction)...)
+	return slices.Concat(res, createActiveRules(activeRules, cubes[len(cubes)-1].Left.LastIPAddressObject(), direction))
 }
 
 // icmpIPCubesToRules converts cubes representing icmp protocol rules to SG rules
@@ -81,7 +83,7 @@ func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], anyPr
 	for i := range cubes {
 		// if it is not possible to continue the rule between the cubes, generate all existing rules
 		if i > 0 && uncoveredHole(cubes[i-1], cubes[i], anyProtocolCubes) {
-			res = append(res, createActiveRules(activeRules, cubes[i-1].Left.LastIPAddressObject(), direction)...)
+			res = slices.Concat(res, createActiveRules(activeRules, cubes[i-1].Left.LastIPAddressObject(), direction))
 			activeRules = make(map[*netset.IPBlock]netp.Protocol)
 		}
 
@@ -92,7 +94,7 @@ func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], anyPr
 			if icmp, ok := protocol.(netp.ICMP); ok {
 				ruleIcmpSet := optimize.IcmpRuleToIcmpSet(icmp)
 				if !ruleIcmpSet.IsSubset(cubes[i].Right) {
-					res = append(res, createNewRules(protocol, startIP, cubes[i-1].Left.LastIPAddressObject(), direction)...)
+					res = slices.Concat(res, createNewRules(protocol, startIP, cubes[i-1].Left.LastIPAddressObject(), direction))
 					delete(activeRules, startIP)
 				} else {
 					activeICMP.Union(ruleIcmpSet)
@@ -109,7 +111,7 @@ func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], anyPr
 	}
 
 	// generate all  existing rules
-	return append(res, createActiveRules(activeRules, cubes[len(cubes)-1].Left.LastIPAddressObject(), direction)...)
+	return slices.Concat(res, createActiveRules(activeRules, cubes[len(cubes)-1].Left.LastIPAddressObject(), direction))
 }
 
 // uncoveredHole returns true if the rules can not be continued between the two cubes
@@ -131,7 +133,7 @@ func uncoveredHole[T ds.Set[T]](prevPair, currPair ds.Pair[*netset.IPBlock, T], 
 func createActiveRules(activeRules map[*netset.IPBlock]netp.Protocol, lastIP *netset.IPBlock, direction ir.Direction) []*ir.SGRule {
 	res := make([]*ir.SGRule, 0)
 	for firstIP, protocol := range activeRules {
-		res = append(res, createNewRules(protocol, firstIP, lastIP, direction)...)
+		res = slices.Concat(res, createNewRules(protocol, firstIP, lastIP, direction))
 	}
 	return res
 }
