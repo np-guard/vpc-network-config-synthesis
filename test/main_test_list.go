@@ -7,6 +7,7 @@ package test
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/synth"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
@@ -40,9 +41,7 @@ const (
 )
 
 func allMainTests() []testCase {
-	synthTestList := append(synthACLTestsList(), synthSGTestsList()...)
-	optimizeTestList := append(optimizeACLTestsLists(), optimizeSGTestsLists()...)
-	return append(synthTestList, optimizeTestList...)
+	return slices.Concat(synthACLTestsList(), synthSGTestsList(), optimizeSGTestsLists(), optimizeACLTestsLists())
 }
 
 //nolint:funlen //all acl synthesis tests

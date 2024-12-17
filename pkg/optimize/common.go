@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 package optimize
 
 import (
-	"sort"
+	"slices"
 
 	"github.com/np-guard/models/pkg/ds"
 	"github.com/np-guard/models/pkg/netp"
@@ -22,23 +22,21 @@ type Optimizer interface {
 
 // each IPBlock is a single CIDR. The CIDRs are disjoint.
 func SortPartitionsByIPAddrs[T ds.Set[T]](p []ds.Pair[*netset.IPBlock, T]) []ds.Pair[*netset.IPBlock, T] {
-	cmp := func(i, j int) bool {
-		if p[i].Left.FirstIPAddress() == p[j].Left.FirstIPAddress() {
-			return p[i].Left.LastIPAddress() < p[j].Left.LastIPAddress()
-		}
-		return p[i].Left.FirstIPAddress() < p[j].Left.FirstIPAddress()
+	cmp := func(i, j ds.Pair[*netset.IPBlock, T]) int {
+		return i.Left.Compare(j.Left)
 	}
-	sort.Slice(p, cmp)
+	slices.SortFunc(p, cmp)
 	return p
 }
 
+// IcmpsetPartitions breaks the set into ICMP slice, where each element defined as legal in nACL, SG rules
 func IcmpsetPartitions(icmpset *netset.ICMPSet) []netp.ICMP {
-	result := make([]netp.ICMP, 0)
 	if icmpset.IsAll() {
 		icmp, _ := netp.ICMPFromTypeAndCode64WithoutRFCValidation(nil, nil)
 		return []netp.ICMP{icmp}
 	}
 
+	result := make([]netp.ICMP, 0)
 	for _, cube := range icmpset.Partitions() {
 		for _, typeInterval := range cube.Left.Intervals() {
 			for _, icmpType := range typeInterval.Elements() {
@@ -71,7 +69,7 @@ func IcmpToIcmpSet(icmp netp.ICMP) *netset.ICMPSet {
 	return netset.NewICMPSet(icmpType, icmpType, icmpCode, icmpCode)
 }
 
-func AllPorts(tcpudpPorts *netset.PortSet) bool {
+func IsAllPorts(tcpudpPorts *netset.PortSet) bool {
 	return tcpudpPorts.Equal(netset.AllPorts())
 }
 
