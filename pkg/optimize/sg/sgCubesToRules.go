@@ -36,10 +36,10 @@ func icmpSGCubesToRules(cubes map[ir.SGName]*netset.ICMPSet, direction ir.Direct
 	return result
 }
 
-// cubes (slice of SGs) to SG rules
-func anyPotocolCubesToRules(span []ir.SGName, direction ir.Direction) []*ir.SGRule {
-	result := make([]*ir.SGRule, len(span))
-	for i, sgName := range span {
+// slice of remote SGs to SG rules
+func anyProtocolCubesToRules(remoteSG []ir.SGName, direction ir.Direction) []*ir.SGRule {
+	result := make([]*ir.SGRule, len(remoteSG))
+	for i, sgName := range remoteSG {
 		result[i] = ir.NewSGRule(direction, sgName, netp.AnyProtocol{}, netset.GetCidrAll(), "")
 	}
 	return result

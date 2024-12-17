@@ -13,11 +13,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
-const (
-	specFlag      = "spec"
-	outputDirFlag = "output-dir"
-	prefixFlag    = "prefix"
-)
+const specFlag = "spec"
 
 func newSynthCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
@@ -29,9 +25,6 @@ func newSynthCommand(args *inArgs) *cobra.Command {
 
 	// flags
 	cmd.PersistentFlags().StringVarP(&args.specFile, specFlag, "s", "", "JSON file containing spec file")
-	cmd.PersistentFlags().StringVarP(&args.outputDir, outputDirFlag, "d", "",
-		"Write generated resources to files in the specified directory, one file per VPC.")
-	cmd.PersistentFlags().StringVarP(&args.prefix, prefixFlag, "p", "", "The prefix of the files that will be created.")
 
 	// flags settings
 	_ = cmd.MarkPersistentFlagRequired(specFlag)
