@@ -100,8 +100,6 @@ func (a *aclOptimizer) optimizeACL(vpcName, aclName string) {
 }
 
 func (a *aclOptimizer) reduceACLRules(rules []*ir.ACLRule, direction ir.Direction) []*ir.ACLRule {
-	_ = aclRulesToCubes(rules)
-
 	optimizedRules := aclCubesToRules(aclRulesToCubes(rules), direction)
 	if len(rules) > len(optimizedRules) {
 		return optimizedRules
