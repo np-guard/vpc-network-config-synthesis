@@ -32,6 +32,7 @@ Flags:
 
 ## Optimization
 #### SG optimization
+SG optimizatin attempts to reduce the number of security group rules in a SG without changing the semantic.
 Specifying the `-n` flag results in optimizing only one given SG. Otherwise, all SGs will be optimized.
 ```
 Flags:
@@ -39,6 +40,7 @@ Flags:
 ```
 
 #### nACL optimization (in progress)
+nACL optimizatin attempts to reduce the number of nACL rules in an nACL without changing the semantic.
 Specifying the `-n` flag results in optimizing only one given nACL. Otherwise, all nACLs will be optimized.
 ```
 Flags:
@@ -53,7 +55,9 @@ Flags:
   -f, --format string        Output format; must be one of [tf, csv, md, json]
   -h, --help                 help for vpcgen
   -l, --locals               whether to generate a locals.tf file (only possible when the output format is tf)
-  -o, --output-file string   Write all generated resources to the specified file.
+  -d, --output-dir string    Write generated resources to files in the specified directory, one file per VPC.
+  -o, --output-file string   Write all generated resources to the specified file
+  -p, --prefix string        The prefix of the files that will be created.
 ```
 **Note**: The infrastructure configuration must always be provided using the `--config` flag.  
 
