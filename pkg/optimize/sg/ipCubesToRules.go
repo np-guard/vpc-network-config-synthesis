@@ -17,7 +17,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/optimize"
 )
 
-// any protocol cubes, represented by a single ipblock that will be decomposed
+// any protocol IP-segments, represented by a single ipblock that will be decomposed
 // into cidrs. Each cidr will be a remote of a single SG rule
 func anyProtocolIPCubesToRules(cubes *netset.IPBlock, direction ir.Direction) []*ir.SGRule {
 	result := make([]*ir.SGRule, 0)

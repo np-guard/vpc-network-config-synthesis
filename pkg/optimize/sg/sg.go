@@ -123,9 +123,9 @@ func (s *sgOptimizer) reduceSGRules(rules []*ir.SGRule, direction ir.Direction) 
 
 	// rules with SG as a remote
 	optimizedRulesToSG := reduceRulesSGRemote(rulesToSGCubes(ruleGroups.sgRemoteRules), direction)
-	originlRulesToSG := ruleGroups.sgRemoteRules.allRules()
-	if len(originlRulesToSG) <= len(optimizedRulesToSG) { // failed to reduce number of rules
-		optimizedRulesToSG = originlRulesToSG
+	originalRulesToSG := ruleGroups.sgRemoteRules.allRules()
+	if len(originalRulesToSG) <= len(optimizedRulesToSG) { // failed to reduce number of rules
+		optimizedRulesToSG = originalRulesToSG
 	}
 
 	// rules with IPBlock as a remote
@@ -166,42 +166,34 @@ func reduceRulesIPRemote(cubes *ipCubesPerProtocol, direction ir.Direction) []*i
 
 // divide SGCollection to TCP/UDP/ICMP/anyProtocols X SGRemote/IPAddrs rules
 func divideSGRules(rules []*ir.SGRule) *ruleGroups {
-	rulesToSG := &rulesPerProtocol{tcp: make([]*ir.SGRule, 0), udp: make([]*ir.SGRule, 0),
-		icmp: make([]*ir.SGRule, 0), anyProtocol: make([]*ir.SGRule, 0)}
-	rulesToIPAddrs := &rulesPerProtocol{tcp: make([]*ir.SGRule, 0), udp: make([]*ir.SGRule, 0),
-		icmp: make([]*ir.SGRule, 0), anyProtocol: make([]*ir.SGRule, 0)}
+	rulesToSG := &rulesPerProtocol{}
+	rulesToIPAddrs := &rulesPerProtocol{}
 
 	for _, rule := range rules {
-		// TCP rule
-		if p, ok := rule.Protocol.(netp.TCPUDP); ok && p.ProtocolString() == "TCP" {
-			if _, ok := rule.Remote.(*netset.IPBlock); ok {
-				rulesToIPAddrs.tcp = append(rulesToIPAddrs.tcp, rule)
+		switch p := rule.Protocol.(type) {
+		case netp.TCPUDP:
+			//nolint:nestif // if statements
+			if p.ProtocolString() == "TCP" {
+				if isRemoteIPBlock(rule) {
+					rulesToIPAddrs.tcp = append(rulesToIPAddrs.tcp, rule)
+				} else {
+					rulesToSG.tcp = append(rulesToSG.tcp, rule)
+				}
 			} else {
-				rulesToSG.tcp = append(rulesToSG.tcp, rule)
+				if isRemoteIPBlock(rule) {
+					rulesToIPAddrs.udp = append(rulesToIPAddrs.udp, rule)
+				} else {
+					rulesToSG.udp = append(rulesToSG.udp, rule)
+				}
 			}
-		}
-
-		// UDP rule
-		if p, ok := rule.Protocol.(netp.TCPUDP); ok && p.ProtocolString() == "UDP" {
-			if _, ok := rule.Remote.(*netset.IPBlock); ok {
-				rulesToIPAddrs.udp = append(rulesToIPAddrs.udp, rule)
-			} else {
-				rulesToSG.udp = append(rulesToSG.udp, rule)
-			}
-		}
-
-		// ICMP rule
-		if _, ok := rule.Protocol.(netp.ICMP); ok {
-			if _, ok := rule.Remote.(*netset.IPBlock); ok {
+		case netp.ICMP:
+			if isRemoteIPBlock(rule) {
 				rulesToIPAddrs.icmp = append(rulesToIPAddrs.icmp, rule)
 			} else {
 				rulesToSG.icmp = append(rulesToSG.icmp, rule)
 			}
-		}
-
-		// any protocol rules
-		if _, ok := rule.Protocol.(netp.AnyProtocol); ok {
-			if _, ok := rule.Remote.(*netset.IPBlock); ok {
+		case netp.AnyProtocol:
+			if isRemoteIPBlock(rule) {
 				rulesToIPAddrs.anyProtocol = append(rulesToIPAddrs.anyProtocol, rule)
 			} else {
 				rulesToSG.anyProtocol = append(rulesToSG.anyProtocol, rule)
@@ -209,6 +201,11 @@ func divideSGRules(rules []*ir.SGRule) *ruleGroups {
 		}
 	}
 	return &ruleGroups{sgRemoteRules: rulesToSG, ipRemoteRules: rulesToIPAddrs}
+}
+
+func isRemoteIPBlock(rule *ir.SGRule) bool {
+	_, ok := rule.Remote.(*netset.IPBlock)
+	return ok
 }
 
 func (s *rulesPerProtocol) allRules() []*ir.SGRule {
