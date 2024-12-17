@@ -59,7 +59,7 @@ func IcmpsetPartitions(icmpset *netset.ICMPSet) []netp.ICMP {
 	return result
 }
 
-func IcmpRuleToIcmpSet(icmp netp.ICMP) *netset.ICMPSet {
+func IcmpToIcmpSet(icmp netp.ICMP) *netset.ICMPSet {
 	if icmp.TypeCode == nil {
 		return netset.AllICMPSet()
 	}
@@ -75,6 +75,63 @@ func AllPorts(tcpudpPorts *netset.PortSet) bool {
 	return tcpudpPorts.Equal(netset.AllPorts())
 }
 
-func DecomposeTriple[S1 ds.Set[S1], S2 ds.Set[S2], S3 ds.Set[S3]](t ds.Triple[S1, S2, S3]) []ds.Triple[S1, S2, S3] {
-	return []ds.Triple[S1, S2, S3]{t}
+func MinimalPartitions[P ds.Set[P]](t ds.TripleSet[*netset.IPBlock, *netset.IPBlock, P]) []ds.Triple[*netset.IPBlock, *netset.IPBlock, P] {
+	res := make([]ds.Triple[*netset.IPBlock, *netset.IPBlock, P], 0)
+
+	//leftTripleSet := AsLeftTripleSet(t)
+	//leftTripleSetPartitions :=
+
+	return res
+}
+
+// func AsLeftTripleSet[P ds.Set[P]](t ds.TripleSet[*netset.IPBlock, *netset.IPBlock, P]) ds.LeftTripleSet[*netset.IPBlock, *netset.IPBlock, P]{
+
+// }
+
+// func ActualPartitions[P ds.Set[P]](t ds.TripleSet[*netset.IPBlock, *netset.IPBlock, P]) []ds.Triple[*netset.IPBlock, *netset.IPBlock, P] {
+// 	res := make([]ds.Triple[*netset.IPBlock, *netset.IPBlock, P], 0)
+// 	for _, p := range t.Partitions() {
+// 		if tcpudp, ok := p.S3.(netp.TCPUDP); ok {
+// 			res = append(res, DecomposeTCPUDPTriple(p)...)
+// 		} else {
+// 			res = append(res, DecomposeICMPTriple(p)...)
+// 		}
+// 	}
+// 	return res
+// }
+
+func DecomposeTCPUDPTriple(t ds.Triple[*netset.IPBlock, *netset.IPBlock, *netset.PortSet]) []ds.Triple[*netset.IPBlock,
+	*netset.IPBlock, *netset.PortSet] {
+	res := make([]ds.Triple[*netset.IPBlock, *netset.IPBlock, *netset.PortSet], 0)
+
+	dstCidrs := t.S2.SplitToCidrs()
+	portIntervals := t.S3.Intervals()
+
+	for _, src := range t.S1.SplitToCidrs() {
+		for _, dst := range dstCidrs {
+			for _, ports := range portIntervals {
+				a := ds.Triple[*netset.IPBlock, *netset.IPBlock, *netset.PortSet]{S1: src, S2: dst, S3: ports.ToSet()}
+				res = append(res, a)
+			}
+		}
+	}
+	return res
+}
+
+func DecomposeICMPTriple(t ds.Triple[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet]) []ds.Triple[*netset.IPBlock,
+	*netset.IPBlock, *netset.ICMPSet] {
+	res := make([]ds.Triple[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet], 0)
+
+	dstCidrs := t.S2.SplitToCidrs()
+	icmpPartitions := IcmpsetPartitions(t.S3)
+
+	for _, src := range t.S1.SplitToCidrs() {
+		for _, dst := range dstCidrs {
+			for _, icmp := range icmpPartitions {
+				a := ds.Triple[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet]{S1: src, S2: dst, S3: IcmpToIcmpSet(icmp)}
+				res = append(res, a)
+			}
+		}
+	}
+	return res
 }

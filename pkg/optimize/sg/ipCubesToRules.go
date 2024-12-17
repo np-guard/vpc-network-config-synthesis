@@ -90,7 +90,7 @@ func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], anyPr
 		activeICMP := netset.EmptyICMPSet()
 		for startIP, protocol := range activeRules {
 			if icmp, ok := protocol.(netp.ICMP); ok {
-				ruleIcmpSet := optimize.IcmpRuleToIcmpSet(icmp)
+				ruleIcmpSet := optimize.IcmpToIcmpSet(icmp)
 				if !ruleIcmpSet.IsSubset(cubes[i].Right) {
 					res = append(res, createNewRules(protocol, startIP, cubes[i-1].Left.LastIPAddressObject(), direction, l)...)
 					delete(activeRules, startIP)
@@ -102,7 +102,7 @@ func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], anyPr
 
 		// if the cube contains icmp values that are not contained in  active rules, new rules will be created
 		for _, p := range optimize.IcmpsetPartitions(cubes[i].Right) {
-			if !optimize.IcmpRuleToIcmpSet(p).IsSubset(activeICMP) {
+			if !optimize.IcmpToIcmpSet(p).IsSubset(activeICMP) {
 				activeRules[cubes[i].Left.FirstIPAddressObject()] = p
 			}
 		}

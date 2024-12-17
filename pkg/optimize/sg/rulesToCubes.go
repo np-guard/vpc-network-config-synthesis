@@ -59,7 +59,7 @@ func icmpRulesSGCubes(rules []*ir.SGRule) map[ir.SGName]*netset.ICMPSet {
 		if result[remote] == nil {
 			result[remote] = netset.EmptyICMPSet()
 		}
-		icmpSet := optimize.IcmpRuleToIcmpSet(p)
+		icmpSet := optimize.IcmpToIcmpSet(p)
 		result[remote] = result[remote].Union(icmpSet)
 	}
 	return result
@@ -104,7 +104,7 @@ func icmpRulesToIPCubes(rules []*ir.SGRule, anyProtocolCubes *netset.IPBlock) []
 	for _, rule := range rules {
 		ipb := rule.Remote.(*netset.IPBlock) // already checked
 		p := rule.Protocol.(netp.ICMP)       // already checked
-		r := ds.CartesianPairLeft(ipb, optimize.IcmpRuleToIcmpSet(p))
+		r := ds.CartesianPairLeft(ipb, optimize.IcmpToIcmpSet(p))
 		cubes = cubes.Union(r).(*ds.ProductLeft[*netset.IPBlock, *netset.ICMPSet])
 	}
 	anyProtocolPair := ds.CartesianPairLeft(anyProtocolCubes, netset.AllICMPSet())

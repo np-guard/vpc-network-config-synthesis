@@ -65,7 +65,7 @@ func udpRuleToCubes(cubes *aclCubesPerProtocol, rule *ir.ACLRule) {
 }
 
 func icmpRuleToCubes(cubes *aclCubesPerProtocol, rule *ir.ACLRule) {
-	ruleCube := ds.CartesianLeftTriple(rule.Source, rule.Destination, optimize.IcmpRuleToIcmpSet(rule.Protocol.(netp.ICMP)))
+	ruleCube := ds.CartesianLeftTriple(rule.Source, rule.Destination, optimize.IcmpToIcmpSet(rule.Protocol.(netp.ICMP)))
 	if rule.Action == ir.Allow {
 		r := ruleCube.Subtract(cubes.icmpDeny)
 		cubes.icmpAllow = cubes.icmpAllow.Union(r)
