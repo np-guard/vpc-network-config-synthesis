@@ -1,7 +1,9 @@
 {
     "externals": {
         "e1": "0.0.0.0/30", 
-        "e2": "0.0.0.0/31"
+        "e2": "0.0.0.0/31",
+        "e3": "1.0.0.0/30", 
+        "e4": "1.0.0.0/31"
     },
     "required-connections": [
         {
@@ -30,6 +32,31 @@
                 "type": "instance"
             },
             "dst": {
+                "name": "e3",
+                "type": "external"
+            }
+        },
+        {
+            "src": {
+                "name": "vsi1",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "e4",
+                "type": "external"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "vsi1",
+                "type": "instance"
+            },
+            "dst": {
                 "name": "vsi2",
                 "type": "instance"
             }
@@ -41,6 +68,31 @@
             },
             "dst": {
                 "name": "vsi2",
+                "type": "instance"
+            }
+        },
+        {
+            "src": {
+                "name": "vsi1",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "vsi3a",
+                "type": "instance"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "vsi1",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "vsi3a",
                 "type": "instance"
             }
         }
