@@ -28,7 +28,17 @@ resource "ibm_is_security_group_rule" "test-vpc1--vsi1-0" {
 resource "ibm_is_security_group_rule" "test-vpc1--vsi1-1" {
   group     = ibm_is_security_group.test-vpc1--vsi1.id
   direction = "outbound"
+  remote    = ibm_is_security_group.test-vpc1--vsi3a.id
+}
+resource "ibm_is_security_group_rule" "test-vpc1--vsi1-2" {
+  group     = ibm_is_security_group.test-vpc1--vsi1.id
+  direction = "outbound"
   remote    = "0.0.0.0/30"
+}
+resource "ibm_is_security_group_rule" "test-vpc1--vsi1-3" {
+  group     = ibm_is_security_group.test-vpc1--vsi1.id
+  direction = "outbound"
+  remote    = "1.0.0.0/30"
 }
 
 
@@ -48,6 +58,11 @@ resource "ibm_is_security_group" "test-vpc1--vsi3a" {
   name           = "sg-test-vpc1--vsi3a"
   resource_group = local.sg_synth_resource_group_id
   vpc            = local.sg_synth_test-vpc1_id
+}
+resource "ibm_is_security_group_rule" "test-vpc1--vsi3a-0" {
+  group     = ibm_is_security_group.test-vpc1--vsi3a.id
+  direction = "inbound"
+  remote    = ibm_is_security_group.test-vpc1--vsi1.id
 }
 
 
