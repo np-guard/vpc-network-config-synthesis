@@ -22,7 +22,7 @@ type (
 	sgOptimizer struct {
 		sgCollection *ir.SGCollection
 		sgName       ir.SGName
-		sgVPC        *string
+		sgVPC        string
 	}
 
 	ruleGroups struct {
@@ -57,9 +57,9 @@ type (
 func NewSGOptimizer(collection ir.Collection, sgName string) optimize.Optimizer {
 	components := ir.ScopingComponents(sgName)
 	if len(components) == 1 {
-		return &sgOptimizer{sgCollection: collection.(*ir.SGCollection), sgName: ir.SGName(sgName), sgVPC: nil}
+		return &sgOptimizer{sgCollection: collection.(*ir.SGCollection), sgName: ir.SGName(sgName), sgVPC: ""}
 	}
-	return &sgOptimizer{sgCollection: collection.(*ir.SGCollection), sgName: ir.SGName(components[1]), sgVPC: &components[0]}
+	return &sgOptimizer{sgCollection: collection.(*ir.SGCollection), sgName: ir.SGName(components[1]), sgVPC: components[0]}
 }
 
 // Optimize attempts to reduce the number of SG rules
@@ -68,7 +68,7 @@ func NewSGOptimizer(collection ir.Collection, sgName string) optimize.Optimizer 
 func (s *sgOptimizer) Optimize() (ir.Collection, error) {
 	if s.sgName != "" {
 		for _, vpcName := range utils.SortedMapKeys(s.sgCollection.SGs) {
-			if s.sgVPC != nil && s.sgVPC != &vpcName {
+			if s.sgVPC != "" && s.sgVPC != vpcName {
 				continue
 			}
 			if _, ok := s.sgCollection.SGs[vpcName][s.sgName]; ok {
@@ -144,7 +144,7 @@ func reduceRulesSGRemote(cubes *sgCubesPerProtocol, direction ir.Direction) []*i
 	tcpRules := tcpudpSGCubesToRules(cubes.tcp, direction, true)
 	udpRules := tcpudpSGCubesToRules(cubes.udp, direction, false)
 	icmpRules := icmpSGCubesToRules(cubes.icmp, direction)
-	anyProtocolRules := anyPotocolCubesToRules(cubes.anyProtocol, direction)
+	anyProtocolRules := anyProtocolCubesToRules(cubes.anyProtocol, direction)
 
 	// return all rules
 	return append(tcpRules, append(udpRules, append(icmpRules, anyProtocolRules...)...)...)
