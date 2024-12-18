@@ -48,13 +48,12 @@ func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], any
 		// also activePorts will be calculated, which is the ports that are still included in the active rules
 		activePorts := interval.NewCanonicalSet()
 		for startIP, protocol := range activeRules {
-			if tcpudp, ok := protocol.(netp.TCPUDP); ok {
-				if !tcpudp.DstPorts().ToSet().IsSubset(cubes[i].Right) {
-					res = slices.Concat(res, createNewRules(protocol, startIP, cubes[i-1].Left.LastIPAddressObject(), direction))
-					delete(activeRules, startIP)
-				} else {
-					activePorts.AddInterval(tcpudp.DstPorts())
-				}
+			tcpudp, _ := protocol.(netp.TCPUDP) // already checked
+			if !tcpudp.DstPorts().ToSet().IsSubset(cubes[i].Right) {
+				res = slices.Concat(res, createNewRules(protocol, startIP, cubes[i-1].Left.LastIPAddressObject(), direction))
+				delete(activeRules, startIP)
+			} else {
+				activePorts.AddInterval(tcpudp.DstPorts())
 			}
 		}
 
@@ -91,14 +90,13 @@ func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], anyPr
 		// also activeICMP will be calculated, which is the icmp values that are still included in the active rules
 		activeICMP := netset.EmptyICMPSet()
 		for startIP, protocol := range activeRules {
-			if icmp, ok := protocol.(netp.ICMP); ok {
-				ruleIcmpSet := optimize.IcmpRuleToIcmpSet(icmp)
-				if !ruleIcmpSet.IsSubset(cubes[i].Right) {
-					res = slices.Concat(res, createNewRules(protocol, startIP, cubes[i-1].Left.LastIPAddressObject(), direction))
-					delete(activeRules, startIP)
-				} else {
-					activeICMP.Union(ruleIcmpSet)
-				}
+			icmp, _ := protocol.(netp.ICMP)
+			ruleIcmpSet := optimize.IcmpRuleToIcmpSet(icmp)
+			if !ruleIcmpSet.IsSubset(cubes[i].Right) {
+				res = slices.Concat(res, createNewRules(protocol, startIP, cubes[i-1].Left.LastIPAddressObject(), direction))
+				delete(activeRules, startIP)
+			} else {
+				activeICMP.Union(ruleIcmpSet)
 			}
 		}
 
