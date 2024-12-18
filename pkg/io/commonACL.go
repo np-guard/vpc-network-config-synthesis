@@ -30,7 +30,7 @@ func WriteACL(collection *ir.ACLCollection, vpc string) ([][]string, error) {
 	return res, nil
 }
 
-func ACLHeader() [][]string {
+func makeACLHeader() [][]string {
 	return [][]string{{
 		"Acl",
 		"Subnet",
