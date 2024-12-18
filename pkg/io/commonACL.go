@@ -8,6 +8,7 @@ package io
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strconv"
 
 	"github.com/np-guard/models/pkg/netp"
@@ -24,7 +25,7 @@ func WriteACL(collection *ir.ACLCollection, vpc string) ([][]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		res = append(res, aclTable...)
+		res = slices.Concat(res, aclTable)
 	}
 	return res, nil
 }

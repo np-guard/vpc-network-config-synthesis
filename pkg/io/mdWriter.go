@@ -8,6 +8,7 @@ package io
 import (
 	"bufio"
 	"io"
+	"slices"
 	"strings"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
@@ -35,7 +36,7 @@ func (w *MDWriter) WriteSG(collection *ir.SGCollection, vpc string, _ bool) erro
 	if err != nil {
 		return err
 	}
-	return w.writeAll(append(append(SGHeader(), addAligns(sgColsNum)), sgTable...))
+	return w.writeAll(slices.Concat(SGHeader(), addAligns(sgColsNum), sgTable))
 }
 
 func (w *MDWriter) WriteACL(collection *ir.ACLCollection, vpc string, _ bool) error {
@@ -43,7 +44,7 @@ func (w *MDWriter) WriteACL(collection *ir.ACLCollection, vpc string, _ bool) er
 	if err != nil {
 		return err
 	}
-	return w.writeAll(append(append(ACLHeader(), addAligns(aclColsNum)), aclTable...))
+	return w.writeAll(slices.Concat(ACLHeader(), addAligns(aclColsNum), aclTable))
 }
 
 func (w *MDWriter) writeAll(rows [][]string) error {
@@ -62,10 +63,10 @@ func (w *MDWriter) writeAll(rows [][]string) error {
 	return nil
 }
 
-func addAligns(n int) []string {
+func addAligns(n int) [][]string {
 	res := make([]string, n)
 	for i := range n {
 		res[i] = leftAlign
 	}
-	return res
+	return [][]string{res}
 }
