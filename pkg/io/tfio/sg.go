@@ -23,13 +23,11 @@ func (w *Writer) WriteSG(c *ir.SGCollection, vpc string, _ bool) error {
 	if err != nil {
 		return err
 	}
-	output := collection.Print()
-	_, err = w.w.WriteString(output)
+	_, err = w.w.WriteString(collection.Print())
 	if err != nil {
 		return err
 	}
-	err = w.w.Flush()
-	return err
+	return w.w.Flush()
 }
 
 func sgCollection(collection *ir.SGCollection, vpc string) (*tf.ConfigFile, error) {
