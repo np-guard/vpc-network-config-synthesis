@@ -8,7 +8,7 @@ package subcmds
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/optimize"
+	sgoptimizer "github.com/np-guard/vpc-network-config-synthesis/pkg/optimize/sg"
 )
 
 const sgNameFlag = "sg-name"
@@ -20,7 +20,7 @@ func newOptimizeSGCommand(args *inArgs) *cobra.Command {
 		Long:  `OptimizeSG attempts to reduce the number of security group rules in a SG without changing the semantic.`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			return optimization(cmd, args, optimize.NewSGOptimizer, true)
+			return optimization(cmd, args, sgoptimizer.NewSGOptimizer, true)
 		},
 	}
 

@@ -1,0 +1,60 @@
+{
+    "externals": {
+        "e1": "0.0.0.0/31", 
+        "e2": "0.0.0.2/31",
+        "e3": "0.0.0.4/30"
+    },
+    "required-connections": [
+        {
+            "src": {
+                "name": "vsi1",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "e1",
+                "type": "external"
+            }, 
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP",
+                    "min_destination_port": 1,
+                    "max_destination_port": 10
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "vsi1",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "e2",
+                "type": "external"
+            }, 
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP",
+                    "min_destination_port": 1,
+                    "max_destination_port": 20
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "vsi1",
+                "type": "instance"
+            },
+            "dst": {
+                "name": "e3",
+                "type": "external"
+            }, 
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP",
+                    "min_destination_port": 1,
+                    "max_destination_port": 10
+                }
+            ]
+        }
+    ]
+}
