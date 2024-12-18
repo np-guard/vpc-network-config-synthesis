@@ -45,7 +45,7 @@ func ReadSGs(filename string) (*ir.SGCollection, error) {
 			SGName:        sgName,
 			InboundRules:  inbound,
 			OutboundRules: outbound,
-			Targets:       transalteTargets(&sg.SecurityGroup),
+			Targets:       transalateTargets(&sg.SecurityGroup),
 		}
 	}
 	return result, nil
@@ -154,7 +154,7 @@ func translateLocal(local vpcv1.SecurityGroupRuleLocalIntf) (*netset.IPBlock, er
 }
 
 // translate SG targets
-func transalteTargets(sg *vpcv1.SecurityGroup) []string {
+func transalateTargets(sg *vpcv1.SecurityGroup) []string {
 	if len(sg.Targets) == 0 {
 		log.Printf("Warning: Security Groups %s does not have attached resources", *sg.Name)
 	}
