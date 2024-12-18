@@ -8,6 +8,7 @@ package ir
 import (
 	"fmt"
 	"reflect"
+	"slices"
 
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
@@ -76,8 +77,7 @@ func (r *ACLRule) Target() *netset.IPBlock {
 func (a *ACL) Rules() []*ACLRule {
 	rules := a.Internal
 	if len(a.External) != 0 {
-		rules = append(rules, makeDenyInternal()...)
-		rules = append(rules, a.External...)
+		rules = slices.Concat(rules, makeDenyInternal(), a.External)
 	}
 	return rules
 }

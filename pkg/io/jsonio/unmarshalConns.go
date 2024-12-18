@@ -10,9 +10,11 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"slices"
 
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/spec"
+
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
@@ -25,7 +27,7 @@ func (r *Reader) translateConnections(conns []spec.SpecRequiredConnectionsElem, 
 		if err != nil {
 			return nil, err
 		}
-		res = append(res, connections...)
+		res = slices.Concat(res, connections)
 	}
 	return res, nil
 }
