@@ -67,7 +67,7 @@ func sg(sG *ir.SG, vpcName string) (tf.Block, error) {
 		return tf.Block{}, err
 	}
 	return tf.Block{
-		Name:    "resource",
+		Name:    resourceConst,
 		Labels:  []string{quote("ibm_is_security_group"), quote(sgName)},
 		Comment: comment,
 		Arguments: []tf.Argument{
