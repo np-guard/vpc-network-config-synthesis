@@ -89,23 +89,23 @@ func reduceIPCubes(cubes *ipCubesPerProtocol) {
 		// case 1
 		case udpAndICMPSubsetOfTCP && udpComparedToICMP == -1:
 			udpPtr++
-		case udpAndICMPSubsetOfTCP && udpComparedToICMP == 1:
+		case udpAndICMPSubsetOfTCP:
 			icmpPtr++
 		case tcpAndICMPSubsetOfUDP && tcpComparedToICMP == -1:
 			tcpPtr++
-		case tcpAndICMPSubsetOfUDP && tcpComparedToICMP == 1:
+		case tcpAndICMPSubsetOfUDP:
 			icmpPtr++
 		case tcpAndUDPSubsetOfICMP && tcpComparedToUDP == -1:
 			tcpPtr++
-		case tcpAndUDPSubsetOfICMP && tcpComparedToUDP == 1:
+		case tcpAndUDPSubsetOfICMP:
 			udpPtr++
 
 		// case 2
-		case tcpComparedToUDP == -1 && tcpComparedToICMP == -1:
+		case tcpComparedToUDP < 1 && tcpComparedToICMP < 1:
 			tcpPtr++
-		case tcpComparedToUDP == 1 && udpComparedToICMP == -1:
+		case tcpComparedToUDP >= 0 && udpComparedToICMP < 1:
 			udpPtr++
-		case tcpComparedToICMP == 1 && udpComparedToICMP == 1:
+		case tcpComparedToICMP >= 0 && udpComparedToICMP >= 0:
 			icmpPtr++
 		}
 	}

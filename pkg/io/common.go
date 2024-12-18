@@ -32,7 +32,7 @@ func direction(d ir.Direction) string {
 func printProtocolName(protocol netp.Protocol) string {
 	switch p := protocol.(type) {
 	case netp.ICMP:
-		return "ICMP"
+		return string(netp.ProtocolStringICMP)
 	case netp.TCPUDP:
 		return strings.ToUpper(string(p.ProtocolString()))
 	case netp.AnyProtocol:

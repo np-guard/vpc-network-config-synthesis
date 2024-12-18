@@ -8,15 +8,13 @@ package io
 import (
 	"bufio"
 	"io"
+	"slices"
 	"strings"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
 const (
-	sgColsNum  = 7
-	aclColsNum = 10
-
 	leftAlign = " :--- "
 	separator = " | "
 )
@@ -35,7 +33,8 @@ func (w *MDWriter) WriteSG(collection *ir.SGCollection, vpc string, _ bool) erro
 	if err != nil {
 		return err
 	}
-	return w.writeAll(append(append(SGHeader(), addAligns(sgColsNum)), sgTable...))
+	sgHeader := makeSGHeader()
+	return w.writeAll(slices.Concat(sgHeader, addAligns(len(sgHeader[0])), sgTable))
 }
 
 func (w *MDWriter) WriteACL(collection *ir.ACLCollection, vpc string, _ bool) error {
@@ -43,29 +42,24 @@ func (w *MDWriter) WriteACL(collection *ir.ACLCollection, vpc string, _ bool) er
 	if err != nil {
 		return err
 	}
-	return w.writeAll(append(append(ACLHeader(), addAligns(aclColsNum)), aclTable...))
+	aclHeader := makeACLHeader()
+	return w.writeAll(slices.Concat(aclHeader, addAligns(len(aclHeader[0])), aclTable))
 }
 
 func (w *MDWriter) writeAll(rows [][]string) error {
 	for _, row := range rows {
-		if _, err := w.w.WriteString(separator); err != nil {
-			return err
-		}
-		if _, err := w.w.WriteString(strings.Join(row, separator)); err != nil {
-			return err
-		}
-		if _, err := w.w.WriteString(separator + "\n"); err != nil {
+		finalString := separator + strings.Join(row, separator) + separator + "\n"
+		if _, err := w.w.WriteString(finalString); err != nil {
 			return err
 		}
 	}
-	w.w.Flush()
-	return nil
+	return w.w.Flush()
 }
 
-func addAligns(n int) []string {
+func addAligns(n int) [][]string {
 	res := make([]string, n)
 	for i := range n {
 		res[i] = leftAlign
 	}
-	return res
+	return [][]string{res}
 }

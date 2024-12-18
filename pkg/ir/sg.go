@@ -8,6 +8,7 @@ package ir
 import (
 	"fmt"
 	"reflect"
+	"slices"
 
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
@@ -77,7 +78,6 @@ func NewSG(sgName SGName) *SG {
 	return &SG{SGName: sgName,
 		InboundRules:  make(map[string][]*SGRule),
 		OutboundRules: make(map[string][]*SGRule),
-		Targets:       []ID{},
 	}
 }
 
@@ -112,10 +112,10 @@ func (a *SG) Add(rule *SGRule) {
 func (a *SG) AllRules() []*SGRule {
 	res := make([]*SGRule, 0)
 	for _, key := range utils.SortedMapKeys(a.InboundRules) {
-		res = append(res, a.InboundRules[key]...)
+		res = slices.Concat(res, a.InboundRules[key])
 	}
 	for _, key := range utils.SortedMapKeys(a.OutboundRules) {
-		res = append(res, a.OutboundRules[key]...)
+		res = slices.Concat(res, a.OutboundRules[key])
 	}
 	return res
 }

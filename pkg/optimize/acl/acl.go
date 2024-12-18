@@ -20,7 +20,7 @@ type (
 	aclOptimizer struct {
 		aclCollection *ir.ACLCollection
 		aclName       string
-		aclVPC        *string
+		aclVPC        string
 	}
 
 	tcpudpTripleSet = ds.TripleSet[*netset.IPBlock, *netset.IPBlock, *netset.PortSet]
@@ -46,15 +46,15 @@ const temporary = 20
 func NewACLOptimizer(collection ir.Collection, aclName string) optimize.Optimizer {
 	components := ir.ScopingComponents(aclName)
 	if len(components) == 1 {
-		return &aclOptimizer{aclCollection: collection.(*ir.ACLCollection), aclName: aclName, aclVPC: nil}
+		return &aclOptimizer{aclCollection: collection.(*ir.ACLCollection), aclName: aclName, aclVPC: ""}
 	}
-	return &aclOptimizer{aclCollection: collection.(*ir.ACLCollection), aclName: components[1], aclVPC: &components[0]}
+	return &aclOptimizer{aclCollection: collection.(*ir.ACLCollection), aclName: components[1], aclVPC: components[0]}
 }
 
 func (a *aclOptimizer) Optimize() (ir.Collection, error) {
 	if a.aclName != "" {
 		for _, vpcName := range utils.SortedMapKeys(a.aclCollection.ACLs) {
-			if a.aclVPC != nil || a.aclVPC != &vpcName {
+			if a.aclVPC != "" || a.aclVPC != vpcName {
 				continue
 			}
 			if _, ok := a.aclCollection.ACLs[vpcName][a.aclName]; ok {
