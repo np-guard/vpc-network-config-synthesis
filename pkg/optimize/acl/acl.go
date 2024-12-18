@@ -41,8 +41,6 @@ type (
 	}
 )
 
-const temporary = 20
-
 func NewACLOptimizer(collection ir.Collection, aclName string) optimize.Optimizer {
 	components := ir.ScopingComponents(aclName)
 	if len(components) == 1 {
@@ -79,14 +77,14 @@ func (a *aclOptimizer) optimizeACL(vpcName, aclName string) {
 
 	// reduce inbound rules first
 	newInboundRules := a.reduceACLRules(acl.Inbound, ir.Inbound)
-	if len(acl.Inbound) > len(newInboundRules)+temporary { // temporary const -- to pass optimizeACL tests
+	if len(acl.Inbound) > len(newInboundRules) {
 		reducedRules += len(acl.Inbound) - len(newInboundRules)
 		acl.Inbound = newInboundRules
 	}
 
 	// reduce outbound rules second
 	newOutboundRules := a.reduceACLRules(acl.Outbound, ir.Outbound)
-	if len(acl.Outbound) > len(newOutboundRules)+temporary { // temporary const -- to pass optimizeACL tests
+	if len(acl.Outbound) > len(newOutboundRules) {
 		reducedRules += len(acl.Outbound) - len(newOutboundRules)
 		acl.Outbound = newOutboundRules
 	}
