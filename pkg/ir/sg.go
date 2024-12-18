@@ -8,6 +8,7 @@ package ir
 import (
 	"fmt"
 	"reflect"
+	"slices"
 
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
@@ -104,7 +105,7 @@ func (a *SG) Add(rule *SGRule) {
 }
 
 func (a *SG) AllRules() []*SGRule {
-	return append(a.InboundRules, a.OutboundRules...)
+	return slices.Concat(a.InboundRules, a.OutboundRules)
 }
 
 func (c *SGCollection) VpcNames() []string {
