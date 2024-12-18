@@ -64,8 +64,14 @@ func aclRule(rule *ir.ACLRule, name string) (tf.Block, error) {
 		{Name: "source", Value: quote(rule.Source.String())},
 		{Name: "destination", Value: quote(rule.Destination.String())},
 	}
+
+	comment := "\n"
+	if rule.Explanation != "" {
+		comment = fmt.Sprintf("# %v", rule.Explanation)
+	}
+
 	return tf.Block{Name: "rules",
-		Comment:   fmt.Sprintf("# %v", rule.Explanation),
+		Comment:   comment,
 		Arguments: arguments,
 		Blocks:    aclProtocol(rule.Protocol),
 	}, nil
@@ -103,7 +109,7 @@ func aclCollection(t *ir.ACLCollection, vpc string) (*tf.ConfigFile, error) {
 	var acls = make([]tf.Block, len(sortedACLs))
 	i := 0
 	for _, subnet := range sortedACLs {
-		comment := ""
+		comment := "\n"
 		vpcName := ir.VpcFromScopedResource(subnet)
 		acl := t.ACLs[vpcName][subnet]
 		if len(sortedACLs) > 1 { // not a single nacl

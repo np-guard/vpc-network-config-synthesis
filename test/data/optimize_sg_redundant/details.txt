@@ -1,0 +1,20 @@
+original config object: acl_testing4 config
+
+######## BEFORE ########
+
+vsi1 --> 0.0.0.0/30 (any protocol)
+vsi1 --> 0.0.0.0/31 (any protocol)
+vsi1 --> 1.0.0.0/30 (any protocol)
+vsi1 --> 1.0.0.0/31 (TCP)
+
+vsi1 --> vsi2 (any protocol)
+vsi1 --> vsi2 (any protocol)
+vsi1 --> vsi3a (TCP)
+vsi1 --> vsi3a (any protocol)
+
+######## AFTER ########
+
+vsi1 --> 0.0.0.0/30 (any protocol)
+vsi1 --> 1.0.0.0/30 (any protocol)
+vsi1 --> vsi2 (any protocol)
+vsi1 --> vsi3a (any protocol)

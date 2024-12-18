@@ -26,3 +26,10 @@ func unmarshal(args *inArgs, isSG bool) (*ir.Spec, error) {
 
 	return model, nil
 }
+
+func parseCollection(args *inArgs, isSG bool) (ir.Collection, error) {
+	if isSG {
+		return confio.ReadSGs(args.configFile)
+	}
+	return confio.ReadACLs(args.configFile)
+}

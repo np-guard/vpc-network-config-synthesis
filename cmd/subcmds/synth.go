@@ -13,7 +13,9 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
 )
 
-func NewSynthCommand(args *inArgs) *cobra.Command {
+const specFlag = "spec"
+
+func newSynthCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "synth",
 		Short: "generate a SG/nACL collection",
@@ -21,9 +23,13 @@ func NewSynthCommand(args *inArgs) *cobra.Command {
 		--config and --spec parameters must be supplied.`,
 	}
 
+	// flags
 	cmd.PersistentFlags().StringVarP(&args.specFile, specFlag, "s", "", "JSON file containing spec file")
+
+	// flags settings
 	_ = cmd.MarkPersistentFlagRequired(specFlag)
 
+	// subcmds
 	cmd.AddCommand(newSynthACLCommand(args))
 	cmd.AddCommand(newSynthSGCommand(args))
 
@@ -39,5 +45,5 @@ func synthesis(cmd *cobra.Command, args *inArgs, newSynthesizer func(*ir.Spec, b
 	synthesizer := newSynthesizer(spec, singleacl)
 	collection, warning := synthesizer.Synth()
 	cmd.Print(warning)
-	return writeOutput(args, collection, utils.MapKeys(spec.Defs.ConfigDefs.VPCs))
+	return writeOutput(args, collection, utils.MapKeys(spec.Defs.ConfigDefs.VPCs), true)
 }

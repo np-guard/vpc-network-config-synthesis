@@ -1,0 +1,23 @@
+original config object: acl_testing4 config
+
+######## BEFORE ########
+
+vsi1 --> 0.0.0.0/30 (icmp)
+vsi1 --> 0.0.0.0/31 (tcp)
+vsi1 --> 0.0.0.0/31 (udp ports 1-100)
+vsi1 --> 0.0.0.0/31 (udp ports 50-150)
+vsi1 --> 0.0.0.0/31 (udp ports 151-65535)
+
+vsi1 --> vsi2 (icmp)
+vsi1 --> vsi2 (tcp)
+vsi1 --> vsi2 (udp ports 1-100)
+vsi1 --> vsi2 (udp ports 50-150)
+vsi1 --> vsi2 (udp ports 151-65535)
+
+
+
+######## AFTER ########
+
+vsi1 --> 0.0.0.0/31 (any protocol)
+vsi1 --> 0.0.0.0/30 (icmp)
+vsi1 --> vsi2 (any protocol)

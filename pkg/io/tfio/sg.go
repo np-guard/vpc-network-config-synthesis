@@ -72,10 +72,15 @@ func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) (tf.Block, error) {
 		return tf.Block{}, err
 	}
 
+	comment := ""
+	if rule.Explanation != "" {
+		comment = fmt.Sprintf("# %v", rule.Explanation)
+	}
+
 	return tf.Block{
 		Name:    "resource",
 		Labels:  []string{quote("ibm_is_security_group_rule"), ir.ChangeScoping(quote(ruleName))},
-		Comment: fmt.Sprintf("# %v", rule.Explanation),
+		Comment: comment,
 		Arguments: []tf.Argument{
 			{Name: "group", Value: group},
 			{Name: "direction", Value: quote(direction(rule.Direction))},
@@ -85,42 +90,48 @@ func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) (tf.Block, error) {
 	}, nil
 }
 
-func sg(sgName, comment string) (tf.Block, error) {
-	vpcName := ir.VpcFromScopedResource(sgName)
-	sgName = ir.ChangeScoping(sgName)
-	if err := verifyName(sgName); err != nil {
+func sg(sgName, vpcName string) (tf.Block, error) {
+	tfSGName := ir.ChangeScoping(sgName)
+	comment := fmt.Sprintf("\n### SG attached to %s", sgName)
+	if sgName == tfSGName { // optimization mode
+		comment = "\n"
+	}
+	if err := verifyName(tfSGName); err != nil {
 		return tf.Block{}, err
 	}
 	return tf.Block{
 		Name:    "resource", //nolint:revive  // obvious false positive
-		Labels:  []string{quote("ibm_is_security_group"), ir.ChangeScoping(quote(sgName))},
+		Labels:  []string{quote("ibm_is_security_group"), quote(tfSGName)},
 		Comment: comment,
 		Arguments: []tf.Argument{
-			{Name: "name", Value: quote("sg-" + sgName)},
+			{Name: "name", Value: quote("sg-" + tfSGName)},
 			{Name: "resource_group", Value: "local.sg_synth_resource_group_id"},
 			{Name: "vpc", Value: fmt.Sprintf("local.sg_synth_%s_id", vpcName)},
 		},
 	}, nil
 }
 
-func sgCollection(t *ir.SGCollection, vpc string) (*tf.ConfigFile, error) {
-	var resources []tf.Block //nolint:prealloc  // nontrivial to calculate, and an unlikely performance bottleneck
-	for _, sgName := range t.SortedSGNames(vpc) {
-		comment := ""
-		vpcName := ir.VpcFromScopedResource(string(sgName))
-		rules := t.SGs[vpcName][sgName].AllRules()
-		comment = fmt.Sprintf("\n### SG attached to %v", sgName)
-		sg, err := sg(sgName.String(), comment)
-		if err != nil {
-			return nil, err
+func sgCollection(collection *ir.SGCollection, vpc string) (*tf.ConfigFile, error) {
+	var resources []tf.Block
+
+	for _, vpcName := range collection.VpcNames() {
+		if vpc != vpcName && vpc != "" {
+			continue
 		}
-		resources = append(resources, sg)
-		for i, rule := range rules {
-			rule, err := sgRule(rule, sgName, i)
+		for _, sgName := range collection.SortedSGNames(vpcName) {
+			rules := collection.SGs[vpcName][sgName].AllRules()
+			sg, err := sg(sgName.String(), vpcName)
 			if err != nil {
 				return nil, err
 			}
-			resources = append(resources, rule)
+			resources = append(resources, sg)
+			for i, rule := range rules {
+				rule, err := sgRule(rule, sgName, i)
+				if err != nil {
+					return nil, err
+				}
+				resources = append(resources, rule)
+			}
 		}
 	}
 	return &tf.ConfigFile{
