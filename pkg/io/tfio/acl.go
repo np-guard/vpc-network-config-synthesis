@@ -8,6 +8,7 @@ package tfio
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/np-guard/models/pkg/netp"
@@ -22,9 +23,7 @@ func (w *Writer) WriteACL(c *ir.ACLCollection, vpc string, _ bool) error {
 	if err != nil {
 		return err
 	}
-	output := collection.Print()
-	_, err = w.w.WriteString(output)
-	if err != nil {
+	if _, err := w.w.WriteString(collection.Print()); err != nil {
 		return err
 	}
 	return w.w.Flush()
@@ -66,10 +65,10 @@ func singleACL(acl *ir.ACL, vpcName string) (tf.Block, error) {
 	}
 	return tf.Block{
 		Comment: aclComment(acl),
-		Name:    "resource",
+		Name:    resourceConst,
 		Labels:  []string{quote("ibm_is_network_acl"), quote(aclName)},
 		Arguments: []tf.Argument{
-			{Name: "name", Value: quote(aclName)},
+			{Name: nameConst, Value: quote(aclName)},
 			{Name: "resource_group", Value: "local.acl_synth_resource_group_id"},
 			{Name: "vpc", Value: fmt.Sprintf("local.acl_synth_%s_id", vpcName)},
 		},
@@ -82,7 +81,7 @@ func aclRule(rule *ir.ACLRule, name string) (tf.Block, error) {
 		return tf.Block{}, err
 	}
 	arguments := []tf.Argument{
-		{Name: "name", Value: quote(name)}, //nolint:revive  // obvious false positive
+		{Name: nameConst, Value: quote(name)},
 		{Name: "action", Value: quote(action(rule.Action))},
 		{Name: "direction", Value: quote(direction(rule.Direction))},
 		{Name: "source", Value: quote(rule.Source.String())},
@@ -105,11 +104,8 @@ func aclProtocol(t netp.Protocol) []tf.Block {
 	switch p := t.(type) {
 	case netp.TCPUDP:
 		return []tf.Block{{
-			Name: strings.ToLower(string(p.ProtocolString())),
-			Arguments: append(
-				portRange(p.DstPorts(), "port"),
-				portRange(p.SrcPorts(), "source_port")...,
-			),
+			Name:      strings.ToLower(string(p.ProtocolString())),
+			Arguments: slices.Concat(portRange(p.DstPorts(), "port"), portRange(p.SrcPorts(), "source_port")),
 		}}
 	case netp.ICMP:
 		return []tf.Block{{

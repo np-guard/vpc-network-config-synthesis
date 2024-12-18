@@ -82,7 +82,7 @@ func (a *ACL) Rules() []*ACLRule {
 	}
 	rules := a.Internal
 	if len(a.External) != 0 {
-		rules = append(rules, append(makeDenyInternal(), a.External...)...)
+		rules = slices.Concat(rules, makeDenyInternal(), a.External)
 	}
 	return rules
 }

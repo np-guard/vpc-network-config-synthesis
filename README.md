@@ -14,7 +14,7 @@ Use the `vpcgen` CLI tool with one of the following commands:
 
 ## Synthesis
 #### nACLs Generation 
-a required connection between NIFs/VSIs/VPEs implies connectivity will be allowed between the subnets they are contained in.
+A required connection between NIFs/VSIs/VPEs implies connectivity will be allowed between the subnets they are contained in.
 
 #### SGs Generation
 A Security Group, generated for a specific VSI (or for one of its NIFs), will be applied to all the NIFs of the VSI. The same goes for Reserved IPs of a VPE.
@@ -26,7 +26,6 @@ The input supports subnets, subnet segments, CIDR segments, NIFs, NIF segments, 
 #### Options
 ```commandline
 Flags:
-  -h, --help                help for synth
   -s, --spec string         JSON file containing spec file
 ```
 
@@ -85,6 +84,8 @@ make build
 bin/vpcgen synth acl -c test/data/acl_testing5/config_object.json -s test/data/acl_testing5/conn_spec.json
 
 bin/vpcgen synth sg -c test/data/sg_testing3/config_object.json -s test/data/sg_testing3/conn_spec.json
+
+bin/vpcgen optimize sg -c test/data/optimize_sg_redundant/config_object.json
 ```
 
 **Note**: Windows environment users should replace all `/` with `\`.

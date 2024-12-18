@@ -23,13 +23,10 @@ func (w *Writer) WriteSG(c *ir.SGCollection, vpc string, _ bool) error {
 	if err != nil {
 		return err
 	}
-	output := collection.Print()
-	_, err = w.w.WriteString(output)
-	if err != nil {
+	if _, err := w.w.WriteString(collection.Print()); err != nil {
 		return err
 	}
-	err = w.w.Flush()
-	return err
+	return w.w.Flush()
 }
 
 func sgCollection(collection *ir.SGCollection, vpc string) (*tf.ConfigFile, error) {
@@ -74,7 +71,7 @@ func sg(sG *ir.SG, vpcName string) (tf.Block, error) {
 		Labels:  []string{quote("ibm_is_security_group"), quote(sgName)},
 		Comment: comment,
 		Arguments: []tf.Argument{
-			{Name: "name", Value: quote("sg-" + sgName)},
+			{Name: nameConst, Value: quote("sg-" + sgName)},
 			{Name: "resource_group", Value: "local.sg_synth_resource_group_id"},
 			{Name: "vpc", Value: fmt.Sprintf("local.sg_synth_%s_id", vpcName)},
 		},
@@ -99,7 +96,7 @@ func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) (tf.Block, error) {
 	}
 
 	return tf.Block{
-		Name:    "resource", //nolint:revive  // obvious false positive
+		Name:    resourceConst,
 		Labels:  []string{quote("ibm_is_security_group_rule"), ir.ChangeScoping(quote(ruleName))},
 		Comment: comment,
 		Arguments: []tf.Argument{
