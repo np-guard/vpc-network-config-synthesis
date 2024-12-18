@@ -8,6 +8,7 @@ package ir
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/np-guard/models/pkg/netp"
@@ -312,8 +313,8 @@ func (s *Definitions) lookupSegment(segment map[ID]*SegmentDetails, name string,
 		if err != nil {
 			return nil, err
 		}
-		res.CidrsWhenLocal = append(res.CidrsWhenLocal, element.CidrsWhenLocal...)
-		res.CidrsWhenRemote = append(res.CidrsWhenRemote, element.CidrsWhenRemote...)
+		res.CidrsWhenLocal = slices.Concat(res.CidrsWhenLocal, element.CidrsWhenLocal)
+		res.CidrsWhenRemote = slices.Concat(res.CidrsWhenRemote, element.CidrsWhenRemote)
 	}
 	segmentDetails.ConnectedResource = res
 	return res, nil

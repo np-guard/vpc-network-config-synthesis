@@ -135,7 +135,7 @@ func (s *sgOptimizer) reduceSGRules(rules []*ir.SGRule, direction ir.Direction) 
 		optimizedRulesToIPAddrs = originalRulesToIPAddrs
 	}
 
-	return append(optimizedRulesToSG, optimizedRulesToIPAddrs...)
+	return slices.Concat(optimizedRulesToSG, optimizedRulesToIPAddrs)
 }
 
 func reduceRulesSGRemote(cubes *sgCubesPerProtocol, direction ir.Direction) []*ir.SGRule {

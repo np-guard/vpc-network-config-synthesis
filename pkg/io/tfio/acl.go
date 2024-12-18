@@ -8,6 +8,7 @@ package tfio
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/np-guard/models/pkg/netp"
@@ -23,13 +24,10 @@ func (w *Writer) WriteACL(c *ir.ACLCollection, vpc string, _ bool) error {
 	if err != nil {
 		return err
 	}
-	output := collection.Print()
-	_, err = w.w.WriteString(output)
-	if err != nil {
+	if _, err := w.w.WriteString(collection.Print()); err != nil {
 		return err
 	}
-	err = w.w.Flush()
-	return err
+	return w.w.Flush()
 }
 
 func aclCollection(t *ir.ACLCollection, vpc string) (*tf.ConfigFile, error) {
@@ -37,9 +35,9 @@ func aclCollection(t *ir.ACLCollection, vpc string) (*tf.ConfigFile, error) {
 	var acls = make([]tf.Block, len(sortedACLs))
 	i := 0
 	for _, subnet := range sortedACLs {
-		comment := "\n"
 		vpcName := ir.VpcFromScopedResource(subnet)
 		acl := t.ACLs[vpcName][subnet]
+		comment := "\n"
 		if len(sortedACLs) > 1 { // not a single nacl
 			comment = fmt.Sprintf("\n# %v [%v]", subnet, subnetCidr(acl))
 		}
@@ -110,11 +108,8 @@ func aclProtocol(t netp.Protocol) []tf.Block {
 	switch p := t.(type) {
 	case netp.TCPUDP:
 		return []tf.Block{{
-			Name: strings.ToLower(string(p.ProtocolString())),
-			Arguments: append(
-				portRange(p.DstPorts(), "port"),
-				portRange(p.SrcPorts(), "source_port")...,
-			),
+			Name:      strings.ToLower(string(p.ProtocolString())),
+			Arguments: slices.Concat(portRange(p.DstPorts(), "port"), portRange(p.SrcPorts(), "source_port")),
 		}}
 	case netp.ICMP:
 		return []tf.Block{{
