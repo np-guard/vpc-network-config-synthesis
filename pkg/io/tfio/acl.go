@@ -24,8 +24,7 @@ func (w *Writer) WriteACL(c *ir.ACLCollection, vpc string, _ bool) error {
 	if err != nil {
 		return err
 	}
-	_, err = w.w.WriteString(collection.Print())
-	if err != nil {
+	if _, err := w.w.WriteString(collection.Print()); err != nil {
 		return err
 	}
 	return w.w.Flush()

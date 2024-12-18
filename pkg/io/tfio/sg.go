@@ -23,8 +23,7 @@ func (w *Writer) WriteSG(c *ir.SGCollection, vpc string, _ bool) error {
 	if err != nil {
 		return err
 	}
-	_, err = w.w.WriteString(collection.Print())
-	if err != nil {
+	if _, err := w.w.WriteString(collection.Print()); err != nil {
 		return err
 	}
 	return w.w.Flush()
