@@ -39,7 +39,7 @@ type (
 	}
 
 	ACLWriter interface {
-		WriteACL(aclColl *ACLCollection, vpc string) error
+		WriteACL(aclColl *ACLCollection, vpc string, isSynth bool) error
 	}
 )
 
@@ -126,8 +126,8 @@ func (c *ACLCollection) VpcNames() []string {
 	return utils.SortedMapKeys(c.ACLs)
 }
 
-func (c *ACLCollection) Write(w Writer, vpc string) error {
-	return w.WriteACL(c, vpc)
+func (c *ACLCollection) Write(w Writer, vpc string, isSynth bool) error {
+	return w.WriteACL(c, vpc, isSynth)
 }
 
 func (c *ACLCollection) SortedACLSubnets(vpc string) []string {

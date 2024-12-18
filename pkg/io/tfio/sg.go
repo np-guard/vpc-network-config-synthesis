@@ -18,7 +18,7 @@ import (
 )
 
 // WriteSG prints an entire collection of Security Groups as a sequence of terraform resources.
-func (w *Writer) WriteSG(c *ir.SGCollection, vpc string) error {
+func (w *Writer) WriteSG(c *ir.SGCollection, vpc string, _ bool) error {
 	collection, err := sgCollection(c, vpc)
 	if err != nil {
 		return err
@@ -37,13 +37,13 @@ func sgCollection(collection *ir.SGCollection, vpc string) (*tf.ConfigFile, erro
 			continue
 		}
 		for _, sgName := range collection.SortedSGNames(vpcName) {
-			rules := collection.SGs[vpcName][sgName].AllRules()
-			sg, err := sg(sgName.String(), vpcName)
+			sgObject := collection.SGs[vpcName][sgName]
+			sgTf, err := sg(sgObject, vpcName)
 			if err != nil {
 				return nil, err
 			}
-			resources = append(resources, sg)
-			for i, rule := range rules {
+			resources = append(resources, sgTf)
+			for i, rule := range sgObject.AllRules() {
 				rule, err := sgRule(rule, sgName, i)
 				if err != nil {
 					return nil, err
@@ -57,21 +57,21 @@ func sgCollection(collection *ir.SGCollection, vpc string) (*tf.ConfigFile, erro
 	}, nil
 }
 
-func sg(sgName, vpcName string) (tf.Block, error) {
-	tfSGName := ir.ChangeScoping(sgName)
-	comment := fmt.Sprintf("\n### SG attached to %s", sgName)
-	if sgName == tfSGName { // optimization mode
-		comment = "\n"
+func sg(sG *ir.SG, vpcName string) (tf.Block, error) {
+	sgName := ir.ChangeScoping(sG.SGName.String())
+	comment := fmt.Sprintf("\n### SG %s is attached to %s", sgName, strings.Join(sG.Targets, ", "))
+	if len(sG.Targets) == 0 {
+		comment = fmt.Sprintf("\n### SG %s is not attached to anything", sgName)
 	}
-	if err := verifyName(tfSGName); err != nil {
+	if err := verifyName(sgName); err != nil {
 		return tf.Block{}, err
 	}
 	return tf.Block{
 		Name:    resourceConst,
-		Labels:  []string{quote("ibm_is_security_group"), quote(tfSGName)},
+		Labels:  []string{quote("ibm_is_security_group"), quote(sgName)},
 		Comment: comment,
 		Arguments: []tf.Argument{
-			{Name: nameConst, Value: quote("sg-" + tfSGName)},
+			{Name: nameConst, Value: quote("sg-" + sgName)},
 			{Name: "resource_group", Value: "local.sg_synth_resource_group_id"},
 			{Name: "vpc", Value: fmt.Sprintf("local.sg_synth_%s_id", vpcName)},
 		},
