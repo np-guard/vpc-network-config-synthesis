@@ -26,7 +26,7 @@ func SortedMapKeys[T cmp.Ordered, V any](m map[T]V) []T {
 func SortedAllInnerMapsKeys[T, K cmp.Ordered, V any](m map[K]map[T]V) []T {
 	keys := make([]T, 0)
 	for _, vpc := range m {
-		keys = append(keys, MapKeys(vpc)...)
+		keys = slices.Concat(keys, MapKeys(vpc))
 	}
 	slices.Sort(keys)
 	return keys

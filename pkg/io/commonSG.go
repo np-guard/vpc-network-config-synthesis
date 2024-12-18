@@ -8,6 +8,7 @@ package io
 import (
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
@@ -26,7 +27,7 @@ func WriteSG(collection *ir.SGCollection, vpc string) ([][]string, error) {
 			if err != nil {
 				return nil, err
 			}
-			res = append(res, sgTable...)
+			res = slices.Concat(res, sgTable)
 		}
 	}
 	return res, nil
