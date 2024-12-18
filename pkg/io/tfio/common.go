@@ -20,6 +20,11 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
+const (
+	resourceConst = "resource"
+	nameConst     = "name"
+)
+
 // Writer implements ir.Writer
 type Writer struct {
 	w *bufio.Writer
