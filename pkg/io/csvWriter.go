@@ -27,7 +27,7 @@ func (w *CSVWriter) WriteSG(collection *ir.SGCollection, vpc string, _ bool) err
 	if err != nil {
 		return err
 	}
-	return w.w.WriteAll(slices.Concat(SGHeader(), sgTable))
+	return w.w.WriteAll(slices.Concat(makeSGHeader(), sgTable))
 }
 
 func (w *CSVWriter) WriteACL(collection *ir.ACLCollection, vpc string, _ bool) error {
@@ -35,5 +35,5 @@ func (w *CSVWriter) WriteACL(collection *ir.ACLCollection, vpc string, _ bool) e
 	if err != nil {
 		return err
 	}
-	return w.w.WriteAll(slices.Concat(ACLHeader(), aclTable))
+	return w.w.WriteAll(slices.Concat(makeACLHeader(), aclTable))
 }

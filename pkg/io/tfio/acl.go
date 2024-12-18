@@ -69,10 +69,10 @@ func singleACL(t *ir.ACL, comment string) (tf.Block, error) {
 	}
 	return tf.Block{
 		Comment: comment,
-		Name:    "resource",
+		Name:    resourceConst,
 		Labels:  []string{quote("ibm_is_network_acl"), quote(aclName)},
 		Arguments: []tf.Argument{
-			{Name: "name", Value: quote(aclName)},
+			{Name: nameConst, Value: quote(aclName)},
 			{Name: "resource_group", Value: "local.acl_synth_resource_group_id"},
 			{Name: "vpc", Value: fmt.Sprintf("local.acl_synth_%s_id", ir.VpcFromScopedResource(t.Subnet))},
 		},
@@ -85,7 +85,7 @@ func aclRule(rule *ir.ACLRule, name string) (tf.Block, error) {
 		return tf.Block{}, err
 	}
 	arguments := []tf.Argument{
-		{Name: "name", Value: quote(name)}, //nolint:revive  // obvious false positive
+		{Name: nameConst, Value: quote(name)},
 		{Name: "action", Value: quote(action(rule.Action))},
 		{Name: "direction", Value: quote(direction(rule.Direction))},
 		{Name: "source", Value: quote(rule.Source.String())},
