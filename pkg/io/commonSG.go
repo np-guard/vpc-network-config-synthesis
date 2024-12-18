@@ -33,7 +33,7 @@ func WriteSG(collection *ir.SGCollection, vpc string) ([][]string, error) {
 	return res, nil
 }
 
-func SGHeader() [][]string {
+func makeSGHeader() [][]string {
 	return [][]string{{
 		"SG",
 		"Direction",
