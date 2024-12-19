@@ -97,7 +97,7 @@ func translateSGRuleProtocolTCPUDP(rule *vpcv1.SecurityGroupRuleSecurityGroupRul
 	direction, err1 := translateDirection(*rule.Direction)
 	remote, err2 := translateRemote(rule.Remote)
 	local, err3 := translateLocal(rule.Local)
-	protocol, err4 := translateProtocolTCPUDP(*rule.Protocol, rule.PortMin, rule.PortMax)
+	protocol, err4 := translateProtocolTCPUDP(*rule.Protocol, nil, nil, rule.PortMin, rule.PortMax)
 	if err := errors.Join(err1, err2, err3, err4); err != nil {
 		return nil, err
 	}
@@ -166,9 +166,11 @@ func translateTargets(sg *vpcv1.SecurityGroup) []string {
 	return res
 }
 
-func translateProtocolTCPUDP(protocolName string, portMin, portMax *int64) (netp.Protocol, error) {
+func translateProtocolTCPUDP(protocolName string, srcPortMin, srcPortMax, dstPortMin, dstPortMax *int64) (netp.Protocol, error) {
 	isTCP := protocolName == vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudpProtocolTCPConst
-	minDstPort := utils.GetProperty(portMin, netp.MinPort)
-	maxDstPort := utils.GetProperty(portMax, netp.MaxPort)
-	return netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(minDstPort), int(maxDstPort))
+	minSrcPort := utils.GetProperty(srcPortMin, netp.MinPort)
+	maxSrcPort := utils.GetProperty(srcPortMax, netp.MaxPort)
+	minDstPort := utils.GetProperty(dstPortMin, netp.MinPort)
+	maxDstPort := utils.GetProperty(dstPortMax, netp.MaxPort)
+	return netp.NewTCPUDP(isTCP, int(minSrcPort), int(maxSrcPort), int(minDstPort), int(maxDstPort))
 }
