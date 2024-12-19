@@ -36,8 +36,8 @@ func WriteSG(collection *ir.SGCollection, vpc string) ([][]string, error) {
 func makeSGHeader() [][]string {
 	return [][]string{{
 		"SG",
-		"Local",
 		"Direction",
+		"Local",
 		"Remote type",
 		"Remote",
 		"Protocol",
@@ -69,8 +69,8 @@ func makeSGRow(rule *ir.SGRule, sgName ir.SGName) ([]string, error) {
 
 	return []string{
 		string(sgName),
-		rule.Local.String(),
 		direction(rule.Direction),
+		rule.Local.String(),
 		remoteType,
 		remote,
 		printProtocolName(rule.Protocol),
