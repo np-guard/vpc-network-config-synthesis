@@ -78,7 +78,7 @@ func (r *ACLRule) Target() *netset.IPBlock {
 
 func (a *ACL) Rules() []*ACLRule {
 	if a.Internal == nil { // optimization mode
-		return append(a.Inbound, a.Outbound...)
+		return slices.Concat(a.Inbound, a.Outbound)
 	}
 	rules := a.Internal
 	if len(a.External) != 0 {
