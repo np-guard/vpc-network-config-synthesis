@@ -8,6 +8,7 @@ resource "ibm_is_security_group" "test-vpc0--vsi0-subnet0" {
 resource "ibm_is_security_group_rule" "test-vpc0--vsi0-subnet0-0" {
   group     = ibm_is_security_group.test-vpc0--vsi0-subnet0.id
   direction = "outbound"
+  local     = "0.0.0.0/0"
   remote    = ibm_is_security_group.test-vpc0--vsi1-subnet4.id
 }
 
@@ -84,6 +85,7 @@ resource "ibm_is_security_group" "test-vpc0--vsi1-subnet4" {
 resource "ibm_is_security_group_rule" "test-vpc0--vsi1-subnet4-0" {
   group     = ibm_is_security_group.test-vpc0--vsi1-subnet4.id
   direction = "inbound"
+  local     = "0.0.0.0/0"
   remote    = ibm_is_security_group.test-vpc0--vsi0-subnet0.id
 }
 

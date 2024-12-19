@@ -8,6 +8,7 @@ resource "ibm_is_security_group" "test-vpc2--vsi0-subnet20" {
 resource "ibm_is_security_group_rule" "test-vpc2--vsi0-subnet20-0" {
   group     = ibm_is_security_group.test-vpc2--vsi0-subnet20.id
   direction = "outbound"
+  local     = "0.0.0.0/0"
   remote    = ibm_is_security_group.test-vpc2--vsi2-subnet20.id
   tcp {
     port_min = 53
@@ -32,6 +33,7 @@ resource "ibm_is_security_group" "test-vpc2--vsi2-subnet20" {
 resource "ibm_is_security_group_rule" "test-vpc2--vsi2-subnet20-0" {
   group     = ibm_is_security_group.test-vpc2--vsi2-subnet20.id
   direction = "inbound"
+  local     = "0.0.0.0/0"
   remote    = ibm_is_security_group.test-vpc2--vsi0-subnet20.id
   tcp {
     port_min = 53
