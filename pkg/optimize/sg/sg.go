@@ -26,12 +26,12 @@ type (
 		sgVPC        string
 	}
 
-	ruleGroups struct {
-		sgRemoteRules *rulesPerProtocol
-		ipRemoteRules *rulesPerProtocol
+	sgRuleGroups struct {
+		sgRemoteRules *sgRulesPerProtocol
+		ipRemoteRules *sgRulesPerProtocol
 	}
 
-	rulesPerProtocol struct {
+	sgRulesPerProtocol struct {
 		tcp         []*ir.SGRule
 		udp         []*ir.SGRule
 		icmp        []*ir.SGRule
@@ -171,9 +171,9 @@ func reduceRulesIPRemote(cubes *ipCubesPerProtocol, direction ir.Direction, l *n
 }
 
 // divide SGCollection to TCP/UDP/ICMP/anyProtocols X SGRemote/IPAddrs rules
-func divideSGRules(rules []*ir.SGRule) *ruleGroups {
-	rulesToSG := &rulesPerProtocol{}
-	rulesToIPAddrs := &rulesPerProtocol{}
+func divideSGRules(rules []*ir.SGRule) *sgRuleGroups {
+	rulesToSG := &sgRulesPerProtocol{}
+	rulesToIPAddrs := &sgRulesPerProtocol{}
 
 	for _, rule := range rules {
 		switch p := rule.Protocol.(type) {
@@ -206,7 +206,7 @@ func divideSGRules(rules []*ir.SGRule) *ruleGroups {
 			}
 		}
 	}
-	return &ruleGroups{sgRemoteRules: rulesToSG, ipRemoteRules: rulesToIPAddrs}
+	return &sgRuleGroups{sgRemoteRules: rulesToSG, ipRemoteRules: rulesToIPAddrs}
 }
 
 func isRemoteIPBlock(rule *ir.SGRule) bool {
@@ -214,6 +214,6 @@ func isRemoteIPBlock(rule *ir.SGRule) bool {
 	return ok
 }
 
-func (s *rulesPerProtocol) allRules() []*ir.SGRule {
+func (s *sgRulesPerProtocol) allRules() []*ir.SGRule {
 	return slices.Concat(s.tcp, s.udp, s.icmp, s.anyProtocol)
 }

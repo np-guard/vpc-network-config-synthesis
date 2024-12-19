@@ -57,7 +57,7 @@ func IcmpsetPartitions(icmpset *netset.ICMPSet) []netp.ICMP {
 	return result
 }
 
-func IcmpRuleToIcmpSet(icmp netp.ICMP) *netset.ICMPSet {
+func IcmpToIcmpSet(icmp netp.ICMP) *netset.ICMPSet {
 	if icmp.TypeCode == nil {
 		return netset.AllICMPSet()
 	}
