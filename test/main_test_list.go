@@ -429,6 +429,7 @@ func synthSGTestsList() []testCase {
 // Note2: each data folder has a details.txt file with the test explanation
 func optimizeSGTestsLists() []testCase {
 	return []testCase{
+		// locals
 		{
 			testName: "optimize_sg_protocols_to_all_tf",
 			args: &command{

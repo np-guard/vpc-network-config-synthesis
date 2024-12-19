@@ -1243,6 +1243,22 @@
                         "cidr_block": "0.0.0.0/31"
                     },
                     "protocol": "all"
+                },
+                {
+                    "direction": "outbound",
+                    "href": "fake:href:5",
+                    "id": "fake:id:5",
+                    "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "10.240.0.0/16"
+                    },
+                    "remote": {
+                        "crn": "fake:crn:19",
+                        "href": "fake:href:19",
+                        "id": "fake:id:19",
+                        "name": "test-vpc1--vsi3a"
+                    },
+                    "protocol": "all"
                 }
             ],
             "targets": [
@@ -1302,7 +1318,24 @@
                 "id": "id:17",
                 "name": "name:4"
             },
-            "rules": [],
+            "rules": [
+                {
+                    "direction": "inbound",
+                    "href": "fake:href:6",
+                    "id": "fake:id:6",
+                    "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "10.240.0.0/16"
+                    },
+                    "remote": {
+                        "crn": "fake:crn:2",
+                        "href": "fake:href:2",
+                        "id": "fake:id:2",
+                        "name": "test-vpc1--vsi1"
+                    },
+                    "protocol": "all"
+                }
+            ],
             "targets": [
                 {
                     "href": "href:83",
