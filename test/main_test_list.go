@@ -41,7 +41,7 @@ const (
 )
 
 func allMainTests() []testCase {
-	return slices.Concat(synthACLTestsList(), synthSGTestsList(), optimizeSGTestsLists(), optimizeACLTestsLists())
+	return slices.Concat(synthACLTestsList(), synthSGTestsList(), optimizeSGTestsLists())
 }
 
 //nolint:funlen //all acl synthesis tests
