@@ -95,17 +95,23 @@ func (s *sgOptimizer) optimizeSG(sg *ir.SG) {
 	reducedRules := 0
 
 	// reduce inbound rules first
-	newInboundRules := s.reduceSGRules(sg.InboundRules, ir.Inbound)
-	if len(sg.InboundRules) > len(newInboundRules) {
-		reducedRules += len(sg.InboundRules) - len(newInboundRules)
-		sg.InboundRules = newInboundRules
+	for l, rules := range sg.InboundRules {
+		local, _ := netset.IPBlockFromCidr(l)
+		newInboundRules := s.reduceSGRules(rules, ir.Inbound, local)
+		if len(rules) > len(newInboundRules) {
+			reducedRules += len(rules) - len(newInboundRules)
+			sg.InboundRules[l] = newInboundRules
+		}
 	}
 
 	// reduce outbound rules second
-	newOutboundRules := s.reduceSGRules(sg.OutboundRules, ir.Outbound)
-	if len(sg.OutboundRules) > len(newOutboundRules) {
-		reducedRules += len(sg.OutboundRules) - len(newOutboundRules)
-		sg.OutboundRules = newOutboundRules
+	for l, rules := range sg.OutboundRules {
+		local, _ := netset.IPBlockFromCidr(l)
+		newOutboundRules := s.reduceSGRules(rules, ir.Outbound, local)
+		if len(rules) > len(newOutboundRules) {
+			reducedRules += len(rules) - len(newOutboundRules)
+			sg.OutboundRules[l] = newOutboundRules
+		}
 	}
 
 	// print a message to the log
@@ -117,19 +123,19 @@ func (s *sgOptimizer) optimizeSG(sg *ir.SG) {
 }
 
 // reduceSGRules attempts to reduce the number of rules with different remote types separately
-func (s *sgOptimizer) reduceSGRules(rules []*ir.SGRule, direction ir.Direction) []*ir.SGRule {
+func (s *sgOptimizer) reduceSGRules(rules []*ir.SGRule, direction ir.Direction, l *netset.IPBlock) []*ir.SGRule {
 	// separate all rules to groups of protocol X remote ([tcp, udp, icmp, protocolAll] X [ip, sg])
 	ruleGroups := divideSGRules(rules)
 
 	// rules with SG as a remote
-	optimizedRulesToSG := reduceRulesSGRemote(rulesToSGCubes(ruleGroups.sgRemoteRules), direction)
+	optimizedRulesToSG := reduceRulesSGRemote(rulesToSGCubes(ruleGroups.sgRemoteRules), direction, l)
 	originalRulesToSG := ruleGroups.sgRemoteRules.allRules()
 	if len(originalRulesToSG) <= len(optimizedRulesToSG) { // failed to reduce number of rules
 		optimizedRulesToSG = originalRulesToSG
 	}
 
 	// rules with IPBlock as a remote
-	optimizedRulesToIPAddrs := reduceRulesIPRemote(rulesToIPCubes(ruleGroups.ipRemoteRules), direction)
+	optimizedRulesToIPAddrs := reduceRulesIPRemote(rulesToIPCubes(ruleGroups.ipRemoteRules), direction, l)
 	originalRulesToIPAddrs := ruleGroups.ipRemoteRules.allRules()
 	if len(originalRulesToIPAddrs) <= len(optimizedRulesToSG) { // failed to reduce number of rules
 		optimizedRulesToIPAddrs = originalRulesToIPAddrs
@@ -138,27 +144,27 @@ func (s *sgOptimizer) reduceSGRules(rules []*ir.SGRule, direction ir.Direction) 
 	return slices.Concat(optimizedRulesToSG, optimizedRulesToIPAddrs)
 }
 
-func reduceRulesSGRemote(cubes *sgCubesPerProtocol, direction ir.Direction) []*ir.SGRule {
+func reduceRulesSGRemote(cubes *sgCubesPerProtocol, direction ir.Direction, l *netset.IPBlock) []*ir.SGRule {
 	reduceCubesWithSGRemote(cubes)
 
 	// cubes to SG rules
-	tcpRules := tcpudpSGCubesToRules(cubes.tcp, direction, true)
-	udpRules := tcpudpSGCubesToRules(cubes.udp, direction, false)
-	icmpRules := icmpSGCubesToRules(cubes.icmp, direction)
-	anyProtocolRules := anyProtocolCubesToRules(cubes.anyProtocol, direction)
+	tcpRules := tcpudpSGCubesToRules(cubes.tcp, direction, true, l)
+	udpRules := tcpudpSGCubesToRules(cubes.udp, direction, false, l)
+	icmpRules := icmpSGCubesToRules(cubes.icmp, direction, l)
+	anyProtocolRules := anyProtocolCubesToRules(cubes.anyProtocol, direction, l)
 
 	// return all rules
 	return slices.Concat(tcpRules, udpRules, icmpRules, anyProtocolRules)
 }
 
-func reduceRulesIPRemote(cubes *ipCubesPerProtocol, direction ir.Direction) []*ir.SGRule {
+func reduceRulesIPRemote(cubes *ipCubesPerProtocol, direction ir.Direction, l *netset.IPBlock) []*ir.SGRule {
 	reduceIPCubes(cubes)
 
 	// cubes to SG rules
-	tcpRules := tcpudpIPCubesToRules(cubes.tcp, cubes.anyProtocol, direction, true)
-	udpRules := tcpudpIPCubesToRules(cubes.udp, cubes.anyProtocol, direction, false)
-	icmpRules := icmpIPCubesToRules(cubes.icmp, cubes.anyProtocol, direction)
-	anyProtocolRules := anyProtocolIPCubesToRules(cubes.anyProtocol, direction)
+	tcpRules := tcpudpIPCubesToRules(cubes.tcp, cubes.anyProtocol, direction, true, l)
+	udpRules := tcpudpIPCubesToRules(cubes.udp, cubes.anyProtocol, direction, false, l)
+	icmpRules := icmpIPCubesToRules(cubes.icmp, cubes.anyProtocol, direction, l)
+	anyProtocolRules := anyProtocolIPCubesToRules(cubes.anyProtocol, direction, l)
 
 	// return all rules
 	return slices.Concat(tcpRules, udpRules, icmpRules, anyProtocolRules)

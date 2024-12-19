@@ -14,33 +14,33 @@ import (
 )
 
 // cubes (SGName X portSet) to SG rules
-func tcpudpSGCubesToRules(cubes map[ir.SGName]*netset.PortSet, direction ir.Direction, isTCP bool) []*ir.SGRule {
+func tcpudpSGCubesToRules(cubes map[ir.SGName]*netset.PortSet, direction ir.Direction, isTCP bool, l *netset.IPBlock) []*ir.SGRule {
 	result := make([]*ir.SGRule, 0)
 	for sgName, portSet := range cubes {
 		for _, dstPorts := range portSet.Intervals() {
 			p, _ := netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(dstPorts.Start()), int(dstPorts.End()))
-			result = append(result, ir.NewSGRule(direction, sgName, p, netset.GetCidrAll(), ""))
+			result = append(result, ir.NewSGRule(direction, sgName, p, l, ""))
 		}
 	}
 	return result
 }
 
 // cubes (SGName X icmpset) to SG rules
-func icmpSGCubesToRules(cubes map[ir.SGName]*netset.ICMPSet, direction ir.Direction) []*ir.SGRule {
+func icmpSGCubesToRules(cubes map[ir.SGName]*netset.ICMPSet, direction ir.Direction, l *netset.IPBlock) []*ir.SGRule {
 	result := make([]*ir.SGRule, 0)
 	for sgName, icmpSet := range cubes {
 		for _, icmp := range optimize.IcmpsetPartitions(icmpSet) {
-			result = append(result, ir.NewSGRule(direction, sgName, icmp, netset.GetCidrAll(), ""))
+			result = append(result, ir.NewSGRule(direction, sgName, icmp, l, ""))
 		}
 	}
 	return result
 }
 
 // slice of remote SGs to SG rules
-func anyProtocolCubesToRules(remoteSG []ir.SGName, direction ir.Direction) []*ir.SGRule {
+func anyProtocolCubesToRules(remoteSG []ir.SGName, direction ir.Direction, l *netset.IPBlock) []*ir.SGRule {
 	result := make([]*ir.SGRule, len(remoteSG))
 	for i, sgName := range remoteSG {
-		result[i] = ir.NewSGRule(direction, sgName, netp.AnyProtocol{}, netset.GetCidrAll(), "")
+		result[i] = ir.NewSGRule(direction, sgName, netp.AnyProtocol{}, l, "")
 	}
 	return result
 }

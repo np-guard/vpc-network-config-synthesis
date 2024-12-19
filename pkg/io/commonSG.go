@@ -37,6 +37,7 @@ func makeSGHeader() [][]string {
 	return [][]string{{
 		"SG",
 		"Direction",
+		"Local",
 		"Remote type",
 		"Remote",
 		"Protocol",
@@ -69,6 +70,7 @@ func makeSGRow(rule *ir.SGRule, sgName ir.SGName) ([]string, error) {
 	return []string{
 		string(sgName),
 		direction(rule.Direction),
+		rule.Local.String(),
 		remoteType,
 		remote,
 		printProtocolName(rule.Protocol),

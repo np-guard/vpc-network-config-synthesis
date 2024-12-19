@@ -34,8 +34,8 @@ type (
 
 	SG struct {
 		SGName        SGName
-		InboundRules  []*SGRule
-		OutboundRules []*SGRule
+		InboundRules  map[string][]*SGRule // the key is the locals value
+		OutboundRules map[string][]*SGRule // the key is the locals value
 		Targets       []ID
 	}
 
@@ -75,7 +75,10 @@ func NewSGRule(direction Direction, remote RemoteType, p netp.Protocol, local *n
 }
 
 func NewSG(sgName SGName) *SG {
-	return &SG{SGName: sgName, InboundRules: []*SGRule{}, OutboundRules: []*SGRule{}, Targets: []ID{}}
+	return &SG{SGName: sgName,
+		InboundRules:  make(map[string][]*SGRule),
+		OutboundRules: make(map[string][]*SGRule),
+	}
 }
 
 func NewSGCollection() *SGCollection {
@@ -96,16 +99,25 @@ func (c *SGCollection) LookupOrCreate(name SGName) *SG {
 }
 
 func (a *SG) Add(rule *SGRule) {
-	if rule.Direction == Outbound && !rule.isRedundant(a.OutboundRules) {
-		a.OutboundRules = append(a.OutboundRules, rule)
+	local := rule.Local.String()
+	if rule.Direction == Outbound && !rule.isRedundant(a.OutboundRules[local]) {
+		a.OutboundRules[local] = append(a.OutboundRules[local], rule)
 	}
-	if rule.Direction == Inbound && !rule.isRedundant(a.InboundRules) {
-		a.InboundRules = append(a.InboundRules, rule)
+
+	if rule.Direction == Inbound && !rule.isRedundant(a.InboundRules[local]) {
+		a.InboundRules[local] = append(a.InboundRules[local], rule)
 	}
 }
 
 func (a *SG) AllRules() []*SGRule {
-	return slices.Concat(a.InboundRules, a.OutboundRules)
+	res := make([]*SGRule, 0)
+	for _, key := range utils.SortedMapKeys(a.InboundRules) {
+		res = slices.Concat(res, a.InboundRules[key])
+	}
+	for _, key := range utils.SortedMapKeys(a.OutboundRules) {
+		res = slices.Concat(res, a.OutboundRules[key])
+	}
+	return res
 }
 
 func (c *SGCollection) VpcNames() []string {
