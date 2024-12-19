@@ -99,7 +99,8 @@ func translateACLRuleProtocolTCPUDP(rule *vpcv1.NetworkACLRuleItemNetworkACLRule
 	direction, err2 := translateDirection(*rule.Direction)
 	src, err3 := translateResource(rule.Source)
 	dst, err4 := translateResource(rule.Destination)
-	protocol, err5 := translateProtocolTCPUDP(*rule.Protocol, rule.DestinationPortMin, rule.DestinationPortMax)
+	protocol, err5 := translateProtocolTCPUDP(*rule.Protocol, rule.SourcePortMin, rule.SourcePortMax,
+		rule.DestinationPortMin, rule.DestinationPortMax)
 	if err := errors.Join(err1, err2, err3, err4, err5); err != nil {
 		return nil, err
 	}

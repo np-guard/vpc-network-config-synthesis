@@ -504,7 +504,7 @@ func optimizeACLTestsLists() []testCase {
 			args: &command{
 				cmd:        optimize,
 				subcmd:     acl,
-				config:     aclTesting4Config,
+				config:     aclTesting5Config,
 				outputFile: "%s/optimize_acl_csv/nacl_expected.csv",
 			},
 		},
@@ -513,7 +513,7 @@ func optimizeACLTestsLists() []testCase {
 			args: &command{
 				cmd:        optimize,
 				subcmd:     acl,
-				config:     aclTesting4Config,
+				config:     aclTesting5Config,
 				outputFile: "%s/optimize_acl_md/nacl_expected.md",
 			},
 		},
@@ -522,7 +522,7 @@ func optimizeACLTestsLists() []testCase {
 			args: &command{
 				cmd:        optimize,
 				subcmd:     acl,
-				config:     aclTesting4Config,
+				config:     aclTesting5Config,
 				outputFile: "%s/optimize_acl_tf/nacl_expected.tf",
 			},
 		},
@@ -531,7 +531,7 @@ func optimizeACLTestsLists() []testCase {
 			args: &command{
 				cmd:        optimize,
 				subcmd:     acl,
-				config:     aclTesting4Config,
+				config:     aclTesting5Config,
 				outputFile: "%s/optimize_acl_json/nacl_expected.json",
 			},
 		},
