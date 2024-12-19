@@ -35,9 +35,6 @@ type (
 
 		icmpAllow icmpTripleSet
 		icmpDeny  icmpTripleSet
-
-		anyProtocolAllow ds.Product[*netset.IPBlock, *netset.IPBlock]
-		anyProtocolDeny  ds.Product[*netset.IPBlock, *netset.IPBlock]
 	}
 )
 
