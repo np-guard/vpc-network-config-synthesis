@@ -41,7 +41,7 @@ const (
 )
 
 func allMainTests() []testCase {
-	return slices.Concat(synthACLTestsList(), synthSGTestsList(), optimizeSGTestsLists())
+	return slices.Concat(synthACLTestsList(), synthSGTestsList(), optimizeSGTestsLists(), optimizeACLTestsLists())
 }
 
 //nolint:funlen //all acl synthesis tests
@@ -497,14 +497,14 @@ func optimizeSGTestsLists() []testCase {
 	}
 }
 
-func OptimizeACLTestsLists() []testCase {
+func optimizeACLTestsLists() []testCase {
 	return []testCase{
 		{
 			testName: "optimize_acl_csv",
 			args: &command{
 				cmd:        optimize,
 				subcmd:     acl,
-				config:     aclTesting4Config,
+				config:     aclTesting5Config,
 				outputFile: "%s/optimize_acl_csv/nacl_expected.csv",
 			},
 		},
@@ -513,7 +513,7 @@ func OptimizeACLTestsLists() []testCase {
 			args: &command{
 				cmd:        optimize,
 				subcmd:     acl,
-				config:     aclTesting4Config,
+				config:     aclTesting5Config,
 				outputFile: "%s/optimize_acl_md/nacl_expected.md",
 			},
 		},
@@ -522,7 +522,7 @@ func OptimizeACLTestsLists() []testCase {
 			args: &command{
 				cmd:        optimize,
 				subcmd:     acl,
-				config:     aclTesting4Config,
+				config:     aclTesting5Config,
 				outputFile: "%s/optimize_acl_tf/nacl_expected.tf",
 			},
 		},
@@ -531,7 +531,7 @@ func OptimizeACLTestsLists() []testCase {
 			args: &command{
 				cmd:        optimize,
 				subcmd:     acl,
-				config:     aclTesting4Config,
+				config:     aclTesting5Config,
 				outputFile: "%s/optimize_acl_json/nacl_expected.json",
 			},
 		},
