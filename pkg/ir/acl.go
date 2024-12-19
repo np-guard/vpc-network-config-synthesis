@@ -32,6 +32,8 @@ type (
 		Subnet   string
 		Internal []*ACLRule
 		External []*ACLRule
+		Inbound  []*ACLRule
+		Outbound []*ACLRule
 	}
 
 	ACLCollection struct {
