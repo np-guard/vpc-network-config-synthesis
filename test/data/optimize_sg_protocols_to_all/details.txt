@@ -1,4 +1,7 @@
+####################################
 original config object: acl_testing4 config
+please note that vsi1-->vsi3a coonnections do not appear in conn_spec.json file
+####################################
 
 ######## BEFORE ########
 
@@ -14,6 +17,9 @@ vsi1 --> vsi2 (udp ports 1-100)
 vsi1 --> vsi2 (udp ports 50-150)
 vsi1 --> vsi2 (udp ports 151-65535)
 
+vsi1 --> vsi3a (icmp) [local=10.240.0.0/16]
+vsi1 --> vsi3a (tcp) [local=10.240.0.0/16]
+vsi1 --> vsi3a (udp) [local=10.240.0.0/16]
 
 
 ######## AFTER ########
@@ -21,3 +27,4 @@ vsi1 --> vsi2 (udp ports 151-65535)
 vsi1 --> 0.0.0.0/31 (any protocol)
 vsi1 --> 0.0.0.0/30 (icmp)
 vsi1 --> vsi2 (any protocol)
+vsi1 --> vsi3a (any protocol) [local=10.240.0.0/16]
