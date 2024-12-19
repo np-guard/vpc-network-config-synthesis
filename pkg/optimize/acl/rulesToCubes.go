@@ -15,22 +15,16 @@ import (
 
 func aclRulesToCubes(rules []*ir.ACLRule) *aclCubesPerProtocol {
 	res := &aclCubesPerProtocol{
-		tcpAllow:  ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.PortSet](),
-		tcpDeny:   ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.PortSet](),
-		udpAllow:  ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.PortSet](),
-		udpDeny:   ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.PortSet](),
-		icmpAllow: ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet](),
-		icmpDeny:  ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet](),
+		tcpudpAllow: ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet](),
+		tcpudpDeny:  ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet](),
+		icmpAllow:   ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet](),
+		icmpDeny:    ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet](),
 	}
 
 	for _, rule := range rules {
-		switch p := rule.Protocol.(type) {
+		switch rule.Protocol.(type) {
 		case netp.TCPUDP:
-			if p.ProtocolString() == "TCP" {
-				tcpRuleToCubes(res, rule)
-			} else {
-				udpRuleToCubes(res, rule)
-			}
+			tcpudpRuleToCubes(res, rule)
 		case netp.ICMP:
 			icmpRuleToCubes(res, rule)
 		case netp.AnyProtocol:
@@ -40,25 +34,19 @@ func aclRulesToCubes(rules []*ir.ACLRule) *aclCubesPerProtocol {
 	return res
 }
 
-func tcpRuleToCubes(cubes *aclCubesPerProtocol, rule *ir.ACLRule) {
-	ruleCube := ds.CartesianLeftTriple(rule.Source, rule.Destination, rule.Protocol.(netp.TCPUDP).DstPorts().ToSet())
+func tcpudpRuleToCubes(cubes *aclCubesPerProtocol, rule *ir.ACLRule) {
+	tcpudp := rule.Protocol.(netp.TCPUDP)
+	tcpudpSrcPorts := tcpudp.SrcPorts()
+	tcpudpDstPorts := tcpudp.DstPorts()
+	tcpudpSet := netset.NewTCPorUDPSet(tcpudp.ProtocolString(), tcpudpSrcPorts.Start(), tcpudpSrcPorts.End(), tcpudpDstPorts.Start(),
+		tcpudpDstPorts.End())
+	ruleCube := ds.CartesianLeftTriple(rule.Source, rule.Destination, tcpudpSet)
 	if rule.Action == ir.Allow {
-		r := ruleCube.Subtract(cubes.tcpDeny)
-		cubes.tcpAllow = cubes.tcpAllow.Union(r)
+		r := ruleCube.Subtract(cubes.tcpudpDeny)
+		cubes.tcpudpAllow = cubes.tcpudpAllow.Union(r)
 	} else {
-		r := ruleCube.Subtract(cubes.tcpAllow)
-		cubes.tcpDeny = cubes.tcpDeny.Union(r)
-	}
-}
-
-func udpRuleToCubes(cubes *aclCubesPerProtocol, rule *ir.ACLRule) {
-	ruleCube := ds.CartesianLeftTriple(rule.Source, rule.Destination, rule.Protocol.(netp.TCPUDP).DstPorts().ToSet())
-	if rule.Action == ir.Allow {
-		r := ruleCube.Subtract(cubes.udpDeny)
-		cubes.udpAllow = cubes.udpAllow.Union(r)
-	} else {
-		r := ruleCube.Subtract(cubes.udpAllow)
-		cubes.udpDeny = cubes.udpDeny.Union(r)
+		r := ruleCube.Subtract(cubes.tcpudpAllow)
+		cubes.tcpudpDeny = cubes.tcpudpDeny.Union(r)
 	}
 }
 
@@ -74,11 +62,11 @@ func icmpRuleToCubes(cubes *aclCubesPerProtocol, rule *ir.ACLRule) {
 }
 
 func anyProtocolRuleToCubes(cubes *aclCubesPerProtocol, rule *ir.ACLRule) {
-	tcp, _ := netp.NewTCPUDP(true, netp.MinPort, netp.MaxPort, netp.MinPort, netp.MaxPort)
-	tcpRuleToCubes(cubes, ir.NewACLRule(rule.Action, rule.Direction, rule.Source, rule.Destination, tcp, rule.Explanation))
+	tcp, _ := netp.NewTCPUDP(true, netp.MinPort, netp.MaxPort, netp.MinPort, netp.MaxPort) // all ports
+	tcpudpRuleToCubes(cubes, ir.NewACLRule(rule.Action, rule.Direction, rule.Source, rule.Destination, tcp, rule.Explanation))
 
-	udp, _ := netp.NewTCPUDP(false, netp.MinPort, netp.MaxPort, netp.MinPort, netp.MaxPort)
-	udpRuleToCubes(cubes, ir.NewACLRule(rule.Action, rule.Direction, rule.Source, rule.Destination, udp, rule.Explanation))
+	udp, _ := netp.NewTCPUDP(false, netp.MinPort, netp.MaxPort, netp.MinPort, netp.MaxPort) // all ports
+	tcpudpRuleToCubes(cubes, ir.NewACLRule(rule.Action, rule.Direction, rule.Source, rule.Destination, udp, rule.Explanation))
 
 	icmp, _ := netp.NewICMPWithoutRFCValidation(nil) // all types and codes
 	icmpRuleToCubes(cubes, ir.NewACLRule(rule.Action, rule.Direction, rule.Source, rule.Destination, icmp, rule.Explanation))
