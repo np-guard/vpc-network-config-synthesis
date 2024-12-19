@@ -497,7 +497,7 @@ func optimizeSGTestsLists() []testCase {
 	}
 }
 
-func optimizeACLTestsLists() []testCase {
+func OptimizeACLTestsLists() []testCase {
 	return []testCase{
 		{
 			testName: "optimize_acl_csv",
