@@ -448,6 +448,15 @@ func optimizeSGTestsLists() []testCase {
 			},
 		},
 		{
+			testName: "optimize_sg_protocols_to_all_json",
+			args: &command{
+				cmd:        optimize,
+				subcmd:     sg,
+				config:     optimizeSGProtocolsToAllConfig,
+				outputFile: "%s/optimize_sg_protocols_to_all_json/sg_expected.json",
+			},
+		},
+		{
 			testName: "optimize_sg_protocols_to_all_md",
 			args: &command{
 				cmd:        optimize,
