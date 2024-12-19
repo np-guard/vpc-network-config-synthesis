@@ -1434,6 +1434,54 @@
                     "port_max": 65535,
                     "port_min": 151,
                     "protocol": "udp"
+                },
+                {
+                    "direction": "outbound",
+                    "href": "fake:href:111",
+                    "id": "fake:id:111",
+                    "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "10.240.0.0/16"
+                    },
+                    "remote": {
+                        "crn": "fake:crn:19",
+                        "href": "fake:href:19",
+                        "id": "fake:id:19",
+                        "name": "test-vpc1--vsi3a"
+                    },
+                    "protocol": "icmp"
+                },
+                {
+                    "direction": "outbound",
+                    "href": "fake:href:222",
+                    "id": "fake:id:222",
+                    "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "10.240.0.0/16"
+                    },
+                    "remote": {
+                        "crn": "fake:crn:19",
+                        "href": "fake:href:19",
+                        "id": "fake:id:19",
+                        "name": "test-vpc1--vsi3a"
+                    },
+                    "protocol": "tcp"
+                },
+                {
+                    "direction": "outbound",
+                    "href": "fake:href:333",
+                    "id": "fake:id:333",
+                    "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "10.240.0.0/16"
+                    },
+                    "remote": {
+                        "crn": "fake:crn:19",
+                        "href": "fake:href:19",
+                        "id": "fake:id:19",
+                        "name": "test-vpc1--vsi3a"
+                    },
+                    "protocol": "udp"
                 }
             ],
             "targets": [
@@ -1493,7 +1541,56 @@
                 "id": "id:17",
                 "name": "name:4"
             },
-            "rules": [],
+            "rules": [
+                {
+                    "direction": "inbound",
+                    "href": "fake:href:1111",
+                    "id": "fake:id:1111",
+                    "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "10.240.0.0/16"
+                    },
+                    "remote": {
+                        "crn": "fake:crn:2",
+                        "href": "fake:href:2",
+                        "id": "fake:id:2",
+                        "name": "test-vpc1--vsi1"
+                    },
+                    "protocol": "icmp"
+                },
+                {
+                    "direction": "inbound",
+                    "href": "fake:href:2222",
+                    "id": "fake:id:2222",
+                    "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "10.240.0.0/16"
+                    },
+                    "remote": {
+                        "crn": "fake:crn:2",
+                        "href": "fake:href:2",
+                        "id": "fake:id:2",
+                        "name": "test-vpc1--vsi1"
+                    },
+                    "protocol": "tcp"
+                },
+                {
+                    "direction": "inbound",
+                    "href": "fake:href:3333",
+                    "id": "fake:id:3333",
+                    "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "10.240.0.0/16"
+                    },
+                    "remote": {
+                        "crn": "fake:crn:2",
+                        "href": "fake:href:2",
+                        "id": "fake:id:2",
+                        "name": "test-vpc1--vsi1"
+                    },
+                    "protocol": "udp"
+                }
+            ],
             "targets": [
                 {
                     "href": "href:83",

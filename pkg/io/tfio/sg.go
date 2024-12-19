@@ -102,6 +102,7 @@ func sgRule(rule *ir.SGRule, sgName ir.SGName, i int) (tf.Block, error) {
 		Arguments: []tf.Argument{
 			{Name: "group", Value: group},
 			{Name: "direction", Value: quote(direction(rule.Direction))},
+			{Name: "local", Value: quote(rule.Local.String())},
 			{Name: "remote", Value: remote},
 		},
 		Blocks: sgProtocol(rule.Protocol),

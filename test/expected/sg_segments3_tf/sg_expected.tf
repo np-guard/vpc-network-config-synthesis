@@ -36,12 +36,14 @@ resource "ibm_is_security_group" "test-vpc0--vsi0-subnet4" {
 resource "ibm_is_security_group_rule" "test-vpc0--vsi0-subnet4-0" {
   group     = ibm_is_security_group.test-vpc0--vsi0-subnet4.id
   direction = "inbound"
+  local     = "0.0.0.0/0"
   remote    = "10.240.64.0/24"
 }
 # Internal. required-connections[0]: (segment subnetSegment)->(segment nifSegment); allowed-protocols[0]
 resource "ibm_is_security_group_rule" "test-vpc0--vsi0-subnet4-1" {
   group     = ibm_is_security_group.test-vpc0--vsi0-subnet4.id
   direction = "inbound"
+  local     = "0.0.0.0/0"
   remote    = "10.240.128.0/24"
 }
 
@@ -97,12 +99,14 @@ resource "ibm_is_security_group" "test-vpc0--vsi1-subnet5" {
 resource "ibm_is_security_group_rule" "test-vpc0--vsi1-subnet5-0" {
   group     = ibm_is_security_group.test-vpc0--vsi1-subnet5.id
   direction = "inbound"
+  local     = "0.0.0.0/0"
   remote    = "10.240.64.0/24"
 }
 # Internal. required-connections[0]: (segment subnetSegment)->(segment nifSegment); allowed-protocols[0]
 resource "ibm_is_security_group_rule" "test-vpc0--vsi1-subnet5-1" {
   group     = ibm_is_security_group.test-vpc0--vsi1-subnet5.id
   direction = "inbound"
+  local     = "0.0.0.0/0"
   remote    = "10.240.128.0/24"
 }
 
@@ -116,12 +120,14 @@ resource "ibm_is_security_group" "test-vpc1--vsi0-subnet10" {
 resource "ibm_is_security_group_rule" "test-vpc1--vsi0-subnet10-0" {
   group     = ibm_is_security_group.test-vpc1--vsi0-subnet10.id
   direction = "outbound"
+  local     = "0.0.0.0/0"
   remote    = ibm_is_security_group.test-vpc0--vsi0-subnet4.id
 }
 # Internal. required-connections[0]: (segment subnetSegment)->(segment nifSegment); allowed-protocols[0]
 resource "ibm_is_security_group_rule" "test-vpc1--vsi0-subnet10-1" {
   group     = ibm_is_security_group.test-vpc1--vsi0-subnet10.id
   direction = "outbound"
+  local     = "0.0.0.0/0"
   remote    = ibm_is_security_group.test-vpc0--vsi1-subnet5.id
 }
 
@@ -142,12 +148,14 @@ resource "ibm_is_security_group" "test-vpc2--vsi0-subnet20" {
 resource "ibm_is_security_group_rule" "test-vpc2--vsi0-subnet20-0" {
   group     = ibm_is_security_group.test-vpc2--vsi0-subnet20.id
   direction = "outbound"
+  local     = "0.0.0.0/0"
   remote    = ibm_is_security_group.test-vpc0--vsi0-subnet4.id
 }
 # Internal. required-connections[0]: (segment subnetSegment)->(segment nifSegment); allowed-protocols[0]
 resource "ibm_is_security_group_rule" "test-vpc2--vsi0-subnet20-1" {
   group     = ibm_is_security_group.test-vpc2--vsi0-subnet20.id
   direction = "outbound"
+  local     = "0.0.0.0/0"
   remote    = ibm_is_security_group.test-vpc0--vsi1-subnet5.id
 }
 
@@ -161,12 +169,14 @@ resource "ibm_is_security_group" "test-vpc2--vsi1-subnet20" {
 resource "ibm_is_security_group_rule" "test-vpc2--vsi1-subnet20-0" {
   group     = ibm_is_security_group.test-vpc2--vsi1-subnet20.id
   direction = "outbound"
+  local     = "0.0.0.0/0"
   remote    = ibm_is_security_group.test-vpc0--vsi0-subnet4.id
 }
 # Internal. required-connections[0]: (segment subnetSegment)->(segment nifSegment); allowed-protocols[0]
 resource "ibm_is_security_group_rule" "test-vpc2--vsi1-subnet20-1" {
   group     = ibm_is_security_group.test-vpc2--vsi1-subnet20.id
   direction = "outbound"
+  local     = "0.0.0.0/0"
   remote    = ibm_is_security_group.test-vpc0--vsi1-subnet5.id
 }
 
@@ -180,12 +190,14 @@ resource "ibm_is_security_group" "test-vpc2--vsi2-subnet20" {
 resource "ibm_is_security_group_rule" "test-vpc2--vsi2-subnet20-0" {
   group     = ibm_is_security_group.test-vpc2--vsi2-subnet20.id
   direction = "outbound"
+  local     = "0.0.0.0/0"
   remote    = ibm_is_security_group.test-vpc0--vsi0-subnet4.id
 }
 # Internal. required-connections[0]: (segment subnetSegment)->(segment nifSegment); allowed-protocols[0]
 resource "ibm_is_security_group_rule" "test-vpc2--vsi2-subnet20-1" {
   group     = ibm_is_security_group.test-vpc2--vsi2-subnet20.id
   direction = "outbound"
+  local     = "0.0.0.0/0"
   remote    = ibm_is_security_group.test-vpc0--vsi1-subnet5.id
 }
 

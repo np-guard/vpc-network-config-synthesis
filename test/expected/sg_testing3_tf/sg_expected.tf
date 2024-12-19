@@ -15,6 +15,7 @@ resource "ibm_is_security_group" "test-vpc--be" {
 resource "ibm_is_security_group_rule" "test-vpc--be-0" {
   group     = ibm_is_security_group.test-vpc--be.id
   direction = "inbound"
+  local     = "0.0.0.0/0"
   remote    = ibm_is_security_group.test-vpc--fe.id
   tcp {
   }
@@ -23,12 +24,14 @@ resource "ibm_is_security_group_rule" "test-vpc--be-0" {
 resource "ibm_is_security_group_rule" "test-vpc--be-1" {
   group     = ibm_is_security_group.test-vpc--be.id
   direction = "outbound"
+  local     = "0.0.0.0/0"
   remote    = ibm_is_security_group.test-vpc--opa.id
 }
 # Internal. required-connections[4]: (instance test-vpc/be)->(vpe test-vpc/policydb-endpoint-gateway); allowed-protocols[0]
 resource "ibm_is_security_group_rule" "test-vpc--be-2" {
   group     = ibm_is_security_group.test-vpc--be.id
   direction = "outbound"
+  local     = "0.0.0.0/0"
   remote    = ibm_is_security_group.test-vpc--policydb-endpoint-gateway.id
 }
 
@@ -42,6 +45,7 @@ resource "ibm_is_security_group" "test-vpc--fe" {
 resource "ibm_is_security_group_rule" "test-vpc--fe-0" {
   group     = ibm_is_security_group.test-vpc--fe.id
   direction = "inbound"
+  local     = "0.0.0.0/0"
   remote    = ibm_is_security_group.test-vpc--proxy.id
   tcp {
     port_min = 9000
@@ -52,6 +56,7 @@ resource "ibm_is_security_group_rule" "test-vpc--fe-0" {
 resource "ibm_is_security_group_rule" "test-vpc--fe-1" {
   group     = ibm_is_security_group.test-vpc--fe.id
   direction = "outbound"
+  local     = "0.0.0.0/0"
   remote    = ibm_is_security_group.test-vpc--be.id
   tcp {
   }
@@ -67,12 +72,14 @@ resource "ibm_is_security_group" "test-vpc--opa" {
 resource "ibm_is_security_group_rule" "test-vpc--opa-0" {
   group     = ibm_is_security_group.test-vpc--opa.id
   direction = "inbound"
+  local     = "0.0.0.0/0"
   remote    = ibm_is_security_group.test-vpc--be.id
 }
 # Internal. required-connections[5]: (instance test-vpc/opa)->(vpe test-vpc/policydb-endpoint-gateway); allowed-protocols[0]
 resource "ibm_is_security_group_rule" "test-vpc--opa-1" {
   group     = ibm_is_security_group.test-vpc--opa.id
   direction = "outbound"
+  local     = "0.0.0.0/0"
   remote    = ibm_is_security_group.test-vpc--policydb-endpoint-gateway.id
 }
 
@@ -86,12 +93,14 @@ resource "ibm_is_security_group" "test-vpc--policydb-endpoint-gateway" {
 resource "ibm_is_security_group_rule" "test-vpc--policydb-endpoint-gateway-0" {
   group     = ibm_is_security_group.test-vpc--policydb-endpoint-gateway.id
   direction = "inbound"
+  local     = "0.0.0.0/0"
   remote    = ibm_is_security_group.test-vpc--be.id
 }
 # Internal. required-connections[5]: (instance test-vpc/opa)->(vpe test-vpc/policydb-endpoint-gateway); allowed-protocols[0]
 resource "ibm_is_security_group_rule" "test-vpc--policydb-endpoint-gateway-1" {
   group     = ibm_is_security_group.test-vpc--policydb-endpoint-gateway.id
   direction = "inbound"
+  local     = "0.0.0.0/0"
   remote    = ibm_is_security_group.test-vpc--opa.id
 }
 
@@ -105,12 +114,14 @@ resource "ibm_is_security_group" "test-vpc--proxy" {
 resource "ibm_is_security_group_rule" "test-vpc--proxy-0" {
   group     = ibm_is_security_group.test-vpc--proxy.id
   direction = "inbound"
+  local     = "0.0.0.0/0"
   remote    = "0.0.0.0/0"
 }
 # Internal. required-connections[1]: (instance test-vpc/proxy)->(instance test-vpc/fe); allowed-protocols[0]
 resource "ibm_is_security_group_rule" "test-vpc--proxy-1" {
   group     = ibm_is_security_group.test-vpc--proxy.id
   direction = "outbound"
+  local     = "0.0.0.0/0"
   remote    = ibm_is_security_group.test-vpc--fe.id
   tcp {
     port_min = 9000
