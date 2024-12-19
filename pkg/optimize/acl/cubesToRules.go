@@ -48,7 +48,7 @@ func minimalPartitionsTCPUDP(t tcpudpTripleSet) []ds.Triple[*netset.IPBlock, *ne
 func actualPartitionsTCPUDP(t tcpudpTripleSet) []ds.Triple[*netset.IPBlock, *netset.IPBlock, netp.TCPUDP] {
 	res := make([]ds.Triple[*netset.IPBlock, *netset.IPBlock, netp.TCPUDP], 0)
 	for _, p := range t.Partitions() {
-		res = append(res, breakTCPUDPTriple(p)...)
+		res = slices.Concat(res, breakTCPUDPTriple(p))
 	}
 	return res
 }
@@ -105,7 +105,7 @@ func minimalPartitionsICMP(t icmpTripleSet) []ds.Triple[*netset.IPBlock, *netset
 func actualPartitionsICMP(t icmpTripleSet) []ds.Triple[*netset.IPBlock, *netset.IPBlock, netp.ICMP] {
 	res := make([]ds.Triple[*netset.IPBlock, *netset.IPBlock, netp.ICMP], 0)
 	for _, p := range t.Partitions() {
-		res = append(res, breakICMPTriple(p)...)
+		res = slices.Concat(res, breakICMPTriple(p))
 	}
 	return res
 }
