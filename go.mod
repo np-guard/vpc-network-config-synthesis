@@ -3,7 +3,7 @@ module github.com/np-guard/vpc-network-config-synthesis
 go 1.23.0
 
 require (
-	github.com/IBM/vpc-go-sdk v0.63.1
+	github.com/IBM/vpc-go-sdk v0.64.0
 	github.com/np-guard/cloud-resource-collector v0.17.0
 	github.com/np-guard/models v0.5.4-0.20241217102222-e60f0b5bc044
 	github.com/spf13/cobra v1.8.1
