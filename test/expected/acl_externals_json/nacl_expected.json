@@ -141,7 +141,7 @@
                 "crn": "fake:crn:1",
                 "href": "fake:href:1",
                 "id": "fake:id:1",
-                "name": "acl-test-vpc1--subnet2"
+                "name": "test-vpc1--subnet2"
             },
             "public_gateway": {
                 "crn": "crn:30",
@@ -265,7 +265,7 @@
                 "crn": "fake:crn:22",
                 "href": "fake:href:22",
                 "id": "fake:id:22",
-                "name": "acl-test-vpc1--subnet1"
+                "name": "test-vpc1--subnet1"
             },
             "public_gateway": {
                 "crn": "crn:30",
@@ -389,7 +389,7 @@
                 "crn": "fake:crn:43",
                 "href": "fake:href:43",
                 "id": "fake:id:43",
-                "name": "acl-test-vpc1--subnet3"
+                "name": "test-vpc1--subnet3"
             },
             "resource_group": {
                 "href": "href:16",
@@ -1046,7 +1046,7 @@
             "crn": "fake:crn:1",
             "href": "fake:href:1",
             "id": "fake:id:1",
-            "name": "acl-test-vpc1--subnet2",
+            "name": "test-vpc1--subnet2",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
@@ -1412,7 +1412,7 @@
             "crn": "fake:crn:22",
             "href": "fake:href:22",
             "id": "fake:id:22",
-            "name": "acl-test-vpc1--subnet1",
+            "name": "test-vpc1--subnet1",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
@@ -1778,7 +1778,7 @@
             "crn": "fake:crn:43",
             "href": "fake:href:43",
             "id": "fake:id:43",
-            "name": "acl-test-vpc1--subnet3",
+            "name": "test-vpc1--subnet3",
             "resource_group": {
                 "href": "href:16",
                 "id": "id:17",
