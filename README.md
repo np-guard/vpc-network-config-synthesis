@@ -10,7 +10,7 @@ Use the `vpcgen` CLI tool with one of the following commands:
 * `vpcgen synth acl` - generate an nACL for each subnet separately.
 * `vpcgen synth acl --single` - generate a single nACL for all subnets in the same VPC.
 * `vpcgen optimize sg` - optimize SGs.
-* `vpcgen optimize acl` - optimize nACLs (In progress).
+* `vpcgen optimize acl` - optimize nACLs.
 
 ## Synthesis
 #### nACLs Generation 
@@ -38,7 +38,7 @@ Flags:
   -n, --sg-name string   which security group to optimize
 ```
 
-#### nACL optimization (in progress)
+#### nACL optimization
 nACL optimizatin attempts to reduce the number of nACL rules in an nACL without changing the semantic.
 Specifying the `-n` flag results in optimizing only one given nACL. Otherwise, all nACLs will be optimized.
 ```
