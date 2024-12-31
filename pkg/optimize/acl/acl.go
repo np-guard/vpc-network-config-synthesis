@@ -23,9 +23,10 @@ type (
 		aclVPC        string
 	}
 
-	tcpudpTripleSet = ds.TripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet]
-	icmpTripleSet   = ds.TripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet]
-	srcDstProduct   = ds.Product[*netset.IPBlock, *netset.IPBlock]
+	tcpudpTripleSet   = ds.TripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet]
+	icmpTripleSet     = ds.TripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet]
+	srcDstProduct     = ds.Product[*netset.IPBlock, *netset.IPBlock]
+	srcDstProductLeft = ds.ProductLeft[*netset.IPBlock, *netset.IPBlock]
 
 	aclCubesPerProtocol struct {
 		tcpudpAllow tcpudpTripleSet

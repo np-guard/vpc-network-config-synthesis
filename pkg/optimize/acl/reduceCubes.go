@@ -11,7 +11,7 @@ import (
 )
 
 func reduceACLCubes(aclCubes *aclCubesPerProtocol) {
-	anyProtocol := allTCPUDP(aclCubes.tcpudpAllow).Intersect(allICMP(aclCubes.icmpAllow)).(*ds.ProductLeft[*netset.IPBlock, *netset.IPBlock])
+	anyProtocol := allTCPUDP(aclCubes.tcpudpAllow).Intersect(allICMP(aclCubes.icmpAllow)).(*srcDstProductLeft)
 	aclCubes.anyProtocolAllow = anyProtocol
 
 	allTcpudp := ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet]()
@@ -32,7 +32,7 @@ func allTCPUDP(tcpudpAllow ds.TripleSet[*netset.IPBlock, *netset.IPBlock, *netse
 	for _, p := range tcpudpAllow.Partitions() {
 		if p.S3.IsAll() { // all tcp and udp ports
 			r := ds.CartesianPairLeft(p.S1, p.S2)
-			res = res.Union(r).(*ds.ProductLeft[*netset.IPBlock, *netset.IPBlock])
+			res = res.Union(r).(*srcDstProductLeft)
 		}
 	}
 	return res
@@ -43,7 +43,7 @@ func allICMP(icmpAllow ds.TripleSet[*netset.IPBlock, *netset.IPBlock, *netset.IC
 	for _, p := range icmpAllow.Partitions() {
 		if p.S3.IsAll() { // all icmp types and codes
 			r := ds.CartesianPairLeft(p.S1, p.S2)
-			res = res.Union(r).(*ds.ProductLeft[*netset.IPBlock, *netset.IPBlock])
+			res = res.Union(r).(*srcDstProductLeft)
 		}
 	}
 	return res
