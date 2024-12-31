@@ -35,22 +35,22 @@ func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], any
 	}
 
 	res := make([]*ir.SGRule, 0)
-	activeRules := make(map[*netset.IPBlock]netp.Protocol) // the key is the first IP
+	activeRules := make(map[*netset.IPBlock]ds.Pair[int, netp.Protocol]) // the key is the first IP
 
 	for i := range cubes {
 		// if it is not possible to continue the rule between the cubes, generate all existing rules
 		if i > 0 && uncoveredHole(cubes[i-1], cubes[i], anyProtocolCubes) {
 			res = slices.Concat(res, createActiveRules(activeRules, cubes[i-1].Left.LastIPAddressObject(), direction, l))
-			activeRules = make(map[*netset.IPBlock]netp.Protocol)
+			activeRules = make(map[*netset.IPBlock]ds.Pair[int, netp.Protocol])
 		}
 
 		// if there are active rules whose ports are not fully included in the current cube, they will be created
 		// also activePorts will be calculated, which is the ports that are still included in the active rules
 		activePorts := interval.NewCanonicalSet()
-		for startIP, protocol := range activeRules {
-			tcpudp, _ := protocol.(netp.TCPUDP) // already checked
+		for startIP, pair := range activeRules {
+			tcpudp, _ := pair.Right.(netp.TCPUDP) // already checked
 			if !tcpudp.DstPorts().ToSet().IsSubset(cubes[i].Right) {
-				res = slices.Concat(res, createNewRules(protocol, startIP, cubes[i-1].Left.LastIPAddressObject(), direction, l))
+				res = slices.Concat(res, createNewRules(pair.Right, startIP, cubes[i-1].Left.LastIPAddressObject(), direction, l))
 				delete(activeRules, startIP)
 			} else {
 				activePorts.AddInterval(tcpudp.DstPorts())
@@ -61,7 +61,7 @@ func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], any
 		for _, ports := range cubes[i].Right.Intervals() {
 			if !ports.ToSet().IsSubset(activePorts) {
 				p, _ := netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(ports.Start()), int(ports.End()))
-				activeRules[cubes[i].Left.FirstIPAddressObject()] = p
+				activeRules[cubes[i].Left.FirstIPAddressObject()] = ds.Pair[int, netp.Protocol]{Left: i, Right: p}
 			}
 		}
 	}
@@ -77,23 +77,23 @@ func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], anyPr
 	}
 
 	res := make([]*ir.SGRule, 0)
-	activeRules := make(map[*netset.IPBlock]netp.Protocol) // the key is the first IP
+	activeRules := make(map[*netset.IPBlock]ds.Pair[int, netp.Protocol]) // the key is the first IP
 
 	for i := range cubes {
 		// if it is not possible to continue the rule between the cubes, generate all existing rules
 		if i > 0 && uncoveredHole(cubes[i-1], cubes[i], anyProtocolCubes) {
 			res = slices.Concat(res, createActiveRules(activeRules, cubes[i-1].Left.LastIPAddressObject(), direction, l))
-			activeRules = make(map[*netset.IPBlock]netp.Protocol)
+			activeRules = make(map[*netset.IPBlock]ds.Pair[int, netp.Protocol])
 		}
 
 		// if there are active rules whose icmp values are not fully included in the current cube, they will be created
 		// also activeICMP will be calculated, which is the icmp values that are still included in the active rules
 		activeICMP := netset.EmptyICMPSet()
-		for startIP, protocol := range activeRules {
-			icmp, _ := protocol.(netp.ICMP) // already checked
+		for startIP, pair := range activeRules {
+			icmp, _ := pair.Right.(netp.ICMP) // already checked
 			ruleIcmpSet := optimize.IcmpToIcmpSet(icmp)
 			if !ruleIcmpSet.IsSubset(cubes[i].Right) {
-				res = slices.Concat(res, createNewRules(protocol, startIP, cubes[i-1].Left.LastIPAddressObject(), direction, l))
+				res = slices.Concat(res, createNewRules(pair.Right, startIP, cubes[i-1].Left.LastIPAddressObject(), direction, l))
 				delete(activeRules, startIP)
 			} else {
 				activeICMP.Union(ruleIcmpSet)
@@ -103,7 +103,7 @@ func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], anyPr
 		// if the cube contains icmp values that are not contained in  active rules, new rules will be created
 		for _, p := range optimize.IcmpsetPartitions(cubes[i].Right) {
 			if !optimize.IcmpToIcmpSet(p).IsSubset(activeICMP) {
-				activeRules[cubes[i].Left.FirstIPAddressObject()] = p
+				activeRules[cubes[i].Left.FirstIPAddressObject()] = ds.Pair[int, netp.Protocol]{Left: i, Right: p}
 			}
 		}
 	}
@@ -128,11 +128,11 @@ func uncoveredHole[T ds.Set[T]](prevPair, currPair ds.Pair[*netset.IPBlock, T], 
 }
 
 // creates sgRules from SG active rules
-func createActiveRules(activeRules map[*netset.IPBlock]netp.Protocol, lastIP *netset.IPBlock,
+func createActiveRules(activeRules map[*netset.IPBlock]ds.Pair[int, netp.Protocol], lastIP *netset.IPBlock,
 	direction ir.Direction, l *netset.IPBlock) []*ir.SGRule {
 	res := make([]*ir.SGRule, 0)
-	for firstIP, protocol := range activeRules {
-		res = slices.Concat(res, createNewRules(protocol, firstIP, lastIP, direction, l))
+	for firstIP, pair := range activeRules {
+		res = slices.Concat(res, createNewRules(pair.Right, firstIP, lastIP, direction, l))
 	}
 	return res
 }
