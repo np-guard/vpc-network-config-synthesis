@@ -18,6 +18,7 @@ const (
 	sgTesting3Config               = "%s/sg_testing3/config_object.json"
 	aclTesting4Config              = "%s/acl_testing4/config_object.json"
 	aclTesting5Config              = "%s/acl_testing5/config_object.json"
+	optimizeACLConfig              = "%s/optimize_acl/config_object.json"
 	optimizeSGProtocolsToAllConfig = "%s/optimize_sg_protocols_to_all/config_object.json"
 
 	aclExternalsSpec           = "%s/acl_externals/conn_spec.json"
@@ -505,7 +506,7 @@ func optimizeACLTestsLists() []testCase {
 			args: &command{
 				cmd:        optimize,
 				subcmd:     acl,
-				config:     aclTesting5Config,
+				config:     optimizeACLConfig,
 				outputFile: "%s/optimize_acl_csv/nacl_expected.csv",
 			},
 		},
@@ -514,7 +515,7 @@ func optimizeACLTestsLists() []testCase {
 			args: &command{
 				cmd:        optimize,
 				subcmd:     acl,
-				config:     aclTesting5Config,
+				config:     optimizeACLConfig,
 				outputFile: "%s/optimize_acl_md/nacl_expected.md",
 			},
 		},
@@ -523,7 +524,7 @@ func optimizeACLTestsLists() []testCase {
 			args: &command{
 				cmd:        optimize,
 				subcmd:     acl,
-				config:     aclTesting5Config,
+				config:     optimizeACLConfig,
 				outputFile: "%s/optimize_acl_tf/nacl_expected.tf",
 			},
 		},
@@ -532,7 +533,7 @@ func optimizeACLTestsLists() []testCase {
 			args: &command{
 				cmd:        optimize,
 				subcmd:     acl,
-				config:     aclTesting5Config,
+				config:     optimizeACLConfig,
 				outputFile: "%s/optimize_acl_json/nacl_expected.json",
 			},
 		},

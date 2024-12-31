@@ -905,16 +905,58 @@
             "rules": [
                 {
                     "action": "allow",
+                    "before": {
+                        "href": "fake:href:3",
+                        "id": "fake:id:3",
+                        "name": "rule19"
+                    },
                     "created_at": null,
                     "destination": "1.1.1.1/32",
                     "direction": "outbound",
-                    "href": "fake:href:1",
-                    "id": "fake:id:1",
+                    "href": "fake:href:4",
+                    "id": "fake:id:4",
                     "ip_version": "ipv4",
-                    "name": "rule0",
+                    "name": "rule18",
+                    "source": "10.240.2.0/24",
+                    "destination_port_max": 10,
+                    "destination_port_min": 1,
+                    "protocol": "udp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:2",
+                        "id": "fake:id:2",
+                        "name": "rule20"
+                    },
+                    "created_at": null,
+                    "destination": "1.1.1.1/32",
+                    "direction": "outbound",
+                    "href": "fake:href:3",
+                    "id": "fake:id:3",
+                    "ip_version": "ipv4",
+                    "name": "rule19",
+                    "source": "10.240.2.0/24",
+                    "destination_port_max": 15,
+                    "destination_port_min": 5,
+                    "protocol": "udp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "created_at": null,
+                    "destination": "1.1.1.1/32",
+                    "direction": "outbound",
+                    "href": "fake:href:2",
+                    "id": "fake:id:2",
+                    "ip_version": "ipv4",
+                    "name": "rule20",
                     "source": "10.240.2.0/24",
                     "destination_port_max": 20,
-                    "destination_port_min": 1,
+                    "destination_port_min": 16,
                     "protocol": "udp",
                     "source_port_max": 65535,
                     "source_port_min": 1
@@ -952,13 +994,39 @@
             "rules": [
                 {
                     "action": "allow",
+                    "before": {
+                        "href": "fake:href:26",
+                        "id": "fake:id:26",
+                        "name": "rule19"
+                    },
                     "created_at": null,
-                    "destination": "1.1.1.0/31",
+                    "destination": "1.1.1.0/32",
                     "direction": "outbound",
-                    "href": "fake:href:2",
-                    "id": "fake:id:2",
+                    "href": "fake:href:27",
+                    "id": "fake:id:27",
                     "ip_version": "ipv4",
-                    "name": "rule0",
+                    "name": "rule18",
+                    "source": "10.240.1.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:24",
+                        "id": "fake:id:24",
+                        "name": "rule21"
+                    },
+                    "created_at": null,
+                    "destination": "1.1.1.1/32",
+                    "direction": "outbound",
+                    "href": "fake:href:25",
+                    "id": "fake:id:25",
+                    "ip_version": "ipv4",
+                    "name": "rule20",
                     "source": "10.240.1.0/24",
                     "destination_port_max": 65535,
                     "destination_port_min": 1,
@@ -999,15 +1067,62 @@
             "rules": [
                 {
                     "action": "allow",
+                    "before": {
+                        "href": "fake:href:50",
+                        "id": "fake:id:50",
+                        "name": "rule1"
+                    },
                     "created_at": null,
                     "destination": "10.240.64.0/24",
                     "direction": "inbound",
-                    "href": "fake:href:3",
-                    "id": "fake:id:3",
+                    "href": "fake:href:51",
+                    "id": "fake:id:51",
                     "ip_version": "ipv4",
                     "name": "rule0",
                     "source": "10.240.3.0/24",
-                    "protocol": "all"
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:48",
+                        "id": "fake:id:48",
+                        "name": "rule3"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.64.0/24",
+                    "direction": "inbound",
+                    "href": "fake:href:49",
+                    "id": "fake:id:49",
+                    "ip_version": "ipv4",
+                    "name": "rule2",
+                    "source": "10.240.3.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "udp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:47",
+                        "id": "fake:id:47",
+                        "name": "rule4"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.64.0/24",
+                    "direction": "inbound",
+                    "href": "fake:href:48",
+                    "id": "fake:id:48",
+                    "ip_version": "ipv4",
+                    "name": "rule3",
+                    "source": "10.240.3.0/24",
+                    "protocol": "icmp"
                 }
             ],
             "subnets": [
@@ -1042,15 +1157,62 @@
             "rules": [
                 {
                     "action": "allow",
+                    "before": {
+                        "href": "fake:href:56",
+                        "id": "fake:id:56",
+                        "name": "rule1"
+                    },
                     "created_at": null,
                     "destination": "10.240.64.0/24",
                     "direction": "outbound",
-                    "href": "fake:href:4",
-                    "id": "fake:id:4",
+                    "href": "fake:href:57",
+                    "id": "fake:id:57",
                     "ip_version": "ipv4",
                     "name": "rule0",
                     "source": "10.240.3.0/24",
-                    "protocol": "all"
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:54",
+                        "id": "fake:id:54",
+                        "name": "rule3"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.64.0/24",
+                    "direction": "outbound",
+                    "href": "fake:href:55",
+                    "id": "fake:id:55",
+                    "ip_version": "ipv4",
+                    "name": "rule2",
+                    "source": "10.240.3.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "udp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "fake:href:53",
+                        "id": "fake:id:53",
+                        "name": "rule4"
+                    },
+                    "created_at": null,
+                    "destination": "10.240.64.0/24",
+                    "direction": "outbound",
+                    "href": "fake:href:54",
+                    "id": "fake:id:54",
+                    "ip_version": "ipv4",
+                    "name": "rule3",
+                    "source": "10.240.3.0/24",
+                    "protocol": "icmp"
                 }
             ],
             "subnets": [
@@ -1084,12 +1246,44 @@
             },
             "rules": [
                 {
+                    "action": "deny",
+                    "created_at": null,
+                    "destination": "10.240.128.0/24",
+                    "direction": "outbound",
+                    "href": "fake:href:57",
+                    "id": "fake:id:57",
+                    "ip_version": "ipv4",
+                    "name": "rule0",
+                    "source": "10.240.65.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 10,
+                    "source_port_min": 1
+                },
+                {
                     "action": "allow",
                     "created_at": null,
                     "destination": "10.240.128.0/24",
                     "direction": "outbound",
-                    "href": "fake:href:5",
-                    "id": "fake:id:5",
+                    "href": "fake:href:57",
+                    "id": "fake:id:57",
+                    "ip_version": "ipv4",
+                    "name": "rule0",
+                    "source": "10.240.65.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 15,
+                    "source_port_min": 5
+                },
+                {
+                    "action": "allow",
+                    "created_at": null,
+                    "destination": "10.240.128.0/24",
+                    "direction": "outbound",
+                    "href": "fake:href:57",
+                    "id": "fake:id:57",
                     "ip_version": "ipv4",
                     "name": "rule0",
                     "source": "10.240.65.0/24",
@@ -1097,7 +1291,7 @@
                     "destination_port_min": 1,
                     "protocol": "tcp",
                     "source_port_max": 20,
-                    "source_port_min": 11
+                    "source_port_min": 16
                 }
             ],
             "subnets": [
@@ -1131,12 +1325,44 @@
             },
             "rules": [
                 {
+                    "action": "deny",
+                    "created_at": null,
+                    "destination": "10.240.128.0/24",
+                    "direction": "inbound",
+                    "href": "fake:href:57",
+                    "id": "fake:id:57",
+                    "ip_version": "ipv4",
+                    "name": "rule0",
+                    "source": "10.240.65.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 10,
+                    "source_port_min": 1
+                },
+                {
                     "action": "allow",
                     "created_at": null,
                     "destination": "10.240.128.0/24",
                     "direction": "inbound",
-                    "href": "fake:href:6",
-                    "id": "fake:id:6",
+                    "href": "fake:href:57",
+                    "id": "fake:id:57",
+                    "ip_version": "ipv4",
+                    "name": "rule0",
+                    "source": "10.240.65.0/24",
+                    "destination_port_max": 65535,
+                    "destination_port_min": 1,
+                    "protocol": "tcp",
+                    "source_port_max": 15,
+                    "source_port_min": 5
+                },
+                {
+                    "action": "allow",
+                    "created_at": null,
+                    "destination": "10.240.128.0/24",
+                    "direction": "inbound",
+                    "href": "fake:href:57",
+                    "id": "fake:id:57",
                     "ip_version": "ipv4",
                     "name": "rule0",
                     "source": "10.240.65.0/24",
@@ -1144,7 +1370,7 @@
                     "destination_port_min": 1,
                     "protocol": "tcp",
                     "source_port_max": 20,
-                    "source_port_min": 11
+                    "source_port_min": 16
                 }
             ],
             "subnets": [
