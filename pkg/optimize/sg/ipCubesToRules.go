@@ -139,10 +139,12 @@ func createActiveRules(activeRules map[*netset.IPBlock]netp.Protocol, lastIP *ne
 
 // createNewRules breaks the startIP-endIP ip range into cidrs and creates SG rules
 func createNewRules(protocol netp.Protocol, startIP, endIP *netset.IPBlock, direction ir.Direction, l *netset.IPBlock) []*ir.SGRule {
-	res := make([]*ir.SGRule, 0)
 	ipRange, _ := netset.IPBlockFromIPRange(startIP, endIP)
-	for _, cidr := range ipRange.SplitToCidrs() {
-		res = append(res, ir.NewSGRule(direction, cidr, protocol, l, ""))
+	remoteCidrs := ipRange.SplitToCidrs()
+
+	res := make([]*ir.SGRule, len(remoteCidrs))
+	for i, remoteCidr := range remoteCidrs {
+		res[i] = ir.NewSGRule(direction, remoteCidr, protocol, l, "")
 	}
 	return res
 }

@@ -25,6 +25,7 @@ type (
 
 	tcpudpTripleSet = ds.TripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet]
 	icmpTripleSet   = ds.TripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet]
+	srcDstProduct   = ds.Product[*netset.IPBlock, *netset.IPBlock]
 
 	aclCubesPerProtocol struct {
 		tcpudpAllow tcpudpTripleSet
@@ -32,6 +33,8 @@ type (
 
 		icmpAllow icmpTripleSet
 		icmpDeny  icmpTripleSet
+
+		anyProtocolAllow srcDstProduct
 	}
 )
 
