@@ -48,7 +48,7 @@ func anyProtocolCubesToRules(cubes srcDstProduct, direction ir.Direction) []*ir.
 				activeDstIPs = activeDstIPs.Union(rule.Right)
 			} else {
 				res = createNewRules(rule.Left, partitions[i-1].Left.LastIPAddressObject(), rule.Right, direction) // create active rule
-				activeRules = slices.Concat(activeRules[:j], activeRules[j+1:])
+				activeRules = slices.Delete(activeRules, j, j+1)
 			}
 		}
 
