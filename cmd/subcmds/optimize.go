@@ -17,8 +17,8 @@ import (
 func newOptimizeCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "optimize",
-		Short: "optimization of existing SG and nACLs",
-		Long:  `optimization of existing SG and nACLs`,
+		Short: "optimization of existing SGs and nACLs",
+		Long:  `optimization of existing SGs and nACLs`,
 	}
 
 	// sub cmds
