@@ -25,7 +25,7 @@ func newOptimizeACLCommand(args *inArgs) *cobra.Command {
 	}
 
 	// flags
-	cmd.PersistentFlags().StringVarP(&args.firewallName, aclNameFlag, "n", "", "which nacl to optimize")
+	cmd.PersistentFlags().StringVarP(&args.firewallName, aclNameFlag, "n", "", "which nACL to optimize")
 
 	return cmd
 }
