@@ -93,7 +93,6 @@ func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], anyPr
 		for j := len(activeRules) - 1; j >= 0; j-- {
 			rule := activeRules[j]
 			icmpSet := optimize.IcmpToIcmpSet(rule.Right.(netp.ICMP))
-
 			if !icmpSet.IsSubset(cubes[i].Right) {
 				res = slices.Concat(res, createNewRules(rule.Right, rule.Left, cubes[i-1].Left.LastIPAddressObject(), direction, l))
 				activeRules = slices.Concat(activeRules[0:j], activeRules[j+1:])
@@ -134,8 +133,8 @@ func uncoveredHole[T ds.Set[T]](prevPair, currPair ds.Pair[*netset.IPBlock, T], 
 func createActiveRules(activeRules []ds.Pair[*netset.IPBlock, netp.Protocol], lastIP *netset.IPBlock,
 	direction ir.Direction, l *netset.IPBlock) []*ir.SGRule {
 	res := make([]*ir.SGRule, 0)
-	for _, triple := range activeRules {
-		res = slices.Concat(res, createNewRules(triple.Right, triple.Left, lastIP, direction, l))
+	for _, pair := range activeRules {
+		res = slices.Concat(res, createNewRules(pair.Right, pair.Left, lastIP, direction, l))
 	}
 	return res
 }
