@@ -12,7 +12,6 @@ import (
 
 	configModel "github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/models/pkg/netp"
-	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/utils"
@@ -142,8 +141,8 @@ func makeACLRuleItem(rule *ir.ACLRule, current,
 	iPVersion := utils.Ptr(ipv4Const)
 	direction := direction(rule.Direction)
 	action := action(rule.Action)
-	source := cidr(rule.Source)
-	destination := cidr(rule.Destination)
+	source := utils.Ptr(rule.Source.ToCidrListString())
+	destination := utils.Ptr(rule.Destination.ToCidrListString())
 	switch p := rule.Protocol.(type) {
 	case netp.TCPUDP:
 		data := tcpudp(p)
@@ -221,8 +220,4 @@ func subnetRef(subnet *configModel.Subnet) *vpcv1.SubnetReference {
 		ID:           subnet.ID,
 		ResourceType: subnet.ResourceType,
 	}
-}
-
-func cidr(address *netset.IPBlock) *string {
-	return utils.Ptr(address.ToCidrListString())
 }
