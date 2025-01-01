@@ -44,8 +44,6 @@ func ReadACLs(filename string) (*ir.ACLCollection, error) {
 }
 
 func translateACLRules(acl *vpcv1.NetworkACL) (inbound, outbound []*ir.ACLRule, err error) {
-	inbound = make([]*ir.ACLRule, 0)
-	outbound = make([]*ir.ACLRule, 0)
 	for index := range acl.Rules {
 		rule, err := translateACLRule(acl, index)
 		if err != nil {
@@ -75,8 +73,8 @@ func translateACLRule(acl *vpcv1.NetworkACL, i int) (*ir.ACLRule, error) {
 func translateACLRuleProtocolAll(rule *vpcv1.NetworkACLRuleItemNetworkACLRuleProtocolAll) (*ir.ACLRule, error) {
 	action, err1 := translateAction(rule.Action)
 	direction, err2 := translateDirection(*rule.Direction)
-	src, err3 := translateResource(rule.Source)
-	dst, err4 := translateResource(rule.Destination)
+	src, err3 := netset.IPBlockFromCidrOrAddress(*rule.Source)
+	dst, err4 := netset.IPBlockFromCidrOrAddress(*rule.Destination)
 	if err := errors.Join(err1, err2, err3, err4); err != nil {
 		return nil, err
 	}
@@ -92,8 +90,8 @@ func translateACLRuleProtocolAll(rule *vpcv1.NetworkACLRuleItemNetworkACLRulePro
 func translateACLRuleProtocolTCPUDP(rule *vpcv1.NetworkACLRuleItemNetworkACLRuleProtocolTcpudp) (*ir.ACLRule, error) {
 	action, err1 := translateAction(rule.Action)
 	direction, err2 := translateDirection(*rule.Direction)
-	src, err3 := translateResource(rule.Source)
-	dst, err4 := translateResource(rule.Destination)
+	src, err3 := netset.IPBlockFromCidrOrAddress(*rule.Source)
+	dst, err4 := netset.IPBlockFromCidrOrAddress(*rule.Destination)
 	protocol, err5 := translateProtocolTCPUDP(*rule.Protocol, rule.SourcePortMin, rule.SourcePortMax,
 		rule.DestinationPortMin, rule.DestinationPortMax)
 	if err := errors.Join(err1, err2, err3, err4, err5); err != nil {
@@ -112,8 +110,8 @@ func translateACLRuleProtocolTCPUDP(rule *vpcv1.NetworkACLRuleItemNetworkACLRule
 func translateACLRuleProtocolIcmp(rule *vpcv1.NetworkACLRuleItemNetworkACLRuleProtocolIcmp) (*ir.ACLRule, error) {
 	action, err1 := translateAction(rule.Action)
 	direction, err2 := translateDirection(*rule.Direction)
-	src, err3 := translateResource(rule.Source)
-	dst, err4 := translateResource(rule.Destination)
+	src, err3 := netset.IPBlockFromCidrOrAddress(*rule.Source)
+	dst, err4 := netset.IPBlockFromCidrOrAddress(*rule.Destination)
 	protocol, err5 := netp.ICMPFromTypeAndCode64WithoutRFCValidation(rule.Type, rule.Code)
 	if err := errors.Join(err1, err2, err3, err4, err5); err != nil {
 		return nil, err
@@ -135,8 +133,4 @@ func translateAction(action *string) (ir.Action, error) {
 		return ir.Deny, nil
 	}
 	return ir.Deny, fmt.Errorf("an nACL rule action must be either allow or deny")
-}
-
-func translateResource(ipAddrs *string) (*netset.IPBlock, error) {
-	return netset.IPBlockFromCidrOrAddress(*ipAddrs)
 }

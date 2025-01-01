@@ -116,9 +116,9 @@ func translateSGRuleProtocolIcmp(rule *vpcv1.SecurityGroupRuleSecurityGroupRuleP
 }
 
 func translateDirection(direction string) (ir.Direction, error) {
-	if direction == "inbound" {
+	if direction == string(ir.Inbound) {
 		return ir.Inbound, nil
-	} else if direction == "outbound" {
+	} else if direction == string(ir.Outbound) {
 		return ir.Outbound, nil
 	}
 	return ir.Inbound, fmt.Errorf("a firewall rule direction must be either inbound or outbound")
