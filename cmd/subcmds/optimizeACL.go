@@ -5,18 +5,27 @@ SPDX-License-Identifier: Apache-2.0
 
 package subcmds
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/spf13/cobra"
 
-// temporarily exported and currently unused
-func NewOptimizeACLCommand(_ *inArgs) *cobra.Command {
+	acloptimizer "github.com/np-guard/vpc-network-config-synthesis/pkg/optimize/acl"
+)
+
+const aclNameFlag = "acl-name"
+
+func newOptimizeACLCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "acl",
-		Short: "OptimizeACL is not supported yet",
-		Long:  `OptimizeACL is not supported yet`,
+		Short: "OptimizeACL attempts to reduce the number of nACL rules in an nACL without changing the semantic.",
+		Long:  `OptimizeACL attempts to reduce the number of nACL rules in an nACL without changing the semantic.`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			return nil
+			return optimization(cmd, args, acloptimizer.NewACLOptimizer, false)
 		},
 	}
+
+	// flags
+	cmd.PersistentFlags().StringVarP(&args.firewallName, aclNameFlag, "n", "", "which nACL to optimize")
+
 	return cmd
 }
