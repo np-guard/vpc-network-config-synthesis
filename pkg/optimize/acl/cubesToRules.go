@@ -43,8 +43,7 @@ func anyProtocolCubesToRules(cubes srcDstProduct, direction ir.Direction) []*ir.
 		// if there are active rules whose dsts are not fully included in the current cube, they will be created
 		// also activeDstIPs will be calculated, which is the dstIPs that are still included in the active rules
 		activeDstIPs := netset.NewIPBlock()
-		for j := len(activeRules) - 1; j >= 0; j-- {
-			rule := activeRules[j]
+		for j, rule := range slices.Backward(activeRules) {
 			if rule.Right.IsSubset(partitions[i].Right) {
 				activeDstIPs = activeDstIPs.Union(rule.Right)
 			} else {
