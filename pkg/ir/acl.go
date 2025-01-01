@@ -29,9 +29,15 @@ type (
 	}
 
 	ACL struct {
-		Subnet   string
+		Subnet string
+
+		// Internal and External are used for synthesis
 		Internal []*ACLRule
 		External []*ACLRule
+
+		// Inbound and Outbound are used for optimization
+		Inbound  []*ACLRule
+		Outbound []*ACLRule
 	}
 
 	ACLCollection struct {

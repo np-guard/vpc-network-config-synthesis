@@ -97,7 +97,7 @@ func translateSGRuleProtocolTCPUDP(rule *vpcv1.SecurityGroupRuleSecurityGroupRul
 	direction, err1 := translateDirection(*rule.Direction)
 	remote, err2 := translateRemote(rule.Remote)
 	local, err3 := translateLocal(rule.Local)
-	protocol, err4 := translateProtocolTCPUDP(rule)
+	protocol, err4 := translateProtocolTCPUDP(*rule.Protocol, nil, nil, rule.PortMin, rule.PortMax)
 	if err := errors.Join(err1, err2, err3, err4); err != nil {
 		return nil, err
 	}
@@ -116,12 +116,12 @@ func translateSGRuleProtocolIcmp(rule *vpcv1.SecurityGroupRuleSecurityGroupRuleP
 }
 
 func translateDirection(direction string) (ir.Direction, error) {
-	if direction == "inbound" {
+	if direction == string(ir.Inbound) {
 		return ir.Inbound, nil
-	} else if direction == "outbound" {
+	} else if direction == string(ir.Outbound) {
 		return ir.Outbound, nil
 	}
-	return ir.Inbound, fmt.Errorf("SG rule direction must be either inbound or outbound")
+	return ir.Inbound, fmt.Errorf("a firewall rule direction must be either inbound or outbound")
 }
 
 func translateRemote(remote vpcv1.SecurityGroupRuleRemoteIntf) (ir.RemoteType, error) {
@@ -166,9 +166,11 @@ func translateTargets(sg *vpcv1.SecurityGroup) []string {
 	return res
 }
 
-func translateProtocolTCPUDP(rule *vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp) (netp.Protocol, error) {
-	isTCP := *rule.Protocol == vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudpProtocolTCPConst
-	minDstPort := utils.GetProperty(rule.PortMin, netp.MinPort)
-	maxDstPort := utils.GetProperty(rule.PortMax, netp.MaxPort)
-	return netp.NewTCPUDP(isTCP, netp.MinPort, netp.MaxPort, int(minDstPort), int(maxDstPort))
+func translateProtocolTCPUDP(protocolName string, srcPortMin, srcPortMax, dstPortMin, dstPortMax *int64) (netp.Protocol, error) {
+	isTCP := protocolName == vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudpProtocolTCPConst
+	minSrcPort := utils.GetProperty(srcPortMin, netp.MinPort)
+	maxSrcPort := utils.GetProperty(srcPortMax, netp.MaxPort)
+	minDstPort := utils.GetProperty(dstPortMin, netp.MinPort)
+	maxDstPort := utils.GetProperty(dstPortMax, netp.MaxPort)
+	return netp.NewTCPUDP(isTCP, int(minSrcPort), int(maxSrcPort), int(minDstPort), int(maxDstPort))
 }
