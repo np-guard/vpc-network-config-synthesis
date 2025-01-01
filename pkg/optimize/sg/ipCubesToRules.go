@@ -51,7 +51,7 @@ func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], any
 			tcpudpPorts := rule.Right.(netp.TCPUDP).DstPorts() // already checked
 			if !tcpudpPorts.ToSet().IsSubset(cubes[i].Right) {
 				res = slices.Concat(res, createNewRules(rule.Right, rule.Left, cubes[i-1].Left.LastIPAddressObject(), direction, l))
-				activeRules = slices.Delete(activeRules[0:j], j, j+1)
+				activeRules = slices.Delete(activeRules, j, j+1)
 			} else {
 				activePorts.AddInterval(tcpudpPorts)
 			}
