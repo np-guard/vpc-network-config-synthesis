@@ -57,11 +57,11 @@ func breakTCPUDPTriple(t ds.Triple[*netset.IPBlock, *netset.IPBlock, *netset.TCP
 	for _, src := range t.S1.SplitToCidrs() {
 		for _, dst := range dstCidrs {
 			for _, protocolTriple := range tcpudpTriples {
-				srcPorts := protocolTriple.S2.Intervals()
-				dstPorts := protocolTriple.S3.Intervals()
+				tcpudpSrcPorts := protocolTriple.S2.Intervals()
+				tcpudpDstPorts := protocolTriple.S3.Intervals()
 				for _, protocol := range protocolTriple.S1.Elements() {
-					for _, srcPorts := range srcPorts {
-						for _, dstPorts := range dstPorts {
+					for _, srcPorts := range tcpudpSrcPorts {
+						for _, dstPorts := range tcpudpDstPorts {
 							p, _ := netp.NewTCPUDP(protocol == 0, int(srcPorts.Start()), int(srcPorts.End()), int(dstPorts.Start()), int(dstPorts.End()))
 							res = append(res, ds.Triple[*netset.IPBlock, *netset.IPBlock, netp.TCPUDP]{S1: src, S2: dst, S3: p})
 						}

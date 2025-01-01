@@ -35,6 +35,7 @@ type (
 		icmpAllow icmpTripleSet
 		icmpDeny  icmpTripleSet
 
+		// initialized in reduceCubes func
 		anyProtocolAllow srcDstProduct
 	}
 )
@@ -58,7 +59,7 @@ func (a *aclOptimizer) Optimize() (ir.Collection, error) {
 				return a.aclCollection, nil
 			}
 		}
-		return nil, fmt.Errorf("could no find %s acl", a.aclName)
+		return nil, fmt.Errorf("could not find nACL %s", a.aclName)
 	}
 
 	for _, vpcName := range utils.SortedMapKeys(a.aclCollection.ACLs) {
