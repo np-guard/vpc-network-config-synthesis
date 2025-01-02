@@ -16,12 +16,21 @@ import (
 )
 
 func aclCubesToRules(cubes *aclCubesPerProtocol, direction ir.Direction) []*ir.ACLRule {
+	// we we calculate the optimized deny cubes
+	cubes.tcpDeny = ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet]()
+	cubes.udpDeny = ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet]()
+	cubes.icmpDeny = ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet]()
+
 	reduceACLCubes(cubes)
-	tcpRules := tcpudpTriplesToRules(cubes.tcpAllow, direction)
-	udpRules := tcpudpTriplesToRules(cubes.udpAllow, direction)
-	icmpRules := icmpTriplesToRules(cubes.icmpAllow, direction)
-	anyProtocolRules := anyProtocolCubesToRules(cubes.anyProtocolAllow, direction)
-	return slices.Concat(tcpRules, udpRules, icmpRules, anyProtocolRules)
+
+	allowTCPRules := tcpudpTriplesToRules(cubes.tcpAllow, direction, ir.Allow)
+	denyTCPRules := tcpudpTriplesToRules(cubes.tcpDeny, direction, ir.Deny)
+	allowUDPRules := tcpudpTriplesToRules(cubes.udpAllow, direction, ir.Allow)
+	denyUDPRules := tcpudpTriplesToRules(cubes.udpDeny, direction, ir.Deny)
+	allowICMPRules := icmpTriplesToRules(cubes.icmpAllow, direction, ir.Allow)
+	denyICMPRules := icmpTriplesToRules(cubes.icmpDeny, direction, ir.Deny)
+	allowAnyProtocolRules := anyProtocolCubesToRules(cubes.anyProtocolAllow, direction)
+	return slices.Concat(allowTCPRules, denyTCPRules, allowUDPRules, denyUDPRules, allowICMPRules, denyICMPRules, allowAnyProtocolRules)
 }
 
 // same algorithm as sg cubes to rules
