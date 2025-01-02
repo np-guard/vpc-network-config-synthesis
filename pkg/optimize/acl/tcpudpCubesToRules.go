@@ -14,11 +14,11 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
-func tcpudpTriplesToRules(tripleSet tcpudpTripleSet, direction ir.Direction) []*ir.ACLRule {
+func tcpudpTriplesToRules(tripleSet tcpudpTripleSet, direction ir.Direction, action ir.Action) []*ir.ACLRule {
 	partitions := minimalPartitionsTCPUDP(tripleSet)
 	res := make([]*ir.ACLRule, len(partitions))
 	for i, t := range partitions {
-		res[i] = ir.NewACLRule(ir.Allow, direction, t.S1, t.S2, t.S3, "")
+		res[i] = ir.NewACLRule(action, direction, t.S1, t.S2, t.S3, "")
 	}
 	return res
 }

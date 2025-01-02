@@ -15,11 +15,11 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/optimize"
 )
 
-func icmpTriplesToRules(tripleSet icmpTripleSet, direction ir.Direction) []*ir.ACLRule {
+func icmpTriplesToRules(tripleSet icmpTripleSet, direction ir.Direction, action ir.Action) []*ir.ACLRule {
 	partitions := minimalPartitionsICMP(tripleSet)
 	res := make([]*ir.ACLRule, len(partitions))
 	for i, t := range partitions {
-		res[i] = ir.NewACLRule(ir.Allow, direction, t.S1, t.S2, t.S3, "")
+		res[i] = ir.NewACLRule(action, direction, t.S1, t.S2, t.S3, "")
 	}
 	return res
 }
