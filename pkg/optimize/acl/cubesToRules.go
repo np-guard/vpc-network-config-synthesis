@@ -17,11 +17,11 @@ import (
 
 func aclCubesToRules(cubes *aclCubesPerProtocol, direction ir.Direction) []*ir.ACLRule {
 	reduceACLCubes(cubes)
-	anyProtocolRules := anyProtocolCubesToRules(cubes.anyProtocolAllow, direction)
 	tcpRules := tcpudpTriplesToRules(cubes.tcpAllow, direction)
 	udpRules := tcpudpTriplesToRules(cubes.udpAllow, direction)
 	icmpRules := icmpTriplesToRules(cubes.icmpAllow, direction)
-	return slices.Concat(anyProtocolRules, tcpRules, udpRules, icmpRules)
+	anyProtocolRules := anyProtocolCubesToRules(cubes.anyProtocolAllow, direction)
+	return slices.Concat(tcpRules, udpRules, icmpRules, anyProtocolRules)
 }
 
 // same algorithm as sg cubes to rules
