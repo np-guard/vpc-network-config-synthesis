@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"slices"
 	"strconv"
-	"strings"
 
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
@@ -72,7 +71,7 @@ func makeACLRow(acl *ir.ACL, priority int, rule *ir.ACLRule) ([]string, error) {
 
 	return []string{
 		acl.Name,
-		strings.Join(acl.Subnets, ", "),
+		acl.AttachedSubnetsString(),
 		direction(rule.Direction),
 		strconv.Itoa(priority),
 		action(rule.Action),
