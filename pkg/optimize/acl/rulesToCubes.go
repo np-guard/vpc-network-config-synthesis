@@ -27,9 +27,9 @@ func aclRulesToCubes(rules []*ir.ACLRule) *aclCubesPerProtocol {
 		switch p := rule.Protocol.(type) {
 		case netp.TCPUDP:
 			if p.ProtocolString() == netp.ProtocolStringTCP {
-				tcpudpRuleToCubes(res.tcpAllow, res.tcpDeny, rule)
+				res.tcpAllow, res.tcpDeny = tcpudpRuleToCubes(res.tcpAllow, res.tcpDeny, rule)
 			} else {
-				tcpudpRuleToCubes(res.udpAllow, res.udpDeny, rule)
+				res.udpAllow, res.udpDeny = tcpudpRuleToCubes(res.udpAllow, res.udpDeny, rule)
 			}
 		case netp.ICMP:
 			icmpRuleToCubes(res, rule)
@@ -40,7 +40,7 @@ func aclRulesToCubes(rules []*ir.ACLRule) *aclCubesPerProtocol {
 	return res
 }
 
-func tcpudpRuleToCubes(tcpudpAllow, tcpudpDeny tcpudpTripleSet, rule *ir.ACLRule) {
+func tcpudpRuleToCubes(tcpudpAllow, tcpudpDeny tcpudpTripleSet, rule *ir.ACLRule) (allow, deny tcpudpTripleSet) {
 	tcpudp := rule.Protocol.(netp.TCPUDP)
 	tcpudpSrcPorts := tcpudp.SrcPorts()
 	tcpudpDstPorts := tcpudp.DstPorts()
@@ -55,6 +55,7 @@ func tcpudpRuleToCubes(tcpudpAllow, tcpudpDeny tcpudpTripleSet, rule *ir.ACLRule
 		r := ruleCube.Subtract(tcpudpAllow)
 		tcpudpDeny = tcpudpDeny.Union(r)
 	}
+	return tcpudpAllow, tcpudpDeny
 }
 
 func icmpRuleToCubes(cubes *aclCubesPerProtocol, rule *ir.ACLRule) {
@@ -70,11 +71,11 @@ func icmpRuleToCubes(cubes *aclCubesPerProtocol, rule *ir.ACLRule) {
 
 func anyProtocolRuleToCubes(cubes *aclCubesPerProtocol, rule *ir.ACLRule) {
 	tcp, _ := netp.NewTCPUDP(true, netp.MinPort, netp.MaxPort, netp.MinPort, netp.MaxPort) // all ports
-	tcpudpRuleToCubes(cubes.tcpAllow, cubes.tcpDeny,
+	cubes.tcpAllow, cubes.tcpDeny = tcpudpRuleToCubes(cubes.tcpAllow, cubes.tcpDeny,
 		ir.NewACLRule(rule.Action, rule.Direction, rule.Source, rule.Destination, tcp, rule.Explanation))
 
 	udp, _ := netp.NewTCPUDP(false, netp.MinPort, netp.MaxPort, netp.MinPort, netp.MaxPort) // all ports
-	tcpudpRuleToCubes(cubes.udpAllow, cubes.udpDeny,
+	cubes.udpAllow, cubes.udpDeny = tcpudpRuleToCubes(cubes.udpAllow, cubes.udpDeny,
 		ir.NewACLRule(rule.Action, rule.Direction, rule.Source, rule.Destination, udp, rule.Explanation))
 
 	icmp, _ := netp.NewICMPWithoutRFCValidation(nil) // all types and codes
