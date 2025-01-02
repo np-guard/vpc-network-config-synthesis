@@ -29,8 +29,11 @@ type (
 	srcDstProductLeft = ds.ProductLeft[*netset.IPBlock, *netset.IPBlock]
 
 	aclCubesPerProtocol struct {
-		tcpudpAllow tcpudpTripleSet
-		tcpudpDeny  tcpudpTripleSet
+		tcpAllow tcpudpTripleSet
+		tcpDeny  tcpudpTripleSet
+
+		udpAllow tcpudpTripleSet
+		udpDeny  tcpudpTripleSet
 
 		icmpAllow icmpTripleSet
 		icmpDeny  icmpTripleSet

@@ -49,22 +49,24 @@ func actualPartitionsTCPUDP(t tcpudpTripleSet) []ds.Triple[*netset.IPBlock, *net
 // break multi-cube to regular cube
 func breakTCPUDPTriple(t ds.Triple[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet]) []ds.Triple[*netset.IPBlock,
 	*netset.IPBlock, netp.TCPUDP] {
+	tcpudpTriples := t.S3.Partitions()
+	if len(tcpudpTriples) == 0 {
+		return []ds.Triple[*netset.IPBlock, *netset.IPBlock, netp.TCPUDP]{}
+	}
+
 	res := make([]ds.Triple[*netset.IPBlock, *netset.IPBlock, netp.TCPUDP], 0)
 
 	dstCidrs := t.S2.SplitToCidrs()
-	tcpudpTriples := t.S3.Partitions()
-
+	isTCP := tcpudpTriples[0].S1.Elements()[0] == 0
 	for _, src := range t.S1.SplitToCidrs() {
 		for _, dst := range dstCidrs {
 			for _, protocolTriple := range tcpudpTriples {
 				tcpudpSrcPorts := protocolTriple.S2.Intervals()
 				tcpudpDstPorts := protocolTriple.S3.Intervals()
-				for _, protocol := range protocolTriple.S1.Elements() {
-					for _, srcPorts := range tcpudpSrcPorts {
-						for _, dstPorts := range tcpudpDstPorts {
-							p, _ := netp.NewTCPUDP(protocol == 0, int(srcPorts.Start()), int(srcPorts.End()), int(dstPorts.Start()), int(dstPorts.End()))
-							res = append(res, ds.Triple[*netset.IPBlock, *netset.IPBlock, netp.TCPUDP]{S1: src, S2: dst, S3: p})
-						}
+				for _, srcPorts := range tcpudpSrcPorts {
+					for _, dstPorts := range tcpudpDstPorts {
+						p, _ := netp.NewTCPUDP(isTCP, int(srcPorts.Start()), int(srcPorts.End()), int(dstPorts.Start()), int(dstPorts.End()))
+						res = append(res, ds.Triple[*netset.IPBlock, *netset.IPBlock, netp.TCPUDP]{S1: src, S2: dst, S3: p})
 					}
 				}
 			}

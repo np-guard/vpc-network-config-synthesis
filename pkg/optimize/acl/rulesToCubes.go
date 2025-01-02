@@ -15,16 +15,22 @@ import (
 
 func aclRulesToCubes(rules []*ir.ACLRule) *aclCubesPerProtocol {
 	res := &aclCubesPerProtocol{
-		tcpudpAllow: ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet](),
-		tcpudpDeny:  ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet](),
-		icmpAllow:   ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet](),
-		icmpDeny:    ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet](),
+		tcpAllow:  ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet](),
+		tcpDeny:   ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet](),
+		udpAllow:  ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet](),
+		udpDeny:   ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet](),
+		icmpAllow: ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet](),
+		icmpDeny:  ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet](),
 	}
 
 	for _, rule := range rules {
-		switch rule.Protocol.(type) {
+		switch p := rule.Protocol.(type) {
 		case netp.TCPUDP:
-			tcpudpRuleToCubes(res, rule)
+			if p.ProtocolString() == netp.ProtocolStringTCP {
+				tcpudpRuleToCubes(res.tcpAllow, res.tcpDeny, rule)
+			} else {
+				tcpudpRuleToCubes(res.udpAllow, res.udpDeny, rule)
+			}
 		case netp.ICMP:
 			icmpRuleToCubes(res, rule)
 		case netp.AnyProtocol:
@@ -34,19 +40,20 @@ func aclRulesToCubes(rules []*ir.ACLRule) *aclCubesPerProtocol {
 	return res
 }
 
-func tcpudpRuleToCubes(cubes *aclCubesPerProtocol, rule *ir.ACLRule) {
+func tcpudpRuleToCubes(tcpudpAllow, tcpudpDeny tcpudpTripleSet, rule *ir.ACLRule) {
 	tcpudp := rule.Protocol.(netp.TCPUDP)
 	tcpudpSrcPorts := tcpudp.SrcPorts()
 	tcpudpDstPorts := tcpudp.DstPorts()
 	tcpudpSet := netset.NewTCPorUDPSet(tcpudp.ProtocolString(), tcpudpSrcPorts.Start(), tcpudpSrcPorts.End(), tcpudpDstPorts.Start(),
 		tcpudpDstPorts.End())
+
 	ruleCube := ds.CartesianLeftTriple(rule.Source, rule.Destination, tcpudpSet)
 	if rule.Action == ir.Allow {
-		r := ruleCube.Subtract(cubes.tcpudpDeny)
-		cubes.tcpudpAllow = cubes.tcpudpAllow.Union(r)
+		r := ruleCube.Subtract(tcpudpDeny)
+		tcpudpAllow = tcpudpAllow.Union(r)
 	} else {
-		r := ruleCube.Subtract(cubes.tcpudpAllow)
-		cubes.tcpudpDeny = cubes.tcpudpDeny.Union(r)
+		r := ruleCube.Subtract(tcpudpAllow)
+		tcpudpDeny = tcpudpDeny.Union(r)
 	}
 }
 
@@ -63,10 +70,12 @@ func icmpRuleToCubes(cubes *aclCubesPerProtocol, rule *ir.ACLRule) {
 
 func anyProtocolRuleToCubes(cubes *aclCubesPerProtocol, rule *ir.ACLRule) {
 	tcp, _ := netp.NewTCPUDP(true, netp.MinPort, netp.MaxPort, netp.MinPort, netp.MaxPort) // all ports
-	tcpudpRuleToCubes(cubes, ir.NewACLRule(rule.Action, rule.Direction, rule.Source, rule.Destination, tcp, rule.Explanation))
+	tcpudpRuleToCubes(cubes.tcpAllow, cubes.tcpDeny,
+		ir.NewACLRule(rule.Action, rule.Direction, rule.Source, rule.Destination, tcp, rule.Explanation))
 
 	udp, _ := netp.NewTCPUDP(false, netp.MinPort, netp.MaxPort, netp.MinPort, netp.MaxPort) // all ports
-	tcpudpRuleToCubes(cubes, ir.NewACLRule(rule.Action, rule.Direction, rule.Source, rule.Destination, udp, rule.Explanation))
+	tcpudpRuleToCubes(cubes.udpAllow, cubes.udpDeny,
+		ir.NewACLRule(rule.Action, rule.Direction, rule.Source, rule.Destination, udp, rule.Explanation))
 
 	icmp, _ := netp.NewICMPWithoutRFCValidation(nil) // all types and codes
 	icmpRuleToCubes(cubes, ir.NewACLRule(rule.Action, rule.Direction, rule.Source, rule.Destination, icmp, rule.Explanation))
