@@ -51,7 +51,7 @@ func NewACLOptimizer(collection ir.Collection, aclName string) optimize.Optimize
 func (a *aclOptimizer) Optimize() (ir.Collection, error) {
 	if a.aclName != "" {
 		for _, vpcName := range utils.SortedMapKeys(a.aclCollection.ACLs) {
-			if a.aclVPC != "" || a.aclVPC != vpcName {
+			if a.aclVPC != "" && a.aclVPC != vpcName {
 				continue
 			}
 			if _, ok := a.aclCollection.ACLs[vpcName][a.aclName]; ok {

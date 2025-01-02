@@ -504,10 +504,11 @@ func optimizeACLTestsLists() []testCase {
 		{
 			testName: "optimize_acl_csv",
 			args: &command{
-				cmd:        optimize,
-				subcmd:     acl,
-				config:     optimizeACLConfig,
-				outputFile: "%s/optimize_acl_csv/nacl_expected.csv",
+				cmd:          optimize,
+				subcmd:       acl,
+				config:       optimizeACLConfig,
+				outputFile:   "%s/optimize_acl_csv/nacl_expected.csv",
+				firewallName: "testacl5-vpc--sub1-2",
 			},
 		},
 		{
