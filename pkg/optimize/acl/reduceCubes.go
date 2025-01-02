@@ -12,21 +12,8 @@ import (
 
 func reduceACLCubes(aclCubes *aclCubesPerProtocol) {
 	allUDPTCP := allTCPUDP(aclCubes.tcpAllow).Intersect(allTCPUDP(aclCubes.udpAllow))
-	anyProtocol := allUDPTCP.Intersect(allICMP(aclCubes.icmpAllow))
-	aclCubes.anyProtocolAllow = anyProtocol
-
-	allTcpudp := ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet]()
-	allIcmp := ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet]()
-	for _, p := range anyProtocol.Partitions() {
-		t := ds.CartesianLeftTriple(p.Left, p.Right, netset.AllTCPUDPSet())
-		allTcpudp = allTcpudp.Union(t).(*ds.LeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet])
-		i := ds.CartesianLeftTriple(p.Left, p.Right, netset.AllICMPSet())
-		allIcmp = allIcmp.Union(i).(*ds.LeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet])
-	}
-
-	aclCubes.tcpAllow = aclCubes.tcpAllow.Subtract(allTcpudp)
-	aclCubes.udpAllow = aclCubes.udpAllow.Subtract(allTcpudp)
-	aclCubes.icmpAllow = aclCubes.icmpAllow.Subtract(allIcmp)
+	aclCubes.anyProtocolAllow = allUDPTCP.Intersect(allICMP(aclCubes.icmpAllow))
+	subtractAnyProtocolCubes(aclCubes)
 }
 
 func allTCPUDP(tcpudpAllow ds.TripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet]) *srcDstProductLeft {
@@ -49,4 +36,19 @@ func allICMP(icmpAllow ds.TripleSet[*netset.IPBlock, *netset.IPBlock, *netset.IC
 		}
 	}
 	return res
+}
+
+func subtractAnyProtocolCubes(aclCubes *aclCubesPerProtocol) {
+	allTcpudp := ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet]()
+	allIcmp := ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet]()
+	for _, p := range aclCubes.anyProtocolAllow.Partitions() {
+		t := ds.CartesianLeftTriple(p.Left, p.Right, netset.AllTCPUDPSet())
+		allTcpudp = allTcpudp.Union(t).(*ds.LeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet])
+		i := ds.CartesianLeftTriple(p.Left, p.Right, netset.AllICMPSet())
+		allIcmp = allIcmp.Union(i).(*ds.LeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet])
+	}
+
+	aclCubes.tcpAllow = aclCubes.tcpAllow.Subtract(allTcpudp)
+	aclCubes.udpAllow = aclCubes.udpAllow.Subtract(allTcpudp)
+	aclCubes.icmpAllow = aclCubes.icmpAllow.Subtract(allIcmp)
 }
