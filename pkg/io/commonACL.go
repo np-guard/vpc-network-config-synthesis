@@ -19,13 +19,17 @@ import (
 
 func WriteACL(collection *ir.ACLCollection, vpc string) ([][]string, error) {
 	res := make([][]string, 0)
-	for _, subnet := range collection.SortedACLSubnets(vpc) {
-		vpcName := ir.VpcFromScopedResource(subnet)
-		aclTable, err := makeACLTable(collection.ACLs[vpcName][subnet], subnet)
-		if err != nil {
-			return nil, err
+	for _, vpcName := range collection.VpcNames() {
+		if vpc != vpcName && vpc != "" {
+			continue
 		}
-		res = slices.Concat(res, aclTable)
+		for _, aclName := range collection.SortedACLNames(vpcName) {
+			aclTable, err := makeACLTable(collection.ACLs[vpcName][aclName])
+			if err != nil {
+				return nil, err
+			}
+			res = slices.Concat(res, aclTable)
+		}
 	}
 	return res, nil
 }
@@ -37,19 +41,19 @@ func makeACLHeader() [][]string {
 		"Direction",
 		"Rule priority",
 		"Allow or deny",
-		"Protocol",
 		"Source",
 		"Destination",
+		"Protocol",
 		"Value",
 		"Description",
 	}}
 }
 
-func makeACLTable(t *ir.ACL, subnet string) ([][]string, error) {
-	rules := t.Rules()
+func makeACLTable(acl *ir.ACL) ([][]string, error) {
+	rules := acl.Rules()
 	rows := make([][]string, len(rules))
 	for i, rule := range rules {
-		aclRow, err := makeACLRow(i+1, rule, t.Name(), subnet)
+		aclRow, err := makeACLRow(acl, i+1, rule)
 		if err != nil {
 			return nil, err
 		}
@@ -58,7 +62,7 @@ func makeACLTable(t *ir.ACL, subnet string) ([][]string, error) {
 	return rows, nil
 }
 
-func makeACLRow(priority int, rule *ir.ACLRule, aclName, subnet string) ([]string, error) {
+func makeACLRow(acl *ir.ACL, priority int, rule *ir.ACLRule) ([]string, error) {
 	src, err1 := printIP(rule.Source, rule.Protocol, true)
 	dst, err2 := printIP(rule.Destination, rule.Protocol, false)
 	if errors.Join(err1, err2) != nil {
@@ -66,14 +70,14 @@ func makeACLRow(priority int, rule *ir.ACLRule, aclName, subnet string) ([]strin
 	}
 
 	return []string{
-		aclName,
-		subnet,
+		acl.Name,
+		acl.AttachedSubnetsString(),
 		direction(rule.Direction),
 		strconv.Itoa(priority),
 		action(rule.Action),
-		printProtocolName(rule.Protocol),
 		src,
 		dst,
+		printProtocolName(rule.Protocol),
 		printICMPTypeCode(rule.Protocol),
 		rule.Explanation,
 	}, nil

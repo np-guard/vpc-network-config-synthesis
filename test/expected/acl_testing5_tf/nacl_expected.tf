@@ -1,6 +1,6 @@
-# testacl5-vpc/sub1-1 [10.240.1.0/24]
-resource "ibm_is_network_acl" "acl-testacl5-vpc--sub1-1" {
-  name           = "acl-testacl5-vpc--sub1-1"
+# Attached subnets: testacl5-vpc/sub1-1
+resource "ibm_is_network_acl" "testacl5-vpc--sub1-1" {
+  name           = "testacl5-vpc--sub1-1"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_testacl5-vpc_id
   # Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
@@ -239,9 +239,9 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc--sub1-1" {
   }
 }
 
-# testacl5-vpc/sub1-2 [10.240.2.0/24]
-resource "ibm_is_network_acl" "acl-testacl5-vpc--sub1-2" {
-  name           = "acl-testacl5-vpc--sub1-2"
+# Attached subnets: testacl5-vpc/sub1-2
+resource "ibm_is_network_acl" "testacl5-vpc--sub1-2" {
+  name           = "testacl5-vpc--sub1-2"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_testacl5-vpc_id
   # Internal. required-connections[3]: (subnet testacl5-vpc/sub1-1)->(subnet testacl5-vpc/sub1-2); allowed-protocols[0]
@@ -286,9 +286,9 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc--sub1-2" {
   }
 }
 
-# testacl5-vpc/sub1-3 [10.240.3.0/24]
-resource "ibm_is_network_acl" "acl-testacl5-vpc--sub1-3" {
-  name           = "acl-testacl5-vpc--sub1-3"
+# Attached subnets: testacl5-vpc/sub1-3
+resource "ibm_is_network_acl" "testacl5-vpc--sub1-3" {
+  name           = "testacl5-vpc--sub1-3"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_testacl5-vpc_id
   # Internal. required-connections[4]: (subnet testacl5-vpc/sub1-1)->(subnet testacl5-vpc/sub1-3); allowed-protocols[0]
@@ -333,9 +333,9 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc--sub1-3" {
   }
 }
 
-# testacl5-vpc/sub2-1 [10.240.64.0/24]
-resource "ibm_is_network_acl" "acl-testacl5-vpc--sub2-1" {
-  name           = "acl-testacl5-vpc--sub2-1"
+# Attached subnets: testacl5-vpc/sub2-1
+resource "ibm_is_network_acl" "testacl5-vpc--sub2-1" {
+  name           = "testacl5-vpc--sub2-1"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_testacl5-vpc_id
   # Internal. required-connections[0]: (segment need-dns)->(segment need-dns); allowed-protocols[0]
@@ -574,9 +574,9 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc--sub2-1" {
   }
 }
 
-# testacl5-vpc/sub2-2 [10.240.65.0/24]
-resource "ibm_is_network_acl" "acl-testacl5-vpc--sub2-2" {
-  name           = "acl-testacl5-vpc--sub2-2"
+# Attached subnets: testacl5-vpc/sub2-2
+resource "ibm_is_network_acl" "testacl5-vpc--sub2-2" {
+  name           = "testacl5-vpc--sub2-2"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_testacl5-vpc_id
   # Internal. required-connections[6]: (subnet testacl5-vpc/sub2-1)->(subnet testacl5-vpc/sub2-2); allowed-protocols[0]
@@ -597,9 +597,9 @@ resource "ibm_is_network_acl" "acl-testacl5-vpc--sub2-2" {
   }
 }
 
-# testacl5-vpc/sub3-1 [10.240.128.0/24]
-resource "ibm_is_network_acl" "acl-testacl5-vpc--sub3-1" {
-  name           = "acl-testacl5-vpc--sub3-1"
+# Attached subnets: testacl5-vpc/sub3-1
+resource "ibm_is_network_acl" "testacl5-vpc--sub3-1" {
+  name           = "testacl5-vpc--sub3-1"
   resource_group = local.acl_synth_resource_group_id
   vpc            = local.acl_synth_testacl5-vpc_id
   # Internal. required-connections[2]: (segment need-dns)->(subnet testacl5-vpc/sub3-1); allowed-protocols[0]

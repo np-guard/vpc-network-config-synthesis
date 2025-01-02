@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"reflect"
 	"slices"
+	"strings"
 
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
@@ -29,7 +30,8 @@ type (
 	}
 
 	ACL struct {
-		Subnet string
+		Name    string
+		Subnets []string
 
 		// Internal and External are used for synthesis
 		Internal []*ACLRule
@@ -79,6 +81,9 @@ func (r *ACLRule) Target() *netset.IPBlock {
 }
 
 func (a *ACL) Rules() []*ACLRule {
+	if a.Internal == nil && a.External == nil { // optimization mode
+		return slices.Concat(a.Inbound, a.Outbound)
+	}
 	rules := a.Internal
 	if len(a.External) != 0 {
 		rules = slices.Concat(rules, makeDenyInternal(), a.External)
@@ -87,45 +92,52 @@ func (a *ACL) Rules() []*ACLRule {
 }
 
 func (a *ACL) AppendInternal(rule *ACLRule) {
-	if a.Internal == nil {
-		panic("ACLs should be created with non-null Internal")
-	}
 	if !rule.isRedundant(a.Internal) {
 		a.Internal = append(a.Internal, rule)
 	}
 }
 
-func (a *ACL) Name() string {
-	return fmt.Sprintf("acl-%v", a.Subnet)
-}
-
 func (a *ACL) AppendExternal(rule *ACLRule) {
-	if a.External == nil {
-		panic("ACLs should be created with non-null External")
-	}
 	if !rule.isRedundant(a.External) {
 		a.External = append(a.External, rule)
 	}
+}
+
+func (a *ACL) AttachedSubnetsString() string {
+	a.Subnets = slices.Compact(slices.Sorted(slices.Values(a.Subnets)))
+	return strings.Join(a.Subnets, ", ")
 }
 
 func NewACLCollection() *ACLCollection {
 	return &ACLCollection{ACLs: map[ID]map[string]*ACL{}}
 }
 
-func NewACL(subnet string) *ACL {
-	return &ACL{Subnet: subnet, Internal: []*ACLRule{}, External: []*ACLRule{}}
+func NewACL(aclName, subnetName string) *ACL {
+	return &ACL{Name: aclName, Subnets: []string{subnetName}}
 }
 
-func (c *ACLCollection) LookupOrCreate(name string) *ACL {
-	vpcName := VpcFromScopedResource(name)
-	if acl, ok := c.ACLs[vpcName][name]; ok {
+func aclSelector(subnetName ID, single bool) string {
+	if single {
+		return fmt.Sprintf("%s/singleACL", VpcFromScopedResource(subnetName))
+	}
+	return subnetName
+}
+
+func (c *ACLCollection) LookupOrCreate(subnetName string, singleACL bool) *ACL {
+	vpcName := VpcFromScopedResource(subnetName)
+	aclName := aclSelector(subnetName, singleACL)
+
+	if acl, ok := c.ACLs[vpcName][aclName]; ok {
+		if singleACL {
+			acl.Subnets = append(acl.Subnets, subnetName)
+		}
 		return acl
 	}
 	if c.ACLs[vpcName] == nil {
 		c.ACLs[vpcName] = make(map[string]*ACL)
 	}
-	c.ACLs[vpcName][name] = NewACL(name)
-	return c.ACLs[vpcName][name]
+	c.ACLs[vpcName][aclName] = NewACL(aclName, subnetName)
+	return c.ACLs[vpcName][aclName]
 }
 
 func (c *ACLCollection) VpcNames() []string {
@@ -136,7 +148,7 @@ func (c *ACLCollection) Write(w Writer, vpc string, isSynth bool) error {
 	return w.WriteACL(c, vpc, isSynth)
 }
 
-func (c *ACLCollection) SortedACLSubnets(vpc string) []string {
+func (c *ACLCollection) SortedACLNames(vpc string) []string {
 	if vpc == "" {
 		return utils.SortedAllInnerMapsKeys(c.ACLs)
 	}

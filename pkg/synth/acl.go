@@ -7,8 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package synth
 
 import (
-	"fmt"
-
 	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
@@ -68,10 +66,10 @@ func (a *ACLSynthesizer) allowConnectionSrc(conn *ir.Connection, p *ir.TrackedPr
 	}
 	reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: p.Origin}
 	request := &ir.Packet{Src: srcSubnet.IPAddrs, Dst: dstCidr, Protocol: p.Protocol, Explanation: reason.String()}
-	a.addRuleToACL(ir.AllowSend(request), srcSubnet.Name, internal, a.singleACL)
+	a.addRuleToACL(ir.AllowSend(request), srcSubnet.Name, internal)
 	if inverseProtocol := p.Protocol.InverseDirection(); inverseProtocol != nil {
 		response := &ir.Packet{Src: dstCidr, Dst: srcSubnet.IPAddrs, Protocol: inverseProtocol, Explanation: reason.response().String()}
-		a.addRuleToACL(ir.AllowReceive(response), srcSubnet.Name, internal, a.singleACL)
+		a.addRuleToACL(ir.AllowReceive(response), srcSubnet.Name, internal)
 	}
 }
 
@@ -85,22 +83,15 @@ func (a *ACLSynthesizer) allowConnectionDst(conn *ir.Connection, p *ir.TrackedPr
 	}
 	reason := explanation{internal: internal, connectionOrigin: conn.Origin, protocolOrigin: p.Origin}
 	request := &ir.Packet{Src: srcCidr, Dst: dstSubnet.IPAddrs, Protocol: p.Protocol, Explanation: reason.String()}
-	a.addRuleToACL(ir.AllowReceive(request), dstSubnet.Name, internal, a.singleACL)
+	a.addRuleToACL(ir.AllowReceive(request), dstSubnet.Name, internal)
 	if inverseProtocol := p.Protocol.InverseDirection(); inverseProtocol != nil {
 		response := &ir.Packet{Src: dstSubnet.IPAddrs, Dst: srcCidr, Protocol: inverseProtocol, Explanation: reason.response().String()}
-		a.addRuleToACL(ir.AllowSend(response), dstSubnet.Name, internal, a.singleACL)
+		a.addRuleToACL(ir.AllowSend(response), dstSubnet.Name, internal)
 	}
 }
 
-func aclSelector(subnetName ir.ID, single bool) string {
-	if single {
-		return fmt.Sprintf("%s/singleACL", ir.VpcFromScopedResource(subnetName))
-	}
-	return subnetName
-}
-
-func (a *ACLSynthesizer) addRuleToACL(rule *ir.ACLRule, resourceName ir.ID, internal, single bool) {
-	acl := a.result.LookupOrCreate(aclSelector(resourceName, single))
+func (a *ACLSynthesizer) addRuleToACL(rule *ir.ACLRule, subnetName ir.ID, internal bool) {
+	acl := a.result.LookupOrCreate(subnetName, a.singleACL)
 	if internal {
 		acl.AppendInternal(rule)
 	} else {
@@ -112,7 +103,7 @@ func (a *ACLSynthesizer) addRuleToACL(rule *ir.ACLRule, resourceName ir.ID, inte
 func (a *ACLSynthesizer) generateACLRulesForBlockedSubnets() string {
 	blockedSubnets := utils.TrueKeyValues(a.spec.BlockedSubnets)
 	for _, subnet := range blockedSubnets {
-		acl := a.result.LookupOrCreate(aclSelector(subnet, a.singleACL))
+		acl := a.result.LookupOrCreate(subnet, a.singleACL)
 		cidr := a.spec.Defs.Subnets[subnet].Address()
 		acl.AppendInternal(ir.DenyAllReceive(subnet, cidr))
 		acl.AppendInternal(ir.DenyAllSend(subnet, cidr))

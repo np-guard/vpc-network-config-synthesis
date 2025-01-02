@@ -14,6 +14,7 @@ import (
 
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
+
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
@@ -38,7 +39,11 @@ func ReadACLs(filename string) (*ir.ACLCollection, error) {
 		if result.ACLs[vpcName] == nil {
 			result.ACLs[vpcName] = make(map[string]*ir.ACL)
 		}
-		result.ACLs[vpcName][*acl.Name] = &ir.ACL{Inbound: inbound, Outbound: outbound}
+		result.ACLs[vpcName][*acl.Name] = &ir.ACL{Name: *acl.Name,
+			Subnets:  parseAttachedSubnets(&acl.NetworkACL),
+			Inbound:  inbound,
+			Outbound: outbound,
+		}
 	}
 	return result, nil
 }
@@ -133,4 +138,19 @@ func translateAction(action *string) (ir.Action, error) {
 		return ir.Deny, nil
 	}
 	return ir.Deny, fmt.Errorf("an nACL rule action must be either allow or deny")
+}
+
+func parseAttachedSubnets(acl *vpcv1.NetworkACL) []string {
+	if len(acl.Subnets) == 0 {
+		log.Printf("Warning: nACL %s does not have attached subnets", *acl.Name)
+	}
+	res := make([]string, 0)
+	for i, subnet := range acl.Subnets {
+		if subnet.Name != nil {
+			res = append(res, *subnet.Name)
+		} else {
+			log.Printf("Warning: error translating subnet %d in %s nACL", i, *acl.Name)
+		}
+	}
+	return res
 }
