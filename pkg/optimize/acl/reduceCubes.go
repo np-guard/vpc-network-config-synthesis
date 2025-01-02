@@ -10,6 +10,8 @@ import (
 	"github.com/np-guard/models/pkg/netset"
 )
 
+// reduceACLCubes unifies a (src ip x dst ip) cube, separately allowed for tcp, udp and icmp, into one "any" cube
+// (assuming all ports, codes, types)
 func reduceACLCubes(aclCubes *aclCubesPerProtocol) {
 	allTCP := allTCPUDP(aclCubes.tcpAllow)
 	allUDP := allTCPUDP(aclCubes.udpAllow)
