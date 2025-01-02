@@ -67,7 +67,7 @@ func makeACL(model *configModel.ResourcesContainerModel, collection *ir.ACLColle
 	return nil
 }
 
-// updateACL writes  the generated nACL to the config object
+// makeSingleACL writes the generated nACL to the config object
 func makeSingleACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCollection) error {
 	aclItem := &configModel.NetworkACL{}
 	var err error
