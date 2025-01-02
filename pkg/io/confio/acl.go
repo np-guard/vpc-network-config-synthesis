@@ -32,8 +32,8 @@ func (w *Writer) WriteACL(collection *ir.ACLCollection, _ string, isSynth bool) 
 	return w.writeModel()
 }
 
-// makeACLs calls updateSingleACL if we generated a single ACL,
-// o.w. it calls updateACL
+// makeACLs calls makeSingleACL if we generated a single ACL,
+// o.w. it calls makeACL
 func makeACLs(model *configModel.ResourcesContainerModel, collection *ir.ACLCollection) error {
 	if len(model.SubnetList) == 0 {
 		return nil
@@ -49,7 +49,7 @@ func makeACLs(model *configModel.ResourcesContainerModel, collection *ir.ACLColl
 	return makeSingleACL(model, collection)
 }
 
-// updateACL writes all the generates nACLs to the config object
+// makeACL writes all the generates nACLs to the config object
 func makeACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCollection) error {
 	for _, subnet := range model.SubnetList {
 		vpcName := *subnet.VPC.Name
@@ -67,7 +67,7 @@ func makeACL(model *configModel.ResourcesContainerModel, collection *ir.ACLColle
 	return nil
 }
 
-// updateACL writes  the generated nACL to the config object
+// makeSingleACL writes the generated nACL to the config object
 func makeSingleACL(model *configModel.ResourcesContainerModel, collection *ir.ACLCollection) error {
 	aclItem := &configModel.NetworkACL{}
 	var err error

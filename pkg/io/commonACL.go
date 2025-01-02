@@ -41,9 +41,9 @@ func makeACLHeader() [][]string {
 		"Direction",
 		"Rule priority",
 		"Allow or deny",
-		"Protocol",
 		"Source",
 		"Destination",
+		"Protocol",
 		"Value",
 		"Description",
 	}}
@@ -75,9 +75,9 @@ func makeACLRow(acl *ir.ACL, priority int, rule *ir.ACLRule) ([]string, error) {
 		direction(rule.Direction),
 		strconv.Itoa(priority),
 		action(rule.Action),
-		printProtocolName(rule.Protocol),
 		src,
 		dst,
+		printProtocolName(rule.Protocol),
 		printICMPTypeCode(rule.Protocol),
 		rule.Explanation,
 	}, nil
