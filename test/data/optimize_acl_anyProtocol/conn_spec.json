@@ -1,0 +1,60 @@
+{
+    "externals": {
+        "e1": "1.1.1.0/32",
+        "e2": "1.1.1.0/31",
+        "e3": "2.2.2.0/32",
+        "e4": "2.2.2.2/31"
+    },
+    "required-connections": [
+        {
+            "src": {
+                "name": "sub1-1",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "e1",
+                "type": "external"
+            }
+        },
+        {
+            "src": {
+                "name": "sub1-1",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "e2",
+                "type": "external"
+            }
+        },
+        {
+            "src": {
+                "name": "sub1-1",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "e3",
+                "type": "external"
+            }
+        },
+        {
+            "src": {
+                "name": "sub1-1",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "sub1-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "src": {
+                "name": "sub1-1",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "e4",
+                "type": "external"
+            }
+        }
+    ]
+}

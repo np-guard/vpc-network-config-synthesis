@@ -100,10 +100,12 @@ func printIP(ip *netset.IPBlock, protocol netp.Protocol, isSource bool) (string,
 		return ipString, nil
 	case netp.TCPUDP:
 		r := p.DstPorts()
+		portsString := "dst ports:"
 		if isSource {
 			r = p.SrcPorts()
+			portsString = "src ports:"
 		}
-		return fmt.Sprintf("%v, %v", ipString, printPorts(r)), nil
+		return fmt.Sprintf("%v, %s %v", ipString, portsString, printPorts(r)), nil
 	case netp.AnyProtocol:
 		return ipString, nil
 	}

@@ -18,6 +18,8 @@ const (
 	sgTesting3Config               = "%s/sg_testing3/config_object.json"
 	aclTesting4Config              = "%s/acl_testing4/config_object.json"
 	aclTesting5Config              = "%s/acl_testing5/config_object.json"
+	optimizeACLConfig              = "%s/optimize_acl/config_object.json"
+	optimizeACLAnyProtocolConfig   = "%s/optimize_acl_anyProtocol/config_object.json"
 	optimizeSGProtocolsToAllConfig = "%s/optimize_sg_protocols_to_all/config_object.json"
 
 	aclExternalsSpec           = "%s/acl_externals/conn_spec.json"
@@ -503,10 +505,11 @@ func optimizeACLTestsLists() []testCase {
 		{
 			testName: "optimize_acl_csv",
 			args: &command{
-				cmd:        optimize,
-				subcmd:     acl,
-				config:     aclTesting5Config,
-				outputFile: "%s/optimize_acl_csv/nacl_expected.csv",
+				cmd:          optimize,
+				subcmd:       acl,
+				config:       optimizeACLConfig,
+				outputFile:   "%s/optimize_acl_csv/nacl_expected.csv",
+				firewallName: "testacl5-vpc--sub1-2",
 			},
 		},
 		{
@@ -514,7 +517,7 @@ func optimizeACLTestsLists() []testCase {
 			args: &command{
 				cmd:        optimize,
 				subcmd:     acl,
-				config:     aclTesting5Config,
+				config:     optimizeACLConfig,
 				outputFile: "%s/optimize_acl_md/nacl_expected.md",
 			},
 		},
@@ -523,7 +526,7 @@ func optimizeACLTestsLists() []testCase {
 			args: &command{
 				cmd:        optimize,
 				subcmd:     acl,
-				config:     aclTesting5Config,
+				config:     optimizeACLConfig,
 				outputFile: "%s/optimize_acl_tf/nacl_expected.tf",
 			},
 		},
@@ -532,8 +535,17 @@ func optimizeACLTestsLists() []testCase {
 			args: &command{
 				cmd:        optimize,
 				subcmd:     acl,
-				config:     aclTesting5Config,
+				config:     optimizeACLConfig,
 				outputFile: "%s/optimize_acl_json/nacl_expected.json",
+			},
+		},
+		{
+			testName: "optimize_acl_anyProtocol_tf",
+			args: &command{
+				cmd:        optimize,
+				subcmd:     acl,
+				config:     optimizeACLAnyProtocolConfig,
+				outputFile: "%s/optimize_acl_anyProtocol_tf/nacl_expected.tf",
 			},
 		},
 	}

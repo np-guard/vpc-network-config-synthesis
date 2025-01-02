@@ -1,0 +1,16 @@
+original config object: acl_testing5 config
+please note that the generated config object has been changed!
+
+######## BEFORE ########
+
+sub1-1 --> 1.1.1.0/32 
+sub1-1 --> 1.1.1.0/31
+
+sub1-1 --> 2.2.2.0/32
+sub1-1 --> sub1-2 (2.2.2.1/32)
+sub1-1 --> 2.2.2.2/31 
+
+######## AFTER ########
+
+sub1-1 --> 1.1.1.0/31 
+sub1-1 --> 2.2.2.0/30
