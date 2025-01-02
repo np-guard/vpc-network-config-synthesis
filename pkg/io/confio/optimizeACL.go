@@ -13,6 +13,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
+// updateACLs changes nACLs rules to optimized rules
 func updateACLs(model *configModel.ResourcesContainerModel, collection *ir.ACLCollection) error {
 	for _, acl := range model.NetworkACLList {
 		if acl.Name == nil || acl.VPC == nil || acl.VPC.Name == nil {
