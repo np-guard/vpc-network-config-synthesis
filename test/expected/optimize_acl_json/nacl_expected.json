@@ -906,7 +906,7 @@
                 {
                     "action": "allow",
                     "created_at": null,
-                    "destination": "1.1.1.1/32",
+                    "destination": "2.2.2.2/32",
                     "direction": "outbound",
                     "href": "fake:href:1",
                     "id": "fake:id:1",

@@ -911,7 +911,7 @@
                         "name": "rule19"
                     },
                     "created_at": null,
-                    "destination": "1.1.1.1/32",
+                    "destination": "2.2.2.2/32",
                     "direction": "outbound",
                     "href": "fake:href:4",
                     "id": "fake:id:4",
@@ -932,7 +932,7 @@
                         "name": "rule20"
                     },
                     "created_at": null,
-                    "destination": "1.1.1.1/32",
+                    "destination": "2.2.2.2/32",
                     "direction": "outbound",
                     "href": "fake:href:3",
                     "id": "fake:id:3",
@@ -948,7 +948,7 @@
                 {
                     "action": "allow",
                     "created_at": null,
-                    "destination": "1.1.1.1/32",
+                    "destination": "2.2.2.2/32",
                     "direction": "outbound",
                     "href": "fake:href:2",
                     "id": "fake:id:2",

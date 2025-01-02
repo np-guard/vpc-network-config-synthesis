@@ -1,7 +1,7 @@
 Acl,Subnet,Direction,Rule priority,Allow or deny,Source,Destination,Protocol,Value,Description
 testacl5-vpc--sub1-1,sub1-1,Outbound,1,Allow,"10.240.1.0/24, src ports: any port","1.1.1.0, dst ports: any port",TCP,-,
 testacl5-vpc--sub1-1,sub1-1,Outbound,2,Allow,"10.240.1.0/24, src ports: any port","1.1.1.1, dst ports: any port",TCP,-,
-testacl5-vpc--sub1-2,sub1-2,Outbound,1,Allow,"10.240.2.0/24, src ports: any port","1.1.1.1, dst ports: ports 1-20",UDP,-,
+testacl5-vpc--sub1-2,sub1-2,Outbound,1,Allow,"10.240.2.0/24, src ports: any port","2.2.2.2, dst ports: ports 1-20",UDP,-,
 testacl5-vpc--sub1-3,sub1-3,Outbound,1,Allow,"10.240.3.0/24, src ports: any port","10.240.64.0/24, dst ports: any port",TCP,-,
 testacl5-vpc--sub1-3,sub1-3,Outbound,2,Allow,"10.240.3.0/24, src ports: any port","10.240.64.0/24, dst ports: any port",UDP,-,
 testacl5-vpc--sub1-3,sub1-3,Outbound,3,Allow,10.240.3.0/24,10.240.64.0/24,ICMP,"Type: Any, Code: Any",

@@ -41,7 +41,7 @@
                 "type": "subnet"
             },
             "dst": {
-                "name": "e2",
+                "name": "e3",
                 "type": "external"
             },
             "allowed-protocols": [
@@ -58,7 +58,7 @@
                 "type": "subnet"
             },
             "dst": {
-                "name": "e2",
+                "name": "e3",
                 "type": "external"
             },
             "allowed-protocols": [
@@ -75,7 +75,7 @@
                 "type": "subnet"
             },
             "dst": {
-                "name": "e2",
+                "name": "e3",
                 "type": "external"
             },
             "allowed-protocols": [

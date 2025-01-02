@@ -24,7 +24,7 @@ resource "ibm_is_network_acl" "testacl5-vpc--sub1-2" {
     action      = "allow"
     direction   = "outbound"
     source      = "10.240.2.0/24"
-    destination = "1.1.1.1"
+    destination = "2.2.2.2"
     udp {
       port_max = 20
     }
