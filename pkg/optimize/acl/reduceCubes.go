@@ -27,7 +27,7 @@ func allTCPUDP(tcpudpAllow ds.TripleSet[*netset.IPBlock, *netset.IPBlock, *netse
 	return res
 }
 
-func allICMP(icmpAllow ds.TripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet]) srcDstProduct {
+func allICMP(icmpAllow ds.TripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet]) *srcDstProductLeft {
 	res := ds.NewProductLeft[*netset.IPBlock, *netset.IPBlock]()
 	for _, p := range icmpAllow.Partitions() {
 		if p.S3.IsAll() { // all icmp types and codes
