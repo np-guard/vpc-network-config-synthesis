@@ -11,8 +11,8 @@ import (
 )
 
 func reduceACLCubes(aclCubes *aclCubesPerProtocol) {
-	allUDPTCP := allTCPUDP(aclCubes.tcpAllow).Intersect(allTCPUDP(aclCubes.udpAllow)).(*srcDstProductLeft)
-	anyProtocol := allUDPTCP.Intersect(allICMP(aclCubes.icmpAllow)).(*srcDstProductLeft)
+	allUDPTCP := allTCPUDP(aclCubes.tcpAllow).Intersect(allTCPUDP(aclCubes.udpAllow))
+	anyProtocol := allUDPTCP.Intersect(allICMP(aclCubes.icmpAllow))
 	aclCubes.anyProtocolAllow = anyProtocol
 
 	allTcpudp := ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet]()
@@ -29,7 +29,7 @@ func reduceACLCubes(aclCubes *aclCubesPerProtocol) {
 	aclCubes.icmpAllow = aclCubes.icmpAllow.Subtract(allIcmp)
 }
 
-func allTCPUDP(tcpudpAllow ds.TripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet]) srcDstProduct {
+func allTCPUDP(tcpudpAllow ds.TripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet]) *srcDstProductLeft {
 	res := ds.NewProductLeft[*netset.IPBlock, *netset.IPBlock]()
 	for _, p := range tcpudpAllow.Partitions() {
 		if p.S3.Equal(netset.NewAllTCPOnlySet()) || p.S3.Equal(netset.NewAllUDPOnlySet()) { // all tcp or udp ports
