@@ -20,8 +20,10 @@ func reduceACLCubes(aclCubes *aclCubesPerProtocol) {
 
 func allTCPUDP(tcpudpAllow ds.TripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet]) *srcDstProductLeft {
 	res := ds.NewProductLeft[*netset.IPBlock, *netset.IPBlock]()
+	allTCPSet := netset.NewAllTCPOnlySet()
+	allUDPSet := netset.NewAllUDPOnlySet()
 	for _, p := range tcpudpAllow.Partitions() {
-		if p.S3.Equal(netset.NewAllTCPOnlySet()) || p.S3.Equal(netset.NewAllUDPOnlySet()) { // all tcp or udp ports
+		if p.S3.Equal(allTCPSet) || p.S3.Equal(allUDPSet) { // all tcp or udp ports
 			r := ds.CartesianPairLeft(p.S1, p.S2)
 			res = res.Union(r).(*srcDstProductLeft)
 		}

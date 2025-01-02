@@ -57,7 +57,7 @@ func breakTCPUDPTriple(t ds.Triple[*netset.IPBlock, *netset.IPBlock, *netset.TCP
 	res := make([]ds.Triple[*netset.IPBlock, *netset.IPBlock, netp.TCPUDP], 0)
 
 	dstCidrs := t.S2.SplitToCidrs()
-	isTCP := tcpudpTriples[0].S1.Elements()[0] == 0
+	isTCP := tcpudpTriples[0].S1.Elements()[0] == netset.TCPCode
 	for _, src := range t.S1.SplitToCidrs() {
 		for _, dst := range dstCidrs {
 			for _, protocolTriple := range tcpudpTriples {
