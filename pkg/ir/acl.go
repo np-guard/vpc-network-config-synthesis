@@ -81,7 +81,7 @@ func (r *ACLRule) Target() *netset.IPBlock {
 }
 
 func (a *ACL) Rules() []*ACLRule {
-	if a.Internal == nil { // optimization mode
+	if a.Internal == nil && a.External == nil { // optimization mode
 		return slices.Concat(a.Inbound, a.Outbound)
 	}
 	rules := a.Internal
@@ -92,11 +92,14 @@ func (a *ACL) Rules() []*ACLRule {
 }
 
 func (a *ACL) AppendInternal(rule *ACLRule) {
-	if a.Internal == nil {
-		panic("ACLs should be created with non-null Internal")
-	}
 	if !rule.isRedundant(a.Internal) {
 		a.Internal = append(a.Internal, rule)
+	}
+}
+
+func (a *ACL) AppendExternal(rule *ACLRule) {
+	if !rule.isRedundant(a.External) {
+		a.External = append(a.External, rule)
 	}
 }
 
@@ -105,21 +108,12 @@ func (a *ACL) AttachedSubnetsString() string {
 	return strings.Join(a.Subnets, ", ")
 }
 
-func (a *ACL) AppendExternal(rule *ACLRule) {
-	if a.External == nil {
-		panic("ACLs should be created with non-null External")
-	}
-	if !rule.isRedundant(a.External) {
-		a.External = append(a.External, rule)
-	}
-}
-
 func NewACLCollection() *ACLCollection {
 	return &ACLCollection{ACLs: map[ID]map[string]*ACL{}}
 }
 
 func NewACL(aclName, subnetName string) *ACL {
-	return &ACL{Name: aclName, Subnets: []string{subnetName}, Internal: []*ACLRule{}, External: []*ACLRule{}}
+	return &ACL{Name: aclName, Subnets: []string{subnetName}}
 }
 
 func aclSelector(subnetName ID, single bool) string {
