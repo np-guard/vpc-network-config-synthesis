@@ -11,8 +11,10 @@ import (
 )
 
 func reduceACLCubes(aclCubes *aclCubesPerProtocol) {
-	allUDPTCP := allTCPUDP(aclCubes.tcpAllow).Intersect(allTCPUDP(aclCubes.udpAllow))
-	aclCubes.anyProtocolAllow = allUDPTCP.Intersect(allICMP(aclCubes.icmpAllow))
+	allTCP := allTCPUDP(aclCubes.tcpAllow)
+	allUDP := allTCPUDP(aclCubes.udpAllow)
+	allicmp := allICMP(aclCubes.icmpAllow)
+	aclCubes.anyProtocolAllow = allTCP.Intersect(allUDP).Intersect(allicmp)
 	subtractAnyProtocolCubes(aclCubes)
 }
 
