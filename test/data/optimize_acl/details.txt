@@ -18,9 +18,11 @@ DENY sub2-2 --> sub3-1 (tcp src ports 1-10)
 ALLOW sub2-2 --> sub3-1 (tcp src ports 5-15) 
 ALLOW sub2-2 --> sub3-1 (tcp src ports 16-20)
 
-######## AFTER ########
+######## AFTER (tf, md, json) ########
 
 sub1-1 --> 1.1.1.0/31 (tcp)
 sub1-2 --> 2.2.2.2/32 (udp 1-20)
 sub1-3 --> sub2-1 (any protocol)
 sub2-2 --> sub3-1 (tcp ports 11-20)
+
+in CSV fmt only "testacl5-vpc--sub1-2" nACL is optimized

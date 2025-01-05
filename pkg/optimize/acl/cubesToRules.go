@@ -45,7 +45,7 @@ func anyProtocolCubesToRules(cubes srcDstProduct, direction ir.Direction) []*ir.
 
 	for i := range partitions {
 		// if it is not possible to continue the rule between the cubes, generate all existing rules
-		if i > 0 && uncoveredHole(partitions[i].Left, partitions[i].Left) {
+		if i > 0 && uncoveredHole(partitions[i-1].Left, partitions[i].Left) {
 			res = slices.Concat(res, createActiveRules(activeRules, partitions[i-1].Left.LastIPAddressObject(), direction))
 			activeRules = make([]ds.Pair[*netset.IPBlock, *netset.IPBlock], 0)
 		}
@@ -96,5 +96,5 @@ func createNewRules(srcStartIP, srcEndIP, dstCidr *netset.IPBlock, direction ir.
 
 func uncoveredHole(prevSrcIP, currSrcIP *netset.IPBlock) bool {
 	touching, _ := prevSrcIP.TouchingIPRanges(currSrcIP)
-	return touching
+	return !touching
 }
