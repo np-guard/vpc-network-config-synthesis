@@ -17,7 +17,7 @@ import (
 
 func icmpRules(icmpCubes icmpTripleSet, anyCubes srcDstProduct, direction ir.Direction) []*ir.ACLRule {
 	res := icmpTriplesToRules(icmpCubes, direction, ir.Allow)
-	resWithAny := icmpTriplesToRules(addSrcDstCubeToICMP(icmpCubes, anyCubes), direction, ir.Allow)
+	resWithAny := icmpTriplesToRules(addSrcDstCubeToICMP(icmpCubes, anyCubes, netset.AllICMPSet()), direction, ir.Allow)
 	if len(resWithAny) < len(res) {
 		return resWithAny
 	}

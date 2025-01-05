@@ -8,6 +8,7 @@ package acloptimizer
 import (
 	"github.com/np-guard/models/pkg/ds"
 	"github.com/np-guard/models/pkg/netset"
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/optimize"
 )
 
 // reduceACLCubes unifies a (src ip x dst ip) cube, separately allowed for tcp, udp and icmp, into one "any" cube
@@ -25,8 +26,9 @@ func reduceACLCubes(aclCubes *aclCubesPerProtocol) {
 
 	// deny icmp, allow any
 	allTCPUDPnoICMP := allTCPUDP.Subtract(anyICMP)
-	aclCubes.icmpDeny = addSrcDstCubeToICMP(aclCubes.icmpDeny, allTCPUDPnoICMP)
+	aclCubes.icmpDeny = addSrcDstCubeToICMP(aclCubes.icmpDeny, allTCPUDPnoICMP, netset.AllICMPSet())
 	aclCubes.anyProtocolAllow = aclCubes.anyProtocolAllow.Union(allTCPUDPnoICMP)
+	excludeICMP(aclCubes, allTCPUDP)
 
 	// deny udp, allow any
 	allTCPICMPnoUDP := allTCPICMP.Subtract(anyUDP)
@@ -72,19 +74,29 @@ func icmpCubes(icmpAllow icmpTripleSet) (allICMP, anyICMP *srcDstProductLeft) {
 	return
 }
 
-func subtractAnyProtocolCubes(aclCubes *aclCubesPerProtocol) {
-	allTcpudp := ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet]()
-	allIcmp := ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet]()
-	for _, p := range aclCubes.anyProtocolAllow.Partitions() {
-		t := ds.CartesianLeftTriple(p.Left, p.Right, netset.AllTCPUDPSet())
-		allTcpudp = allTcpudp.Union(t).(*ds.LeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet])
-		i := ds.CartesianLeftTriple(p.Left, p.Right, netset.AllICMPSet())
-		allIcmp = allIcmp.Union(i).(*ds.LeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet])
+func excludeICMP(cubes *aclCubesPerProtocol, allTCPUDP srcDstProduct) {
+	var icmpSet *netset.ICMPSet
+	var single bool
+	for _, p := range cubes.icmpAllow.Partitions() {
+		if icmpSet, single = singleICMPValue(p.S3); !single {
+			continue
+		}
+		currCube := ds.CartesianPairLeft(p.S1, p.S2).Intersect(allTCPUDP)
+		cubes.icmpAllow = subtractSrcDstCubeFromICMP(cubes.icmpAllow, currCube, p.S3)
+		cubes.icmpDeny = addSrcDstCubeToICMP(cubes.icmpDeny, currCube, icmpSet)
+		cubes.anyProtocolAllow = cubes.anyProtocolAllow.Union(currCube).(*srcDstProductLeft)
 	}
+}
 
-	aclCubes.tcpAllow = aclCubes.tcpAllow.Subtract(allTcpudp)
-	aclCubes.udpAllow = aclCubes.udpAllow.Subtract(allTcpudp)
-	aclCubes.icmpAllow = aclCubes.icmpAllow.Subtract(allIcmp)
+func singleICMPValue(icmpSet *netset.ICMPSet) (*netset.ICMPSet, bool) {
+	complementSet := netset.AllICMPSet().Subtract(icmpSet)
+	return complementSet, len(optimize.IcmpsetPartitions(complementSet)) == 1
+}
+
+func subtractAnyProtocolCubes(aclCubes *aclCubesPerProtocol) {
+	aclCubes.tcpAllow = subtractSrcDstCubeFromTCPUDP(aclCubes.tcpAllow, aclCubes.anyProtocolAllow, netset.NewAllTCPOnlySet())
+	aclCubes.udpAllow = subtractSrcDstCubeFromTCPUDP(aclCubes.udpAllow, aclCubes.anyProtocolAllow, netset.NewAllUDPOnlySet())
+	aclCubes.icmpAllow = subtractSrcDstCubeFromICMP(aclCubes.icmpAllow, aclCubes.anyProtocolAllow, netset.AllICMPSet())
 }
 
 func addSrcDstCubeToTCPUDP(tcpudpCube tcpudpTripleSet, srcDstCube srcDstProduct, pr *netset.TCPUDPSet) tcpudpTripleSet {
@@ -95,10 +107,26 @@ func addSrcDstCubeToTCPUDP(tcpudpCube tcpudpTripleSet, srcDstCube srcDstProduct,
 	return tcpudpCube
 }
 
-func addSrcDstCubeToICMP(icmpCube icmpTripleSet, srcDstCube srcDstProduct) icmpTripleSet {
+func subtractSrcDstCubeFromTCPUDP(tcpudpCube tcpudpTripleSet, srcDstCube srcDstProduct, pr *netset.TCPUDPSet) tcpudpTripleSet {
 	for _, p := range srcDstCube.Partitions() {
-		t := ds.CartesianLeftTriple(p.Left, p.Right, netset.AllICMPSet())
+		t := ds.CartesianLeftTriple(p.Left, p.Right, pr)
+		tcpudpCube = tcpudpCube.Subtract(t).(*ds.LeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet])
+	}
+	return tcpudpCube
+}
+
+func addSrcDstCubeToICMP(icmpCube icmpTripleSet, srcDstCube srcDstProduct, pr *netset.ICMPSet) icmpTripleSet {
+	for _, p := range srcDstCube.Partitions() {
+		t := ds.CartesianLeftTriple(p.Left, p.Right, pr)
 		icmpCube = icmpCube.Union(t).(*ds.LeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet])
+	}
+	return icmpCube
+}
+
+func subtractSrcDstCubeFromICMP(icmpCube icmpTripleSet, srcDstCube srcDstProduct, pr *netset.ICMPSet) icmpTripleSet {
+	for _, p := range srcDstCube.Partitions() {
+		t := ds.CartesianLeftTriple(p.Left, p.Right, pr)
+		icmpCube = icmpCube.Subtract(t).(*ds.LeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet])
 	}
 	return icmpCube
 }
