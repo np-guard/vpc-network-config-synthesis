@@ -1,0 +1,27 @@
+original config object: acl_testing5 config
+please note that the generated config object has been changed!
+
+
+######## BEFORE ########
+
+X axis is dst, Y axis is src
+
+
+  2.2.2.0    2.2.2.1
+----------------------
+|    any   |   any   |  1.1.1.1
+----------------------
+|  tcpudp  |   any   |  1.1.1.0
+----------------------
+
+
+1.1.1.0 --> 2.2.2.0 (tcp)
+1.1.1.0 --> 2.2.2.1 (tcp)
+1.1.1.0 --> 2.2.2.0/31 (udp)
+1.1.1.0 --> 2.2.2.1 (any)
+1.1.1.1 --> 2.2.2.0/31 (any)
+
+######## AFTER ########
+
+1.1.1.0 --> 2.2.2.0 (DENY icmp)
+1.1.1.0/31 --> 2.2.2.0/31 (ALLOW any)
