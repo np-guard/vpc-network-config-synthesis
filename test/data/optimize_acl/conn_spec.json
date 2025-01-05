@@ -1,0 +1,135 @@
+{
+    "externals": {
+        "e1": "1.1.1.0/32",
+        "e2": "1.1.1.1/32",
+        "e3": "2.2.2.2/32"
+    },
+    "required-connections": [
+        {
+            "src": {
+                "name": "sub1-1",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "e1",
+                "type": "external"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "sub1-1",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "e2",
+                "type": "external"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "sub1-2",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "e3",
+                "type": "external"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "UDP",
+                    "min_destination_port": 1,
+                    "max_destination_port": 10
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "sub1-2",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "e3",
+                "type": "external"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "UDP",
+                    "min_destination_port": 5,
+                    "max_destination_port": 15
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "sub1-2",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "e3",
+                "type": "external"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "UDP",
+                    "min_destination_port": 16,
+                    "max_destination_port": 20
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "sub1-3",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "sub2-1",
+                "type": "subnet"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "sub1-3",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "sub2-1",
+                "type": "subnet"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "UDP"
+                }
+            ]
+        },
+        {
+            "src": {
+                "name": "sub1-3",
+                "type": "subnet"
+            },
+            "dst": {
+                "name": "sub2-1",
+                "type": "subnet"
+            },
+            "allowed-protocols": [
+                {
+                    "protocol": "ICMP"
+                }
+            ]
+        }
+    ]
+}

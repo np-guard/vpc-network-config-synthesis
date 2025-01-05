@@ -116,6 +116,10 @@ func NewACL(aclName, subnetName string) *ACL {
 	return &ACL{Name: aclName, Subnets: []string{subnetName}}
 }
 
+func NewACLRule(action Action, direction Direction, src, dst *netset.IPBlock, p netp.Protocol, e string) *ACLRule {
+	return &ACLRule{Action: action, Direction: direction, Source: src, Destination: dst, Protocol: p, Explanation: e}
+}
+
 func aclSelector(subnetName ID, single bool) string {
 	if single {
 		return fmt.Sprintf("%s/singleACL", VpcFromScopedResource(subnetName))
