@@ -13,9 +13,9 @@ import (
 // reduceACLCubes unifies a (src ip x dst ip) cube, separately allowed for tcp, udp and icmp, into one "any" cube
 // (assuming all ports, codes, types)
 func reduceACLCubes(aclCubes *aclCubesPerProtocol) {
-	allTCP, anyTCP, _ := tcpudpCubes(aclCubes.tcpAllow)
-	allUDP, anyUDP, _ := tcpudpCubes(aclCubes.udpAllow)
-	allICMP, anyICMP, _ := icmpCubes(aclCubes.icmpAllow)
+	allTCP, anyTCP := tcpudpCubes(aclCubes.tcpAllow)
+	allUDP, anyUDP := tcpudpCubes(aclCubes.udpAllow)
+	allICMP, anyICMP := icmpCubes(aclCubes.icmpAllow)
 
 	allTCPUDP := allTCP.Intersect(allUDP)
 	allTCPICMP := allTCP.Intersect(allICMP)
@@ -41,13 +41,12 @@ func reduceACLCubes(aclCubes *aclCubesPerProtocol) {
 	subtractAnyProtocolCubes(aclCubes)
 }
 
-func tcpudpCubes(tcpudpAllow tcpudpTripleSet) (allPorts, anyPorts, oneRule *srcDstProductLeft) {
+func tcpudpCubes(tcpudpAllow tcpudpTripleSet) (allPorts, anyPorts *srcDstProductLeft) {
 	allTCPSet := netset.NewAllTCPOnlySet()
 	allUDPSet := netset.NewAllUDPOnlySet()
 
 	allPorts = ds.NewProductLeft[*netset.IPBlock, *netset.IPBlock]()
 	anyPorts = ds.NewProductLeft[*netset.IPBlock, *netset.IPBlock]()
-	oneRule = ds.NewProductLeft[*netset.IPBlock, *netset.IPBlock]()
 
 	for _, p := range tcpudpAllow.Partitions() {
 		r := ds.CartesianPairLeft(p.S1, p.S2)
@@ -55,21 +54,13 @@ func tcpudpCubes(tcpudpAllow tcpudpTripleSet) (allPorts, anyPorts, oneRule *srcD
 		if p.S3.Equal(allTCPSet) || p.S3.Equal(allUDPSet) { // all tcp or udp ports
 			allPorts = allPorts.Union(r).(*srcDstProductLeft)
 		}
-		if oneExcludedTCPUDP(p.S3) {
-			oneRule = oneRule.Union(r).(*srcDstProductLeft)
-		}
 	}
 	return
 }
 
-func oneExcludedTCPUDP(_ *netset.TCPUDPSet) bool {
-	return true
-}
-
-func icmpCubes(icmpAllow icmpTripleSet) (allICMP, anyICMP, oneValue *srcDstProductLeft) {
+func icmpCubes(icmpAllow icmpTripleSet) (allICMP, anyICMP *srcDstProductLeft) {
 	allICMP = ds.NewProductLeft[*netset.IPBlock, *netset.IPBlock]()
 	anyICMP = ds.NewProductLeft[*netset.IPBlock, *netset.IPBlock]()
-	oneValue = ds.NewProductLeft[*netset.IPBlock, *netset.IPBlock]()
 
 	for _, p := range icmpAllow.Partitions() {
 		r := ds.CartesianPairLeft(p.S1, p.S2)
@@ -77,15 +68,8 @@ func icmpCubes(icmpAllow icmpTripleSet) (allICMP, anyICMP, oneValue *srcDstProdu
 		if p.S3.IsAll() { // all icmp types and codes
 			allICMP = allICMP.Union(r).(*srcDstProductLeft)
 		}
-		if oneExcludedICMP(p.S3) {
-			oneValue = oneValue.Union(r).(*srcDstProductLeft)
-		}
 	}
 	return
-}
-
-func oneExcludedICMP(_ *netset.ICMPSet) bool {
-	return true
 }
 
 func subtractAnyProtocolCubes(aclCubes *aclCubesPerProtocol) {
