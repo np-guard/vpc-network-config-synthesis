@@ -1,0 +1,24 @@
+original config object: acl_testing5 config
+please note that the generated config object has been changed!
+
+
+######## BEFORE ########
+
+X axis is dst, Y axis is src
+-----------------
+|  TCP  |  any  |
+-----------------
+|  any  |  TCP  |
+-----------------
+
+1.1.1.1 --> 2.2.2.0 (TCP)
+1.1.1.0 --> 2.2.2.0 (any)
+1.1.1.1 --> 2.2.2.1 (any)
+1.1.1.0 --> 2.2.2.1 (TCP)
+
+
+######## AFTER ########
+
+1.1.1.0/31 --> 2.2.2.0/31 (TCP)
+1.1.1.0 --> 2.2.2.0 (any)
+1.1.1.1 --> 2.2.2.1 (any)

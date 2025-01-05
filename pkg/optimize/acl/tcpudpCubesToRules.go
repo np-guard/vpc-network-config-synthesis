@@ -14,6 +14,15 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
+func tcpudpRules(tcpudpCubes tcpudpTripleSet, anyCubes srcDstProduct, direction ir.Direction, pr *netset.TCPUDPSet) []*ir.ACLRule {
+	res := tcpudpTriplesToRules(tcpudpCubes, direction, ir.Allow)
+	resWithAny := tcpudpTriplesToRules(addSrcDstCubeToTCPUDP(tcpudpCubes, anyCubes, pr), direction, ir.Allow)
+	if len(resWithAny) < len(res) {
+		return resWithAny
+	}
+	return res
+}
+
 func tcpudpTriplesToRules(tripleSet tcpudpTripleSet, direction ir.Direction, action ir.Action) []*ir.ACLRule {
 	partitions := minimalPartitionsTCPUDP(tripleSet)
 	res := make([]*ir.ACLRule, len(partitions))

@@ -20,6 +20,7 @@ const (
 	aclTesting5Config              = "%s/acl_testing5/config_object.json"
 	optimizeACLConfig              = "%s/optimize_acl/config_object.json"
 	optimizeACLAnyProtocolConfig   = "%s/optimize_acl_anyProtocol/config_object.json"
+	optimizeACL2Config             = "%s/optimize_acl2/config_object.json"
 	optimizeSGProtocolsToAllConfig = "%s/optimize_sg_protocols_to_all/config_object.json"
 
 	aclExternalsSpec           = "%s/acl_externals/conn_spec.json"
@@ -546,6 +547,15 @@ func optimizeACLTestsLists() []testCase {
 				subcmd:     acl,
 				config:     optimizeACLAnyProtocolConfig,
 				outputFile: "%s/optimize_acl_anyProtocol_tf/nacl_expected.tf",
+			},
+		},
+		{
+			testName: "optimize_acl2_tf",
+			args: &command{
+				cmd:        optimize,
+				subcmd:     acl,
+				config:     optimizeACL2Config,
+				outputFile: "%s/optimize_acl2_tf/nacl_expected.tf",
 			},
 		},
 	}

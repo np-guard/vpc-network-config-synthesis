@@ -15,6 +15,15 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/optimize"
 )
 
+func icmpRules(icmpCubes icmpTripleSet, anyCubes srcDstProduct, direction ir.Direction) []*ir.ACLRule {
+	res := icmpTriplesToRules(icmpCubes, direction, ir.Allow)
+	resWithAny := icmpTriplesToRules(addSrcDstCubeToICMP(icmpCubes, anyCubes), direction, ir.Allow)
+	if len(resWithAny) < len(res) {
+		return resWithAny
+	}
+	return res
+}
+
 func icmpTriplesToRules(tripleSet icmpTripleSet, direction ir.Direction, action ir.Action) []*ir.ACLRule {
 	partitions := minimalPartitionsICMP(tripleSet)
 	res := make([]*ir.ACLRule, len(partitions))

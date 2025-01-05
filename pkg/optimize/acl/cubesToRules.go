@@ -23,11 +23,11 @@ func aclCubesToRules(cubes *aclCubesPerProtocol, direction ir.Direction) []*ir.A
 
 	reduceACLCubes(cubes)
 
-	allowTCPRules := tcpudpTriplesToRules(cubes.tcpAllow, direction, ir.Allow)
+	allowTCPRules := tcpudpRules(cubes.tcpAllow, cubes.anyProtocolAllow, direction, netset.NewAllTCPOnlySet())
 	denyTCPRules := tcpudpTriplesToRules(cubes.tcpDeny, direction, ir.Deny)
-	allowUDPRules := tcpudpTriplesToRules(cubes.udpAllow, direction, ir.Allow)
+	allowUDPRules := tcpudpRules(cubes.udpAllow, cubes.anyProtocolAllow, direction, netset.NewAllUDPOnlySet())
 	denyUDPRules := tcpudpTriplesToRules(cubes.udpDeny, direction, ir.Deny)
-	allowICMPRules := icmpTriplesToRules(cubes.icmpAllow, direction, ir.Allow)
+	allowICMPRules := icmpRules(cubes.icmpAllow, cubes.anyProtocolAllow, direction)
 	denyICMPRules := icmpTriplesToRules(cubes.icmpDeny, direction, ir.Deny)
 	allowAnyProtocolRules := anyProtocolCubesToRules(cubes.anyProtocolAllow, direction)
 	return slices.Concat(allowTCPRules, denyTCPRules, allowUDPRules, denyUDPRules, allowICMPRules, denyICMPRules, allowAnyProtocolRules)
