@@ -27,18 +27,20 @@ func reduceACLCubes(aclCubes *aclCubesPerProtocol) {
 	// deny icmp, allow any
 	allTCPUDPnoICMP := allTCPUDP.Subtract(anyICMP)
 	aclCubes.icmpDeny = addSrcDstCubeToICMP(aclCubes.icmpDeny, allTCPUDPnoICMP, netset.AllICMPSet())
-	aclCubes.anyProtocolAllow = aclCubes.anyProtocolAllow.Union(allTCPUDPnoICMP)
+	aclCubes.anyProtocolAllow = aclCubes.anyProtocolAllow.Union(allTCPUDP)
 	excludeICMP(aclCubes, allTCPUDP)
 
 	// deny udp, allow any
 	allTCPICMPnoUDP := allTCPICMP.Subtract(anyUDP)
 	aclCubes.udpDeny = addSrcDstCubeToTCPUDP(aclCubes.udpDeny, allTCPICMPnoUDP, netset.NewAllUDPOnlySet())
 	aclCubes.anyProtocolAllow = aclCubes.anyProtocolAllow.Union(allTCPICMPnoUDP)
+	aclCubes.udpAllow, aclCubes.udpDeny = excludeTCPUDP(aclCubes.udpAllow, aclCubes.udpDeny, aclCubes, allTCPICMP)
 
 	// deny tcp, allow any
 	allUDPICMPnoTCP := allUDPICMP.Subtract(anyTCP)
 	aclCubes.tcpDeny = addSrcDstCubeToTCPUDP(aclCubes.tcpDeny, allUDPICMPnoTCP, netset.NewAllTCPOnlySet())
 	aclCubes.anyProtocolAllow = aclCubes.anyProtocolAllow.Union(allUDPICMPnoTCP)
+	aclCubes.tcpAllow, aclCubes.tcpDeny = excludeTCPUDP(aclCubes.tcpAllow, aclCubes.tcpDeny, aclCubes, allUDPICMP)
 
 	subtractAnyProtocolCubes(aclCubes)
 }
@@ -60,6 +62,33 @@ func tcpudpCubes(tcpudpAllow tcpudpTripleSet) (allPorts, anyPorts *srcDstProduct
 	return
 }
 
+func excludeTCPUDP(allowCubes, denyCubes tcpudpTripleSet, cubes *aclCubesPerProtocol,
+	allOtherProtocols srcDstProduct) (allow, deny tcpudpTripleSet) {
+	var tcpudpSet *netset.TCPUDPSet
+	var single bool
+
+	for _, p := range allowCubes.Partitions() {
+		if tcpudpSet, single = singleTCPUDPComplementValue(p.S3); !single {
+			continue
+		}
+		currCube := ds.CartesianPairLeft(p.S1, p.S2).Intersect(allOtherProtocols)
+		allowCubes = subtractSrcDstCubeFromTCPUDP(allowCubes, currCube, p.S3)
+		denyCubes = addSrcDstCubeToTCPUDP(denyCubes, currCube, tcpudpSet)
+		cubes.anyProtocolAllow = cubes.anyProtocolAllow.Union(currCube).(*srcDstProductLeft)
+	}
+	return allowCubes, denyCubes
+}
+
+// Note: only tcp or udp set
+func singleTCPUDPComplementValue(tcpudpSet *netset.TCPUDPSet) (*netset.TCPUDPSet, bool) {
+	set := netset.NewAllTCPOnlySet()
+	if set.Intersect(tcpudpSet).IsEmpty() {
+		set = netset.NewAllUDPOnlySet()
+	}
+	complementSet := set.Subtract(tcpudpSet)
+	return complementSet, len(complementSet.Partitions()) == 1
+}
+
 func icmpCubes(icmpAllow icmpTripleSet) (allICMP, anyICMP *srcDstProductLeft) {
 	allICMP = ds.NewProductLeft[*netset.IPBlock, *netset.IPBlock]()
 	anyICMP = ds.NewProductLeft[*netset.IPBlock, *netset.IPBlock]()
@@ -78,7 +107,7 @@ func excludeICMP(cubes *aclCubesPerProtocol, allTCPUDP srcDstProduct) {
 	var icmpSet *netset.ICMPSet
 	var single bool
 	for _, p := range cubes.icmpAllow.Partitions() {
-		if icmpSet, single = singleICMPValue(p.S3); !single {
+		if icmpSet, single = singleICMPComplementValue(p.S3); !single {
 			continue
 		}
 		currCube := ds.CartesianPairLeft(p.S1, p.S2).Intersect(allTCPUDP)
@@ -88,7 +117,7 @@ func excludeICMP(cubes *aclCubesPerProtocol, allTCPUDP srcDstProduct) {
 	}
 }
 
-func singleICMPValue(icmpSet *netset.ICMPSet) (*netset.ICMPSet, bool) {
+func singleICMPComplementValue(icmpSet *netset.ICMPSet) (*netset.ICMPSet, bool) {
 	complementSet := netset.AllICMPSet().Subtract(icmpSet)
 	return complementSet, len(optimize.IcmpsetPartitions(complementSet)) == 1
 }

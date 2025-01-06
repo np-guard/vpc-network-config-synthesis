@@ -569,14 +569,14 @@ func optimizeACLTestsLists() []testCase {
 				outputFile: "%s/optimize_acl3_tf/nacl_expected.tf",
 			},
 		},
-		// {
-		// 	testName: "optimize_acl4_tf",
-		// 	args: &command{
-		// 		cmd:        optimize,
-		// 		subcmd:     acl,
-		// 		config:     optimizeACL4Config,
-		// 		outputFile: "%s/optimize_acl4_tf/nacl_expected.tf",
-		// 	},
-		// },
+		{
+			testName: "optimize_acl4_tf",
+			args: &command{
+				cmd:        optimize,
+				subcmd:     acl,
+				config:     optimizeACL4Config,
+				outputFile: "%s/optimize_acl4_tf/nacl_expected.tf",
+			},
+		},
 	}
 }

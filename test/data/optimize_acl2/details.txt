@@ -1,7 +1,3 @@
-original config object: acl_testing5 config
-please note that the generated config object has been changed!
-
-
 ######## BEFORE ########
 
 X axis is dst, Y axis is src
