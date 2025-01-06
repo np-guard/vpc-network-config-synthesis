@@ -15,9 +15,26 @@ resource "ibm_is_network_acl" "testacl5-vpc--sub1-1" {
   }
   rules {
     name        = "rule1"
+    action      = "deny"
+    direction   = "outbound"
+    source      = "1.1.1.0"
+    destination = "3.3.3.0"
+    icmp {
+      type = 254
+    }
+  }
+  rules {
+    name        = "rule2"
     action      = "allow"
     direction   = "outbound"
     source      = "1.1.1.0"
     destination = "2.2.2.0"
+  }
+  rules {
+    name        = "rule3"
+    action      = "allow"
+    direction   = "outbound"
+    source      = "1.1.1.0"
+    destination = "3.3.3.0"
   }
 }
