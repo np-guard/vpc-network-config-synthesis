@@ -15,6 +15,8 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/optimize"
 )
 
+// Creates two sets of rules: one with only icmp protocol, and the other icmp protocol combined
+// with any protocol cubes. It returns the minimal set
 func icmpRules(icmpCubes icmpTripleSet, anyCubes srcDstProduct, direction ir.Direction) []*ir.ACLRule {
 	res := icmpTriplesToRules(icmpCubes, direction, ir.Allow)
 	resWithAny := icmpTriplesToRules(addSrcDstCubeToICMP(icmpCubes, anyCubes, netset.AllICMPSet()), direction, ir.Allow)

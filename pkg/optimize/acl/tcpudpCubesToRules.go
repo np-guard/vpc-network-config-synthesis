@@ -14,6 +14,8 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
 )
 
+// Creates two sets of rules: one with only tcp or udp protocol, and the other tcp or udp protocol combined
+// with any protocol cubes. It returns the minimal set
 func tcpudpRules(tcpudpCubes tcpudpTripleSet, anyCubes srcDstProduct, direction ir.Direction, pr *netset.TCPUDPSet) []*ir.ACLRule {
 	res := tcpudpTriplesToRules(tcpudpCubes, direction, ir.Allow)
 	resWithAny := tcpudpTriplesToRules(addSrcDstCubeToTCPUDP(tcpudpCubes, anyCubes, pr), direction, ir.Allow)

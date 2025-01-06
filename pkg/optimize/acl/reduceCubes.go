@@ -11,8 +11,7 @@ import (
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/optimize"
 )
 
-// reduceACLCubes unifies a (src ip x dst ip) cube, separately allowed for tcp, udp and icmp, into one "any" cube
-// (assuming all ports, codes, types)
+// reduceACLCubes attempts to reduce the total number of ACL cubes used to represent allowed/denied connections
 func reduceACLCubes(aclCubes *aclCubesPerProtocol) {
 	allTCP, anyTCP := tcpudpCubes(aclCubes.tcpAllow)
 	allUDP, anyUDP := tcpudpCubes(aclCubes.udpAllow)
@@ -24,27 +23,37 @@ func reduceACLCubes(aclCubes *aclCubesPerProtocol) {
 
 	aclCubes.anyProtocolAllow = allTCPUDP.Intersect(allICMP)
 
-	// deny icmp, allow any
+	// replace TCP and UDP rules to deny ICMP and allow any
 	allTCPUDPnoICMP := allTCPUDP.Subtract(anyICMP)
 	aclCubes.icmpDeny = addSrcDstCubeToICMP(aclCubes.icmpDeny, allTCPUDPnoICMP, netset.AllICMPSet())
 	aclCubes.anyProtocolAllow = aclCubes.anyProtocolAllow.Union(allTCPUDP)
-	excludeICMP(aclCubes, allTCPUDP)
 
-	// deny udp, allow any
+	// replace TCP and ICMP rules to deny UDP and allow any
 	allTCPICMPnoUDP := allTCPICMP.Subtract(anyUDP)
 	aclCubes.udpDeny = addSrcDstCubeToTCPUDP(aclCubes.udpDeny, allTCPICMPnoUDP, netset.NewAllUDPOnlySet())
 	aclCubes.anyProtocolAllow = aclCubes.anyProtocolAllow.Union(allTCPICMPnoUDP)
-	aclCubes.udpAllow, aclCubes.udpDeny = excludeTCPUDP(aclCubes.udpAllow, aclCubes.udpDeny, aclCubes, allTCPICMP)
 
-	// deny tcp, allow any
+	// replace ICMP and UDP rules to deny TCP and allow any
 	allUDPICMPnoTCP := allUDPICMP.Subtract(anyTCP)
 	aclCubes.tcpDeny = addSrcDstCubeToTCPUDP(aclCubes.tcpDeny, allUDPICMPnoTCP, netset.NewAllTCPOnlySet())
 	aclCubes.anyProtocolAllow = aclCubes.anyProtocolAllow.Union(allUDPICMPnoTCP)
+
+	// if there are two protocols that are complete (all ports in the case of tcp/udp or all types&codes in icmp), and the complement of the
+	// third protocol can be written in one rule we will replace it with two rules: deny for the complement protocol and allow any. e.g.
+	//
+	// ALLOW src --> dst (tcp, icmp, udp ports 1-100)
+	// will be replaced with:
+	// DENY src --> dst (udp ports 101-65535)
+	// ALLOW src --> dst (any protocol)
+	excludeICMP(aclCubes, allTCPUDP)
+	aclCubes.udpAllow, aclCubes.udpDeny = excludeTCPUDP(aclCubes.udpAllow, aclCubes.udpDeny, aclCubes, allTCPICMP)
 	aclCubes.tcpAllow, aclCubes.tcpDeny = excludeTCPUDP(aclCubes.tcpAllow, aclCubes.tcpDeny, aclCubes, allUDPICMP)
 
 	subtractAnyProtocolCubes(aclCubes)
 }
 
+// tcpudpCubes returns two <src X dst> products; one that represents all connections that allow all ports,
+// and one that represents all connections that allow at least one port
 func tcpudpCubes(tcpudpAllow tcpudpTripleSet) (allPorts, anyPorts *srcDstProductLeft) {
 	allTCPSet := netset.NewAllTCPOnlySet()
 	allUDPSet := netset.NewAllUDPOnlySet()
@@ -62,6 +71,9 @@ func tcpudpCubes(tcpudpAllow tcpudpTripleSet) (allPorts, anyPorts *srcDstProduct
 	return
 }
 
+// Updates the cubes so that if for <src, dst> the other two protocols are complete (for tcp/udp all
+// ports and for icmp all types&codes) and the complement of the third protocol can be written by one rule
+// we convert it to two rules, deny complement and allow any
 func excludeTCPUDP(allowCubes, denyCubes tcpudpTripleSet, cubes *aclCubesPerProtocol,
 	allOtherProtocols srcDstProduct) (allow, deny tcpudpTripleSet) {
 	var tcpudpSet *netset.TCPUDPSet
@@ -71,15 +83,16 @@ func excludeTCPUDP(allowCubes, denyCubes tcpudpTripleSet, cubes *aclCubesPerProt
 		if tcpudpSet, single = singleTCPUDPComplementValue(p.S3); !single {
 			continue
 		}
-		currCube := ds.CartesianPairLeft(p.S1, p.S2).Intersect(allOtherProtocols)
-		allowCubes = subtractSrcDstCubeFromTCPUDP(allowCubes, currCube, p.S3)
-		denyCubes = addSrcDstCubeToTCPUDP(denyCubes, currCube, tcpudpSet)
-		cubes.anyProtocolAllow = cubes.anyProtocolAllow.Union(currCube).(*srcDstProductLeft)
+		intersectedCube := ds.CartesianPairLeft(p.S1, p.S2).Intersect(allOtherProtocols)
+		allowCubes = subtractSrcDstCubeFromTCPUDP(allowCubes, intersectedCube, p.S3)
+		denyCubes = addSrcDstCubeToTCPUDP(denyCubes, intersectedCube, tcpudpSet)
+		cubes.anyProtocolAllow = cubes.anyProtocolAllow.Union(intersectedCube).(*srcDstProductLeft)
 	}
 	return allowCubes, denyCubes
 }
 
 // Note: only tcp or udp set
+// returns whether the complement of the given set can be written in one rule (and the complement set)
 func singleTCPUDPComplementValue(tcpudpSet *netset.TCPUDPSet) (*netset.TCPUDPSet, bool) {
 	set := netset.NewAllTCPOnlySet()
 	if set.Intersect(tcpudpSet).IsEmpty() {
@@ -89,6 +102,8 @@ func singleTCPUDPComplementValue(tcpudpSet *netset.TCPUDPSet) (*netset.TCPUDPSet
 	return complementSet, len(complementSet.Partitions()) == 1
 }
 
+// icmpCubes returns two <src X dst> products; one that represents all connections that allow
+// all types and codes, and one that represents all connections with at least one ICMP value.
 func icmpCubes(icmpAllow icmpTripleSet) (allICMP, anyICMP *srcDstProductLeft) {
 	allICMP = ds.NewProductLeft[*netset.IPBlock, *netset.IPBlock]()
 	anyICMP = ds.NewProductLeft[*netset.IPBlock, *netset.IPBlock]()
@@ -103,6 +118,9 @@ func icmpCubes(icmpAllow icmpTripleSet) (allICMP, anyICMP *srcDstProductLeft) {
 	return
 }
 
+// Updates the cubes so that if for <src, dst> the other two protocols are complete (for tcp/udp all
+// ports and for icmp all types&codes) and the complement of the third protocol can be written by one rule
+// we convert it to two rules, deny complement and allow any
 func excludeICMP(cubes *aclCubesPerProtocol, allTCPUDP srcDstProduct) {
 	var icmpSet *netset.ICMPSet
 	var single bool
@@ -110,24 +128,27 @@ func excludeICMP(cubes *aclCubesPerProtocol, allTCPUDP srcDstProduct) {
 		if icmpSet, single = singleICMPComplementValue(p.S3); !single {
 			continue
 		}
-		currCube := ds.CartesianPairLeft(p.S1, p.S2).Intersect(allTCPUDP)
-		cubes.icmpAllow = subtractSrcDstCubeFromICMP(cubes.icmpAllow, currCube, p.S3)
-		cubes.icmpDeny = addSrcDstCubeToICMP(cubes.icmpDeny, currCube, icmpSet)
-		cubes.anyProtocolAllow = cubes.anyProtocolAllow.Union(currCube).(*srcDstProductLeft)
+		intersectedCube := ds.CartesianPairLeft(p.S1, p.S2).Intersect(allTCPUDP)
+		cubes.icmpAllow = subtractSrcDstCubeFromICMP(cubes.icmpAllow, intersectedCube, p.S3)
+		cubes.icmpDeny = addSrcDstCubeToICMP(cubes.icmpDeny, intersectedCube, icmpSet)
+		cubes.anyProtocolAllow = cubes.anyProtocolAllow.Union(intersectedCube).(*srcDstProductLeft)
 	}
 }
 
+// returns whether the complement of the given set can be written in one rule (and the complement set)
 func singleICMPComplementValue(icmpSet *netset.ICMPSet) (*netset.ICMPSet, bool) {
 	complementSet := netset.AllICMPSet().Subtract(icmpSet)
 	return complementSet, len(optimize.IcmpsetPartitions(complementSet)) == 1
 }
 
+// subtractAnyProtocolCubes from each protocol
 func subtractAnyProtocolCubes(aclCubes *aclCubesPerProtocol) {
 	aclCubes.tcpAllow = subtractSrcDstCubeFromTCPUDP(aclCubes.tcpAllow, aclCubes.anyProtocolAllow, netset.NewAllTCPOnlySet())
 	aclCubes.udpAllow = subtractSrcDstCubeFromTCPUDP(aclCubes.udpAllow, aclCubes.anyProtocolAllow, netset.NewAllUDPOnlySet())
 	aclCubes.icmpAllow = subtractSrcDstCubeFromICMP(aclCubes.icmpAllow, aclCubes.anyProtocolAllow, netset.AllICMPSet())
 }
 
+// Union <src X dst> cube with pr protocolSet to tcpudp cube
 func addSrcDstCubeToTCPUDP(tcpudpCube tcpudpTripleSet, srcDstCube srcDstProduct, pr *netset.TCPUDPSet) tcpudpTripleSet {
 	for _, p := range srcDstCube.Partitions() {
 		t := ds.CartesianLeftTriple(p.Left, p.Right, pr)
@@ -136,6 +157,7 @@ func addSrcDstCubeToTCPUDP(tcpudpCube tcpudpTripleSet, srcDstCube srcDstProduct,
 	return tcpudpCube
 }
 
+// Subtract <src X dst> cube with pr protocolSet from tcpudp cube
 func subtractSrcDstCubeFromTCPUDP(tcpudpCube tcpudpTripleSet, srcDstCube srcDstProduct, pr *netset.TCPUDPSet) tcpudpTripleSet {
 	for _, p := range srcDstCube.Partitions() {
 		t := ds.CartesianLeftTriple(p.Left, p.Right, pr)
@@ -144,6 +166,7 @@ func subtractSrcDstCubeFromTCPUDP(tcpudpCube tcpudpTripleSet, srcDstCube srcDstP
 	return tcpudpCube
 }
 
+// Union <src X dst> cube with pr protocolSet to icmp cube
 func addSrcDstCubeToICMP(icmpCube icmpTripleSet, srcDstCube srcDstProduct, pr *netset.ICMPSet) icmpTripleSet {
 	for _, p := range srcDstCube.Partitions() {
 		t := ds.CartesianLeftTriple(p.Left, p.Right, pr)
@@ -152,6 +175,7 @@ func addSrcDstCubeToICMP(icmpCube icmpTripleSet, srcDstCube srcDstProduct, pr *n
 	return icmpCube
 }
 
+// Subtract <src X dst> cube with pr protocolSet from icmp cube
 func subtractSrcDstCubeFromICMP(icmpCube icmpTripleSet, srcDstCube srcDstProduct, pr *netset.ICMPSet) icmpTripleSet {
 	for _, p := range srcDstCube.Partitions() {
 		t := ds.CartesianLeftTriple(p.Left, p.Right, pr)
