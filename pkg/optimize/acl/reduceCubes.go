@@ -54,7 +54,7 @@ func reduceACLCubes(aclCubes *aclCubesPerProtocol) {
 
 // divideCubes returns two <src X dst> products; one that represents all connections that allow all protocol combinations,
 // and one that represents all connections that allow at least one combination
-func divideCubes(tcpudpAllow protocolTripleSet) (allCombinations, anyCombination srcDstProduct) {
+func divideCubes(protocolCubes protocolTripleSet) (allCombinations, anyCombination srcDstProduct) {
 	allTCPSet := netset.AllTCPTransport()
 	allUDPSet := netset.AllUDPTransport()
 	allICMPSet := netset.AllICMPTransport()
@@ -62,7 +62,7 @@ func divideCubes(tcpudpAllow protocolTripleSet) (allCombinations, anyCombination
 	allCombinations = ds.NewProductLeft[*netset.IPBlock, *netset.IPBlock]()
 	anyCombination = ds.NewProductLeft[*netset.IPBlock, *netset.IPBlock]()
 
-	for _, p := range tcpudpAllow.Partitions() {
+	for _, p := range protocolCubes.Partitions() {
 		r := ds.CartesianPairLeft(p.S1, p.S2)
 		anyCombination = anyCombination.Union(r)
 		if p.S3.Equal(allTCPSet) || p.S3.Equal(allUDPSet) || p.S3.Equal(allICMPSet) {
@@ -77,16 +77,16 @@ func divideCubes(tcpudpAllow protocolTripleSet) (allCombinations, anyCombination
 // we convert it to two rules, deny complement and allow any
 func excludeProtocol(allowCubes, denyCubes protocolTripleSet, cubes *aclCubesPerProtocol,
 	allOtherProtocols srcDstProduct) (allow, deny protocolTripleSet) {
-	var transportSet *netset.TransportSet
+	var complementSet *netset.TransportSet
 	var single bool
 
 	for _, p := range allowCubes.Partitions() {
-		if transportSet, single = singleComplementValue(p.S3); !single {
+		if complementSet, single = singleComplementValue(p.S3); !single {
 			continue
 		}
 		intersectedCube := ds.CartesianPairLeft(p.S1, p.S2).Intersect(allOtherProtocols)
 		allowCubes = subtractSrcDstCubesFromProtocolCubes(allowCubes, intersectedCube, p.S3)
-		denyCubes = addSrcDstCubesToProtocolCubes(denyCubes, intersectedCube, transportSet)
+		denyCubes = addSrcDstCubesToProtocolCubes(denyCubes, intersectedCube, complementSet)
 		cubes.anyProtocolAllow = cubes.anyProtocolAllow.Union(intersectedCube)
 	}
 	return allowCubes, denyCubes
