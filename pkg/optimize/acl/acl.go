@@ -23,23 +23,22 @@ type (
 		aclVPC        string
 	}
 
-	tcpudpTripleSet   = ds.TripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet]
-	icmpTripleSet     = ds.TripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet]
+	protocolTripleSet = ds.TripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TransportSet]
 	srcDstProduct     = ds.Product[*netset.IPBlock, *netset.IPBlock]
-	srcDstProductLeft = ds.ProductLeft[*netset.IPBlock, *netset.IPBlock]
 
 	aclCubesPerProtocol struct {
-		tcpAllow tcpudpTripleSet
-		tcpDeny  tcpudpTripleSet
+		tcpAllow protocolTripleSet
+		tcpDeny  protocolTripleSet
 
-		udpAllow tcpudpTripleSet
-		udpDeny  tcpudpTripleSet
+		udpAllow protocolTripleSet
+		udpDeny  protocolTripleSet
 
-		icmpAllow icmpTripleSet
-		icmpDeny  icmpTripleSet
+		icmpAllow protocolTripleSet
+		icmpDeny  protocolTripleSet
 
 		// initialized in reduceCubes func
 		anyProtocolAllow srcDstProduct
+		anyProtocolDeny  srcDstProduct // will be used soon
 	}
 )
 

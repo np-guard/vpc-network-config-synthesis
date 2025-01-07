@@ -10,17 +10,16 @@ import (
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/ir"
-	"github.com/np-guard/vpc-network-config-synthesis/pkg/optimize"
 )
 
 func aclRulesToCubes(rules []*ir.ACLRule) *aclCubesPerProtocol {
 	res := &aclCubesPerProtocol{
-		tcpAllow:  ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet](),
-		tcpDeny:   ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet](),
-		udpAllow:  ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet](),
-		udpDeny:   ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet](),
-		icmpAllow: ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet](),
-		icmpDeny:  ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet](),
+		tcpAllow:  ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TransportSet](),
+		tcpDeny:   ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TransportSet](),
+		udpAllow:  ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TransportSet](),
+		udpDeny:   ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TransportSet](),
+		icmpAllow: ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TransportSet](),
+		icmpDeny:  ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TransportSet](),
 	}
 
 	for _, rule := range rules {
@@ -40,11 +39,11 @@ func aclRulesToCubes(rules []*ir.ACLRule) *aclCubesPerProtocol {
 	return res
 }
 
-func tcpudpRuleToCubes(tcpudpAllow, tcpudpDeny tcpudpTripleSet, rule *ir.ACLRule) (allow, deny tcpudpTripleSet) {
+func tcpudpRuleToCubes(tcpudpAllow, tcpudpDeny protocolTripleSet, rule *ir.ACLRule) (allow, deny protocolTripleSet) {
 	tcpudp := rule.Protocol.(netp.TCPUDP)
 	tcpudpSrcPorts := tcpudp.SrcPorts()
 	tcpudpDstPorts := tcpudp.DstPorts()
-	tcpudpSet := netset.NewTCPorUDPSet(tcpudp.ProtocolString(), tcpudpSrcPorts.Start(), tcpudpSrcPorts.End(), tcpudpDstPorts.Start(),
+	tcpudpSet := netset.NewTCPorUDPTransport(tcpudp.ProtocolString(), tcpudpSrcPorts.Start(), tcpudpSrcPorts.End(), tcpudpDstPorts.Start(),
 		tcpudpDstPorts.End())
 
 	ruleCube := ds.CartesianLeftTriple(rule.Source, rule.Destination, tcpudpSet)
@@ -59,7 +58,8 @@ func tcpudpRuleToCubes(tcpudpAllow, tcpudpDeny tcpudpTripleSet, rule *ir.ACLRule
 }
 
 func icmpRuleToCubes(cubes *aclCubesPerProtocol, rule *ir.ACLRule) {
-	ruleCube := ds.CartesianLeftTriple(rule.Source, rule.Destination, optimize.IcmpToIcmpSet(rule.Protocol.(netp.ICMP)))
+	icmp := netset.NewICMPTransportFromICMPSet(netset.ICMPSetFromICMP(rule.Protocol.(netp.ICMP)))
+	ruleCube := ds.CartesianLeftTriple(rule.Source, rule.Destination, icmp)
 	if rule.Action == ir.Allow {
 		r := ruleCube.Subtract(cubes.icmpDeny)
 		cubes.icmpAllow = cubes.icmpAllow.Union(r)

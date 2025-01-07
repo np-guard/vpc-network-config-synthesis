@@ -57,18 +57,6 @@ func IcmpsetPartitions(icmpset *netset.ICMPSet) []netp.ICMP {
 	return result
 }
 
-func IcmpToIcmpSet(icmp netp.ICMP) *netset.ICMPSet {
-	if icmp.TypeCode == nil {
-		return netset.AllICMPSet()
-	}
-	icmpType := int64(icmp.TypeCode.Type)
-	if icmp.TypeCode.Code == nil {
-		return netset.NewICMPSet(icmpType, icmpType, int64(netp.MinICMPCode), int64(netp.MaxICMPCode))
-	}
-	icmpCode := int64(*icmp.TypeCode.Code)
-	return netset.NewICMPSet(icmpType, icmpType, icmpCode, icmpCode)
-}
-
 func IsAllPorts(tcpudpPorts *netset.PortSet) bool {
 	return tcpudpPorts.Equal(netset.AllPorts())
 }

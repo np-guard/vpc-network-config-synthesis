@@ -91,7 +91,7 @@ func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], anyPr
 		// also activeICMP will be calculated, which is the icmp values that are still included in the active rules
 		activeICMP := netset.EmptyICMPSet()
 		for j, rule := range slices.Backward(activeRules) {
-			icmpSet := optimize.IcmpToIcmpSet(rule.Right.(netp.ICMP))
+			icmpSet := netset.ICMPSetFromICMP(rule.Right.(netp.ICMP))
 			if !icmpSet.IsSubset(cubes[i].Right) {
 				res = slices.Concat(res, createNewRules(rule.Right, rule.Left, cubes[i-1].Left.LastIPAddressObject(), direction, l))
 				activeRules = slices.Delete(activeRules, j, j+1)
@@ -102,7 +102,7 @@ func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], anyPr
 
 		// if the cube contains icmp values that are not contained in  active rules, new rules will be created
 		for _, p := range optimize.IcmpsetPartitions(cubes[i].Right) {
-			if !optimize.IcmpToIcmpSet(p).IsSubset(activeICMP) {
+			if !netset.ICMPSetFromICMP(p).IsSubset(activeICMP) {
 				rule := ds.Pair[*netset.IPBlock, netp.Protocol]{Left: cubes[i].Left.FirstIPAddressObject(), Right: p}
 				activeRules = append(activeRules, rule)
 			}
