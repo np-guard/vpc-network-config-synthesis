@@ -29,19 +29,31 @@ func aclCubesToRules(cubes *aclCubesPerProtocol, direction ir.Direction) []*ir.A
 
 	reduceACLCubes(cubes)
 
-	denyTCPRules := minimalCubesPartitions(cubes.tcpDeny, cubes.anyProtocolDeny, direction, ir.Deny)
-	allowTCPRules := minimalCubesPartitions(cubes.tcpAllow, cubes.anyProtocolAllow, direction, ir.Allow)
+	denyTCPRules := minRulesPartitions(cubes.tcpDeny, cubes.anyProtocolDeny, direction, ir.Deny, netset.AllTCPTransport())
+	allowTCPRules := minRulesPartitions(cubes.tcpAllow, cubes.anyProtocolAllow, direction, ir.Allow, netset.AllTCPTransport())
 
-	denyUDPRules := minimalCubesPartitions(cubes.udpDeny, cubes.anyProtocolDeny, direction, ir.Deny)
-	allowUDPRules := minimalCubesPartitions(cubes.udpAllow, cubes.anyProtocolAllow, direction, ir.Allow)
+	denyUDPRules := minRulesPartitions(cubes.udpDeny, cubes.anyProtocolDeny, direction, ir.Deny, netset.AllUDPTransport())
+	allowUDPRules := minRulesPartitions(cubes.udpAllow, cubes.anyProtocolAllow, direction, ir.Allow, netset.AllUDPTransport())
 
-	denyICMPRules := minimalCubesPartitions(cubes.icmpDeny, cubes.anyProtocolAllow, direction, ir.Deny)
-	allowICMPRules := minimalCubesPartitions(cubes.icmpAllow, cubes.anyProtocolAllow, direction, ir.Allow)
+	denyICMPRules := minRulesPartitions(cubes.icmpDeny, cubes.anyProtocolAllow, direction, ir.Deny, netset.AllICMPTransport())
+	allowICMPRules := minRulesPartitions(cubes.icmpAllow, cubes.anyProtocolAllow, direction, ir.Allow, netset.AllICMPTransport())
 
 	denyAnyProtocolRules := anyProtocolCubesToRules(cubes.anyProtocolDeny, direction, ir.Deny)
 	allowAnyProtocolRules := anyProtocolCubesToRules(cubes.anyProtocolAllow, direction, ir.Allow)
 	return slices.Concat(denyTCPRules, allowTCPRules, denyUDPRules, allowUDPRules, denyICMPRules,
 		allowICMPRules, denyAnyProtocolRules, allowAnyProtocolRules)
+}
+
+// Creates two sets of rules: one with only protocol cubes, and the other protocol cubes combined
+// with any protocol cubes. It returns the minimal set
+func minRulesPartitions(tripleSet protocolTripleSet, anyCubes srcDstProduct, direction ir.Direction, action ir.Action,
+	pr *netset.TransportSet) []*ir.ACLRule {
+	res := minimalCubesPartitions(tripleSet, anyCubes, direction, action)
+	resWithAny := minimalCubesPartitions(addSrcDstCubesToProtocolCubes(tripleSet, anyCubes, pr), anyCubes, direction, action)
+	if len(resWithAny) < len(res) {
+		return resWithAny
+	}
+	return res
 }
 
 // minimalCubesPartitions returns the minimal set of cubes partitions based on the triple set type
