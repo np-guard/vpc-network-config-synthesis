@@ -27,8 +27,8 @@ func anyProtocolCubesToRules(cubes srcDstProduct, direction ir.Direction, action
 
 	for i := range partitions {
 		// if it is not possible to continue the rule between the cubes, generate all existing rules
-		if i > 0 && uncoveredHole(partitions[i-1].Left, partitions[i].Left) {
-			res = slices.Concat(res, createActiveRules(activeRules, partitions[i-1].Left.LastIPAddressObject(), direction, action))
+		if i > 0 && uncoveredHoleAny(partitions[i-1].Left, partitions[i].Left) {
+			res = slices.Concat(res, createAnyActiveRules(activeRules, partitions[i-1].Left.LastIPAddressObject(), direction, action))
 			activeRules = make([]ds.Pair[*netset.IPBlock, *netset.IPBlock], 0)
 		}
 
@@ -39,7 +39,7 @@ func anyProtocolCubesToRules(cubes srcDstProduct, direction ir.Direction, action
 			if rule.Right.IsSubset(partitions[i].Right) {
 				activeDstIPs = activeDstIPs.Union(rule.Right)
 			} else {
-				res = createNewRules(rule.Left, partitions[i-1].Left.LastIPAddressObject(), rule.Right, direction, action) // create active rule
+				res = slices.Concat(res, createNewAnyRules(rule.Left, partitions[i-1].Left.LastIPAddressObject(), rule.Right, direction, action))
 				activeRules = slices.Delete(activeRules, j, j+1)
 			}
 		}
@@ -53,19 +53,19 @@ func anyProtocolCubesToRules(cubes srcDstProduct, direction ir.Direction, action
 		}
 	}
 	// generate all existing rules
-	return slices.Concat(res, createActiveRules(activeRules, partitions[len(partitions)-1].Left.LastIPAddressObject(), direction, action))
+	return slices.Concat(res, createAnyActiveRules(activeRules, partitions[len(partitions)-1].Left.LastIPAddressObject(), direction, action))
 }
 
-func createActiveRules(activeRules []ds.Pair[*netset.IPBlock, *netset.IPBlock], srcLastIP *netset.IPBlock,
+func createAnyActiveRules(activeRules []ds.Pair[*netset.IPBlock, *netset.IPBlock], srcLastIP *netset.IPBlock,
 	direction ir.Direction, action ir.Action) []*ir.ACLRule {
 	res := make([]*ir.ACLRule, 0)
 	for _, rule := range activeRules {
-		res = slices.Concat(res, createNewRules(rule.Left, srcLastIP, rule.Right, direction, action))
+		res = slices.Concat(res, createNewAnyRules(rule.Left, srcLastIP, rule.Right, direction, action))
 	}
 	return res
 }
 
-func createNewRules(srcStartIP, srcEndIP, dstCidr *netset.IPBlock, direction ir.Direction, action ir.Action) []*ir.ACLRule {
+func createNewAnyRules(srcStartIP, srcEndIP, dstCidr *netset.IPBlock, direction ir.Direction, action ir.Action) []*ir.ACLRule {
 	src, _ := netset.IPBlockFromIPRange(srcStartIP, srcEndIP)
 	srcCidrs := src.SplitToCidrs()
 
@@ -76,7 +76,7 @@ func createNewRules(srcStartIP, srcEndIP, dstCidr *netset.IPBlock, direction ir.
 	return res
 }
 
-func uncoveredHole(prevSrcIP, currSrcIP *netset.IPBlock) bool {
+func uncoveredHoleAny(prevSrcIP, currSrcIP *netset.IPBlock) bool {
 	touching, _ := prevSrcIP.TouchingIPRanges(currSrcIP)
 	return !touching
 }
