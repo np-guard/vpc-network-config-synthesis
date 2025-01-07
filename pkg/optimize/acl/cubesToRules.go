@@ -38,8 +38,8 @@ func aclCubesToRules(cubes *aclCubesPerProtocol, direction ir.Direction) []*ir.A
 	denyICMPRules := minRulesPartitions(cubes.icmpDeny, cubes.anyProtocolAllow, direction, ir.Deny, netset.AllICMPTransport())
 	allowICMPRules := minRulesPartitions(cubes.icmpAllow, cubes.anyProtocolAllow, direction, ir.Allow, netset.AllICMPTransport())
 
-	denyAnyProtocolRules := anyProtocolCubesToRules(cubes.anyProtocolDeny, direction, ir.Deny)
-	allowAnyProtocolRules := anyProtocolCubesToRules(cubes.anyProtocolAllow, direction, ir.Allow)
+	denyAnyProtocolRules := cubesToRules(convertAnyCubesToTripleSet(cubes.anyProtocolDeny), cubes.anyProtocolDeny, direction, ir.Deny)
+	allowAnyProtocolRules := cubesToRules(convertAnyCubesToTripleSet(cubes.anyProtocolAllow), cubes.anyProtocolAllow, direction, ir.Allow)
 	return slices.Concat(denyTCPRules, allowTCPRules, denyUDPRules, allowUDPRules, denyICMPRules,
 		allowICMPRules, denyAnyProtocolRules, allowAnyProtocolRules)
 }
@@ -138,19 +138,11 @@ func createNewRules(srcStartIP, srcEndIP *netset.IPBlock, cubeDetails ds.Pair[*n
 	return res
 }
 
-// converts cubes from a slices of triples to a slice of `activrRule` type
-func convertCubesType(cubes []ds.Triple[*netset.IPBlock, *netset.IPBlock, *netset.TransportSet]) []activeRule {
-	res := make([]activeRule, len(cubes))
-	for i := range cubes {
-		res[i] = activeRule{Left: cubes[i].S1, Right: ds.CartesianPairLeft(cubes[i].S2, cubes[i].S3)}
-	}
-	cmp := func(i, j activeRule) int { return i.Left.Compare(j.Left) }
-	slices.SortFunc(res, cmp)
-	return res
-}
-
 // transportSetToProtocols returns a slice of TransportSets, each one is a valid nACL rule protocol
 func transportSetToProtocols(t *netset.TransportSet) []*netset.TransportSet {
+	if t.IsAll() {
+		return []*netset.TransportSet{t}
+	}
 	res := make([]*netset.TransportSet, 0)
 	for _, icmp := range optimize.IcmpsetPartitions(t.ICMPSet()) {
 		res = append(res, netset.NewICMPTransportFromICMPSet(netset.ICMPSetFromICMP(icmp)))
@@ -191,5 +183,26 @@ func transportSetToProtocol(t *netset.TransportSet) netp.Protocol {
 	dstPorts := p.S3.Intervals()[0]
 	res, _ := netp.NewTCPUDP(p.S1.Elements()[0] == netset.TCPCode, int(srcPorts.Start()), int(srcPorts.End()),
 		int(dstPorts.Start()), int(dstPorts.End()))
+	return res
+}
+
+// converts cubes from a slices of triples to a slice of `activrRule` type
+func convertCubesType(cubes []ds.Triple[*netset.IPBlock, *netset.IPBlock, *netset.TransportSet]) []activeRule {
+	res := make([]activeRule, len(cubes))
+	for i := range cubes {
+		res[i] = activeRule{Left: cubes[i].S1, Right: ds.CartesianPairLeft(cubes[i].S2, cubes[i].S3)}
+	}
+	cmp := func(i, j activeRule) int { return i.Left.Compare(j.Left) }
+	slices.SortFunc(res, cmp)
+	return res
+}
+
+func convertAnyCubesToTripleSet(cubes srcDstProduct) protocolTripleSet {
+	res := ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TransportSet]()
+	for _, p := range cubes.Partitions() {
+		t := ds.CartesianLeftTriple(p.Left, p.Right, netset.AllTransports())
+		res = res.Union(t).(*ds.LeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TransportSet])
+	}
+
 	return res
 }
