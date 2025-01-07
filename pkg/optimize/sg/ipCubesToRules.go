@@ -39,7 +39,7 @@ func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], any
 
 	for i := range cubes {
 		// if it is not possible to continue the rule between the cubes, generate all existing rules
-		if i > 0 && uncoveredHole(cubes[i-1], cubes[i], anyProtocolCubes) {
+		if i > 0 && optimize.UncoveredHole(cubes[i-1].Left, cubes[i].Left, anyProtocolCubes) {
 			res = slices.Concat(res, createActiveRules(activeRules, cubes[i-1].Left.LastIPAddressObject(), direction, l))
 			activeRules = make([]ds.Pair[*netset.IPBlock, netp.Protocol], 0)
 		}
@@ -82,7 +82,7 @@ func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], anyPr
 
 	for i := range cubes {
 		// if it is not possible to continue the rule between the cubes, generate all existing rules
-		if i > 0 && uncoveredHole(cubes[i-1], cubes[i], anyProtocolCubes) {
+		if i > 0 && optimize.UncoveredHole(cubes[i-1].Left, cubes[i].Left, anyProtocolCubes) {
 			res = slices.Concat(res, createActiveRules(activeRules, cubes[i-1].Left.LastIPAddressObject(), direction, l))
 			activeRules = make([]ds.Pair[*netset.IPBlock, netp.Protocol], 0)
 		}
@@ -111,21 +111,6 @@ func icmpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], anyPr
 
 	// generate all  existing rules
 	return slices.Concat(res, createActiveRules(activeRules, cubes[len(cubes)-1].Left.LastIPAddressObject(), direction, l))
-}
-
-// uncoveredHole returns true if the rules can not be continued between the two cubes
-// i.e there is a hole between two ipblocks that is not a subset of anyProtocol cubes
-func uncoveredHole[T ds.Set[T]](prevPair, currPair ds.Pair[*netset.IPBlock, T], anyProtocolCubes *netset.IPBlock) bool {
-	prevIPBlock := prevPair.Left
-	currIPBlock := currPair.Left
-	touching, _ := prevIPBlock.TouchingIPRanges(currIPBlock)
-	if touching {
-		return false
-	}
-	holeFirstIP, _ := prevIPBlock.NextIP()
-	holeEndIP, _ := currIPBlock.PreviousIP()
-	hole, _ := netset.IPBlockFromIPRange(holeFirstIP, holeEndIP)
-	return !hole.IsSubset(anyProtocolCubes)
 }
 
 // creates sgRules from SG active rules

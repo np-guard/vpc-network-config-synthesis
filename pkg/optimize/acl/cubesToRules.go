@@ -58,6 +58,7 @@ func minRulesPartitions(tripleSet protocolTripleSet, anyCubes srcDstProduct, dir
 
 // minimalCubesPartitions returns the minimal set of cubes partitions based on the triple set type
 func minimalCubesPartitions(tripleSet protocolTripleSet, anyCubes srcDstProduct, direction ir.Direction, action ir.Action) []*ir.ACLRule {
+	// only in LeftTripleSet and in OuterTripleSet S1 is src IP
 	leftPartitions := cubesToRules(ds.AsLeftTripleSet(tripleSet), anyCubes, direction, action)
 	outerPartitions := cubesToRules(ds.AsOuterTripleSet(tripleSet), anyCubes, direction, action)
 
@@ -69,17 +70,18 @@ func minimalCubesPartitions(tripleSet protocolTripleSet, anyCubes srcDstProduct,
 
 // based on sg optimization algorithm
 func cubesToRules(cubes protocolTripleSet, anyProtocolCubes srcDstProduct, direction ir.Direction, action ir.Action) []*ir.ACLRule {
-	partitions := convertCubeTypes(cubes.Partitions())
+	partitions := convertCubesType(cubes.Partitions())
 	if len(partitions) == 0 {
 		return []*ir.ACLRule{}
 	}
+	anyProtocolSrcIPs := anyProtocolCubes.(*ds.ProductLeft[*netset.IPBlock, *netset.IPBlock]).Left(netset.NewIPBlock())
 
 	res := make([]*ir.ACLRule, 0)
 	activeRules := make([]activeRule, 0) // Left = first src's IP, Right = dst cidr & protocol details
 
 	for i := range partitions {
 		// if it is not possible to continue the rule between the cubes, generate all existing rules
-		if i > 0 && uncoveredHole(partitions[i-1].Left, partitions[i].Left, anyProtocolCubes) {
+		if i > 0 && optimize.UncoveredHole(partitions[i-1].Left, partitions[i].Left, anyProtocolSrcIPs) {
 			res = slices.Concat(res, createActiveRules(activeRules, partitions[i-1].Left.LastIPAddressObject(), direction, action))
 			activeRules = make([]activeRule, 0)
 		}
@@ -116,8 +118,7 @@ func cubesToRules(cubes protocolTripleSet, anyProtocolCubes srcDstProduct, direc
 	return slices.Concat(res, createActiveRules(activeRules, partitions[len(partitions)-1].Left.LastIPAddressObject(), direction, action))
 }
 
-func createActiveRules(activeRules []ds.Pair[*netset.IPBlock, ds.Product[*netset.IPBlock, *netset.TransportSet]], srcLastIP *netset.IPBlock,
-	direction ir.Direction, action ir.Action) []*ir.ACLRule {
+func createActiveRules(activeRules []activeRule, srcLastIP *netset.IPBlock, direction ir.Direction, action ir.Action) []*ir.ACLRule {
 	res := make([]*ir.ACLRule, 0)
 	for _, rule := range activeRules {
 		res = slices.Concat(res, createNewRules(rule.Left, srcLastIP, rule.Right.Partitions()[0], direction, action))
@@ -137,24 +138,8 @@ func createNewRules(srcStartIP, srcEndIP *netset.IPBlock, cubeDetails ds.Pair[*n
 	return res
 }
 
-func uncoveredHole(prevSrcIP, currSrcIP *netset.IPBlock, anyProtocolCubes srcDstProduct) bool {
-	touching, _ := prevSrcIP.TouchingIPRanges(currSrcIP)
-	if !touching {
-		return true
-	}
-	anyProtocolSrc := anyProtocolCubes.(*ds.ProductLeft[*netset.IPBlock, *netset.IPBlock]).Left(netset.NewIPBlock())
-
-	nextPrevIP, _ := prevSrcIP.NextIP()
-	prevTouchesAny := nextPrevIP.Overlap(anyProtocolSrc)
-
-	prevCurrIP, _ := currSrcIP.PreviousIP()
-	currTouchesAny := prevCurrIP.Overlap(anyProtocolSrc)
-
-	return (prevTouchesAny || prevSrcIP.Overlap(anyProtocolSrc)) && (currTouchesAny || currSrcIP.Overlap(anyProtocolSrc))
-}
-
 // converts cubes from a slices of triples to a slice of `activrRule` type
-func convertCubeTypes(cubes []ds.Triple[*netset.IPBlock, *netset.IPBlock, *netset.TransportSet]) []activeRule {
+func convertCubesType(cubes []ds.Triple[*netset.IPBlock, *netset.IPBlock, *netset.TransportSet]) []activeRule {
 	res := make([]activeRule, len(cubes))
 	for i := range cubes {
 		res[i] = activeRule{Left: cubes[i].S1, Right: ds.CartesianPairLeft(cubes[i].S2, cubes[i].S3)}
@@ -175,13 +160,12 @@ func transportSetToProtocols(t *netset.TransportSet) []*netset.TransportSet {
 		return res
 	}
 	protocolString := netp.ProtocolStringUDP
-	if tcpudpPartitions[0].S1.Elements()[0] == netset.TCPCode { // its tcp
+	if tcpudpPartitions[0].S1.Elements()[0] == netset.TCPCode { // tcp
 		protocolString = netp.ProtocolStringTCP
 	}
 	for _, tcpudp := range tcpudpPartitions {
-		tcpudpSrcPorts := tcpudp.S2.Intervals()
 		tcpudpDstPorts := tcpudp.S3.Intervals()
-		for _, srcPorts := range tcpudpSrcPorts {
+		for _, srcPorts := range tcpudp.S2.Intervals() {
 			for _, dstPorts := range tcpudpDstPorts {
 				p := netset.NewTCPorUDPTransport(protocolString, srcPorts.Start(), srcPorts.End(), dstPorts.Start(), dstPorts.End())
 				res = append(res, p)

@@ -60,3 +60,16 @@ func IcmpsetPartitions(icmpset *netset.ICMPSet) []netp.ICMP {
 func IsAllPorts(tcpudpPorts *netset.PortSet) bool {
 	return tcpudpPorts.Equal(netset.AllPorts())
 }
+
+// UncoveredHole returns true if the rules can not be continued between the two cubes
+// i.e there is a hole between two ipblocks that is not a subset of anyProtocol cubes
+func UncoveredHole(prevIPBlock, currIPBlock, anyProtocolCubes *netset.IPBlock) bool {
+	touching, _ := prevIPBlock.TouchingIPRanges(currIPBlock)
+	if touching {
+		return false
+	}
+	holeFirstIP, _ := prevIPBlock.NextIP()
+	holeEndIP, _ := currIPBlock.PreviousIP()
+	hole, _ := netset.IPBlockFromIPRange(holeFirstIP, holeEndIP)
+	return !hole.IsSubset(anyProtocolCubes)
+}
