@@ -17,87 +17,119 @@ import (
 
 func aclCubesToRules(cubes *aclCubesPerProtocol, direction ir.Direction) []*ir.ACLRule {
 	// we will calculate the optimized deny cubes in `reduceACLCubes` func
-	cubes.tcpDeny = ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet]()
-	cubes.udpDeny = ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TCPUDPSet]()
-	cubes.icmpDeny = ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.ICMPSet]()
+	cubes.tcpDeny = ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TransportSet]()
+	cubes.udpDeny = ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TransportSet]()
+	cubes.icmpDeny = ds.NewLeftTripleSet[*netset.IPBlock, *netset.IPBlock, *netset.TransportSet]()
+	cubes.anyProtocolDeny = ds.NewProductLeft[*netset.IPBlock, *netset.IPBlock]()
 
 	reduceACLCubes(cubes)
 
-	denyTCPRules := tcpudpTriplesToRules(cubes.tcpDeny, direction, ir.Deny)
-	allowTCPRules := tcpudpRules(cubes.tcpAllow, cubes.anyProtocolAllow, direction, netset.NewAllTCPOnlySet())
+	denyTCPRules := protocolCubesToRules(cubes.tcpDeny, cubes.anyProtocolDeny, direction, netset.AllTCPTransport(), ir.Deny)
+	allowTCPRules := protocolCubesToRules(cubes.tcpAllow, cubes.anyProtocolAllow, direction, netset.AllTCPTransport(), ir.Allow)
 
-	denyUDPRules := tcpudpTriplesToRules(cubes.udpDeny, direction, ir.Deny)
-	allowUDPRules := tcpudpRules(cubes.udpAllow, cubes.anyProtocolAllow, direction, netset.NewAllUDPOnlySet())
+	denyUDPRules := protocolCubesToRules(cubes.udpDeny, cubes.anyProtocolDeny, direction, netset.AllUDPTransport(), ir.Deny)
+	allowUDPRules := protocolCubesToRules(cubes.udpAllow, cubes.anyProtocolAllow, direction, netset.AllUDPTransport(), ir.Allow)
 
-	denyICMPRules := icmpTriplesToRules(cubes.icmpDeny, direction, ir.Deny)
-	allowICMPRules := icmpRules(cubes.icmpAllow, cubes.anyProtocolAllow, direction)
+	denyICMPRules := protocolCubesToRules(cubes.icmpDeny, cubes.anyProtocolAllow, direction, netset.AllICMPTransport(), ir.Deny)
+	allowICMPRules := protocolCubesToRules(cubes.icmpAllow, cubes.anyProtocolAllow, direction, netset.AllICMPTransport(), ir.Allow)
 
-	allowAnyProtocolRules := anyProtocolCubesToRules(cubes.anyProtocolAllow, direction)
-	return slices.Concat(denyTCPRules, allowTCPRules, denyUDPRules, allowUDPRules, denyICMPRules, allowICMPRules, allowAnyProtocolRules)
+	denyAnyProtocolRules := anyProtocolCubesToRules(cubes.anyProtocolDeny, direction, ir.Deny)
+	allowAnyProtocolRules := anyProtocolCubesToRules(cubes.anyProtocolAllow, direction, ir.Allow)
+	return slices.Concat(denyTCPRules, allowTCPRules, denyUDPRules, allowUDPRules, denyICMPRules,
+		allowICMPRules, denyAnyProtocolRules, allowAnyProtocolRules)
 }
 
-// same algorithm as sg cubes to rules
-func anyProtocolCubesToRules(cubes srcDstProduct, direction ir.Direction) []*ir.ACLRule {
-	partitions := optimize.SortPartitionsByIPAddrs(cubes.Partitions())
-	if len(partitions) == 0 {
-		return []*ir.ACLRule{}
-	}
-
-	res := make([]*ir.ACLRule, 0)
-	activeRules := make([]ds.Pair[*netset.IPBlock, *netset.IPBlock], 0) // Left = first src's IP, Right = dst cidr
-
-	for i := range partitions {
-		// if it is not possible to continue the rule between the cubes, generate all existing rules
-		if i > 0 && uncoveredHole(partitions[i-1].Left, partitions[i].Left) {
-			res = slices.Concat(res, createActiveRules(activeRules, partitions[i-1].Left.LastIPAddressObject(), direction))
-			activeRules = make([]ds.Pair[*netset.IPBlock, *netset.IPBlock], 0)
-		}
-
-		// if there are active rules whose dsts are not fully included in the current cube, they will be created
-		// also activeDstIPs will be calculated, which is the dstIPs that are still included in the active rules
-		activeDstIPs := netset.NewIPBlock()
-		for j, rule := range slices.Backward(activeRules) {
-			if rule.Right.IsSubset(partitions[i].Right) {
-				activeDstIPs = activeDstIPs.Union(rule.Right)
-			} else {
-				res = createNewRules(rule.Left, partitions[i-1].Left.LastIPAddressObject(), rule.Right, direction) // create active rule
-				activeRules = slices.Delete(activeRules, j, j+1)
-			}
-		}
-
-		// if the current cube contains dstIPs that are not contained in active rules, new rules will be created
-		for _, dstCidr := range partitions[i].Right.SplitToCidrs() {
-			if !dstCidr.IsSubset(activeDstIPs) {
-				rule := ds.Pair[*netset.IPBlock, *netset.IPBlock]{Left: partitions[i].Left.FirstIPAddressObject(), Right: dstCidr}
-				activeRules = append(activeRules, rule)
-			}
-		}
-	}
-	// generate all existing rules
-	return slices.Concat(res, createActiveRules(activeRules, partitions[len(partitions)-1].Left.LastIPAddressObject(), direction))
-}
-
-func createActiveRules(activeRules []ds.Pair[*netset.IPBlock, *netset.IPBlock], srcLastIP *netset.IPBlock,
-	direction ir.Direction) []*ir.ACLRule {
-	res := make([]*ir.ACLRule, 0)
-	for _, rule := range activeRules {
-		res = slices.Concat(res, createNewRules(rule.Left, srcLastIP, rule.Right, direction))
+// Creates two sets of rules: one with only protocol cubes, and the other protocol cubes combined
+// with any protocol cubes. It returns the minimal set
+func protocolCubesToRules(tripleSet protocolTripleSet, anyCubes srcDstProduct, direction ir.Direction,
+	pr *netset.TransportSet, action ir.Action) []*ir.ACLRule {
+	res := tripleSetToCubes(tripleSet, direction, action)
+	resWithAny := tripleSetToCubes(addSrcDstCubesToProtocolCubes(tripleSet, anyCubes, pr), direction, action)
+	if len(resWithAny) < len(res) {
+		return resWithAny
 	}
 	return res
 }
 
-func createNewRules(srcStartIP, srcEndIP, dstCidr *netset.IPBlock, direction ir.Direction) []*ir.ACLRule {
-	src, _ := netset.IPBlockFromIPRange(srcStartIP, srcEndIP)
-	srcCidrs := src.SplitToCidrs()
-
-	res := make([]*ir.ACLRule, len(srcCidrs))
-	for i, srcCidr := range srcCidrs {
-		res[i] = ir.NewACLRule(ir.Allow, direction, srcCidr, dstCidr, netp.AnyProtocol{}, "")
+// tripleSetToCubes calculates the minimal cubes partition and returns the corresponded slice of nACL rules
+func tripleSetToCubes(tripleSet protocolTripleSet, direction ir.Direction, action ir.Action) []*ir.ACLRule {
+	partitions := minimalCubesPartitions(tripleSet)
+	res := make([]*ir.ACLRule, len(partitions))
+	for i, t := range partitions {
+		res[i] = ir.NewACLRule(action, direction, t.S1, t.S2, t.S3, "")
 	}
 	return res
 }
 
-func uncoveredHole(prevSrcIP, currSrcIP *netset.IPBlock) bool {
-	touching, _ := prevSrcIP.TouchingIPRanges(currSrcIP)
-	return !touching
+// minimalCubesPartitions returns the minimal set of cubes partitions based on the triple set type
+func minimalCubesPartitions(t protocolTripleSet) []ds.Triple[*netset.IPBlock, *netset.IPBlock, netp.Protocol] {
+	leftPartitions := actualPartitions(ds.AsLeftTripleSet(t))
+	outerPartitions := actualPartitions(ds.AsOuterTripleSet(t))
+	rightPartitions := actualPartitions(ds.AsRightTripleSet(t))
+
+	switch {
+	case len(leftPartitions) <= len(outerPartitions) && len(leftPartitions) <= len(rightPartitions):
+		return leftPartitions
+	case len(outerPartitions) <= len(leftPartitions) && len(outerPartitions) <= len(rightPartitions):
+		return outerPartitions
+	default:
+		return rightPartitions
+	}
+}
+
+func actualPartitions(t protocolTripleSet) []ds.Triple[*netset.IPBlock, *netset.IPBlock, netp.Protocol] {
+	res := make([]ds.Triple[*netset.IPBlock, *netset.IPBlock, netp.Protocol], 0)
+	for _, p := range t.Partitions() {
+		res = slices.Concat(res, breakTCPUDPTriple(p), breakICMPTriple(p)) // here, one function returns an empty slice
+	}
+	return res
+}
+
+// break multi-cube to regular cube
+func breakTCPUDPTriple(t ds.Triple[*netset.IPBlock, *netset.IPBlock, *netset.TransportSet]) []ds.Triple[*netset.IPBlock,
+	*netset.IPBlock, netp.Protocol] {
+	if t.S3.TCPUDPSet().IsEmpty() {
+		return []ds.Triple[*netset.IPBlock, *netset.IPBlock, netp.Protocol]{}
+	}
+	res := make([]ds.Triple[*netset.IPBlock, *netset.IPBlock, netp.Protocol], 0)
+
+	dstCidrs := t.S2.SplitToCidrs()
+	tcpudpTriples := t.S3.TCPUDPSet().Partitions()
+	isTCP := tcpudpTriples[0].S1.Elements()[0] == netset.TCPCode
+	for _, src := range t.S1.SplitToCidrs() {
+		for _, dst := range dstCidrs {
+			for _, protocolTriple := range tcpudpTriples {
+				tcpudpSrcPorts := protocolTriple.S2.Intervals()
+				tcpudpDstPorts := protocolTriple.S3.Intervals()
+				for _, srcPorts := range tcpudpSrcPorts {
+					for _, dstPorts := range tcpudpDstPorts {
+						p, _ := netp.NewTCPUDP(isTCP, int(srcPorts.Start()), int(srcPorts.End()), int(dstPorts.Start()), int(dstPorts.End()))
+						res = append(res, ds.Triple[*netset.IPBlock, *netset.IPBlock, netp.Protocol]{S1: src, S2: dst, S3: p})
+					}
+				}
+			}
+		}
+	}
+	return res
+}
+
+// break multi-cube to regular cube
+func breakICMPTriple(t ds.Triple[*netset.IPBlock, *netset.IPBlock, *netset.TransportSet]) []ds.Triple[*netset.IPBlock,
+	*netset.IPBlock, netp.Protocol] {
+	if t.S3.ICMPSet().IsEmpty() {
+		return []ds.Triple[*netset.IPBlock, *netset.IPBlock, netp.Protocol]{}
+	}
+	res := make([]ds.Triple[*netset.IPBlock, *netset.IPBlock, netp.Protocol], 0)
+
+	dstCidrs := t.S2.SplitToCidrs()
+	icmpPartitions := optimize.IcmpsetPartitions(t.S3.ICMPSet())
+	for _, src := range t.S1.SplitToCidrs() {
+		for _, dst := range dstCidrs {
+			for _, icmp := range icmpPartitions {
+				a := ds.Triple[*netset.IPBlock, *netset.IPBlock, netp.Protocol]{S1: src, S2: dst, S3: icmp}
+				res = append(res, a)
+			}
+		}
+	}
+	return res
 }
