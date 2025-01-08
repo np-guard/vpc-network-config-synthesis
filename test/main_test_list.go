@@ -501,6 +501,16 @@ func optimizeSGTestsLists() []testCase {
 				firewallName: vsi1,
 			},
 		},
+		{
+			testName: "optimize_sg2_tf",
+			args: &command{
+				cmd:          optimize,
+				subcmd:       sg,
+				config:       "%s/optimize_sg2/config_object.json",
+				outputFile:   "%s/optimize_sg2_tf/sg_expected.tf",
+				firewallName: vsi1,
+			},
+		},
 	}
 }
 
