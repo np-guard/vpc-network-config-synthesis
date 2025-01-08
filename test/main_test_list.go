@@ -23,7 +23,7 @@ const (
 	optimizeACL3Config             = "%s/optimize_acl3/config_object.json"
 	optimizeACL4Config             = "%s/optimize_acl4/config_object.json"
 	optimizeACL5Config             = "%s/optimize_acl5/config_object.json"
-	optimizeACL6Config             = "%s/optimize_acl6/config_object.json"
+	optimizeACL6Config             = "%s/optimize_acl6_issue248_example1/config_object.json"
 	optimizeACLAnyProtocolConfig   = "%s/optimize_acl_anyProtocol/config_object.json"
 	optimizeSGProtocolsToAllConfig = "%s/optimize_sg_protocols_to_all/config_object.json"
 
@@ -592,12 +592,12 @@ func optimizeACLTestsLists() []testCase {
 		// Test that matches issue #248 Example 1
 		//
 		// {
-		// 	testName: "optimize_acl6_tf",
+		// 	testName: "optimize_acl6_issue248_example1_tf",
 		// 	args: &command{
 		// 		cmd:        optimize,
 		// 		subcmd:     acl,
 		// 		config:     optimizeACL6Config,
-		// 		outputFile: "%s/optimize_acl6_tf/nacl_expected.tf",
+		// 		outputFile: "%s/optimize_acl6_issue248_example1_tf/nacl_expected.tf",
 		// 	},
 		// },
 	}
