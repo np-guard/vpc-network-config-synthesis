@@ -160,10 +160,9 @@ func reduceRulesSGRemote(cubes *sgCubesPerProtocol, direction ir.Direction, l *n
 func reduceRulesIPRemote(cubes *ipCubesPerProtocol, direction ir.Direction, l *netset.IPBlock) []*ir.SGRule {
 	reduceIPCubes(cubes)
 
-	// cubes to SG rules
-	tcpRules := tcpudpIPCubesToRules(cubes.tcp, cubes.anyProtocol, direction, true, l)
-	udpRules := tcpudpIPCubesToRules(cubes.udp, cubes.anyProtocol, direction, false, l)
-	icmpRules := icmpIPCubesToRules(cubes.icmp, cubes.anyProtocol, direction, l)
+	tcpRules := tcpudpIPCubesToMinRules(cubes.tcp, cubes.anyProtocol, direction, true, l)
+	udpRules := tcpudpIPCubesToMinRules(cubes.udp, cubes.anyProtocol, direction, false, l)
+	icmpRules := icmpIPCubesToMinRules(cubes.icmp, cubes.anyProtocol, direction, l)
 	anyProtocolRules := anyProtocolIPCubesToRules(cubes.anyProtocol, direction, l)
 
 	// return all rules

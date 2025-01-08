@@ -27,6 +27,19 @@ func anyProtocolIPCubesToRules(cubes *netset.IPBlock, direction ir.Direction, l 
 	return result
 }
 
+// tcpudpIPCubesToMinRules calls tcpudpIPCubesToRules func twice -- once when the any protocol cubes are converted
+// to tcp/udp cubes and onces when they are not. it returns the best result (less sg rules)
+func tcpudpIPCubesToMinRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], anyProtocolCubes *netset.IPBlock, direction ir.Direction,
+	isTCP bool, l *netset.IPBlock) []*ir.SGRule {
+	res := tcpudpIPCubesToRules(cubes, anyProtocolCubes, direction, isTCP, l)
+	anyAsTCPUDP := partitionsToProduct(cubes).Union(ds.CartesianPairLeft(anyProtocolCubes, netset.AllPorts()))
+	resWithAny := tcpudpIPCubesToRules(optimize.SortPartitionsByIPAddrs(anyAsTCPUDP.Partitions()), anyProtocolCubes, direction, isTCP, l)
+	if len(resWithAny) < len(res) {
+		return resWithAny
+	}
+	return res
+}
+
 // tcpudpIPCubesToRules converts cubes representing tcp or udp protocol rules to SG rules
 func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], anyProtocolCubes *netset.IPBlock, direction ir.Direction,
 	isTCP bool, l *netset.IPBlock) []*ir.SGRule {
@@ -68,6 +81,19 @@ func tcpudpIPCubesToRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], any
 	}
 	// generate all existing rules
 	return slices.Concat(res, createActiveRules(activeRules, cubes[len(cubes)-1].Left.LastIPAddressObject(), direction, l))
+}
+
+// icmpIPCubesToMinRules calls icmpIPCubesToRules func twice -- once when the any protocol cubes are converted
+// to icmp cubes and onces when they are not. it returns the best result (less sg rules)
+func icmpIPCubesToMinRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], anyProtocolCubes *netset.IPBlock, direction ir.Direction,
+	l *netset.IPBlock) []*ir.SGRule {
+	res := icmpIPCubesToRules(cubes, anyProtocolCubes, direction, l)
+	anyAsICMP := partitionsToProduct(cubes).Union(ds.CartesianPairLeft(anyProtocolCubes, netset.AllICMPSet()))
+	resWithAny := icmpIPCubesToRules(optimize.SortPartitionsByIPAddrs(anyAsICMP.Partitions()), anyProtocolCubes, direction, l)
+	if len(resWithAny) < len(res) {
+		return resWithAny
+	}
+	return res
 }
 
 // icmpIPCubesToRules converts cubes representing icmp protocol rules to SG rules
@@ -146,6 +172,14 @@ func createNewRules(protocol netp.Protocol, startIP, endIP *netset.IPBlock, dire
 	res := make([]*ir.SGRule, len(remoteCidrs))
 	for i, remoteCidr := range remoteCidrs {
 		res[i] = ir.NewSGRule(direction, remoteCidr, protocol, l, "")
+	}
+	return res
+}
+
+func partitionsToProduct[T ds.Set[T]](pairs []ds.Pair[*netset.IPBlock, T]) ds.Product[*netset.IPBlock, T] {
+	res := ds.NewProductLeft[*netset.IPBlock, T]()
+	for i := range pairs {
+		res = res.Union(ds.CartesianPairLeft(pairs[i].Left, pairs[i].Right)).(*ds.ProductLeft[*netset.IPBlock, T])
 	}
 	return res
 }
