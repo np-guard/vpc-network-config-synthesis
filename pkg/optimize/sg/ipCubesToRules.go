@@ -33,7 +33,8 @@ func tcpudpIPCubesToMinRules(cubes []ds.Pair[*netset.IPBlock, *netset.PortSet], 
 	isTCP bool, l *netset.IPBlock) []*ir.SGRule {
 	res := tcpudpIPCubesToRules(cubes, anyProtocolCubes, direction, isTCP, l)
 	anyAsTCPUDP := partitionsToProduct(cubes).Union(ds.CartesianPairLeft(anyProtocolCubes, netset.AllPorts()))
-	resWithAny := tcpudpIPCubesToRules(optimize.SortPartitionsByIPAddrs(anyAsTCPUDP.Partitions()), anyProtocolCubes, direction, isTCP, l)
+	resWithAny := tcpudpIPCubesToRules(optimize.SortPartitionsByIPAddrs(anyAsTCPUDP.Partitions()),
+		netset.NewIPBlock(), direction, isTCP, l) // pass an empty ipblock instead of anyProtocol iblock
 	if len(resWithAny) < len(res) {
 		return resWithAny
 	}
@@ -89,7 +90,8 @@ func icmpIPCubesToMinRules(cubes []ds.Pair[*netset.IPBlock, *netset.ICMPSet], an
 	l *netset.IPBlock) []*ir.SGRule {
 	res := icmpIPCubesToRules(cubes, anyProtocolCubes, direction, l)
 	anyAsICMP := partitionsToProduct(cubes).Union(ds.CartesianPairLeft(anyProtocolCubes, netset.AllICMPSet()))
-	resWithAny := icmpIPCubesToRules(optimize.SortPartitionsByIPAddrs(anyAsICMP.Partitions()), anyProtocolCubes, direction, l)
+	resWithAny := icmpIPCubesToRules(optimize.SortPartitionsByIPAddrs(anyAsICMP.Partitions()),
+		netset.NewIPBlock(), direction, l) // pass an empty ipblock instead of anyProtocol iblock
 	if len(resWithAny) < len(res) {
 		return resWithAny
 	}
