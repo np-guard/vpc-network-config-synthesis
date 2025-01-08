@@ -38,7 +38,7 @@ type (
 
 		// initialized in reduceCubes func
 		anyProtocolAllow srcDstProduct
-		anyProtocolDeny  srcDstProduct // will be used soon
+		anyProtocolDeny  srcDstProduct
 	}
 )
 
