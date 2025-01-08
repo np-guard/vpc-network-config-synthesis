@@ -68,7 +68,8 @@ func minimalCubesPartitions(tripleSet protocolTripleSet, anyCubes srcDstProduct,
 	return outerPartitions
 }
 
-// based on sg optimization algorithm
+// based on sg optimization algorithm, but in this case activeRules map a srcIP (block start)
+// to a pair of a single dstIP CIDR and a single protocol partition
 func cubesToRules(cubes protocolTripleSet, anyProtocolCubes srcDstProduct, direction ir.Direction, action ir.Action) []*ir.ACLRule {
 	partitions := convertCubesType(cubes.Partitions())
 	if len(partitions) == 0 {
@@ -87,7 +88,7 @@ func cubesToRules(cubes protocolTripleSet, anyProtocolCubes srcDstProduct, direc
 		}
 
 		// if there are active rules whose cubeDetails are not fully included in the current cube, they will be created
-		// also activeCubes will be calculated, which is the activrCubes that are still included in the active rules
+		// also activeCubes will be calculated, which is the activeCubess that are still included in the active rules
 		activeCubes := ds.NewProductLeft[*netset.IPBlock, *netset.TransportSet]()
 		for j, rule := range slices.Backward(activeRules) {
 			if rule.Right.IsSubset(partitions[i].Right) {
@@ -104,9 +105,8 @@ func cubesToRules(cubes protocolTripleSet, anyProtocolCubes srcDstProduct, direc
 			dstPortCidrs := currCube.Left.SplitToCidrs()
 			for _, p := range transportSetToProtocols(currCube.Right) {
 				for _, dstCidr := range dstPortCidrs {
-					detailsCube := ds.CartesianPairLeft(dstCidr, p)
-					if !detailsCube.IsSubset(activeCubes) {
-						cubeDetails := ds.CartesianPairLeft(dstCidr, p)
+					cubeDetails := ds.CartesianPairLeft(dstCidr, p)
+					if !cubeDetails.IsSubset(activeCubes) {
 						rule := activeRule{Left: partitions[i].Left.FirstIPAddressObject(), Right: cubeDetails}
 						activeRules = append(activeRules, rule)
 					}
@@ -167,13 +167,13 @@ func transportSetToProtocols(t *netset.TransportSet) []*netset.TransportSet {
 	return res
 }
 
-// the transport set contains only one protocol cube
+// // assuming the transport set contains a single protocol cube that can be used in a single nACL rule
 func transportSetToProtocol(t *netset.TransportSet) netp.Protocol {
 	icmpSet := t.ICMPSet()
 	tcpudpSet := t.TCPUDPSet()
 
 	switch {
-	case !icmpSet.IsEmpty() && !tcpudpSet.IsEmpty():
+	case t.IsAll():
 		return netp.AnyProtocol{}
 	case !icmpSet.IsEmpty():
 		return optimize.IcmpsetPartitions(icmpSet)[0]
@@ -186,7 +186,7 @@ func transportSetToProtocol(t *netset.TransportSet) netp.Protocol {
 	return res
 }
 
-// converts cubes from a slices of triples to a slice of `activrRule` type
+// converts cubes from a slices of triples to a slice of `activeRule` type
 func convertCubesType(cubes []ds.Triple[*netset.IPBlock, *netset.IPBlock, *netset.TransportSet]) []activeRule {
 	res := make([]activeRule, len(cubes))
 	for i := range cubes {
