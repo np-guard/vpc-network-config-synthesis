@@ -1,3 +1,6 @@
+> [!WARNING]  
+> This repo is no longer being maintained
+
 # vpc-network-config-synthesis
 
 ## About vpc-network-config-synthesis
